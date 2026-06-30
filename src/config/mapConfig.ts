@@ -116,11 +116,12 @@ export const mapConfig: MapConfig = {
     maxPitch: 68,
   },
 
-  // Free, no-key elevation tiles (AWS open data) give the 3D view real relief.
+  // Free, no-key elevation tiles (AWS open data "Terrain Tiles") give the 3D
+  // view real relief. The path-style URL is the canonical CORS-enabled one.
   terrain: {
-    demUrl: 'https://elevation-tiles-prod.s3.amazonaws.com/terrarium/{z}/{x}/{y}.png',
+    demUrl: 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png',
     encoding: 'terrarium',
-    exaggeration: 1.3,
+    exaggeration: 1.6,
   },
 
   theme: {

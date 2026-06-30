@@ -6,7 +6,14 @@ import { loadSpray, dayToDate, type SprayDataset } from '../data/spray'
 import { mapConfig } from '../config/mapConfig'
 import Timeline from './Timeline'
 import { buildAgentChoices, type AgentChoice } from './agentChoices'
-import { applyMapTheme, addSprayLayers, setSprayTime, setAgentVisibility } from './mapTheme'
+import {
+  applyMapTheme,
+  addSprayLayers,
+  setSprayTime,
+  setAgentVisibility,
+  addHillshade,
+  setHillshade,
+} from './mapTheme'
 
 const SPRAY_SOURCE = 'spray'
 const DEM_SOURCE = 'terrain-dem'
@@ -102,15 +109,16 @@ export default function MapView() {
 
         applyMapTheme(map)
 
-        // DEM source for the optional 3D terrain (added now, enabled on toggle).
+        // DEM source + hillshade for the 3D terrain (enabled on toggle).
         if (mapConfig.terrain && !map.getSource(DEM_SOURCE)) {
           map.addSource(DEM_SOURCE, {
             type: 'raster-dem',
             tiles: [mapConfig.terrain.demUrl],
             tileSize: 256,
             encoding: mapConfig.terrain.encoding,
-            maxzoom: 14,
+            maxzoom: 15,
           })
+          addHillshade(map, DEM_SOURCE)
         }
 
         const agentChoices = buildAgentChoices(spray.agents)
@@ -188,7 +196,7 @@ export default function MapView() {
     return () => cancelAnimationFrame(frame)
   }, [playing, bounds.min, bounds.max])
 
-  // Switch between flat (top-down) and tilted 3D + terrain.
+  // Switch between flat (top-down) and tilted 3D terrain.
   function toggleView() {
     const map = mapRef.current
     if (!map) return
@@ -198,8 +206,15 @@ export default function MapView() {
       map.setTerrain(
         next ? { source: DEM_SOURCE, exaggeration: mapConfig.terrain.exaggeration } : null,
       )
+      setHillshade(map, next) // shaded relief makes the elevation visible
     }
-    map.easeTo({ pitch: next ? mapConfig.view.pitch3d : 0, duration: 800 })
+    // Tilt; when entering 3D also zoom in a touch — terrain reads as 3D far
+    // better up close than at the full-country overview.
+    map.easeTo({
+      pitch: next ? mapConfig.view.pitch3d : 0,
+      ...(next && map.getZoom() < 6.6 ? { zoom: 6.6 } : {}),
+      duration: 1000,
+    })
   }
 
   return (
