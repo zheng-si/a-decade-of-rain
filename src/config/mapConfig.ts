@@ -124,17 +124,19 @@ export const mapConfig: MapConfig = {
     exaggeration: 1.6,
   },
 
+  // Muted cartographic palette matching the Figma redesign: warm near-white
+  // paper, soft desaturated sage land, pale cool sea, hairline borders.
   theme: {
-    land: '#f3efe9',
-    water: '#cde0e6',
-    greenspace: '#e3ebdc',
-    building: '#e7e1d8',
+    land: '#f4f2ea',
+    water: '#dde6e4',
+    greenspace: '#cdd8c3',
+    building: '#e9e3d6',
     road: '#ffffff',
-    boundary: '#c4b9a8',
+    boundary: '#d8d1c2',
     label: {
-      color: '#4a4540',
+      color: '#5b5e57',
       halo: '#ffffff',
-      haloWidth: 1.4,
+      haloWidth: 1.3,
       sizeScale: 1,
       // Must match a self-hosted glyph stack (public/fonts/<name>/). See
       // scripts/build-glyphs.mjs to add more fonts/weights.
@@ -144,13 +146,14 @@ export const mapConfig: MapConfig = {
 
   // One colour per agent group. Orange/White/Blue are the three big ones; the
   // rest (Purple, Pink, etc.) fold into "Other".
-  // Colours match the agent names: Orange = orange, White = light grey,
-  // Blue = light blue. Other (Purple, Pink, …) keeps a distinct violet.
+  // Agent names mapped to colours, desaturated to sit on the muted basemap:
+  // Orange = earthy orange, White = warm grey, Blue = muted slate, Other =
+  // lavender (echoing the design's mangrove tone).
   agents: [
-    { key: 'O', label: 'Orange', codes: ['O'], color: '#ef7d1a' },
-    { key: 'W', label: 'White', codes: ['W'], color: '#a9adb3' },
-    { key: 'B', label: 'Blue', codes: ['B'], color: '#5aa6e0' },
-    { key: 'other', label: 'Other', codes: ['P', 'U', 'K', 'D', 'T'], color: '#9a6cc4' },
+    { key: 'O', label: 'Orange', codes: ['O'], color: '#e07d3c' },
+    { key: 'W', label: 'White', codes: ['W'], color: '#adaca2' },
+    { key: 'B', label: 'Blue', codes: ['B'], color: '#6fa1c2' },
+    { key: 'other', label: 'Other', codes: ['P', 'U', 'K', 'D', 'T'], color: '#9a8fb8' },
   ],
 
   heatmap: {
