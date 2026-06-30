@@ -101,6 +101,36 @@ function firstLabelLayerId(map: maplibregl.Map): string | undefined {
   return undefined
 }
 
+export const HILLSHADE_LAYER = 'hillshade'
+
+/** Add a hillshade layer (hidden until 3D) that shades the DEM relief, so the
+ *  terrain is clearly visible — not just a tilted flat map. Sits under labels
+ *  and under the spray heatmap (added afterwards). */
+export function addHillshade(map: maplibregl.Map, demSource: string) {
+  if (map.getLayer(HILLSHADE_LAYER)) return
+  map.addLayer(
+    {
+      id: HILLSHADE_LAYER,
+      type: 'hillshade',
+      source: demSource,
+      layout: { visibility: 'none' },
+      paint: {
+        'hillshade-exaggeration': 0.6,
+        'hillshade-shadow-color': '#4f4a42',
+        'hillshade-accent-color': '#6b6052',
+        'hillshade-highlight-color': '#ffffff',
+      },
+    },
+    firstLabelLayerId(map),
+  )
+}
+
+export function setHillshade(map: maplibregl.Map, on: boolean) {
+  if (map.getLayer(HILLSHADE_LAYER)) {
+    map.setLayoutProperty(HILLSHADE_LAYER, 'visibility', on ? 'visible' : 'none')
+  }
+}
+
 export function addSprayLayers(map: maplibregl.Map, sourceId: string, choices: AgentChoice[], day: number) {
   const { radius, intensity, opacity } = mapConfig.heatmap
   const beforeId = firstLabelLayerId(map)
