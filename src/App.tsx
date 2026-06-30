@@ -9,9 +9,9 @@ function App() {
         <p className="eyebrow">Remedial Vietnam · GIS prototype</p>
         <h1>Agent Orange &amp; Dioxin Remediation</h1>
         <p className="lede">
-          Interactive map prototype. Red markers are the major dioxin hotspot
-          airbases — click them. Next: real Operation Ranch Hand spray data on a
-          time axis, then scrollytelling narrative.
+          Red markers are the major dioxin hotspot airbases — click them. The
+          heat map is real Operation Ranch Hand spraying (1961–1971, Stellman
+          et al. 2003); press play to watch it accumulate, or isolate an agent.
         </p>
       </div>
     </div>
