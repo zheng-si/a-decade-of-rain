@@ -1,0 +1,47 @@
+.app {
+  position: fixed;
+  inset: 0;
+}
+
+.map-root {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.intro-card {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  max-width: 320px;
+  padding: 20px 22px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  z-index: 1;
+}
+
+.intro-card .eyebrow {
+  margin: 0 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d6453d;
+  font-weight: 600;
+}
+
+.intro-card h1 {
+  margin: 0 0 10px;
+  font-size: 22px;
+  line-height: 1.2;
+  color: #1a1a1a;
+}
+
+.intro-card .lede {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: #444;
+}
