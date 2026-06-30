@@ -93,8 +93,9 @@ export interface MapConfig {
 export const mapConfig: MapConfig = {
   baseStyleUrl: 'https://tiles.openfreemap.org/styles/positron',
 
-  // To use a custom (non-OpenFreeMap) label font, self-host glyphs and set:
-  // glyphsUrl: '/fonts/{fontstack}/{range}.pbf',
+  // Self-hosted Switzer glyphs (see scripts/build-glyphs.mjs) label the map in
+  // the project font instead of OpenFreeMap's Noto.
+  glyphsUrl: '/fonts/{fontstack}/{range}.pbf',
 
   view: {
     // Tuned so a 16" laptop shows all of Vietnam, ~2/3 of the viewport height.
@@ -134,7 +135,9 @@ export const mapConfig: MapConfig = {
       halo: '#ffffff',
       haloWidth: 1.4,
       sizeScale: 1,
-      // font: ['Noto Sans Medium'],
+      // Must match a self-hosted glyph stack (public/fonts/<name>/). See
+      // scripts/build-glyphs.mjs to add more fonts/weights.
+      font: ['Switzer Medium'],
     },
   },
 
