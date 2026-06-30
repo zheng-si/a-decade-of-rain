@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Cached raw source for the spray-data ETL (re-fetched on demand)
+scripts/.cache
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
