@@ -2,6 +2,9 @@
 
 ## `spray.json` — Operation Ranch Hand herbicide spray runs (1961–1971)
 
+> Built to `public/data/spray.json` (served as a static asset, fetched at
+> runtime by `src/data/spray.ts`).
+
 Time-stamped, georeferenced record of US aerial herbicide spraying in Vietnam.
 Drives the spray heat map and timeline.
 

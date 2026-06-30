@@ -32,7 +32,9 @@ const ROOT = join(__dirname, '..')
 const HEA_V_SHA = 'cb5948bb6b48cb731f139bc3143ae36d0de02b81'
 const HERBS_URL = `https://raw.githubusercontent.com/andrewstellman/hea-v/${HEA_V_SHA}/data/herbs.json`
 const CACHE = join(__dirname, '.cache', 'herbs.json')
-const OUT = join(ROOT, 'src', 'data', 'spray.json')
+// Served as a static asset (fetched at runtime), so it stays out of the JS
+// bundle and off the TypeScript literal-inference path.
+const OUT = join(ROOT, 'public', 'data', 'spray.json')
 
 // Vietnam spans UTM zones 48 & 49, latitude bands N/P/Q. Listing the common
 // bands first makes the bbox test resolve each grid square unambiguously.
