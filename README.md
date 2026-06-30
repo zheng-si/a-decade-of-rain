@@ -52,8 +52,10 @@ Edit it and save — nothing else needs touching.
   OpenFreeMap serves; safe options are listed inline.) These tokens are applied
   to the basemap at load time by `applyMapTheme()` in `src/components/mapTheme.ts`.
 - **`view`** — the locked viewport: `maxBounds` (pan is clamped to Vietnam),
-  `minZoom` (furthest zoom-out), `maxZoom` (furthest zoom-in), and the initial
-  `center` / `zoom`.
+  `minZoom` (furthest zoom-out), `maxZoom` (furthest zoom-in), the initial
+  `center` / `zoom`, and `pitch3d` / `maxPitch` for the 3D tilt.
+- **`terrain`** — the optional 3D relief shown by the **3D view** toggle (free,
+  no-key AWS elevation tiles by default). Remove the block to disable terrain.
 - **`agents`** — one color per herbicide group (Orange / White / Blue / Other).
   Each becomes its own colored heatmap layer and drives the filter chips, so the
   agents are distinguishable by color; selecting a chip isolates that agent.

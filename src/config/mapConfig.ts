@@ -67,6 +67,18 @@ export interface MapConfig {
     maxZoom: number
     /** Pan is clamped to this box: [[west, south], [east, north]]. */
     maxBounds: [[number, number], [number, number]]
+    /** Tilt (degrees) used by the 3D view toggle. */
+    pitch3d: number
+    /** Hard cap on tilt. */
+    maxPitch: number
+  }
+  /** Optional 3D terrain (used by the 3D view). Omit to disable relief. */
+  terrain?: {
+    /** Raster-DEM tile URL. The default is free, no-key AWS Terrarium tiles. */
+    demUrl: string
+    /** Terrarium-encoded DEM. */
+    encoding: 'terrarium' | 'mapbox'
+    exaggeration: number
   }
   theme: MapTheme
   agents: AgentStyle[]
@@ -99,6 +111,15 @@ export const mapConfig: MapConfig = {
       [80.0, 1.0],
       [128.0, 30.0],
     ],
+    pitch3d: 55,
+    maxPitch: 68,
+  },
+
+  // Free, no-key elevation tiles (AWS open data) give the 3D view real relief.
+  terrain: {
+    demUrl: 'https://elevation-tiles-prod.s3.amazonaws.com/terrarium/{z}/{x}/{y}.png',
+    encoding: 'terrarium',
+    exaggeration: 1.3,
   },
 
   theme: {
@@ -129,15 +150,17 @@ export const mapConfig: MapConfig = {
   ],
 
   heatmap: {
+    // Tighter radius keeps spray on the land it came from (less blur into the
+    // sea) and is cheaper to render.
     radius: [
-      [4, 5],
-      [7, 16],
-      [10, 36],
+      [5, 3],
+      [8, 11],
+      [11, 24],
     ],
     intensity: [
-      [4, 0.9],
-      [9, 2.2],
+      [5, 0.8],
+      [10, 1.9],
     ],
-    opacity: 0.78,
+    opacity: 0.8,
   },
 }

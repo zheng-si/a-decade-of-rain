@@ -9,9 +9,15 @@ import { buildAgentChoices, type AgentChoice } from './agentChoices'
 import { applyMapTheme, addSprayLayers, setSprayTime, setAgentVisibility } from './mapTheme'
 
 const SPRAY_SOURCE = 'spray'
+const DEM_SOURCE = 'terrain-dem'
 
 // Target wall-clock duration for a full 1961→1971 play-through.
 const PLAY_DURATION_MS = 28_000
+
+// The heatmap filter is re-applied at most once per this many simulated days,
+// instead of every animation frame — re-tessellating 24k points at 60fps is
+// what made playback drop the heatmap and lag on agent switches.
+const FILTER_STEP_DAYS = 12
 
 const monthLabel = (day: number) =>
   dayToDate(day).toLocaleDateString('en-US', { year: 'numeric', month: 'short', timeZone: 'UTC' })
@@ -42,6 +48,12 @@ export default function MapView() {
   const [day, setDay] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [agentKey, setAgentKey] = useState('all')
+  const [is3D, setIs3D] = useState(false)
+  const [stats, setStats] = useState({ runs: 0, gallons: 0 })
+
+  // Throttle key for the map filter: only re-apply when the day-bucket or the
+  // agent selection actually changes.
+  const appliedKeyRef = useRef('')
 
   // Refs mirror state for the animation loop to avoid stale closures.
   const dayRef = useRef(0)
@@ -75,6 +87,7 @@ export default function MapView() {
         minZoom: mapConfig.view.minZoom,
         maxZoom: mapConfig.view.maxZoom,
         maxBounds: mapConfig.view.maxBounds,
+        maxPitch: mapConfig.view.maxPitch,
         attributionControl: { compact: true },
       })
       mapRef.current = map
@@ -88,6 +101,17 @@ export default function MapView() {
         dataRef.current = spray
 
         applyMapTheme(map)
+
+        // DEM source for the optional 3D terrain (added now, enabled on toggle).
+        if (mapConfig.terrain && !map.getSource(DEM_SOURCE)) {
+          map.addSource(DEM_SOURCE, {
+            type: 'raster-dem',
+            tiles: [mapConfig.terrain.demUrl],
+            tileSize: 256,
+            encoding: mapConfig.terrain.encoding,
+            maxzoom: 14,
+          })
+        }
 
         const agentChoices = buildAgentChoices(spray.agents)
         map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
@@ -119,12 +143,18 @@ export default function MapView() {
 
   const activeIndices = choices.find((c) => c.key === agentKey)?.indices ?? null
 
-  // Advance the cumulative time window on every agent layer.
+  // Advance the cumulative time window + stats, throttled to day-buckets so a
+  // 60fps playhead doesn't re-tessellate the heatmap every frame.
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
+    const atEnd = day >= bounds.max
+    const key = `${Math.floor(day / FILTER_STEP_DAYS)}|${agentKey}|${atEnd}`
+    if (key === appliedKeyRef.current) return
+    appliedKeyRef.current = key
     setSprayTime(map, choices, day)
-  }, [ready, day, choices])
+    if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
+  }, [ready, day, agentKey, activeIndices, choices, bounds.max])
 
   // Toggle which agent layers are visible.
   useEffect(() => {
@@ -158,13 +188,28 @@ export default function MapView() {
     return () => cancelAnimationFrame(frame)
   }, [playing, bounds.min, bounds.max])
 
-  const stats = dataRef.current
-    ? cumulative(dataRef.current, day, activeIndices)
-    : { runs: 0, gallons: 0 }
+  // Switch between flat (top-down) and tilted 3D + terrain.
+  function toggleView() {
+    const map = mapRef.current
+    if (!map) return
+    const next = !is3D
+    setIs3D(next)
+    if (mapConfig.terrain && map.getSource(DEM_SOURCE)) {
+      map.setTerrain(
+        next ? { source: DEM_SOURCE, exaggeration: mapConfig.terrain.exaggeration } : null,
+      )
+    }
+    map.easeTo({ pitch: next ? mapConfig.view.pitch3d : 0, duration: 800 })
+  }
 
   return (
     <div className="map-wrap">
       <div ref={containerRef} className="map-root" />
+      {ready && (
+        <button className="view-toggle" onClick={toggleView}>
+          {is3D ? '▦ Flat view' : '⛰ 3D view'}
+        </button>
+      )}
       {ready && (
         <Timeline
           day={day}

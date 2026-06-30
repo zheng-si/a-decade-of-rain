@@ -18,22 +18,21 @@ function mixHex(c: [number, number, number], towards: [number, number, number], 
 }
 const rgba = (c: readonly number[], a: number) => `rgba(${c[0]},${c[1]},${c[2]},${a})`
 
-/** Heatmap colour ramp: transparent → light tint → base → darker.
- *  Darkens toward a neutral (not red) so grey/blue agents stay true to hue. */
+/** Heatmap colour ramp: transparent → light tint → base, staying near the base
+ *  hue at the centre (only a gentle deepen) so dense cores don't read as dark. */
 function agentRamp(baseHex: string): ExpressionSpecification {
   const base = hexToRgb(baseHex)
-  const light = mixHex(base, [255, 255, 255], 0.45)
-  const dark = mixHex(base, [28, 28, 34], 0.4)
-  const darker = mixHex(base, [20, 20, 26], 0.62)
+  const light = mixHex(base, [255, 255, 255], 0.5)
+  const deep = mixHex(base, [30, 30, 36], 0.16)
   return [
     'interpolate',
     ['linear'],
     ['heatmap-density'],
     0, 'rgba(0,0,0,0)',
     0.12, rgba(light, 0.5),
-    0.4, rgba(base, 0.85),
-    0.7, rgba(dark, 0.92),
-    1, rgba(darker, 1),
+    0.45, rgba(base, 0.85),
+    0.75, rgba(base, 0.95),
+    1, rgba(deep, 1),
   ]
 }
 
@@ -133,12 +132,14 @@ export function setSprayTime(map: maplibregl.Map, choices: AgentChoice[], day: n
   }
 }
 
-/** Show every group for "all", otherwise just the selected one. */
+/** Show every group for "all", otherwise just the selected one. Toggles opacity
+ *  (a cheap paint change) rather than visibility, so switching agents doesn't
+ *  re-tessellate the heatmap. */
 export function setAgentVisibility(map: maplibregl.Map, choices: AgentChoice[], activeKey: string) {
   for (const c of groups(choices)) {
     const id = agentLayerId(c.key)
     if (!map.getLayer(id)) continue
     const visible = activeKey === 'all' || activeKey === c.key
-    map.setLayoutProperty(id, 'visibility', visible ? 'visible' : 'none')
+    map.setPaintProperty(id, 'heatmap-opacity', visible ? mapConfig.heatmap.opacity : 0)
   }
 }
