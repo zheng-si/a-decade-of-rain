@@ -51,6 +51,13 @@ export interface AgentStyle {
 export interface MapConfig {
   /** OpenFreeMap base style. Try: positron · bright · liberty · dark. */
   baseStyleUrl: string
+  /**
+   * Override the glyph (font) endpoint. Leave undefined to use the base style's
+   * fonts (OpenFreeMap → Noto/Metropolis only). To use a custom font you must
+   * self-host SDF glyph PBFs and point this at them, e.g. '/fonts/{fontstack}/{range}.pbf'.
+   * See the README "Custom label font" section.
+   */
+  glyphsUrl?: string
   view: {
     center: [number, number]
     zoom: number
@@ -74,15 +81,23 @@ export interface MapConfig {
 export const mapConfig: MapConfig = {
   baseStyleUrl: 'https://tiles.openfreemap.org/styles/positron',
 
+  // To use a custom (non-OpenFreeMap) label font, self-host glyphs and set:
+  // glyphsUrl: '/fonts/{fontstack}/{range}.pbf',
+
   view: {
-    center: [106.3, 16.0],
-    zoom: 4.9,
-    minZoom: 4.4, // can't zoom out past the Vietnam overview
+    // Tuned so a 16" laptop shows all of Vietnam, ~2/3 of the viewport height.
+    // Vietnam runs ~8.2°N (Cà Mau) to ~23.4°N; centre + zoom frame that span.
+    center: [106.5, 16.2],
+    zoom: 5.8,
+    minZoom: 5.6, // furthest zoom-out: full country still visible
     maxZoom: 16, // can keep zooming in to street level
-    // Hugs Vietnam (+ a little coastline) so you can't pan off to neighbours.
+    // Loose leash: at the zoom needed to see all of (narrow) Vietnam the
+    // viewport is far wider than the country, so a tight box would fight the
+    // zoom. This just stops the map drifting out of the region; it can't hide
+    // neighbours at full zoom-out. Tighten once zoomed in.
     maxBounds: [
-      [101.0, 7.5],
-      [111.5, 24.2],
+      [80.0, 1.0],
+      [128.0, 30.0],
     ],
   },
 
@@ -104,10 +119,12 @@ export const mapConfig: MapConfig = {
 
   // One colour per agent group. Orange/White/Blue are the three big ones; the
   // rest (Purple, Pink, etc.) fold into "Other".
+  // Colours match the agent names: Orange = orange, White = light grey,
+  // Blue = light blue. Other (Purple, Pink, …) keeps a distinct violet.
   agents: [
-    { key: 'O', label: 'Orange', codes: ['O'], color: '#e8761e' },
-    { key: 'W', label: 'White', codes: ['W'], color: '#3b7fc4' },
-    { key: 'B', label: 'Blue', codes: ['B'], color: '#2f9e7a' },
+    { key: 'O', label: 'Orange', codes: ['O'], color: '#ef7d1a' },
+    { key: 'W', label: 'White', codes: ['W'], color: '#a9adb3' },
+    { key: 'B', label: 'Blue', codes: ['B'], color: '#5aa6e0' },
     { key: 'other', label: 'Other', codes: ['P', 'U', 'K', 'D', 'T'], color: '#9a6cc4' },
   ],
 

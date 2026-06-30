@@ -60,6 +60,29 @@ Edit it and save — nothing else needs touching.
 - **`baseStyleUrl`** — swap the OpenFreeMap base style (positron / bright /
   liberty / dark).
 
+### Custom label font
+
+Map labels are drawn by MapLibre from **SDF glyph PBFs**, not CSS fonts, so a
+custom font can't be set with CSS — it has to be self-hosted as glyphs.
+OpenFreeMap only serves Noto Sans / Metropolis, so anything else (e.g. *Neue
+Haas Unica W1G*) needs these steps:
+
+1. Add the licensed font file under `scripts/fonts/` (you must hold a license to
+   embed/serve it).
+2. Generate glyph ranges with an SDF tool (e.g. [font-maker](https://maplibre.org/font-maker/)
+   or `fontnik`) into `public/fonts/<Font Name>/0-255.pbf`, `256-511.pbf`, …
+   The basemap's own fonts (Noto Sans Regular/Italic/Bold) must live there too,
+   because a style has a single glyph endpoint — generate or copy those as well.
+3. Point the map at the local glyphs and pick the font:
+   ```ts
+   // src/config/mapConfig.ts
+   glyphsUrl: '/fonts/{fontstack}/{range}.pbf',
+   theme: { label: { font: ['Neue Haas Unica W1G'], … } }
+   ```
+
+Until then `label.font` is best left on an OpenFreeMap-served font
+(`Metropolis Regular` is the most distinctive alternative to the default).
+
 ## Roadmap
 
 1. ✅ Map prototype — Vietnam basemap + dioxin hotspot airbases (Da Nang, Bien Hoa, Phu Cat)

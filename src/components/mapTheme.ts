@@ -18,12 +18,13 @@ function mixHex(c: [number, number, number], towards: [number, number, number], 
 }
 const rgba = (c: readonly number[], a: number) => `rgba(${c[0]},${c[1]},${c[2]},${a})`
 
-/** Heatmap colour ramp: transparent → light tint → base → darker. */
+/** Heatmap colour ramp: transparent → light tint → base → darker.
+ *  Darkens toward a neutral (not red) so grey/blue agents stay true to hue. */
 function agentRamp(baseHex: string): ExpressionSpecification {
   const base = hexToRgb(baseHex)
   const light = mixHex(base, [255, 255, 255], 0.45)
-  const dark = mixHex(base, [40, 10, 10], 0.35)
-  const darker = mixHex(base, [40, 10, 10], 0.6)
+  const dark = mixHex(base, [28, 28, 34], 0.4)
+  const darker = mixHex(base, [20, 20, 26], 0.62)
   return [
     'interpolate',
     ['linear'],
