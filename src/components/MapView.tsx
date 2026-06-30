@@ -1,31 +1,20 @@
 import { useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
-import type { ExpressionSpecification } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { HOTSPOTS, VIETNAM_VIEW } from '../data/hotspots'
+import { HOTSPOTS } from '../data/hotspots'
 import { loadSpray, dayToDate, type SprayDataset } from '../data/spray'
+import { mapConfig } from '../config/mapConfig'
 import Timeline from './Timeline'
 import { buildAgentChoices, type AgentChoice } from './agentChoices'
-
-// OpenFreeMap provides free vector tiles + styles with no API key required.
-// https://openfreemap.org
-const STYLE_URL = 'https://tiles.openfreemap.org/styles/positron'
+import { applyMapTheme, addSprayLayers, setSprayTime, setAgentVisibility } from './mapTheme'
 
 const SPRAY_SOURCE = 'spray'
-const SPRAY_LAYER = 'spray-heat'
 
 // Target wall-clock duration for a full 1961→1971 play-through.
 const PLAY_DURATION_MS = 28_000
 
 const monthLabel = (day: number) =>
   dayToDate(day).toLocaleDateString('en-US', { year: 'numeric', month: 'short', timeZone: 'UTC' })
-
-/** MapLibre filter: cumulative up to `day`, optionally restricted to agents. */
-function sprayFilter(day: number, indices: number[] | null): ExpressionSpecification {
-  const time: ExpressionSpecification = ['<=', ['get', 'day'], day]
-  if (!indices) return time
-  return ['all', time, ['in', ['get', 'agent'], ['literal', indices]]]
-}
 
 /** Cumulative run count + gallons up to `day`, restricted to `indices`. */
 function cumulative(data: SprayDataset, day: number, indices: number[] | null) {
@@ -66,9 +55,12 @@ export default function MapView() {
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: STYLE_URL,
-      center: VIETNAM_VIEW.center,
-      zoom: VIETNAM_VIEW.zoom,
+      style: mapConfig.baseStyleUrl,
+      center: mapConfig.view.center,
+      zoom: mapConfig.view.zoom,
+      minZoom: mapConfig.view.minZoom,
+      maxZoom: mapConfig.view.maxZoom,
+      maxBounds: mapConfig.view.maxBounds,
       attributionControl: { compact: true },
     })
     mapRef.current = map
@@ -81,31 +73,13 @@ export default function MapView() {
       if (!mapRef.current) return
       dataRef.current = spray
 
-      map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
-      map.addLayer({
-        id: SPRAY_LAYER,
-        type: 'heatmap',
-        source: SPRAY_SOURCE,
-        paint: {
-          'heatmap-weight': ['get', 'w'],
-          'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 4, 1, 9, 2.5],
-          'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 4, 6, 7, 18, 10, 40],
-          'heatmap-opacity': 0.85,
-          'heatmap-color': [
-            'interpolate',
-            ['linear'],
-            ['heatmap-density'],
-            0, 'rgba(0,0,0,0)',
-            0.15, 'rgba(254,235,178,0.55)',
-            0.4, 'rgb(254,196,79)',
-            0.65, 'rgb(240,128,40)',
-            0.85, 'rgb(214,69,40)',
-            1, 'rgb(150,20,20)',
-          ],
-        },
-      })
+      applyMapTheme(map)
 
-      setChoices(buildAgentChoices(spray.agents))
+      const agentChoices = buildAgentChoices(spray.agents)
+      map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
+      addSprayLayers(map, SPRAY_SOURCE, agentChoices, spray.dayMax)
+
+      setChoices(agentChoices)
       setBounds({ min: spray.dayMin, max: spray.dayMax })
       setDay(spray.dayMax) // start showing the full record
       setReady(true)
@@ -129,12 +103,19 @@ export default function MapView() {
 
   const activeIndices = choices.find((c) => c.key === agentKey)?.indices ?? null
 
-  // Re-apply the heatmap filter whenever the playhead or agent selection moves.
+  // Advance the cumulative time window on every agent layer.
   useEffect(() => {
     const map = mapRef.current
-    if (!ready || !map?.getLayer(SPRAY_LAYER)) return
-    map.setFilter(SPRAY_LAYER, sprayFilter(day, activeIndices))
-  }, [ready, day, activeIndices])
+    if (!ready || !map) return
+    setSprayTime(map, choices, day)
+  }, [ready, day, choices])
+
+  // Toggle which agent layers are visible.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map) return
+    setAgentVisibility(map, choices, agentKey)
+  }, [ready, agentKey, choices])
 
   // Animation loop: advance the playhead in real time while playing.
   useEffect(() => {

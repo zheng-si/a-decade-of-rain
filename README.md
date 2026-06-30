@@ -42,6 +42,24 @@ npm run build    # production build into dist/
   [`src/data/README.md`](src/data/README.md) for provenance, the UTM→lon/lat
   conversion, and the compact `spray.json` format.
 
+## Customizing the map
+
+All map styling lives in one file: **[`src/config/mapConfig.ts`](src/config/mapConfig.ts)**.
+Edit it and save — nothing else needs touching.
+
+- **`theme`** — colors for land / water / greenspace / buildings / roads /
+  boundaries, plus label color, halo, size, and font. (Fonts are limited to what
+  OpenFreeMap serves; safe options are listed inline.) These tokens are applied
+  to the basemap at load time by `applyMapTheme()` in `src/components/mapTheme.ts`.
+- **`view`** — the locked viewport: `maxBounds` (pan is clamped to Vietnam),
+  `minZoom` (furthest zoom-out), `maxZoom` (furthest zoom-in), and the initial
+  `center` / `zoom`.
+- **`agents`** — one color per herbicide group (Orange / White / Blue / Other).
+  Each becomes its own colored heatmap layer and drives the filter chips, so the
+  agents are distinguishable by color; selecting a chip isolates that agent.
+- **`baseStyleUrl`** — swap the OpenFreeMap base style (positron / bright /
+  liberty / dark).
+
 ## Roadmap
 
 1. ✅ Map prototype — Vietnam basemap + dioxin hotspot airbases (Da Nang, Bien Hoa, Phu Cat)

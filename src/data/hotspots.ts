@@ -32,9 +32,3 @@ export const HOTSPOTS: Hotspot[] = [
     note: 'Contaminated soil contained on-site in a secure landfill.',
   },
 ]
-
-// Rough center / zoom to frame Vietnam on first load.
-export const VIETNAM_VIEW = {
-  center: [107.5, 15.5] as [number, number],
-  zoom: 4.7,
-}

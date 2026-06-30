@@ -60,15 +60,20 @@ export default function Timeline({
       />
 
       <div className="timeline-agents">
-        {agentChoices.map((c) => (
-          <button
-            key={c.key}
-            className={`agent-chip${c.key === activeAgentKey ? ' is-active' : ''} chip-${c.key}`}
-            onClick={() => onSelectAgent(c.key)}
-          >
-            {c.label}
-          </button>
-        ))}
+        {agentChoices.map((c) => {
+          const active = c.key === activeAgentKey
+          return (
+            <button
+              key={c.key}
+              className={`agent-chip${active ? ' is-active' : ''}`}
+              style={active && c.color ? { background: c.color, borderColor: c.color } : undefined}
+              onClick={() => onSelectAgent(c.key)}
+            >
+              {c.color && <span className="agent-dot" style={{ background: c.color }} />}
+              {c.label}
+            </button>
+          )
+        })}
       </div>
     </div>
   )
