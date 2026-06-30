@@ -82,6 +82,9 @@
 }
 
 .agent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   border: 1px solid #d8d8d8;
   background: #fff;
   color: #444;
@@ -96,25 +99,23 @@
   border-color: #b9b9b9;
 }
 
+.agent-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+/* Active chip background comes from the agent colour (inline style); for the
+   neutral "All agents" chip there's no colour, so fall back to dark. */
 .agent-chip.is-active {
   background: #2a2a2a;
   border-color: #2a2a2a;
   color: #fff;
 }
 
-.agent-chip.chip-O.is-active {
-  background: #e8761e;
-  border-color: #e8761e;
-}
-
-.agent-chip.chip-W.is-active {
-  background: #4a78b0;
-  border-color: #4a78b0;
-}
-
-.agent-chip.chip-B.is-active {
-  background: #3f8a6e;
-  border-color: #3f8a6e;
+.agent-chip.is-active .agent-dot {
+  background: #fff !important;
 }
 
 .intro-card {
