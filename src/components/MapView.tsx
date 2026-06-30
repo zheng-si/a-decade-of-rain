@@ -132,10 +132,12 @@ export default function MapView() {
       })
 
       HOTSPOTS.forEach((h) => {
-        const popup = new maplibregl.Popup({ offset: 16, closeButton: false }).setHTML(
+        const popup = new maplibregl.Popup({ offset: 14, closeButton: false }).setHTML(
           `<strong>${h.name}</strong><br/><span style="font-size:12px;color:#555">${h.note}</span>`,
         )
-        new maplibregl.Marker({ color: '#d6453d' })
+        const el = document.createElement('div')
+        el.className = 'hotspot-marker'
+        new maplibregl.Marker({ element: el })
           .setLngLat([h.lng, h.lat])
           .setPopup(popup)
           .addTo(map)
