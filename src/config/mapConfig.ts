@@ -146,14 +146,13 @@ export const mapConfig: MapConfig = {
 
   // One colour per agent group. Orange/White/Blue are the three big ones; the
   // rest (Purple, Pink, etc.) fold into "Other".
-  // Agent names mapped to colours, desaturated to sit on the muted basemap:
-  // Orange = earthy orange, White = warm grey, Blue = muted slate, Other =
-  // lavender (echoing the design's mangrove tone).
+  // Agent names mapped to saturated, readable colours: Orange = orange,
+  // White = light grey, Blue = light blue, Other = violet.
   agents: [
-    { key: 'O', label: 'Orange', codes: ['O'], color: '#e07d3c' },
-    { key: 'W', label: 'White', codes: ['W'], color: '#adaca2' },
-    { key: 'B', label: 'Blue', codes: ['B'], color: '#6fa1c2' },
-    { key: 'other', label: 'Other', codes: ['P', 'U', 'K', 'D', 'T'], color: '#9a8fb8' },
+    { key: 'O', label: 'Orange', codes: ['O'], color: '#ef7d1a' },
+    { key: 'W', label: 'White', codes: ['W'], color: '#a9adb3' },
+    { key: 'B', label: 'Blue', codes: ['B'], color: '#5aa6e0' },
+    { key: 'other', label: 'Other', codes: ['P', 'U', 'K', 'D', 'T'], color: '#9a6cc4' },
   ],
 
   heatmap: {

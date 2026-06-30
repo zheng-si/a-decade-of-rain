@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import type { AgentChoice } from './agentChoices'
 
 interface TimelineProps {
@@ -56,6 +57,11 @@ export default function Timeline({
         min={dayMin}
         max={dayMax}
         value={day}
+        style={
+          {
+            '--progress': `${((day - dayMin) / Math.max(1, dayMax - dayMin)) * 100}%`,
+          } as CSSProperties
+        }
         onChange={(e) => onScrub(Number(e.target.value))}
       />
 

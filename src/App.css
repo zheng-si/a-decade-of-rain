@@ -26,14 +26,16 @@
   height: 100%;
 }
 
-/* ── shared panel surface ─────────────────────────────────────────────── */
+/* ── shared panel surface (frosted glass) ─────────────────────────────── */
 .intro-card,
 .timeline,
 .view-toggle {
-  background: rgba(var(--paper), 0.96);
-  border: 1px solid var(--rule);
-  box-shadow: 0 4px 18px rgba(40, 38, 30, 0.08);
-  backdrop-filter: blur(4px);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(40, 38, 30, 0.12);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
 }
 
 .view-toggle {
@@ -48,13 +50,12 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--ink);
-  border-radius: 7px;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .view-toggle:hover {
-  background: rgb(var(--paper));
+  background: rgba(255, 255, 255, 0.72);
 }
 
 /* ── timeline ─────────────────────────────────────────────────────────── */
@@ -65,7 +66,6 @@
   transform: translateX(-50%);
   width: min(560px, calc(100% - 48px));
   padding: 15px 18px 16px;
-  border-radius: 10px;
   z-index: 2;
 }
 
@@ -109,10 +109,58 @@
   color: var(--ink-faint);
 }
 
+/* 2px scrubber: solid white played-portion over a 10%-white track, no stroke.
+   --progress (0–100%) is set inline from the playhead. */
 .timeline-slider {
+  -webkit-appearance: none;
+  appearance: none;
   width: 100%;
-  margin: 13px 0 11px;
-  accent-color: var(--accent);
+  height: 2px;
+  margin: 16px 0 13px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.timeline-slider::-webkit-slider-runnable-track {
+  height: 2px;
+  border: none;
+  background: linear-gradient(
+    to right,
+    #fff 0 var(--progress, 0%),
+    rgba(255, 255, 255, 0.1) var(--progress, 0%) 100%
+  );
+}
+
+.timeline-slider::-moz-range-track {
+  height: 2px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.timeline-slider::-moz-range-progress {
+  height: 2px;
+  background: #fff;
+}
+
+.timeline-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  margin-top: -5px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.timeline-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border: none;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 
 .timeline-agents {
@@ -165,7 +213,6 @@
   left: 24px;
   max-width: 320px;
   padding: 20px 22px 22px;
-  border-radius: 10px;
   z-index: 1;
 }
 
@@ -180,11 +227,11 @@
 
 .intro-card h1 {
   margin: 0 0 14px;
-  font-family: var(--font-sans);
-  font-weight: 500;
-  font-size: 23px;
-  line-height: 1.18;
-  letter-spacing: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 27px;
+  line-height: 1.14;
+  letter-spacing: 0.01em;
   color: var(--ink);
 }
 
