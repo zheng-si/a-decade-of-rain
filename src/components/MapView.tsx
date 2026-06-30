@@ -52,51 +52,67 @@ export default function MapView() {
   // One-time map + data setup.
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
+    let cancelled = false
 
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: mapConfig.baseStyleUrl,
-      center: mapConfig.view.center,
-      zoom: mapConfig.view.zoom,
-      minZoom: mapConfig.view.minZoom,
-      maxZoom: mapConfig.view.maxZoom,
-      maxBounds: mapConfig.view.maxBounds,
-      attributionControl: { compact: true },
-    })
-    mapRef.current = map
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
+    // Resolve the style: a plain URL, or — when a custom glyph endpoint is
+    // configured — the style JSON with its `glyphs` swapped to it.
+    async function resolveStyle(): Promise<string | maplibregl.StyleSpecification> {
+      if (!mapConfig.glyphsUrl) return mapConfig.baseStyleUrl
+      const resp = await fetch(mapConfig.baseStyleUrl)
+      const style = (await resp.json()) as maplibregl.StyleSpecification
+      style.glyphs = mapConfig.glyphsUrl
+      return style
+    }
 
-    Promise.all([
-      loadSpray(),
-      new Promise<void>((resolve) => map.once('load', () => resolve())),
-    ]).then(([spray]) => {
-      if (!mapRef.current) return
-      dataRef.current = spray
+    resolveStyle().then((style) => {
+      if (cancelled || !containerRef.current) return
 
-      applyMapTheme(map)
+      const map = new maplibregl.Map({
+        container: containerRef.current,
+        style,
+        center: mapConfig.view.center,
+        zoom: mapConfig.view.zoom,
+        minZoom: mapConfig.view.minZoom,
+        maxZoom: mapConfig.view.maxZoom,
+        maxBounds: mapConfig.view.maxBounds,
+        attributionControl: { compact: true },
+      })
+      mapRef.current = map
+      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
 
-      const agentChoices = buildAgentChoices(spray.agents)
-      map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
-      addSprayLayers(map, SPRAY_SOURCE, agentChoices, spray.dayMax)
+      Promise.all([
+        loadSpray(),
+        new Promise<void>((resolve) => map.once('load', () => resolve())),
+      ]).then(([spray]) => {
+        if (!mapRef.current) return
+        dataRef.current = spray
 
-      setChoices(agentChoices)
-      setBounds({ min: spray.dayMin, max: spray.dayMax })
-      setDay(spray.dayMax) // start showing the full record
-      setReady(true)
-    })
+        applyMapTheme(map)
 
-    HOTSPOTS.forEach((h) => {
-      const popup = new maplibregl.Popup({ offset: 16, closeButton: false }).setHTML(
-        `<strong>${h.name}</strong><br/><span style="font-size:12px;color:#555">${h.note}</span>`,
-      )
-      new maplibregl.Marker({ color: '#d6453d' })
-        .setLngLat([h.lng, h.lat])
-        .setPopup(popup)
-        .addTo(map)
+        const agentChoices = buildAgentChoices(spray.agents)
+        map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
+        addSprayLayers(map, SPRAY_SOURCE, agentChoices, spray.dayMax)
+
+        setChoices(agentChoices)
+        setBounds({ min: spray.dayMin, max: spray.dayMax })
+        setDay(spray.dayMax) // start showing the full record
+        setReady(true)
+      })
+
+      HOTSPOTS.forEach((h) => {
+        const popup = new maplibregl.Popup({ offset: 16, closeButton: false }).setHTML(
+          `<strong>${h.name}</strong><br/><span style="font-size:12px;color:#555">${h.note}</span>`,
+        )
+        new maplibregl.Marker({ color: '#d6453d' })
+          .setLngLat([h.lng, h.lat])
+          .setPopup(popup)
+          .addTo(map)
+      })
     })
 
     return () => {
-      map.remove()
+      cancelled = true
+      mapRef.current?.remove()
       mapRef.current = null
     }
   }, [])
