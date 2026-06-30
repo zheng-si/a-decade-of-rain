@@ -32,10 +32,21 @@ npm run dev      # http://localhost:5173
 npm run build    # production build into dist/
 ```
 
+## Data
+
+- **Spray data** — real Operation Ranch Hand records (24,604 runs, 1961–1971,
+  19.49M gallons) from Stellman et al. 2003, via the MIT-licensed
+  [`andrewstellman/hea-v`](https://github.com/andrewstellman/hea-v) dataset.
+  Wartime military grid coordinates are converted to lon/lat by
+  `scripts/build-spray-data.mjs` (`npm run build:data`). See
+  [`src/data/README.md`](src/data/README.md) for provenance, the UTM→lon/lat
+  conversion, and the compact `spray.json` format.
+
 ## Roadmap
 
 1. ✅ Map prototype — Vietnam basemap + dioxin hotspot airbases (Da Nang, Bien Hoa, Phu Cat)
-2. ⬜ Real Operation Ranch Hand spray data (HERBS / Stellman 2003) on a time axis
+2. ✅ Real Operation Ranch Hand spray data (HERBS / Stellman 2003) — gallons-weighted
+   heat map with a 1961→1971 play/scrub timeline and per-agent (Orange/White/Blue) filter
 3. ⬜ Switchable layers: admin boundaries, forest / mangrove cover
 4. ⬜ Scrollytelling narrative (Facts → Actions) following the original Figma structure
 5. ⬜ D3 charts + interactive layered remediation cross-sections
