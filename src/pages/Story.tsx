@@ -107,11 +107,12 @@ export default function Story() {
     if (map.getLayer('region-active')) map.setFilter('region-active', f)
   }
 
-  // The bold Vietnam border + disputed-island labels are overview-only.
+  // Vietnam's border stays on throughout; only the disputed-island labels are
+  // overview-only (they're off-screen once zoomed into the story anyway).
   function setSVVisible(on: boolean) {
     const map = mapRef.current
     if (!map) return
-    for (const id of ['vietnam-outline', 'island-dot', 'island-label']) {
+    for (const id of ['island-dot', 'island-label']) {
       if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
     }
   }
@@ -231,7 +232,8 @@ export default function Story() {
           type: 'line',
           source: VN_SOURCE,
           layout: { 'line-join': 'round' },
-          paint: { 'line-color': '#2f322c', 'line-width': 1.6, 'line-opacity': 0.9 },
+          // Signature orange, thin — stays visible through the whole story.
+          paint: { 'line-color': '#d9533a', 'line-width': 1, 'line-opacity': 0.9 },
         })
         map.addSource(ISLAND_SOURCE, { type: 'geojson', data: ISLANDS_FC })
         map.addLayer({
@@ -340,20 +342,29 @@ export default function Story() {
     <div className="story">
       <TopBar>
         {started && (
-          <button className="site-nav-link site-nav-btn" onClick={toggle3D}>
-            {is3D ? 'Flat' : '3D'}
-          </button>
+          <>
+            <button className="site-nav-link site-nav-btn" onClick={toggle3D}>
+              {is3D ? 'Flat' : '3D'}
+            </button>
+            <LabelPanel groups={labelGroups} onToggle={toggleLabelGroup} />
+          </>
         )}
       </TopBar>
 
       <div className="story-graphic">
         <div ref={containerRef} className="story-map" />
         <div className={`story-period${started ? '' : ' is-hidden'}`}>{activeEvent?.period}</div>
-        {started && <LabelPanel groups={labelGroups} onToggle={toggleLabelGroup} />}
       </div>
 
       <div className="story-scroll">
         <section className="story-hook">
+          <div className="story-hook-blur" aria-hidden="true">
+            <div />
+            <div />
+            <div />
+            <div />
+            <div />
+          </div>
           <div className="story-hook-inner">
             <p className="story-hook-eyebrow">{HOOK.eyebrow}</p>
             <h1 className="story-hook-title">{HOOK.title}</h1>
