@@ -1,8 +1,10 @@
 import MapView from '../components/MapView'
+import { TopBar } from '../App'
 
 export default function Explore() {
   return (
     <div className="app">
+      <TopBar />
       <MapView />
       <div className="intro-card">
         <p className="eyebrow">Remedial Vietnam · Explore</p>
