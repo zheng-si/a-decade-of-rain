@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
-import type { FeatureCollection, Polygon, LineString } from 'geojson'
+import type { FeatureCollection, Polygon, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import scrollama from 'scrollama'
 import { loadSpray, dateToDay, type SprayDataset } from '../data/spray'
@@ -17,7 +17,7 @@ import {
 import { buildAgentChoices, type AgentChoice } from '../components/agentChoices'
 import { FACTS_EVENTS, type City } from '../content/facts/events'
 import { HOOK } from '../content/facts/hook'
-import { SOUTH_VIETNAM, CTZ_REGIONS, NODE_CTZ } from '../content/facts/regions'
+import { CTZ_REGIONS, NODE_CTZ } from '../content/facts/regions'
 import { SOURCES } from '../content/sources'
 import { TopBar } from '../App'
 import LabelPanel from '../components/LabelPanel'
@@ -26,8 +26,20 @@ import './Story.css'
 
 const SPRAY_SOURCE = 'spray'
 const REGION_SOURCE = 'regions'
-const SV_SOURCE = 'south-vietnam'
+const VN_SOURCE = 'vietnam'
+const ISLAND_SOURCE = 'islands'
 const DEM_SOURCE = 'terrain-dem'
+
+// Neutral treatment: the offshore archipelagos are disputed (China, Vietnam,
+// Taiwan et al.) and were never sprayed; shown as reference, no sovereignty
+// assigned. Names use the common English forms + Vietnamese in parentheses.
+const ISLANDS_FC: FeatureCollection<Point, { name: string }> = {
+  type: 'FeatureCollection',
+  features: [
+    { type: 'Feature', properties: { name: 'Paracel Is. (Hoàng Sa) — disputed' }, geometry: { type: 'Point', coordinates: [112.0, 16.5] } },
+    { type: 'Feature', properties: { name: 'Spratly Is. (Trường Sa) — disputed' }, geometry: { type: 'Point', coordinates: [114.0, 9.8] } },
+  ],
+}
 
 // Region outlines = the four Corps Tactical Zones (Military Regions I–IV).
 const REGION_FC: FeatureCollection<Polygon, { id: string }> = {
@@ -37,10 +49,6 @@ const REGION_FC: FeatureCollection<Polygon, { id: string }> = {
     properties: { id: `ctz-${z}` },
     geometry: { type: 'Polygon', coordinates: [[...ring, ring[0]]] },
   })),
-}
-const SV_FC: FeatureCollection<LineString> = {
-  type: 'FeatureCollection',
-  features: [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: SOUTH_VIETNAM } }],
 }
 
 export default function Story() {
@@ -99,9 +107,13 @@ export default function Story() {
     if (map.getLayer('region-active')) map.setFilter('region-active', f)
   }
 
+  // The bold Vietnam border + disputed-island labels are overview-only.
   function setSVVisible(on: boolean) {
     const map = mapRef.current
-    if (map?.getLayer('sv-outline')) map.setLayoutProperty('sv-outline', 'visibility', on ? 'visible' : 'none')
+    if (!map) return
+    for (const id of ['vietnam-outline', 'island-dot', 'island-label']) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
+    }
   }
 
   // Keep framed content clear of the card (left on desktop, bottom on mobile).
@@ -182,8 +194,9 @@ export default function Story() {
 
       Promise.all([
         loadSpray(),
+        fetch(`${import.meta.env.BASE_URL}data/vietnam.geojson`).then((r) => r.json()),
         new Promise<void>((resolve) => map.once('load', () => resolve())),
-      ]).then(([spray]) => {
+      ]).then(([spray, vnGeo]) => {
         if (!mapRef.current) return
         dataRef.current = spray
         applyMapTheme(map)
@@ -211,13 +224,40 @@ export default function Story() {
         map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
         addSprayLayers(map, SPRAY_SOURCE, choices, spray.dayMax)
 
-        // South Vietnam outline (opening overview only).
-        map.addSource(SV_SOURCE, { type: 'geojson', data: SV_FC })
+        // Bold Vietnam national border + disputed-island labels (overview only).
+        map.addSource(VN_SOURCE, { type: 'geojson', data: vnGeo })
         map.addLayer({
-          id: 'sv-outline',
+          id: 'vietnam-outline',
           type: 'line',
-          source: SV_SOURCE,
-          paint: { 'line-color': '#2f322c', 'line-width': 1.5, 'line-opacity': 0.8 },
+          source: VN_SOURCE,
+          layout: { 'line-join': 'round' },
+          paint: { 'line-color': '#2f322c', 'line-width': 1.6, 'line-opacity': 0.9 },
+        })
+        map.addSource(ISLAND_SOURCE, { type: 'geojson', data: ISLANDS_FC })
+        map.addLayer({
+          id: 'island-dot',
+          type: 'circle',
+          source: ISLAND_SOURCE,
+          paint: {
+            'circle-radius': 4,
+            'circle-color': 'rgba(0,0,0,0)',
+            'circle-stroke-color': '#8a8d85',
+            'circle-stroke-width': 1.2,
+          },
+        })
+        map.addLayer({
+          id: 'island-label',
+          type: 'symbol',
+          source: ISLAND_SOURCE,
+          layout: {
+            'text-field': ['get', 'name'],
+            'text-font': ['Switzer Medium'],
+            'text-size': 10,
+            'text-offset': [0, 1.1],
+            'text-anchor': 'top',
+            'text-max-width': 9,
+          },
+          paint: { 'text-color': '#8a8d85', 'text-halo-color': '#ffffff', 'text-halo-width': 1 },
         })
 
         // Per-node region (convex hull of the node's spray), highlighted on step.
