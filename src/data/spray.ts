@@ -5,7 +5,7 @@
 // so the data is never re-serialised per frame.
 import type { FeatureCollection, Point } from 'geojson'
 
-type RawRun = [lon: number, lat: number, day: number, agent: number, gallons: number]
+type RawRun = [lon: number, lat: number, day: number, agent: number, gallons: number, ctz?: number]
 
 interface RawSpray {
   epoch: string

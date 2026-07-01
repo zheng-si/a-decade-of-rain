@@ -1,36 +1,55 @@
 // Region outlines for the story.
 //
-// SOUTH_VIETNAM: an approximate outline of the Republic of Vietnam (the sprayed
-// territory, south of the 17th-parallel DMZ) — shown under the opening banner.
-// Hand-traced; refine as needed.
+// SOUTH_VIETNAM: the real national border (Natural-Earth-derived Vietnam
+// outline) clipped at the 17th parallel (the DMZ) — the sprayed territory.
+// Shown under the opening banner.
 //
-// NODE_HULLS: the convex hull of the actual HERBS spray points inside each
-// node's area (computed, not hand-drawn), so the highlighted region follows the
-// real spray footprint instead of a stiff rectangle.
+// CTZ_REGIONS: the four Corps Tactical Zones / Military Regions (I–IV), as the
+// convex hull of each zone's real spray points (trimmed to the corps' latitude
+// band). Each node highlights the zone it sits in.
+//
+// NODE_HULLS: kept as the alternative (a tight hull of each node's own spray) in
+// case we prefer per-node regions over the broader CTZ.
 
 export const SOUTH_VIETNAM: [number, number][] = [
-  [107.15, 17.0],
-  [108.5, 15.6],
-  [109.3, 13.9],
-  [109.45, 12.7],
-  [109.2, 11.6],
-  [108.4, 11.0],
-  [107.1, 10.35],
-  [106.7, 9.7],
-  [105.5, 8.7],
-  [104.85, 8.65],
-  [104.75, 9.5],
-  [105.05, 10.5],
-  [105.8, 10.9],
-  [106.1, 11.8],
-  [106.4, 11.95],
-  [107.0, 12.4],
-  [107.55, 14.5],
-  [107.4, 15.6],
-  [106.9, 16.6],
-  [106.6, 17.0],
-  [107.15, 17.0],
+  [107.074, 17.1], [107.362, 16.697], [108.269, 16.08], [108.877, 15.277], [109.335, 13.426],
+  [109.2, 11.667], [108.366, 11.008], [107.221, 10.364], [106.405, 9.531], [105.158, 8.6],
+  [104.795, 9.241], [105.076, 9.918], [104.334, 10.487], [105.2, 10.889], [106.25, 10.962],
+  [105.811, 11.568], [107.491, 12.337], [107.615, 13.536], [107.383, 14.202], [107.565, 15.202],
+  [107.313, 15.909], [106.556, 16.604], [106.201, 17.1], [107.074, 17.1],
 ]
+
+export const CTZ_REGIONS: Record<number, [number, number][]> = {
+  1: [
+    [106.42, 16.61], [106.5, 16.4], [107.22, 15.52], [107.53, 15.38], [107.73, 15.31],
+    [108.12, 15.3], [108.45, 15.3], [108.73, 15.33], [108.7, 15.46], [108.65, 15.57],
+    [108.19, 16.24], [107.38, 16.76], [107.08, 16.94], [106.53, 17.06], [106.45, 16.95],
+  ],
+  2: [
+    [106.87, 11.81], [107.31, 11.71], [108.98, 11.7], [109.17, 11.78], [109.22, 11.95],
+    [109.29, 12.21], [109.43, 12.89], [109.24, 14.27], [108.95, 15.36], [108.19, 15.46],
+    [107.52, 15.16], [107.41, 15.09],
+  ],
+  3: [
+    [105.92, 11.12], [105.93, 10.56], [106.73, 10.21], [107.38, 10.4], [108.0, 10.71],
+    [108.43, 11.04], [108.73, 11.29], [108.66, 11.43], [107.98, 12.26], [107.22, 12.27],
+    [105.96, 11.71], [105.92, 11.6],
+  ],
+  4: [
+    [103.99, 10.07], [104.72, 8.6], [104.83, 8.57], [105.05, 8.58], [106.68, 9.58],
+    [107.46, 10.48], [106.85, 10.8], [106.59, 10.82], [105.55, 10.89], [104.6, 10.53],
+    [104.02, 10.17],
+  ],
+}
+
+/** Which Corps Tactical Zone each node sits in. */
+export const NODE_CTZ: Record<string, number> = {
+  'warzone-d': 3,
+  peak: 3,
+  mangroves: 4,
+  'a-sau': 1,
+  hotspots: 3,
+}
 
 export const NODE_HULLS: Record<string, [number, number][]> = {
   'warzone-d': [

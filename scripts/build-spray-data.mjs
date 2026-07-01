@@ -160,12 +160,14 @@ async function main() {
     let agentIdx = AGENTS.indexOf(r.Agent)
     if (agentIdx < 0) agentIdx = AGENTS.indexOf('U')
     const gallons = Math.max(0, Math.round(r.Gallons || 0))
+    const ctz = parseInt(r.CTZ, 10) || 0 // Corps Tactical Zone (Military Region) 1–4
     runs.push([
       Number(ll[0].toFixed(3)),
       Number(ll[1].toFixed(3)),
       day,
       agentIdx,
       gallons,
+      ctz,
     ])
     minDay = Math.min(minDay, day)
     maxDay = Math.max(maxDay, day)
@@ -182,7 +184,7 @@ async function main() {
       license: 'MIT (c) 2026 Andrew Stellman',
     },
     epoch: '1961-01-01',
-    fields: ['lon', 'lat', 'day', 'agent', 'gallons'],
+    fields: ['lon', 'lat', 'day', 'agent', 'gallons', 'ctz'],
     agents: AGENTS,
     agentNames: AGENT_NAMES,
     runs,
