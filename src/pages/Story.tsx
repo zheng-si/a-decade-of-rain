@@ -26,6 +26,25 @@ export default function Story() {
   const dataRef = useRef<SprayDataset | null>(null)
   const readyRef = useRef(false)
   const [active, setActive] = useState(0)
+  const [started, setStarted] = useState(false)
+
+  // Opening state under the hook banner: whole country, the full decade of
+  // spray already on the map. The first step then resets to 1962 and flies in.
+  function setHookState() {
+    const map = mapRef.current
+    if (!map || !readyRef.current) return
+    map.flyTo({
+      center: mapConfig.view.center,
+      zoom: mapConfig.view.zoom,
+      pitch: 0,
+      bearing: 0,
+      duration: 1200,
+      essential: true,
+    })
+    const data = dataRef.current
+    if (data) setSprayTime(map, choicesRef.current, data.dayMax)
+    setAgentVisibility(map, choicesRef.current, 'all')
+  }
 
   // Apply the map state for a given step (camera + cumulative time + agent).
   function applyStep(i: number) {
@@ -52,12 +71,11 @@ export default function Story() {
 
     resolveMapStyle().then((style) => {
       if (cancelled || !containerRef.current) return
-      const first = FACTS_EVENTS[0].camera
       const map = new maplibregl.Map({
         container: containerRef.current,
         style,
-        center: first.center,
-        zoom: first.zoom,
+        center: mapConfig.view.center,
+        zoom: mapConfig.view.zoom,
         maxBounds: mapConfig.view.maxBounds,
         maxPitch: mapConfig.view.maxPitch,
         interactive: false, // scroll drives the camera, not the user
@@ -84,7 +102,7 @@ export default function Story() {
         })
 
         readyRef.current = true
-        applyStep(active)
+        setHookState()
       })
     })
 
@@ -103,8 +121,16 @@ export default function Story() {
     scroller
       .setup({ step: '.story-step', offset: 0.6 })
       .onStepEnter(({ index }: { index: number }) => {
+        setStarted(true)
         setActive(index)
         applyStep(index)
+      })
+      .onStepExit(({ index, direction }: { index: number; direction: string }) => {
+        // Scrolling back above the first step returns to the hook state.
+        if (index === 0 && direction === 'up') {
+          setStarted(false)
+          setHookState()
+        }
       })
     const onResize = () => scroller.resize()
     window.addEventListener('resize', onResize)
@@ -121,10 +147,25 @@ export default function Story() {
     <div className="story">
       <div className="story-graphic">
         <div ref={containerRef} className="story-map" />
-        <div className="story-period">{activeEvent?.period}</div>
+        <div className={`story-period${started ? '' : ' is-hidden'}`}>{activeEvent?.period}</div>
       </div>
 
-      <div className="story-steps">
+      <div className="story-scroll">
+        <section className="story-hook">
+          <div className="story-hook-inner">
+            <p className="story-hook-eyebrow">Agent Orange · Operation Ranch Hand · 1961–1971</p>
+            <h1 className="story-hook-title">A decade of rain</h1>
+            <p className="story-hook-dek">
+              Between 1962 and 1971 the United States sprayed nearly 20 million
+              gallons of herbicide — the “rainbow” defoliants, Agent Orange chief
+              among them — over the forests, mangroves and croplands of South
+              Vietnam. Half a century on, the dioxin it left behind is still being
+              cleaned from the soil. This is where it fell, year by year.
+            </p>
+            <p className="story-hook-cue">Scroll to begin ↓</p>
+          </div>
+        </section>
+
         {FACTS_EVENTS.map((ev, i) => {
           const src = ev.quote ? SOURCES[ev.quote.sourceId] : undefined
           return (
