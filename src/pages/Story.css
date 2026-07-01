@@ -47,13 +47,13 @@
   pointer-events: none;
 }
 
-/* Flat/3D toggle, bottom-left of the graphic. */
-.story-view-toggle {
+/* Flat/3D toggle, bottom-left of the graphic. The compound selector outranks
+   the base `.view-toggle` rule so top/right don't leak in and stretch it. */
+.story .story-view-toggle {
   position: absolute;
-  top: auto;
-  right: auto;
-  bottom: 26px;
-  left: 26px;
+  inset: auto auto 26px 26px; /* top right bottom left */
+  width: auto;
+  height: auto;
 }
 
 /* ── city pins: a jumping dot + a solid, square (no-radius) label ──────── */
