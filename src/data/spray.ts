@@ -23,6 +23,11 @@ export function dayToDate(day: number): Date {
   return new Date(EPOCH_MS + (day - 1) * DAY_MS)
 }
 
+/** ISO date string → day number (1 = epoch). */
+export function dateToDay(iso: string): number {
+  return Math.floor((Date.parse(iso) - EPOCH_MS) / DAY_MS) + 1
+}
+
 export interface SprayProps {
   day: number
   agent: number
