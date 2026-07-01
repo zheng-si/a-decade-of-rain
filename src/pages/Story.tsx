@@ -20,6 +20,8 @@ import { HOOK } from '../content/facts/hook'
 import { SOUTH_VIETNAM, CTZ_REGIONS, NODE_CTZ } from '../content/facts/regions'
 import { SOURCES } from '../content/sources'
 import { TopBar } from '../App'
+import LabelPanel from '../components/LabelPanel'
+import { readLabelGroups, setGroupVisible, type LabelGroup } from '../components/labelLayers'
 import './Story.css'
 
 const SPRAY_SOURCE = 'spray'
@@ -52,6 +54,20 @@ export default function Story() {
   const [active, setActive] = useState(0)
   const [started, setStarted] = useState(false)
   const [is3D, setIs3D] = useState(false)
+  const [labelGroups, setLabelGroups] = useState<LabelGroup[]>([])
+
+  function toggleLabelGroup(key: string) {
+    const map = mapRef.current
+    if (!map) return
+    setLabelGroups((prev) =>
+      prev.map((g) => {
+        if (g.key !== key) return g
+        const visible = !g.visible
+        setGroupVisible(map, g.layerIds, visible)
+        return { ...g, visible }
+      }),
+    )
+  }
 
   function clearCities() {
     cityMarkersRef.current.forEach((m) => m.remove())
@@ -172,6 +188,13 @@ export default function Story() {
         dataRef.current = spray
         applyMapTheme(map)
 
+        // Enumerate label tiers; hide the granular ones (wards/hamlets/POI).
+        const groups = readLabelGroups(map)
+        groups.forEach((g) => {
+          if (!g.visible) setGroupVisible(map, g.layerIds, false)
+        })
+        setLabelGroups(groups)
+
         if (mapConfig.terrain && !map.getSource(DEM_SOURCE)) {
           map.addSource(DEM_SOURCE, {
             type: 'raster-dem',
@@ -286,6 +309,7 @@ export default function Story() {
       <div className="story-graphic">
         <div ref={containerRef} className="story-map" />
         <div className={`story-period${started ? '' : ' is-hidden'}`}>{activeEvent?.period}</div>
+        {started && <LabelPanel groups={labelGroups} onToggle={toggleLabelGroup} />}
       </div>
 
       <div className="story-scroll">
