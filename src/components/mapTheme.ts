@@ -6,6 +6,16 @@ import type { ExpressionSpecification } from 'maplibre-gl'
 import { mapConfig, type MapTheme } from '../config/mapConfig'
 import type { AgentChoice } from './agentChoices'
 
+/** Resolve the map style: a URL, or the style JSON with a custom glyph endpoint
+ *  swapped in when mapConfig.glyphsUrl is set. Shared by every map instance. */
+export async function resolveMapStyle(): Promise<string | maplibregl.StyleSpecification> {
+  if (!mapConfig.glyphsUrl) return mapConfig.baseStyleUrl
+  const resp = await fetch(mapConfig.baseStyleUrl)
+  const style = (await resp.json()) as maplibregl.StyleSpecification
+  style.glyphs = mapConfig.glyphsUrl
+  return style
+}
+
 // ── colour helpers ────────────────────────────────────────────────────────
 function hexToRgb(hex: string): [number, number, number] {
   const h = hex.replace('#', '')

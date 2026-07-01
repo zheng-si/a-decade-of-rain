@@ -1,0 +1,151 @@
+/* Sticky-graphic scrollytelling: the map stays pinned while narrative steps
+   scroll over it (Kontinentalist pattern). */
+.story {
+  position: relative;
+  background: rgb(var(--paper));
+}
+
+.story-graphic {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.story-map {
+  position: absolute;
+  inset: 0;
+}
+
+/* Period readout, top-centre over the map. */
+.story-period {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
+}
+
+/* Steps overlay the sticky graphic. */
+.story-steps {
+  position: relative;
+  z-index: 1;
+  margin-top: -100vh;
+}
+
+.story-step {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 0 6vw;
+  pointer-events: none;
+}
+
+.story-card {
+  pointer-events: auto;
+  width: min(400px, 84vw);
+  padding: 22px 24px 24px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(40, 38, 30, 0.14);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
+  opacity: 0.5;
+  transition: opacity 0.4s;
+}
+
+.story-card.is-active {
+  opacity: 1;
+}
+
+.story-eyebrow {
+  margin: 0 0 10px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.story-stat {
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.story-stat strong {
+  color: var(--ink);
+}
+
+.story-name {
+  margin: 0 0 10px;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1.14;
+  color: var(--ink);
+}
+
+.story-dek {
+  margin: 0 0 12px;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+.story-body {
+  margin: 0;
+  font-weight: 300;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.story-quote {
+  margin: 16px 0 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--rule);
+}
+
+.story-quote p {
+  margin: 0 0 8px;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.story-quote cite {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.story-quote a {
+  color: var(--ink-faint);
+  text-decoration: underline;
+}
+
+/* On narrow screens the card drops to the bottom of the map. */
+@media (max-width: 640px) {
+  .story-step {
+    align-items: flex-end;
+    padding: 0 4vw 8vh;
+  }
+  .story-card {
+    width: 100%;
+  }
+}

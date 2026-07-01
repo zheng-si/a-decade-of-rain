@@ -98,7 +98,8 @@ export default function MapView() {
         attributionControl: { compact: true },
       })
       mapRef.current = map
-      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right')
+      // bottom-right keeps the top-right clear for the site nav.
+      map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
 
       Promise.all([
         loadSpray(),

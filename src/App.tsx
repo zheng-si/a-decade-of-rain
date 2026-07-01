@@ -1,21 +1,31 @@
-import MapView from './components/MapView'
+import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
+import Story from './pages/Story'
+import Explore from './pages/Explore'
 import './App.css'
 
-function App() {
+function Nav() {
+  const cls = ({ isActive }: { isActive: boolean }) =>
+    isActive ? 'site-nav-link is-active' : 'site-nav-link'
   return (
-    <div className="app">
-      <MapView />
-      <div className="intro-card">
-        <p className="eyebrow">Remedial Vietnam · GIS prototype</p>
-        <h1>Agent Orange &amp; Dioxin Remediation</h1>
-        <p className="lede">
-          Red markers are the major dioxin hotspot airbases — click them. The
-          heat map is real Operation Ranch Hand spraying (1961–1971, Stellman
-          et al. 2003); press play to watch it accumulate, or isolate an agent.
-        </p>
-      </div>
-    </div>
+    <nav className="site-nav">
+      <NavLink to="/" end className={cls}>
+        Story
+      </NavLink>
+      <NavLink to="/explore" className={cls}>
+        Explore
+      </NavLink>
+    </nav>
   )
 }
 
-export default App
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Nav />
+      <Routes>
+        <Route path="/" element={<Story />} />
+        <Route path="/explore" element={<Explore />} />
+      </Routes>
+    </BrowserRouter>
+  )
+}
