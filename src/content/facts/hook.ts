@@ -6,5 +6,5 @@ export const HOOK = {
   cue: 'Scroll to begin ↓',
   // Opening overview: framed on the sprayed south-centre (spray’s weighted
   // centroid is ~12.4°N), not the empty north.
-  camera: { center: [107.0, 12.9] as [number, number], zoom: 5.75 },
+  camera: { center: [107.4, 12.9] as [number, number], zoom: 6.3 },
 }

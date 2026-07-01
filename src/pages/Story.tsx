@@ -82,13 +82,22 @@ export default function Story() {
     if (map.getLayer('region-active')) map.setFilter('region-active', f)
   }
 
+  // Keep the framed content clear of the narrative card (left on desktop,
+  // bottom sheet on mobile).
+  function framePadding(): maplibregl.PaddingOptions {
+    return window.innerWidth > 640
+      ? { left: 460, top: 70, right: 70, bottom: 70 }
+      : { left: 24, right: 24, top: 48, bottom: 340 }
+  }
+
   // Opening state under the hook: whole sprayed south, the full decade down,
-  // all war-zone outlines faintly visible.
+  // all war-zone outlines faintly visible. (Hook text is centred, so no bias.)
   function setHookState() {
     const map = mapRef.current
     if (!map || !readyRef.current) return
     const pitch = is3DRef.current ? mapConfig.view.pitch3d : 0
-    map.flyTo({ ...HOOK.camera, pitch, bearing: 0, duration: 1200, essential: true })
+    const pad = { top: 40, right: 40, bottom: 40, left: 40 }
+    map.flyTo({ ...HOOK.camera, pitch, bearing: 0, padding: pad, duration: 1200, essential: true })
     const data = dataRef.current
     if (data) setSprayTime(map, choicesRef.current, data.dayMax)
     setAgentVisibility(map, choicesRef.current, 'all')
@@ -102,14 +111,28 @@ export default function Story() {
     if (!map || !readyRef.current) return
     const ev = FACTS_EVENTS[i]
     if (!ev) return
-    map.flyTo({
-      center: ev.camera.center,
-      zoom: ev.camera.zoom,
-      pitch: is3DRef.current ? mapConfig.view.pitch3d : ev.camera.pitch ?? 0,
-      bearing: ev.camera.bearing ?? 0,
-      duration: 1500,
-      essential: true,
-    })
+    const pad = framePadding()
+    const pitch = is3DRef.current ? mapConfig.view.pitch3d : ev.camera.pitch ?? 0
+    if (ev.bbox) {
+      // Frame the region's bbox — auto-zooms to fit any viewport aspect.
+      map.fitBounds(
+        [
+          [ev.bbox[0], ev.bbox[1]],
+          [ev.bbox[2], ev.bbox[3]],
+        ],
+        { padding: pad, maxZoom: 11, pitch, bearing: 0, duration: 1500, essential: true },
+      )
+    } else {
+      map.flyTo({
+        center: ev.camera.center,
+        zoom: ev.camera.zoom,
+        pitch,
+        bearing: ev.camera.bearing ?? 0,
+        padding: pad,
+        duration: 1500,
+        essential: true,
+      })
+    }
     setSprayTime(map, choicesRef.current, dateToDay(ev.date))
     setAgentVisibility(map, choicesRef.current, ev.agent)
     setRegionActive(ev.bbox ? ev.id : null)
@@ -128,6 +151,8 @@ export default function Story() {
         style,
         center: HOOK.camera.center,
         zoom: HOOK.camera.zoom,
+        minZoom: mapConfig.view.minZoom,
+        maxZoom: mapConfig.view.maxZoom,
         maxBounds: mapConfig.view.maxBounds,
         maxPitch: mapConfig.view.maxPitch,
         interactive: false, // scroll drives the camera, not the user

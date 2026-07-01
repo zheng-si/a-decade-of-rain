@@ -52,7 +52,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
     name: 'Only We Can Prevent Forests',
     period: '1961–62',
     date: '1962-06-01',
-    camera: { center: [107.2, 12.7], zoom: 6.0 },
+    camera: { center: [107.6, 12.6], zoom: 6.6 },
     agent: 'all',
     cities: [
       { name: 'Đắk Tô', lng: 107.83, lat: 14.65 },
@@ -179,7 +179,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
     name: 'The Reckoning',
     period: '1961–1971',
     date: '1971-12-31',
-    camera: { center: [107.0, 12.9], zoom: 5.75 },
+    camera: { center: [107.4, 12.9], zoom: 6.3 },
     agent: 'all',
     dek: 'A decade of spraying, in one number.',
     body: 'Across the whole campaign, roughly 19.5 million gallons of herbicide fell on Vietnam — at least 11 million of it Agent Orange. What follows is not just where it landed, but what it takes to clean it up.',
