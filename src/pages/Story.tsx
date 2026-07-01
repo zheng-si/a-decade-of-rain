@@ -17,7 +17,7 @@ import {
 import { buildAgentChoices, type AgentChoice } from '../components/agentChoices'
 import { FACTS_EVENTS, type City } from '../content/facts/events'
 import { HOOK } from '../content/facts/hook'
-import { SOUTH_VIETNAM, NODE_HULLS } from '../content/facts/regions'
+import { SOUTH_VIETNAM, CTZ_REGIONS, NODE_CTZ } from '../content/facts/regions'
 import { SOURCES } from '../content/sources'
 import { TopBar } from '../App'
 import './Story.css'
@@ -27,12 +27,12 @@ const REGION_SOURCE = 'regions'
 const SV_SOURCE = 'south-vietnam'
 const DEM_SOURCE = 'terrain-dem'
 
-// Node region outlines = the convex hull of each node's real spray points.
+// Region outlines = the four Corps Tactical Zones (Military Regions I–IV).
 const REGION_FC: FeatureCollection<Polygon, { id: string }> = {
   type: 'FeatureCollection',
-  features: Object.entries(NODE_HULLS).map(([id, ring]) => ({
+  features: Object.entries(CTZ_REGIONS).map(([z, ring]) => ({
     type: 'Feature',
-    properties: { id },
+    properties: { id: `ctz-${z}` },
     geometry: { type: 'Polygon', coordinates: [[...ring, ring[0]]] },
   })),
 }
@@ -68,7 +68,9 @@ export default function Story() {
       el.className = 'city-pin'
       el.innerHTML = `<span class="city-pin-label">${c.name}</span>`
       cityMarkersRef.current.push(
-        new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([c.lng, c.lat]).addTo(map),
+        new maplibregl.Marker({ element: el, anchor: 'bottom', offset: [0, -6] })
+          .setLngLat([c.lng, c.lat])
+          .addTo(map),
       )
     }
   }
@@ -135,7 +137,8 @@ export default function Story() {
     }
     setSprayTime(map, choicesRef.current, dateToDay(ev.date))
     setAgentVisibility(map, choicesRef.current, ev.agent)
-    setRegionActive(NODE_HULLS[ev.id] ? ev.id : null)
+    const ctz = NODE_CTZ[ev.id]
+    setRegionActive(ctz ? `ctz-${ctz}` : null)
     setSVVisible(false)
     showCities(ev.cities)
   }
