@@ -47,27 +47,16 @@
   pointer-events: none;
 }
 
-/* Flat/3D toggle, bottom-left of the graphic. The compound selector outranks
-   the base `.view-toggle` rule so top/right don't leak in and stretch it. */
-.story .story-view-toggle {
-  position: absolute;
-  inset: auto auto 26px 26px; /* top right bottom left */
-  width: auto;
-  height: auto;
-}
-
-/* ── city pins: a jumping dot + a solid, square (no-radius) label ──────── */
+/* ── city pins: a solid banner tag with a downward pointer, gently jumping ─ */
 .city-pin {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   pointer-events: none;
+  animation: city-jump 1.1s ease-in-out infinite;
 }
 
 .city-pin-label {
-  order: -1;
-  margin-bottom: 5px;
-  padding: 3px 7px;
+  position: relative;
+  display: block;
+  padding: 4px 10px;
   font-family: var(--font-sans);
   font-size: 11px;
   font-weight: 600;
@@ -75,16 +64,20 @@
   white-space: nowrap;
   color: #fff;
   background: var(--ink);
-  border-radius: 0;
+  border: 1.5px solid #fff;
+  border-radius: 5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
 }
 
-.city-pin-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--ink);
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.85);
-  animation: city-jump 1.1s ease-in-out infinite;
+.city-pin-label::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-top: -1px;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #fff;
 }
 
 @keyframes city-jump {
