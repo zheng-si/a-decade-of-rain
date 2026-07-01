@@ -1,11 +1,11 @@
 // Facts — chronological spray-campaign nodes that drive the scrollytelling map.
-// Camera coordinates are anchored to real spray concentrations in the HERBS
-// dataset (see scripts/build-spray-data.mjs); facts and quotes are sourced via
-// sources.ts. Copy is editorial and meant to be revised.
+// Cameras and region bboxes are anchored to real spray concentrations in the
+// HERBS dataset (see scripts/build-spray-data.mjs); facts and quotes are sourced
+// via sources.ts. Copy is editorial and meant to be revised.
 //
-// Quotes flagged `pending: true` still need their exact wording checked against
-// the primary source (blocked from the build sandbox until the source domains
-// are allowlisted).
+// Quotes flagged `pending` still need their exact wording checked against the
+// primary source (blocked from the build sandbox until the source domains are
+// reachable).
 
 export interface Camera {
   center: [number, number]
@@ -21,19 +21,26 @@ export interface Quote {
   pending?: boolean
 }
 
+export interface City {
+  name: string
+  lng: number
+  lat: number
+}
+
 export interface StoryEvent {
   id: string
   name: string
-  /** Display label for the period, e.g. "1961–62". */
   period: string
   /** Playhead date (ISO) — spray is shown cumulatively up to here. */
   date: string
   camera: Camera
   /** Agent chip key: 'all' | 'O' | 'W' | 'B' | 'other'. */
   agent: string
-  /** One-line standfirst. */
+  /** Region to outline/highlight, as [west, south, east, north]. */
+  bbox?: [number, number, number, number]
+  /** Nearby places to pin. */
+  cities?: City[]
   dek: string
-  /** Narrative paragraph. */
   body: string
   quote?: Quote
   stat?: { value: string; label: string }
@@ -45,8 +52,12 @@ export const FACTS_EVENTS: StoryEvent[] = [
     name: 'Only We Can Prevent Forests',
     period: '1961–62',
     date: '1962-06-01',
-    camera: { center: [107.6, 13.2], zoom: 5.8 },
+    camera: { center: [107.2, 12.7], zoom: 6.0 },
     agent: 'all',
+    cities: [
+      { name: 'Đắk Tô', lng: 107.83, lat: 14.65 },
+      { name: 'Sài Gòn', lng: 106.7, lat: 10.78 },
+    ],
     dek: 'Operation Ranch Hand begins.',
     body: 'The first test spray runs on 10 August 1961 near Đắk Tô in the central highlands; the first official mission follows in January 1962 along Route 15 toward Biên Hòa. Just 107 missions fly in 1962 — the quiet start of a decade-long campaign.',
     quote: {
@@ -61,8 +72,13 @@ export const FACTS_EVENTS: StoryEvent[] = [
     name: 'The Ramp-Up — War Zone D',
     period: '1965–66',
     date: '1966-08-01',
-    camera: { center: [106.95, 11.15], zoom: 7.4 },
+    camera: { center: [106.95, 11.2], zoom: 7.4 },
     agent: 'O',
+    bbox: [106.55, 10.85, 107.45, 11.65],
+    cities: [
+      { name: 'Sài Gòn', lng: 106.7, lat: 10.78 },
+      { name: 'Biên Hòa', lng: 106.82, lat: 10.97 },
+    ],
     dek: 'Defoliation becomes routine northeast of Saigon.',
     body: 'As US ground forces surge, spraying escalates across the guerrilla base areas known as War Zone D. In 1966 the campaign jumps to 2.6 million gallons — Agent Orange soaking the forest that hid the trails and camps.',
     quote: {
@@ -77,8 +93,13 @@ export const FACTS_EVENTS: StoryEvent[] = [
     name: 'Peak — War Zone C & the Iron Triangle',
     period: '1967',
     date: '1967-10-01',
-    camera: { center: [106.9, 11.28], zoom: 7.6 },
+    camera: { center: [106.6, 11.32], zoom: 7.3 },
     agent: 'O',
+    bbox: [106.0, 11.0, 106.95, 11.7],
+    cities: [
+      { name: 'Tây Ninh', lng: 106.1, lat: 11.31 },
+      { name: 'Củ Chi', lng: 106.49, lat: 11.03 },
+    ],
     dek: 'The heaviest year of the war.',
     body: 'Spraying peaks in 1967 at over 5 million gallons — the densest concentration anywhere in the dataset sits here, over War Zone C and the Iron Triangle northwest of Saigon, where Operation Cedar Falls had bulldozed the jungle months earlier.',
     quote: {
@@ -93,8 +114,13 @@ export const FACTS_EVENTS: StoryEvent[] = [
     name: 'Ecocide — the Mangroves',
     period: '1968',
     date: '1968-09-01',
-    camera: { center: [105.0, 9.05], zoom: 7.4 },
+    camera: { center: [105.5, 9.5], zoom: 6.9 },
     agent: 'all',
+    bbox: [104.7, 8.55, 105.75, 9.7],
+    cities: [
+      { name: 'Cà Mau', lng: 105.15, lat: 9.18 },
+      { name: 'Cần Thơ', lng: 105.78, lat: 10.03 },
+    ],
     dek: 'The coastal forests of Cà Mau and the Rung Sát.',
     body: 'Mangroves proved catastrophically fragile: a single spraying could kill a whole forest. From the Rung Sát shipping channels to the Cà Mau peninsula, some 3.1 million hectares of forest and mangrove were defoliated between Quảng Trị and Cà Mau — damage later branded an "ecocide."',
     quote: {
@@ -110,8 +136,13 @@ export const FACTS_EVENTS: StoryEvent[] = [
     name: 'A Sầu Valley — sprayed eleven times',
     period: '1965–70',
     date: '1969-08-01',
-    camera: { center: [107.18, 16.22], zoom: 8.6 },
+    camera: { center: [107.18, 16.3], zoom: 8.6 },
     agent: 'O',
+    bbox: [106.95, 16.05, 107.45, 16.5],
+    cities: [
+      { name: 'Huế', lng: 107.58, lat: 16.46 },
+      { name: 'A Lưới', lng: 107.28, lat: 16.22 },
+    ],
     dek: 'A corridor to the Ho Chi Minh Trail, drenched again and again.',
     body: 'Some 224 missions crossed the A Sầu / A Lưới valley between 1965 and 1970, parts of it sprayed as many as eleven times. Decades later the soil around the former A So base still measured up to 897.85 ppt of dioxin — one of the country’s enduring hotspots.',
     quote: {
@@ -127,8 +158,13 @@ export const FACTS_EVENTS: StoryEvent[] = [
     name: 'The Halt, and the Hotspots',
     period: '1970–71 → today',
     date: '1971-01-01',
-    camera: { center: [106.83, 10.97], zoom: 9.4 },
+    camera: { center: [106.83, 10.99], zoom: 9.6 },
     agent: 'all',
+    bbox: [106.72, 10.92, 106.94, 11.06],
+    cities: [
+      { name: 'Biên Hòa', lng: 106.82, lat: 10.97 },
+      { name: 'Sài Gòn', lng: 106.7, lat: 10.78 },
+    ],
     dek: 'Spraying stops; the poison stays at the bases.',
     body: 'Ranch Hand winds down and ends in 1971. But the dioxin concentrates where the drums were stored and loaded — the airbases. Biên Hòa remains the single largest reservoir of contamination, the focus of remediation that continues to this day.',
     quote: {
@@ -143,7 +179,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
     name: 'The Reckoning',
     period: '1961–1971',
     date: '1971-12-31',
-    camera: { center: [106.5, 16.2], zoom: 5.6 },
+    camera: { center: [107.0, 12.9], zoom: 5.75 },
     agent: 'all',
     dek: 'A decade of spraying, in one number.',
     body: 'Across the whole campaign, roughly 19.5 million gallons of herbicide fell on Vietnam — at least 11 million of it Agent Orange. What follows is not just where it landed, but what it takes to clean it up.',
