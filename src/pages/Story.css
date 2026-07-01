@@ -47,6 +47,82 @@
   pointer-events: none;
 }
 
+/* ── label control panel (bottom-left) ────────────────────────────────── */
+.label-panel {
+  position: absolute;
+  left: 26px;
+  bottom: 26px;
+  z-index: 3;
+  width: 230px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(40, 38, 30, 0.14);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  backdrop-filter: blur(16px) saturate(1.3);
+  overflow: hidden;
+}
+
+.label-panel-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 9px 13px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.label-panel-caret {
+  color: var(--ink-faint);
+}
+
+.label-panel-list {
+  list-style: none;
+  margin: 0;
+  padding: 2px 6px 8px;
+  border-top: 1px solid var(--rule);
+}
+
+.label-panel-list li {
+  margin: 0;
+}
+
+.label-panel-list label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 7px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.label-panel-list label:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.label-panel-list input {
+  accent-color: var(--accent);
+}
+
+.label-panel-list label span:first-of-type {
+  flex: 1;
+}
+
+.label-panel-count {
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── city pins: a solid banner tag with a downward pointer, gently jumping ─
    The jump animates the label (not the marker element) — MapLibre owns the
    element's transform for positioning, so animating it would fling the pin. */
@@ -101,22 +177,33 @@
 
 /* ── hook / banner ────────────────────────────────────────────────────── */
 .story-hook {
+  position: relative;
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0 6vw;
   text-align: center;
-  /* soft veil so the map reads as a faint backdrop behind the title */
-  background: radial-gradient(
-    ellipse at center,
-    rgba(250, 249, 244, 0.72) 0%,
-    rgba(250, 249, 244, 0.5) 55%,
-    rgba(250, 249, 244, 0.32) 100%
-  );
+}
+
+/* Gradual frosted glass: fully blurred at the top, fading to clear near the
+   bottom (mask cuts the backdrop-filter off), plus a light tint up top for
+   legibility of the title. */
+.story-hook::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  backdrop-filter: blur(16px) saturate(1.15);
+  background: linear-gradient(to bottom, rgba(250, 249, 244, 0.55) 0%, rgba(250, 249, 244, 0) 70%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 32%, transparent 82%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 32%, transparent 82%);
 }
 
 .story-hook-inner {
+  position: relative;
+  z-index: 1;
   max-width: 720px;
 }
 
