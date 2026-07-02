@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
-import type { FeatureCollection, Polygon, Point } from 'geojson'
+import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import scrollama from 'scrollama'
 import { loadSpray, dateToDay, type SprayDataset } from '../data/spray'
@@ -8,16 +8,14 @@ import { mapConfig } from '../config/mapConfig'
 import {
   resolveMapStyle,
   applyMapTheme,
-  addSprayLayers,
-  setSprayTime,
-  setAgentVisibility,
+  addStoryHeat,
+  setStoryHeatTime,
+  setStoryHeatVisible,
   addHillshade,
   setHillshade,
 } from '../components/mapTheme'
-import { buildAgentChoices, type AgentChoice } from '../components/agentChoices'
 import { FACTS_EVENTS, type City } from '../content/facts/events'
 import { HOOK } from '../content/facts/hook'
-import { CTZ_REGIONS, NODE_CTZ } from '../content/facts/regions'
 import { SOURCES } from '../content/sources'
 import { TopBar } from '../App'
 import LabelPanel from '../components/LabelPanel'
@@ -25,7 +23,6 @@ import { readLabelGroups, setGroupVisible, type LabelGroup } from '../components
 import './Story.css'
 
 const SPRAY_SOURCE = 'spray'
-const REGION_SOURCE = 'regions'
 const VN_SOURCE = 'vietnam'
 const ISLAND_SOURCE = 'islands'
 const DEM_SOURCE = 'terrain-dem'
@@ -41,28 +38,75 @@ const ISLANDS_FC: FeatureCollection<Point, { name: string }> = {
   ],
 }
 
-// Region outlines = the four Corps Tactical Zones (Military Regions I–IV).
-const REGION_FC: FeatureCollection<Polygon, { id: string }> = {
-  type: 'FeatureCollection',
-  features: Object.entries(CTZ_REGIONS).map(([z, ring]) => ({
-    type: 'Feature',
-    properties: { id: `ctz-${z}` },
-    geometry: { type: 'Polygon', coordinates: [[...ring, ring[0]]] },
-  })),
+// Cumulative gallons sprayed up to each node's playhead date — the running
+// total shown on the timeline rail.
+function cumulativeGallons(spray: SprayDataset): number[] {
+  return FACTS_EVENTS.map((ev) => {
+    const day = dateToDay(ev.date)
+    let sum = 0
+    for (const f of spray.features.features) {
+      if (f.properties.day <= day) sum += f.properties.gallons
+    }
+    return sum
+  })
+}
+
+function fmtGallons(v: number): string {
+  if (v >= 1e6) return `${(v / 1e6).toFixed(1)}M`
+  if (v >= 1e3) return `${(v / 1e3).toFixed(0)}k`
+  return `${Math.round(v)}`
+}
+
+/** Tween a number toward `target` whenever it changes (ease-out cubic). */
+function useCountUp(target: number, ms = 850): number {
+  const [val, setVal] = useState(target)
+  const fromRef = useRef(target)
+  useEffect(() => {
+    const from = fromRef.current
+    if (from === target) return
+    const start = performance.now()
+    let raf = 0
+    const tick = (t: number) => {
+      const p = Math.min(1, (t - start) / ms)
+      const eased = 1 - Math.pow(1 - p, 3)
+      setVal(from + (target - from) * eased)
+      if (p < 1) raf = requestAnimationFrame(tick)
+      else fromRef.current = target
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [target, ms])
+  return val
 }
 
 export default function Story() {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
-  const choicesRef = useRef<AgentChoice[]>([])
   const dataRef = useRef<SprayDataset | null>(null)
   const readyRef = useRef(false)
   const cityMarkersRef = useRef<maplibregl.Marker[]>([])
+  const crossMarkersRef = useRef<maplibregl.Marker[]>([])
   const is3DRef = useRef(false)
   const [active, setActive] = useState(0)
   const [started, setStarted] = useState(false)
   const [is3D, setIs3D] = useState(false)
   const [labelGroups, setLabelGroups] = useState<LabelGroup[]>([])
+  const [cumGallons, setCumGallons] = useState<number[]>([])
+
+  // A field of orange rain streaks for the banner ("A decade of rain").
+  const rainDrops = useMemo(
+    () =>
+      Array.from({ length: 56 }, () => ({
+        left: Math.random() * 100,
+        delay: -Math.random() * 2.4,
+        dur: 0.9 + Math.random() * 1.2,
+        len: 34 + Math.random() * 66,
+        op: 0.22 + Math.random() * 0.4,
+      })),
+    [],
+  )
+
+  const gallons = useCountUp(cumGallons[active] ?? 0)
 
   function toggleLabelGroup(key: string) {
     const map = mapRef.current
@@ -99,12 +143,23 @@ export default function Story() {
     }
   }
 
-  function setRegionActive(id: string | null) {
+  function clearCrosses() {
+    crossMarkersRef.current.forEach((m) => m.remove())
+    crossMarkersRef.current = []
+  }
+
+  // Orange crosses mark pilot / test-spray sites where the volume is too small
+  // to register as a heatmap.
+  function showCrosses(crosses: [number, number][] | undefined) {
     const map = mapRef.current
     if (!map) return
-    const f: maplibregl.FilterSpecification = ['==', ['get', 'id'], id ?? '__none__']
-    if (map.getLayer('region-fill')) map.setFilter('region-fill', f)
-    if (map.getLayer('region-active')) map.setFilter('region-active', f)
+    clearCrosses()
+    if (!crosses) return
+    for (const [lng, lat] of crosses) {
+      const el = document.createElement('div')
+      el.className = 'pilot-cross'
+      crossMarkersRef.current.push(new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map))
+    }
   }
 
   // Vietnam's border stays on throughout; only the disputed-island labels are
@@ -120,22 +175,22 @@ export default function Story() {
   // Keep framed content clear of the card (left on desktop, bottom on mobile).
   function framePadding(): maplibregl.PaddingOptions {
     return window.innerWidth > 640
-      ? { left: 460, top: 70, right: 70, bottom: 70 }
+      ? { left: 480, top: 70, right: 70, bottom: 70 }
       : { left: 24, right: 24, top: 48, bottom: 340 }
   }
 
-  // Opening state: whole sprayed south outlined, NO spray drawn yet (so nothing
-  // vanishes on the first scroll); spray then builds from 1962.
+  // Opening state: NO spray drawn yet (so nothing vanishes on the first scroll);
+  // spray then builds from 1962.
   function setHookState() {
     const map = mapRef.current
     if (!map || !readyRef.current) return
     const pitch = is3DRef.current ? mapConfig.view.pitch3d : 0
     map.flyTo({ ...HOOK.camera, pitch, bearing: 0, padding: { top: 40, right: 40, bottom: 40, left: 40 }, duration: 1200, essential: true })
-    setSprayTime(map, choicesRef.current, 0) // before 1962 → nothing shown
-    setAgentVisibility(map, choicesRef.current, 'all')
-    setRegionActive(null)
+    setStoryHeatVisible(map, true)
+    setStoryHeatTime(map, 0) // before 1962 → nothing shown
     setSVVisible(true)
     clearCities()
+    clearCrosses()
   }
 
   function applyStep(i: number) {
@@ -164,10 +219,12 @@ export default function Story() {
         essential: true,
       })
     }
-    setSprayTime(map, choicesRef.current, dateToDay(ev.date))
-    setAgentVisibility(map, choicesRef.current, ev.agent)
-    const ctz = NODE_CTZ[ev.id]
-    setRegionActive(ctz ? `ctz-${ctz}` : null)
+    // Pilot nodes show crosses instead of a (near-invisible) heatmap.
+    const isPilot = !!ev.crosses
+    setStoryHeatTime(map, dateToDay(ev.date))
+    setStoryHeatVisible(map, !isPilot)
+    if (isPilot) showCrosses(ev.crosses)
+    else clearCrosses()
     setSVVisible(false)
     showCities(ev.cities)
   }
@@ -200,6 +257,7 @@ export default function Story() {
       ]).then(([spray, vnGeo]) => {
         if (!mapRef.current) return
         dataRef.current = spray
+        setCumGallons(cumulativeGallons(spray))
         applyMapTheme(map)
 
         // Enumerate label tiers; hide the granular ones (wards/hamlets/POI).
@@ -220,20 +278,19 @@ export default function Story() {
           addHillshade(map, DEM_SOURCE)
         }
 
-        const choices = buildAgentChoices(spray.agents)
-        choicesRef.current = choices
+        // One combined, brand-orange heatmap (all agents merged) — no muddy
+        // per-agent overlap.
         map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
-        addSprayLayers(map, SPRAY_SOURCE, choices, spray.dayMax)
+        addStoryHeat(map, SPRAY_SOURCE, spray.dayMax)
 
-        // Bold Vietnam national border + disputed-island labels (overview only).
+        // Vietnam national border (brand orange) + disputed-island labels.
         map.addSource(VN_SOURCE, { type: 'geojson', data: vnGeo })
         map.addLayer({
           id: 'vietnam-outline',
           type: 'line',
           source: VN_SOURCE,
           layout: { 'line-join': 'round' },
-          // Signature orange, thin — stays visible through the whole story.
-          paint: { 'line-color': '#d9533a', 'line-width': 1, 'line-opacity': 0.9 },
+          paint: { 'line-color': '#ff5449', 'line-width': 1, 'line-opacity': 0.9 },
         })
         map.addSource(ISLAND_SOURCE, { type: 'geojson', data: ISLANDS_FC })
         map.addLayer({
@@ -262,23 +319,6 @@ export default function Story() {
           paint: { 'text-color': '#8a8d85', 'text-halo-color': '#ffffff', 'text-halo-width': 1 },
         })
 
-        // Per-node region (convex hull of the node's spray), highlighted on step.
-        map.addSource(REGION_SOURCE, { type: 'geojson', data: REGION_FC })
-        map.addLayer({
-          id: 'region-fill',
-          type: 'fill',
-          source: REGION_SOURCE,
-          filter: ['==', ['get', 'id'], '__none__'],
-          paint: { 'fill-color': mapConfig.agents[0].color, 'fill-opacity': 0.1 },
-        })
-        map.addLayer({
-          id: 'region-active',
-          type: 'line',
-          source: REGION_SOURCE,
-          filter: ['==', ['get', 'id'], '__none__'],
-          paint: { 'line-color': '#2f322c', 'line-width': 2 },
-        })
-
         readyRef.current = true
         setHookState()
       })
@@ -287,6 +327,7 @@ export default function Story() {
     return () => {
       cancelled = true
       clearCities()
+      clearCrosses()
       mapRef.current?.remove()
       mapRef.current = null
       readyRef.current = false
@@ -337,6 +378,8 @@ export default function Story() {
   }
 
   const activeEvent = FACTS_EVENTS[active]
+  const lastIndex = FACTS_EVENTS.length - 1
+  const progress = lastIndex ? (active / lastIndex) * 100 : 0
 
   return (
     <div className="story">
@@ -356,6 +399,24 @@ export default function Story() {
         <div className={`story-period${started ? '' : ' is-hidden'}`}>{activeEvent?.period}</div>
       </div>
 
+      {/* Timeline rail: cumulative gallons + a vertical progress bar. */}
+      <aside className={`story-rail${started ? ' is-visible' : ''}`} aria-hidden="true">
+        <div className="story-rail-meter">
+          <span className="story-rail-num">{fmtGallons(gallons)}</span>
+          <span className="story-rail-unit">gallons sprayed to date</span>
+        </div>
+        <div className="story-rail-track">
+          <div className="story-rail-fill" style={{ height: `${progress}%` }} />
+          {FACTS_EVENTS.map((ev, i) => (
+            <span
+              key={ev.id}
+              className={`story-rail-dot${i === active ? ' is-active' : ''}${i < active ? ' is-past' : ''}`}
+              style={{ top: `${lastIndex ? (i / lastIndex) * 100 : 0}%` }}
+            />
+          ))}
+        </div>
+      </aside>
+
       <div className="story-scroll">
         <section className="story-hook">
           <div className="story-hook-blur" aria-hidden="true">
@@ -364,6 +425,20 @@ export default function Story() {
             <div />
             <div />
             <div />
+          </div>
+          <div className="story-rain" aria-hidden="true">
+            {rainDrops.map((d, i) => (
+              <span
+                key={i}
+                style={{
+                  left: `${d.left}%`,
+                  height: `${d.len}px`,
+                  opacity: d.op,
+                  animationDelay: `${d.delay}s`,
+                  animationDuration: `${d.dur}s`,
+                }}
+              />
+            ))}
           </div>
           <div className="story-hook-inner">
             <p className="story-hook-eyebrow">{HOOK.eyebrow}</p>
@@ -378,18 +453,15 @@ export default function Story() {
           return (
             <section className="story-step" key={ev.id} data-index={i}>
               <article className={`story-card${i === active ? ' is-active' : ''}`}>
-                <p className="story-eyebrow">
-                  {ev.period}
-                  {ev.stat && (
-                    <span className="story-stat">
-                      {' · '}
-                      <strong>{ev.stat.value}</strong> {ev.stat.label}
-                    </span>
-                  )}
-                </p>
+                <p className="story-eyebrow">{ev.period}</p>
                 <h2 className="story-name">{ev.name}</h2>
                 <p className="story-dek">{ev.dek}</p>
                 <p className="story-body">{ev.body}</p>
+                {ev.stat && (
+                  <p className="story-stat">
+                    <strong>{ev.stat.value}</strong> {ev.stat.label}
+                  </p>
+                )}
                 {ev.quote && (
                   <blockquote className="story-quote">
                     <p>“{ev.quote.text}”</p>
