@@ -13,6 +13,7 @@ import {
   setStoryHeatVisible,
   addHillshade,
   setHillshade,
+  STORY_HEAT_LAYER,
 } from '../components/mapTheme'
 import { FACTS_EVENTS } from '../content/facts/events'
 import { HOOK } from '../content/facts/hook'
@@ -26,6 +27,9 @@ import './Story.css'
 const SPRAY_SOURCE = 'spray'
 const ISLAND_SOURCE = 'islands'
 const DEM_SOURCE = 'terrain-dem'
+const PROV_SOURCE = 'provinces'
+const MR_SOURCE = 'military-regions'
+const MRLABEL_SOURCE = 'military-region-labels'
 
 // Neutral treatment: the offshore archipelagos are disputed (China, Vietnam,
 // Taiwan et al.) and were never sprayed; shown as reference, no sovereignty
@@ -96,20 +100,21 @@ export default function Story() {
     crossMarkersRef.current = []
   }
 
-  // Orange crosses mark pilot / test-spray sites where the volume is too small
-  // to register as a heatmap. The pulse animates a CHILD element — MapLibre owns
-  // the marker root's transform for positioning, so animating it would fling the
-  // marker to the corner.
-  function showCrosses(crosses: [number, number][] | undefined) {
+  // Pilot / test-spray sites where the volume is too small to read as heat:
+  // an orange dot with a periodically pulsing ring, plus a label. The pulse
+  // animates CHILD elements — MapLibre owns the marker root's transform.
+  function showCrosses(crosses: { lng: number; lat: number; label: string }[] | undefined) {
     const map = mapRef.current
     if (!map) return
     clearCrosses()
     if (!crosses) return
-    for (const [lng, lat] of crosses) {
+    for (const c of crosses) {
       const el = document.createElement('div')
-      el.className = 'pilot-cross'
-      el.innerHTML = '<span class="pilot-cross-mark"></span>'
-      crossMarkersRef.current.push(new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map))
+      el.className = 'pilot-dot'
+      el.innerHTML =
+        '<span class="pilot-dot-ring"></span><span class="pilot-dot-core"></span>' +
+        `<span class="pilot-dot-label">${c.label}</span>`
+      crossMarkersRef.current.push(new maplibregl.Marker({ element: el }).setLngLat([c.lng, c.lat]).addTo(map))
     }
   }
 
@@ -199,10 +204,14 @@ export default function Story() {
       })
       mapRef.current = map
 
+      const asset = (f: string) => fetch(`${import.meta.env.BASE_URL}${f}`).then((r) => r.json())
       Promise.all([
         loadSpray(),
+        asset('data/provinces.geojson'),
+        asset('data/military-regions.geojson'),
+        asset('data/military-region-labels.geojson'),
         new Promise<void>((resolve) => map.once('load', () => resolve())),
-      ]).then(([spray]) => {
+      ]).then(([spray, provincesGeo, mrGeo, mrLabelsGeo]) => {
         if (!mapRef.current) return
         dataRef.current = spray
         const mc = monthlyCumulative(spray)
@@ -241,6 +250,46 @@ export default function Story() {
         // per-agent overlap.
         map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
         addStoryHeat(map, SPRAY_SOURCE, spray.dayMax)
+
+        // Province outlines (thin) + the four Corps Tactical Zones / Military
+        // Regions (bolder dashed) for orientation — kept under the spray heat.
+        map.addSource(PROV_SOURCE, { type: 'geojson', data: provincesGeo })
+        map.addLayer(
+          {
+            id: 'province-borders',
+            type: 'line',
+            source: PROV_SOURCE,
+            paint: { 'line-color': 'rgba(33,53,40,0.26)', 'line-width': 0.6 },
+          },
+          STORY_HEAT_LAYER,
+        )
+        map.addSource(MR_SOURCE, { type: 'geojson', data: mrGeo })
+        map.addLayer(
+          {
+            id: 'mr-borders',
+            type: 'line',
+            source: MR_SOURCE,
+            layout: { 'line-join': 'round' },
+            paint: { 'line-color': 'rgba(33,53,40,0.62)', 'line-width': 1.5, 'line-dasharray': [3, 2] },
+          },
+          STORY_HEAT_LAYER,
+        )
+        // Military-region tags — overview only (off once you zoom into a node).
+        map.addSource(MRLABEL_SOURCE, { type: 'geojson', data: mrLabelsGeo })
+        map.addLayer({
+          id: 'mr-label',
+          type: 'symbol',
+          source: MRLABEL_SOURCE,
+          maxzoom: 8.5,
+          layout: {
+            'text-field': ['get', 'name'],
+            'text-font': ['Switzer Medium'],
+            'text-size': 12,
+            'text-transform': 'uppercase',
+            'text-letter-spacing': 0.08,
+          },
+          paint: { 'text-color': '#2c3730', 'text-halo-color': 'rgba(250,249,244,0.92)', 'text-halo-width': 1.8 },
+        })
 
         // Disputed-island labels (the basemap already draws the grey borders).
         map.addSource(ISLAND_SOURCE, { type: 'geojson', data: ISLANDS_FC })
