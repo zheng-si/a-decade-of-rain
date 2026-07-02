@@ -47,9 +47,15 @@ export default function MapKey({ map, ready, started }: Props) {
 
   return (
     <div className={`map-key${started ? ' is-visible' : ''}`} aria-hidden="true">
-      <div className="map-key-scale">
-        <div className="map-key-scale-bar" style={{ width: `${scale.w}px` }} />
-        <span className="map-key-scale-label">{scale.label}</span>
+      <div className="map-key-top">
+        <div className="map-key-scale">
+          <div className="map-key-scale-bar" style={{ width: `${scale.w}px` }} />
+          <span className="map-key-scale-label">{scale.label}</span>
+        </div>
+        <div className="map-key-compass" title="North">
+          <span className="map-key-compass-arrow" />
+          <span className="map-key-compass-n">N</span>
+        </div>
       </div>
 
       <div className="map-key-heat">
@@ -66,8 +72,16 @@ export default function MapKey({ map, ready, started }: Props) {
           Military region
         </li>
         <li>
-          <span className="key-swatch key-prov" />
-          Province
+          <span className="key-swatch key-border" />
+          National border
+        </li>
+        <li>
+          <span className="key-swatch key-veg" />
+          Vegetation
+        </li>
+        <li>
+          <span className="key-swatch key-water" />
+          Water
         </li>
         <li>
           <span className="key-swatch key-pilot" />

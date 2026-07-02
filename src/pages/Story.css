@@ -72,9 +72,9 @@
   font-size: 11px;
   font-weight: 600;
   color: #fff;
-  background: var(--forest);
+  background: var(--accent);
   border-radius: 4px;
-  box-shadow: 0 4px 14px rgba(16, 26, 20, 0.4);
+  box-shadow: 0 4px 14px rgba(255, 84, 73, 0.4);
 }
 
 .pilot-dot-label::after {
@@ -84,7 +84,7 @@
   left: 50%;
   transform: translateX(-50%);
   border: 5px solid transparent;
-  border-top-color: var(--forest);
+  border-top-color: var(--accent);
 }
 
 /* ── timeline ruler: full-height 10-year scale + cumulative bars + scan ───
@@ -492,13 +492,43 @@
   transform: none;
 }
 
+.map-key-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 9px;
+  margin-bottom: 9px;
+  border-bottom: 1px solid var(--rule);
+}
+
 .map-key-scale {
   display: flex;
   align-items: flex-end;
   gap: 7px;
-  padding-bottom: 9px;
-  margin-bottom: 9px;
-  border-bottom: 1px solid var(--rule);
+}
+
+.map-key-compass {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.map-key-compass-arrow {
+  width: 0;
+  height: 0;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-bottom: 9px solid var(--ink-soft);
+}
+
+.map-key-compass-n {
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--ink-soft);
 }
 
 .map-key-scale-bar {
@@ -560,12 +590,24 @@
 
 .key-mr {
   height: 0;
-  border-top: 1.5px dashed rgba(33, 53, 40, 0.7);
+  border-top: 2px dashed var(--accent);
 }
 
-.key-prov {
+.key-border {
   height: 0;
-  border-top: 1px solid rgba(33, 53, 40, 0.38);
+  border-top: 1.5px solid rgba(33, 53, 40, 0.7);
+}
+
+.key-veg {
+  height: 12px;
+  border-radius: 2px;
+  background: #cdd8c3;
+}
+
+.key-water {
+  height: 12px;
+  border-radius: 2px;
+  background: #dde6e4;
 }
 
 .key-pilot {
