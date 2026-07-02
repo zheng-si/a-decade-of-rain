@@ -87,9 +87,8 @@ export function applyMapTheme(map: maplibregl.Map, theme: MapTheme = mapConfig.t
       else if (layer.type === 'fill') map.setPaintProperty(id, 'fill-color', color)
       else if (layer.type === 'line') {
         map.setPaintProperty(id, 'line-color', color)
-        // Province / neighbour borders read as subtle dashes; Vietnam's own
-        // border is drawn bold on top as a separate overlay.
-        if (bucket === 'boundary') map.setPaintProperty(id, 'line-dasharray', [2, 2])
+        // Neighbour / province borders: solid dark grey. Vietnam's own border
+        // is drawn in brand orange on top as a separate overlay.
       } else if (layer.type === 'fill-extrusion') {
         map.setPaintProperty(id, 'fill-extrusion-color', color)
       }
