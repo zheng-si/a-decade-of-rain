@@ -133,9 +133,10 @@
 }
 
 /* ── timeline ruler: full-height 10-year scale + cumulative bars + scan ───
-   A narrow left column, independent of the card; --bars-w is its widest bar. */
+   Wide bars whose maximum lines up with the card's right edge; z-index 0 keeps
+   the whole ruler BELOW the card (which is in .story-scroll, z-index 1). */
 .timeline-ruler {
-  --bars-w: 120px;
+  --bars-w: 598px;
   position: fixed;
   left: 0;
   top: 0;
@@ -149,17 +150,6 @@
 
 .timeline-ruler.is-visible {
   opacity: 1;
-}
-
-/* Light paper backdrop (100%→0% left-to-right) behind the ruler column, so the
-   bars read cleanly instead of fighting the map. */
-.timeline-bg {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 210px;
-  height: 100%;
-  background: linear-gradient(to right, rgba(250, 249, 244, 0.82) 0%, rgba(250, 249, 244, 0) 100%);
 }
 
 /* Bars grow from the very left edge; widest bar reaches the card's right edge. */
@@ -242,39 +232,38 @@
   transform: translateY(-50%);
 }
 
-/* Running-total chip — rides the scan line's right end, clear of the card. */
-.timeline-cursor {
-  position: absolute;
+/* Running total — plain text riding the scan line's right end, ABOVE the card
+   (z-index 2 > the card's z-index 1). No background: it just sits on the line,
+   with its colour set inline for contrast against whatever is behind it. */
+.timeline-readout {
+  position: fixed;
+  z-index: 2;
   pointer-events: none;
-  transform: translate(8px, -50%);
-}
-
-.timeline-scan-vol {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 6px 10px 7px;
-  background: var(--accent);
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 4px;
-  box-shadow: 0 6px 18px rgba(255, 84, 73, 0.42);
+  transform: translate(8px, -50%);
+  opacity: 0;
+  transition: opacity 0.5s;
 }
 
-.timeline-scan-num {
+.timeline-readout.is-visible {
+  opacity: 1;
+}
+
+.timeline-readout-num {
   font-family: var(--font-serif);
-  font-size: 19px;
+  font-size: 21px;
   line-height: 1;
-  color: #fff;
   font-variant-numeric: tabular-nums;
 }
 
-.timeline-scan-unit {
+.timeline-readout-unit {
   margin-top: 3px;
   font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Hook + steps overlay the sticky graphic. */
@@ -435,8 +424,9 @@
   min-height: 100vh;
   display: flex;
   align-items: center;
-  /* Card sits clear of the ruler column (bars ≤120 + the running-total chip). */
-  padding: 0 6vw 0 232px;
+  /* Card floats over the map; the bars grow behind it to its right edge
+     (190 + 408 = 598 = --bars-w). */
+  padding: 0 6vw 0 190px;
   pointer-events: none;
 }
 
@@ -549,7 +539,7 @@
     width: 100%;
   }
   .timeline-ruler,
-  .timeline-cursor {
+  .timeline-readout {
     display: none;
   }
 }
