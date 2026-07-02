@@ -21,6 +21,7 @@ import { SOURCES } from '../content/sources'
 import { TopBar } from '../App'
 import RainCanvas from '../components/RainCanvas'
 import TimelineRuler from '../components/TimelineRuler'
+import MapKey from '../components/MapKey'
 import { readLabelGroups, setGroupVisible } from '../components/labelLayers'
 import './Story.css'
 
@@ -127,6 +128,7 @@ export default function Story() {
   const [is3D, setIs3D] = useState(false)
   const [monthlyCum, setMonthlyCum] = useState<number[]>([])
   const [yearStart, setYearStart] = useState(1961)
+  const [mapReady, setMapReady] = useState(false)
 
   // Each node's position on the ruler (0–1), from its playhead date.
   const nodeFracs = useMemo(() => {
@@ -372,6 +374,7 @@ export default function Story() {
         })
 
         readyRef.current = true
+        setMapReady(true)
         setHookState()
       })
     })
@@ -444,6 +447,8 @@ export default function Story() {
       <div className="story-graphic">
         <div ref={containerRef} className="story-map" />
       </div>
+
+      <MapKey map={mapRef.current} ready={mapReady} started={started} />
 
       <TimelineRuler
         monthlyCum={monthlyCum}
