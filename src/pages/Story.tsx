@@ -15,7 +15,7 @@ import {
   setBarsVisible,
   STORY_HEAT_LAYER,
 } from '../components/mapTheme'
-import { FACTS_EVENTS } from '../content/facts/events'
+import { FACTS_EVENTS, type StoryEvent } from '../content/facts/events'
 import { HOOK } from '../content/facts/hook'
 import { SOURCES } from '../content/sources'
 import { TopBar } from '../App'
@@ -30,8 +30,73 @@ const ISLAND_SOURCE = 'islands'
 const MR_SOURCE = 'military-regions'
 const MRLABEL_SOURCE = 'military-region-labels'
 const BARS_SOURCE = 'spray-bars-src'
+const REGION_SOURCE = 'node-region'
 // 3D column grid resolution — finer cells read as slender columns.
 const CELL_DEG = 0.03
+
+// Monotone-chain convex hull of [lon,lat] points (counter-clockwise ring).
+function convexHull(pts: [number, number][]): [number, number][] {
+  const p = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1])
+  if (p.length < 3) return p
+  const cross = (o: number[], a: number[], b: number[]) =>
+    (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+  const lower: [number, number][] = []
+  for (const q of p) {
+    while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], q) <= 0) lower.pop()
+    lower.push(q)
+  }
+  const upper: [number, number][] = []
+  for (let i = p.length - 1; i >= 0; i--) {
+    const q = p[i]
+    while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], q) <= 0) upper.pop()
+    upper.push(q)
+  }
+  lower.pop()
+  upper.pop()
+  return lower.concat(upper)
+}
+
+// Outline the node's hotspot: convex hull of the sprayed points inside its bbox
+// (up to its date). The bbox clips outliers so the hull hugs the cluster.
+function regionFC(spray: SprayDataset, ev: StoryEvent): FeatureCollection<Polygon, { name: string }> | null {
+  if (!ev.bbox || !ev.region) return null
+  const [w, s, e, n] = ev.bbox
+  const day = dateToDay(ev.date)
+  const pts: [number, number][] = []
+  for (const f of spray.features.features) {
+    if (f.properties.day > day || f.properties.gallons <= 0) continue
+    const [lon, lat] = f.geometry.coordinates
+    if (lon >= w && lon <= e && lat >= s && lat <= n) pts.push([lon, lat])
+  }
+  if (pts.length < 3) return null
+  const hull = convexHull(pts)
+  hull.push(hull[0])
+  return {
+    type: 'FeatureCollection',
+    features: [{ type: 'Feature', properties: { name: ev.region }, geometry: { type: 'Polygon', coordinates: [hull] } }],
+  }
+}
+
+// A small tile of diagonal orange lines for the region's hatch fill.
+function hatchImage(): { width: number; height: number; data: Uint8Array } {
+  const r = 2
+  const size = 12 * r
+  const c = document.createElement('canvas')
+  c.width = size
+  c.height = size
+  const ctx = c.getContext('2d')!
+  ctx.strokeStyle = '#ff5449'
+  ctx.lineWidth = 1.5 * r
+  ctx.beginPath()
+  ctx.moveTo(0, size)
+  ctx.lineTo(size, 0)
+  ctx.moveTo(-size / 2, size / 2)
+  ctx.lineTo(size / 2, -size / 2)
+  ctx.moveTo(size / 2, size + size / 2)
+  ctx.lineTo(size + size / 2, size / 2)
+  ctx.stroke()
+  return { width: size, height: size, data: new Uint8Array(ctx.getImageData(0, 0, size, size).data.buffer) }
+}
 
 // Bin spray points into CELL_DEG cells, summing cumulative gallons up to `day`.
 // Each cell becomes a slightly-inset square (a column footprint).
@@ -113,6 +178,7 @@ export default function Story() {
   const crossMarkersRef = useRef<maplibregl.Marker[]>([])
   const is3DRef = useRef(false)
   const dayRef = useRef(0)
+  const pulseRef = useRef<number | null>(null)
 
   // Rebuild the 3D column grid for the cumulative window up to `day`.
   function updateBars(day: number) {
@@ -172,6 +238,55 @@ export default function Story() {
     }
   }
 
+  // Pulse the region outline/fill opacity with a sine wave, so the highlighted
+  // hotspot gently breathes and draws the eye. Uses setPaintProperty per frame.
+  function stopPulse() {
+    if (pulseRef.current != null) {
+      cancelAnimationFrame(pulseRef.current)
+      pulseRef.current = null
+    }
+  }
+  function startPulse() {
+    const map = mapRef.current
+    if (!map) return
+    stopPulse()
+    let t = 0
+    const tick = () => {
+      const m = mapRef.current
+      if (!m || !m.getLayer('region-outline')) {
+        pulseRef.current = null
+        return
+      }
+      t += 0.045
+      const s = (Math.sin(t) + 1) / 2 // 0..1
+      try {
+        m.setPaintProperty('region-outline', 'line-opacity', 0.4 + 0.55 * s)
+        m.setPaintProperty('region-fill', 'fill-opacity', 0.3 + 0.35 * s)
+      } catch {
+        /* layer gone */
+      }
+      pulseRef.current = requestAnimationFrame(tick)
+    }
+    pulseRef.current = requestAnimationFrame(tick)
+  }
+
+  // Draw (or clear) the active node's hotspot highlight. Only in 2D — the
+  // outline would float above the extruded columns in 3D.
+  function applyRegion(ev: StoryEvent | null) {
+    const map = mapRef.current
+    const spray = dataRef.current
+    if (!map || !map.getSource(REGION_SOURCE)) return
+    const src = map.getSource(REGION_SOURCE) as maplibregl.GeoJSONSource
+    const fc = ev && spray && !is3DRef.current ? regionFC(spray, ev) : null
+    if (fc) {
+      src.setData(fc)
+      startPulse()
+    } else {
+      stopPulse()
+      src.setData({ type: 'FeatureCollection', features: [] })
+    }
+  }
+
   // Keep framed content clear of the card (left on desktop, bottom on mobile).
   function framePadding(): maplibregl.PaddingOptions {
     return window.innerWidth > 640
@@ -193,6 +308,7 @@ export default function Story() {
     setBarsVisible(map, is3DRef.current)
     setSVVisible(true)
     clearCrosses()
+    applyRegion(null)
   }
 
   function applyStep(i: number) {
@@ -236,6 +352,7 @@ export default function Story() {
     }
     if (isPilot) showCrosses(ev.crosses)
     else clearCrosses()
+    applyRegion(ev)
     setSVVisible(false)
   }
 
@@ -333,6 +450,43 @@ export default function Story() {
           paint: { 'text-color': '#ff5449', 'text-halo-color': 'rgba(250,249,244,0.95)', 'text-halo-width': 2 },
         })
 
+        // Per-node hotspot highlight: a thick orange outline + diagonal-hatch
+        // fill + label around the active node's spray cluster, pulsing so the
+        // reader can locate the area fast. Empty until a node is entered.
+        if (!map.hasImage('region-hatch')) {
+          const img = hatchImage()
+          map.addImage('region-hatch', img, { pixelRatio: 2 })
+        }
+        const emptyFC: FeatureCollection<Polygon, { name: string }> = { type: 'FeatureCollection', features: [] }
+        map.addSource(REGION_SOURCE, { type: 'geojson', data: emptyFC })
+        map.addLayer({
+          id: 'region-fill',
+          type: 'fill',
+          source: REGION_SOURCE,
+          paint: { 'fill-pattern': 'region-hatch', 'fill-opacity': 0.55 },
+        })
+        map.addLayer({
+          id: 'region-outline',
+          type: 'line',
+          source: REGION_SOURCE,
+          layout: { 'line-join': 'round', 'line-cap': 'round' },
+          paint: { 'line-color': '#ff5449', 'line-width': 3, 'line-opacity': 0.95 },
+        })
+        map.addLayer({
+          id: 'region-label',
+          type: 'symbol',
+          source: REGION_SOURCE,
+          layout: {
+            'text-field': ['get', 'name'],
+            'text-font': ['Switzer Medium'],
+            'text-size': 13,
+            'text-transform': 'uppercase',
+            'text-letter-spacing': 0.08,
+            'text-max-width': 9,
+          },
+          paint: { 'text-color': '#ff5449', 'text-halo-color': 'rgba(250,249,244,0.95)', 'text-halo-width': 2 },
+        })
+
         // Disputed-island labels (the basemap already draws the grey borders).
         map.addSource(ISLAND_SOURCE, { type: 'geojson', data: ISLANDS_FC })
         map.addLayer({
@@ -369,6 +523,7 @@ export default function Story() {
 
     return () => {
       cancelled = true
+      stopPulse()
       clearCrosses()
       mapRef.current?.remove()
       mapRef.current = null
@@ -414,11 +569,13 @@ export default function Story() {
       updateBars(dayRef.current)
       setBarsVisible(map, true)
       setStoryHeatVisible(map, false)
+      applyRegion(null) // outline would float over the columns in 3D
     } else {
       setBarsVisible(map, false)
       // Restore the flat heatmap unless we're on a pilot node (crosses only).
       const isPilot = !!FACTS_EVENTS[active]?.crosses
       setStoryHeatVisible(map, started ? !isPilot : true)
+      applyRegion(started ? FACTS_EVENTS[active] : null)
     }
   }
 

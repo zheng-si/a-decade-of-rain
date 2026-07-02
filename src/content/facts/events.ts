@@ -43,6 +43,9 @@ export interface StoryEvent {
   /** Pilot / test-spray locations marked with a pulsing dot instead of heat
    *  (used where the sprayed volume is too small to read as a heatmap). */
   crosses?: { lng: number; lat: number; label: string }[]
+  /** Name of this node's main hotspot area — outlined (orange hatch + pulse)
+   *  from the node's spray so the reader can place it fast. Needs `bbox`. */
+  region?: string
   dek: string
   body: string
   quote?: Quote
@@ -78,6 +81,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
   {
     id: 'warzone-d',
     name: 'The Ramp-Up: War Zone D',
+    region: 'War Zone D',
     period: '1965–66',
     date: '1966-08-01',
     camera: { center: [106.95, 11.2], zoom: 7.4 },
@@ -99,6 +103,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
   {
     id: 'peak',
     name: 'Peak: War Zone C & the Iron Triangle',
+    region: 'War Zone C & Iron Triangle',
     period: '1967',
     date: '1967-10-01',
     camera: { center: [106.6, 11.32], zoom: 7.3 },
@@ -120,6 +125,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
   {
     id: 'mangroves',
     name: 'Ecocide: the Mangroves',
+    region: 'Coastal mangroves',
     period: '1968',
     date: '1968-09-01',
     camera: { center: [105.5, 9.5], zoom: 6.9 },
@@ -142,6 +148,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
   {
     id: 'a-sau',
     name: 'A Sầu Valley: sprayed eleven times',
+    region: 'A Sầu Valley',
     period: '1965–70',
     date: '1969-08-01',
     camera: { center: [107.18, 16.3], zoom: 8.6 },
@@ -164,6 +171,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
   {
     id: 'hotspots',
     name: 'The Halt, and the Hotspots',
+    region: 'Biên Hòa airbase',
     period: '1970–71 → today',
     date: '1971-01-01',
     camera: { center: [106.83, 10.99], zoom: 9.6 },
