@@ -133,10 +133,9 @@
 }
 
 /* ── timeline ruler: full-height 10-year scale + cumulative bars + scan ───
-   Wide bars whose maximum lines up with the card's right edge; z-index 0 keeps
-   the whole ruler BELOW the card (which is in .story-scroll, z-index 1). */
+   A narrow left column, independent of the card; --bars-w is its widest bar. */
 .timeline-ruler {
-  --bars-w: 598px;
+  --bars-w: 120px;
   position: fixed;
   left: 0;
   top: 0;
@@ -150,6 +149,17 @@
 
 .timeline-ruler.is-visible {
   opacity: 1;
+}
+
+/* Light paper backdrop (100%→0% left-to-right) behind the ruler column, so the
+   bars read cleanly instead of fighting the map. */
+.timeline-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 210px;
+  height: 100%;
+  background: linear-gradient(to right, rgba(250, 249, 244, 0.82) 0%, rgba(250, 249, 244, 0) 100%);
 }
 
 /* Bars grow from the very left edge; widest bar reaches the card's right edge. */
@@ -192,35 +202,6 @@
   text-shadow: 0 1px 3px rgba(250, 249, 244, 0.95), 0 0 3px rgba(250, 249, 244, 0.95);
 }
 
-/* Forest-green node markers on the axis; the active one is highlighted. */
-.timeline-nodes {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 24px;
-  height: 100%;
-}
-
-.timeline-node {
-  position: absolute;
-  left: 1px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--forest);
-  border: 2px solid rgba(250, 249, 244, 0.92);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
-  transform: translateY(-50%);
-  transition: width 0.3s, height 0.3s, box-shadow 0.3s;
-}
-
-.timeline-node.is-active {
-  width: 14px;
-  height: 14px;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(255, 84, 73, 0.28), 0 1px 6px rgba(0, 0, 0, 0.25);
-}
-
 /* Scan line: length tracks the bar under it; grows from the left edge. */
 .timeline-scan-line {
   position: absolute;
@@ -232,38 +213,39 @@
   transform: translateY(-50%);
 }
 
-/* Running total — plain text riding the scan line's right end, ABOVE the card
-   (z-index 2 > the card's z-index 1). No background: it just sits on the line,
-   with its colour set inline for contrast against whatever is behind it. */
-.timeline-readout {
-  position: fixed;
-  z-index: 2;
+/* Running-total chip — rides the scan line's right end, clear of the card. */
+.timeline-cursor {
+  position: absolute;
   pointer-events: none;
+  transform: translate(8px, -50%);
+}
+
+.timeline-scan-vol {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  transform: translate(8px, -50%);
-  opacity: 0;
-  transition: opacity 0.5s;
+  padding: 6px 10px 7px;
+  background: var(--accent);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 4px;
+  box-shadow: 0 6px 18px rgba(255, 84, 73, 0.42);
 }
 
-.timeline-readout.is-visible {
-  opacity: 1;
-}
-
-.timeline-readout-num {
+.timeline-scan-num {
   font-family: var(--font-serif);
-  font-size: 21px;
+  font-size: 19px;
   line-height: 1;
+  color: #fff;
   font-variant-numeric: tabular-nums;
 }
 
-.timeline-readout-unit {
+.timeline-scan-unit {
   margin-top: 3px;
   font-size: 8px;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 /* Hook + steps overlay the sticky graphic. */
@@ -424,9 +406,8 @@
   min-height: 100vh;
   display: flex;
   align-items: center;
-  /* Card floats over the map; the bars grow behind it to its right edge
-     (190 + 408 = 598 = --bars-w). */
-  padding: 0 6vw 0 190px;
+  /* Card sits clear of the ruler column (bars ≤120 + the running-total chip). */
+  padding: 0 6vw 0 232px;
   pointer-events: none;
 }
 
@@ -539,7 +520,7 @@
     width: 100%;
   }
   .timeline-ruler,
-  .timeline-readout {
+  .timeline-cursor {
     display: none;
   }
 }
