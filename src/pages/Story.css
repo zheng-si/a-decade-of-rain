@@ -19,57 +19,72 @@
   inset: 0;
 }
 
-/* ── pilot / test-spray crosses (orange +) ────────────────────────────── */
-/* The marker root carries MapLibre's positioning transform; the pulse lives on
+/* ── pilot / test-spray markers: orange dot + pulsing ring + label ─────────
+   The marker root carries MapLibre's positioning transform; the pulse lives on
    an inner element so it never clobbers the position. */
-.pilot-cross {
+.pilot-dot {
   position: relative;
-  width: 22px;
-  height: 22px;
+  width: 12px;
+  height: 12px;
   pointer-events: none;
 }
 
-.pilot-cross-mark {
+.pilot-dot-core {
   position: absolute;
   inset: 0;
-  animation: cross-pulse 1.8s ease-in-out infinite;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9), 0 1px 4px rgba(0, 0, 0, 0.35);
 }
 
-.pilot-cross-mark::before,
-.pilot-cross-mark::after {
+.pilot-dot-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  transform-origin: center;
+  animation: pilot-pulse 2.2s ease-out infinite;
+}
+
+@keyframes pilot-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  70% {
+    transform: scale(3.4);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(3.4);
+    opacity: 0;
+  }
+}
+
+.pilot-dot-label {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 4px 9px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  background: var(--forest);
+  border-radius: 4px;
+  box-shadow: 0 4px 14px rgba(16, 26, 20, 0.4);
+}
+
+.pilot-dot-label::after {
   content: '';
   position: absolute;
-  background: var(--accent);
-  border-radius: 1px;
-  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9);
-}
-
-.pilot-cross-mark::before {
+  top: 100%;
   left: 50%;
-  top: 0;
-  width: 3px;
-  height: 100%;
   transform: translateX(-50%);
-}
-
-.pilot-cross-mark::after {
-  top: 50%;
-  left: 0;
-  height: 3px;
-  width: 100%;
-  transform: translateY(-50%);
-}
-
-@keyframes cross-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.16);
-    opacity: 0.82;
-  }
+  border: 5px solid transparent;
+  border-top-color: var(--forest);
 }
 
 /* ── timeline ruler: full-height 10-year scale + cumulative bars + scan ───
