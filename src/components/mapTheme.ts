@@ -221,6 +221,44 @@ export function setStoryHeatVisible(map: maplibregl.Map, on: boolean) {
   }
 }
 
+// ── 3D view: extruded spray columns (binned) ──────────────────────────────
+// The 3D toggle swaps the flat heatmap for a grid of extruded columns whose
+// height ∝ √(cumulative gallons in that cell). Binning keeps this to a few
+// thousand boxes (one draw call) so it stays smooth. Heights are scaled to a
+// fixed global maximum so the columns grow through the decade.
+export const STORY_BARS_LAYER = 'spray-bars'
+const BAR_MAX_H = 55000 // metres — a readable column height at country zoom
+
+export function addSprayBars(map: maplibregl.Map, sourceId: string, maxGallons: number) {
+  if (map.getLayer(STORY_BARS_LAYER)) return
+  const s = Math.max(1, Math.sqrt(maxGallons))
+  map.addLayer({
+    id: STORY_BARS_LAYER,
+    type: 'fill-extrusion',
+    source: sourceId,
+    layout: { visibility: 'none' },
+    paint: {
+      'fill-extrusion-base': 0,
+      'fill-extrusion-height': ['interpolate', ['linear'], ['sqrt', ['get', 'gallons']], 0, 0, s, BAR_MAX_H],
+      'fill-extrusion-color': [
+        'interpolate',
+        ['linear'],
+        ['sqrt', ['get', 'gallons']],
+        0, '#ffc7b0',
+        s * 0.5, '#ff7a4d',
+        s, '#cf3720',
+      ],
+      'fill-extrusion-opacity': 0.9,
+    },
+  })
+}
+
+export function setBarsVisible(map: maplibregl.Map, on: boolean) {
+  if (map.getLayer(STORY_BARS_LAYER)) {
+    map.setLayoutProperty(STORY_BARS_LAYER, 'visibility', on ? 'visible' : 'none')
+  }
+}
+
 /** Update the cumulative time window on every agent layer. */
 export function setSprayTime(map: maplibregl.Map, choices: AgentChoice[], day: number) {
   for (const c of groups(choices)) {
