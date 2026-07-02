@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 
 interface Props {
   /** Cumulative gallons at the end of each month, from January of yearStart. */
@@ -16,10 +16,8 @@ interface Props {
 
 const H = 1000
 const CHART_W = 100
-const BARS_W = 120 // widest bar, in px, inside the panel
-const PANEL_LEFT = 16
-const PANEL_MY = 16 // top / bottom margin
-const CARD_LEFT = 240 // matches .story-step padding-left
+// Widest bar, in px — a narrow column on the left, independent of the card.
+const BARS_W = 120
 
 // Tick marks at every month boundary; year boundaries are twice as long. Memoised.
 const RulerTicks = memo(function RulerTicks({ n }: { n: number }) {
@@ -34,7 +32,7 @@ const RulerTicks = memo(function RulerTicks({ n }: { n: number }) {
         x2={isYear ? 12 : 6}
         y1={y}
         y2={y}
-        stroke={isYear ? 'rgba(33,53,40,0.5)' : 'rgba(33,53,40,0.24)'}
+        stroke={isYear ? 'rgba(33,53,40,0.5)' : 'rgba(33,53,40,0.26)'}
         strokeWidth="1"
         vectorEffect="non-scaling-stroke"
       />,
@@ -62,10 +60,9 @@ const RulerYears = memo(function RulerYears({ n, yearStart }: { n: number; yearS
   )
 })
 
-// A floating full-height panel: the whole 1961–1971 span at a uniform monthly
-// scale, cumulative spray volume as a stacked area, orange node triangles on the
-// axis, and a scan line whose length tracks the bar under it. When a node is
-// active, a connector animates out toward the card.
+// A full-height ruler: the whole 1961–1971 span at a uniform monthly scale, with
+// cumulative spray volume as a stacked area that widens downward. The scan line's
+// length tracks the bar under it, and the running-total chip rides its right end.
 export default function TimelineRuler({
   monthlyCum,
   yearStart,
@@ -92,6 +89,8 @@ export default function TimelineRuler({
         setPos(0)
         return
       }
+      // Piecewise map from scroll to ruler fraction, anchored at each node's
+      // step-centre so the scan line meets the node's dot when it's active.
       const focus = window.scrollY + 0.6 * vhv
       const xs = [0]
       const ys = [0]
@@ -152,81 +151,51 @@ export default function TimelineRuler({
   const i0 = Math.floor(fpos)
   const frac = fpos - i0
   const vol = monthlyCum[i0] + ((monthlyCum[Math.min(i0 + 1, n - 1)] ?? monthlyCum[i0]) - monthlyCum[i0]) * frac
-  const barTip = Math.max(2, (vol / maxCum) * BARS_W)
 
-  const panelH = Math.max(1, vh - 2 * PANEL_MY)
-  const clampPx = 26
-  const clampY = (f: number) => Math.min(panelH - clampPx, Math.max(clampPx, f * panelH))
-  const scanY = vh ? clampY(pos) : 0
-  const hasActive = vh > 0 && started && activeIndex >= 0 && activeIndex < nodeFracs.length
+  const clampPx = 34
+  const scanTop = vh ? Math.min(vh - clampPx, Math.max(clampPx, pos * vh)) : pos * (vh || 0)
+  const scanTopCss = vh ? `${scanTop}px` : `${pos * 100}%`
+  const barTip = Math.max(2, (vol / maxCum) * BARS_W) // px, right end of the scan line
   const reveal = `inset(0 0 ${((1 - pos) * 100).toFixed(2)}% 0)`
   const vis = started ? ' is-visible' : ''
 
-  // Diagonal connector from the active node's triangle to the card's centre.
-  const cx1 = PANEL_LEFT + 12
-  const cy1 = hasActive ? PANEL_MY + clampY(nodeFracs[activeIndex]) : 0
-  const cx2 = CARD_LEFT
-  const cy2 = vh * 0.5
-  const cLen = Math.hypot(cx2 - cx1, cy2 - cy1)
-  const cAng = (Math.atan2(cy2 - cy1, cx2 - cx1) * 180) / Math.PI
-
   return (
     <aside className={`timeline-ruler${vis}`} aria-hidden="true">
-      <div className="timeline-panel">
-        {/* Clipped face holds the bars, ticks, labels and node markers. */}
-        <div className="timeline-panel-face">
-          <svg
-            className="timeline-area"
-            viewBox={`0 0 ${CHART_W} ${H}`}
-            preserveAspectRatio="none"
-            style={{ clipPath: reveal, WebkitClipPath: reveal }}
-          >
-            <defs>
-              <linearGradient id="tl-area" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgba(255,84,73,0.5)" />
-                <stop offset="100%" stopColor="rgba(255,84,73,0.92)" />
-              </linearGradient>
-            </defs>
-            <path d={areaPath} fill="url(#tl-area)" />
-          </svg>
-          <RulerTicks n={n} />
-          <div className="timeline-nodes">
-            {nodeFracs.map((f, i) => (
-              <span
-                key={i}
-                className={`timeline-node${i === activeIndex ? ' is-active' : ''}`}
-                style={{ top: `${f * 100}%` }}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Year labels sit outside the clipped face so the top one isn't cut. */}
-        <RulerYears n={n} yearStart={yearStart} />
-
-        {/* Overhanging elements (not clipped): scan line, chip, connector. */}
-        <span className="timeline-scan-line" style={{ top: `${scanY}px`, width: `${barTip}px` }} />
-        <div className="timeline-cursor" style={{ top: `${scanY}px`, left: `${barTip}px` }}>
-          <div className="timeline-scan-vol">
-            <span className="timeline-scan-num">{fmt(vol)}</span>
-            <span className="timeline-scan-unit">gallons sprayed</span>
-          </div>
+      {/* Light backdrop so the bars don't fight the map behind them. */}
+      <div className="timeline-bg" />
+      <svg
+        className="timeline-area"
+        viewBox={`0 0 ${CHART_W} ${H}`}
+        preserveAspectRatio="none"
+        style={{ clipPath: reveal, WebkitClipPath: reveal }}
+      >
+        <defs>
+          <linearGradient id="tl-area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="rgba(255,84,73,0.5)" />
+            <stop offset="100%" stopColor="rgba(255,84,73,0.9)" />
+          </linearGradient>
+        </defs>
+        <path d={areaPath} fill="url(#tl-area)" />
+      </svg>
+      <RulerTicks n={n} />
+      <RulerYears n={n} yearStart={yearStart} />
+      <div className="timeline-nodes">
+        {nodeFracs.map((f, i) => (
+          <span
+            key={i}
+            className={`timeline-node${i === activeIndex ? ' is-active' : ''}`}
+            style={{ top: `${f * 100}%` }}
+          />
+        ))}
+      </div>
+      <span className="timeline-scan-line" style={{ top: scanTopCss, width: `${barTip}px` }} />
+      {/* Running-total chip rides the scan line's right end (clear of the card). */}
+      <div className="timeline-cursor" style={{ top: scanTopCss, left: `${barTip}px` }}>
+        <div className="timeline-scan-vol">
+          <span className="timeline-scan-num">{fmt(vol)}</span>
+          <span className="timeline-scan-unit">gallons sprayed</span>
         </div>
       </div>
-      {hasActive && (
-        <span
-          key={activeIndex}
-          className="timeline-connector"
-          style={
-            {
-              left: `${cx1}px`,
-              top: `${cy1 - 1}px`,
-              width: `${cLen}px`,
-              '--ang': `${cAng}deg`,
-            } as CSSProperties
-          }
-        />
-      )}
     </aside>
   )
 }
