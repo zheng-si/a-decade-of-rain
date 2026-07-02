@@ -40,6 +40,9 @@ export interface StoryEvent {
   bbox?: [number, number, number, number]
   /** Nearby places to pin. */
   cities?: City[]
+  /** Pilot / test-spray locations marked with an orange cross instead of heat
+   *  (used where the sprayed volume is too small to read as a heatmap). */
+  crosses?: [number, number][]
   dek: string
   body: string
   quote?: Quote
@@ -57,6 +60,11 @@ export const FACTS_EVENTS: StoryEvent[] = [
     cities: [
       { name: 'Đắk Tô', lng: 107.83, lat: 14.65 },
       { name: 'Sài Gòn', lng: 106.7, lat: 10.78 },
+    ],
+    // Đắk Tô test spray (Aug 1961) + first mission on Route 15 toward Biên Hòa.
+    crosses: [
+      [107.83, 14.65],
+      [106.82, 10.97],
     ],
     dek: 'Operation Ranch Hand begins.',
     body: 'The first test spray runs on 10 August 1961 near Đắk Tô in the central highlands; the first official mission follows in January 1962 along Route 15 toward Biên Hòa. Just 107 missions fly in 1962 — the quiet start of a decade-long campaign.',

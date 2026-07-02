@@ -2,11 +2,19 @@
    warm near-white paper, muted ink, hairline rules, one restrained red accent. */
 :root {
   --paper: 250, 249, 244; /* warm near-white (rgb tuple for alpha use) */
-  --ink: #2f322c;
-  --ink-soft: #54574f;
-  --ink-faint: #8c8e85;
-  --rule: #e4e1d6;
-  --accent: #d9533a;
+  --paper-solid: #fdfdfd;
+  /* Forest-green ink scale (from the brand palette). */
+  --ink: #213528; /* deep forest — primary text & dark surfaces */
+  --ink-soft: #4e6355;
+  --ink-faint: #8a9a8f;
+  --rule: #dfe3d9;
+  --accent: #ff5449; /* brand orange */
+  /* Dark forest surfaces (story cards) + the light text that sits on them. */
+  --forest: #213528;
+  --forest-2: #2c3730;
+  --forest-text: #e8ece6;
+  --forest-text-soft: #b4ccba;
+  --mint: #92f7bc;
 }
 
 .app {

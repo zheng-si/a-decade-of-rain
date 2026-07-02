@@ -170,6 +170,58 @@ export function addSprayLayers(map: maplibregl.Map, sourceId: string, choices: A
   }
 }
 
+// ── story mode: one combined heatmap in the brand orange ──────────────────
+// The scrollytelling uses a single, all-agents heatmap (no per-agent layers
+// stacking into a muddy overlap). A warm ramp keeps dense cores orange rather
+// than darkening to grey.
+export const STORY_HEAT_LAYER = 'spray-heat-story'
+
+function warmRamp(): ExpressionSpecification {
+  return [
+    'interpolate',
+    ['linear'],
+    ['heatmap-density'],
+    0, 'rgba(255,84,73,0)',
+    0.12, 'rgba(255,84,73,0.32)',
+    0.35, 'rgba(255,84,73,0.62)',
+    0.65, 'rgba(255,96,52,0.85)',
+    1, 'rgba(214,54,40,0.96)',
+  ]
+}
+
+const dayFilter = (day: number): ExpressionSpecification => ['<=', ['get', 'day'], day]
+
+export function addStoryHeat(map: maplibregl.Map, sourceId: string, day: number) {
+  if (map.getLayer(STORY_HEAT_LAYER)) return
+  const { radius, intensity, opacity } = mapConfig.heatmap
+  map.addLayer(
+    {
+      id: STORY_HEAT_LAYER,
+      type: 'heatmap',
+      source: sourceId,
+      filter: dayFilter(day),
+      paint: {
+        'heatmap-weight': ['get', 'w'],
+        'heatmap-intensity': stops(intensity),
+        'heatmap-radius': stops(radius),
+        'heatmap-opacity': opacity,
+        'heatmap-color': warmRamp(),
+      },
+    },
+    firstLabelLayerId(map),
+  )
+}
+
+export function setStoryHeatTime(map: maplibregl.Map, day: number) {
+  if (map.getLayer(STORY_HEAT_LAYER)) map.setFilter(STORY_HEAT_LAYER, dayFilter(day))
+}
+
+export function setStoryHeatVisible(map: maplibregl.Map, on: boolean) {
+  if (map.getLayer(STORY_HEAT_LAYER)) {
+    map.setLayoutProperty(STORY_HEAT_LAYER, 'visibility', on ? 'visible' : 'none')
+  }
+}
+
 /** Update the cumulative time window on every agent layer. */
 export function setSprayTime(map: maplibregl.Map, choices: AgentChoice[], day: number) {
   for (const c of groups(choices)) {
