@@ -27,7 +27,6 @@ import './Story.css'
 
 const SPRAY_SOURCE = 'spray'
 const ISLAND_SOURCE = 'islands'
-const PROV_SOURCE = 'provinces'
 const MR_SOURCE = 'military-regions'
 const MRLABEL_SOURCE = 'military-region-labels'
 const BARS_SOURCE = 'spray-bars-src'
@@ -264,11 +263,10 @@ export default function Story() {
       const asset = (f: string) => fetch(`${import.meta.env.BASE_URL}${f}`).then((r) => r.json())
       Promise.all([
         loadSpray(),
-        asset('data/provinces.geojson'),
         asset('data/military-regions.geojson'),
         asset('data/military-region-labels.geojson'),
         new Promise<void>((resolve) => map.once('load', () => resolve())),
-      ]).then(([spray, provincesGeo, mrGeo, mrLabelsGeo]) => {
+      ]).then(([spray, mrGeo, mrLabelsGeo]) => {
         if (!mapRef.current) return
         dataRef.current = spray
         const mc = monthlyCumulative(spray)
@@ -305,18 +303,8 @@ export default function Story() {
         for (const f of sprayGrid(spray, spray.dayMax).features) globalMax = Math.max(globalMax, f.properties.gallons)
         addSprayBars(map, BARS_SOURCE, globalMax)
 
-        // Province outlines (thin) + the four Corps Tactical Zones / Military
-        // Regions (bolder dashed) for orientation — kept under the spray heat.
-        map.addSource(PROV_SOURCE, { type: 'geojson', data: provincesGeo })
-        map.addLayer(
-          {
-            id: 'province-borders',
-            type: 'line',
-            source: PROV_SOURCE,
-            paint: { 'line-color': 'rgba(33,53,40,0.26)', 'line-width': 0.6 },
-          },
-          STORY_HEAT_LAYER,
-        )
+        // The four Corps Tactical Zones / Military Regions — bold orange dashed
+        // boundaries (kept under the spray heat) with uppercase orange tags.
         map.addSource(MR_SOURCE, { type: 'geojson', data: mrGeo })
         map.addLayer(
           {
@@ -324,7 +312,7 @@ export default function Story() {
             type: 'line',
             source: MR_SOURCE,
             layout: { 'line-join': 'round' },
-            paint: { 'line-color': 'rgba(33,53,40,0.62)', 'line-width': 1.5, 'line-dasharray': [3, 2] },
+            paint: { 'line-color': '#ff5449', 'line-width': 2.2, 'line-opacity': 0.9, 'line-dasharray': [2.4, 1.8] },
           },
           STORY_HEAT_LAYER,
         )
@@ -338,11 +326,11 @@ export default function Story() {
           layout: {
             'text-field': ['get', 'name'],
             'text-font': ['Switzer Medium'],
-            'text-size': 12,
+            'text-size': 12.5,
             'text-transform': 'uppercase',
-            'text-letter-spacing': 0.08,
+            'text-letter-spacing': 0.1,
           },
-          paint: { 'text-color': '#2c3730', 'text-halo-color': 'rgba(250,249,244,0.92)', 'text-halo-width': 1.8 },
+          paint: { 'text-color': '#ff5449', 'text-halo-color': 'rgba(250,249,244,0.95)', 'text-halo-width': 2 },
         })
 
         // Disputed-island labels (the basemap already draws the grey borders).
