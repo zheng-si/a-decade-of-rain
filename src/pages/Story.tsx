@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -76,6 +76,16 @@ export default function Story() {
   const [monthlyCum, setMonthlyCum] = useState<number[]>([])
   const [yearStart, setYearStart] = useState(1961)
 
+  // Each node's position on the ruler (0–1), from its playhead date.
+  const nodeFracs = useMemo(() => {
+    const N = monthlyCum.length || 132
+    return FACTS_EVENTS.map((ev) => {
+      const dt = new Date(`${ev.date}T00:00:00Z`)
+      const mi = (dt.getUTCFullYear() - yearStart) * 12 + dt.getUTCMonth()
+      return Math.min(1, Math.max(0, (mi + 0.5) / N))
+    })
+  }, [monthlyCum.length, yearStart])
+
   function toggleLabelGroup(key: string) {
     const map = mapRef.current
     if (!map) return
@@ -124,7 +134,7 @@ export default function Story() {
   // Keep framed content clear of the card (left on desktop, bottom on mobile).
   function framePadding(): maplibregl.PaddingOptions {
     return window.innerWidth > 640
-      ? { left: 700, top: 70, right: 70, bottom: 70 }
+      ? { left: 70, top: 70, right: 70, bottom: 70 }
       : { left: 24, right: 24, top: 48, bottom: 340 }
   }
 
@@ -345,6 +355,8 @@ export default function Story() {
       <TimelineRuler
         monthlyCum={monthlyCum}
         yearStart={yearStart}
+        nodeFracs={nodeFracs}
+        activeIndex={active}
         fmt={fmtGallons}
         storyRef={storyRef}
         started={started}
