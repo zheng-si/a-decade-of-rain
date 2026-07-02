@@ -28,8 +28,12 @@ function catOf(id: string): string {
   return 'other'
 }
 
-// Granular tiers hidden by default — these are the “P.9 / Thôn 7” clutter.
-export const DEFAULT_HIDDEN = new Set(['village', 'poi'])
+// Curated label set for the story map. We show the tiers that help a reader
+// place the spraying — countries, provinces, cities, towns, water and airports —
+// and hide the noise: wards/hamlets (“P.9 / Thôn 7”), POIs, road names and
+// anything uncategorised. The basemap's own per-layer zoom rules then decide
+// WHEN each tier appears (provinces first, towns as you zoom in).
+export const DEFAULT_HIDDEN = new Set(['village', 'poi', 'road', 'other'])
 
 export function readLabelGroups(map: maplibregl.Map): LabelGroup[] {
   const byCat: Record<string, string[]> = {}

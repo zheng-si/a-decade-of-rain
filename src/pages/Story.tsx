@@ -18,10 +18,9 @@ import { FACTS_EVENTS } from '../content/facts/events'
 import { HOOK } from '../content/facts/hook'
 import { SOURCES } from '../content/sources'
 import { TopBar } from '../App'
-import LabelPanel from '../components/LabelPanel'
 import RainCanvas from '../components/RainCanvas'
 import TimelineRuler from '../components/TimelineRuler'
-import { readLabelGroups, setGroupVisible, type LabelGroup } from '../components/labelLayers'
+import { readLabelGroups, setGroupVisible } from '../components/labelLayers'
 import './Story.css'
 
 const SPRAY_SOURCE = 'spray'
@@ -79,7 +78,6 @@ export default function Story() {
   const [active, setActive] = useState(0)
   const [started, setStarted] = useState(false)
   const [is3D, setIs3D] = useState(false)
-  const [labelGroups, setLabelGroups] = useState<LabelGroup[]>([])
   const [monthlyCum, setMonthlyCum] = useState<number[]>([])
   const [yearStart, setYearStart] = useState(1961)
 
@@ -92,19 +90,6 @@ export default function Story() {
       return Math.min(1, Math.max(0, (mi + 0.5) / N))
     })
   }, [monthlyCum.length, yearStart])
-
-  function toggleLabelGroup(key: string) {
-    const map = mapRef.current
-    if (!map) return
-    setLabelGroups((prev) =>
-      prev.map((g) => {
-        if (g.key !== key) return g
-        const visible = !g.visible
-        setGroupVisible(map, g.layerIds, visible)
-        return { ...g, visible }
-      }),
-    )
-  }
 
   function clearCrosses() {
     crossMarkersRef.current.forEach((m) => m.remove())
@@ -225,12 +210,21 @@ export default function Story() {
         setYearStart(mc.yearStart)
         applyMapTheme(map)
 
-        // Enumerate label tiers; hide the granular ones (wards/hamlets/POI).
-        const groups = readLabelGroups(map)
-        groups.forEach((g) => {
+        // Curated labels: hide the noisy tiers (wards/hamlets, POIs, road names,
+        // uncategorised) and, so provinces anchor the reader at the zoomed-out
+        // overview, let the province labels appear from a low zoom.
+        for (const g of readLabelGroups(map)) {
           if (!g.visible) setGroupVisible(map, g.layerIds, false)
-        })
-        setLabelGroups(groups)
+          if (g.key === 'state') {
+            for (const id of g.layerIds) {
+              try {
+                map.setLayerZoomRange(id, 4, 22)
+              } catch {
+                /* layer may not accept a zoom-range override */
+              }
+            }
+          }
+        }
 
         if (mapConfig.terrain && !map.getSource(DEM_SOURCE)) {
           map.addSource(DEM_SOURCE, {
@@ -337,12 +331,9 @@ export default function Story() {
     <div className="story" ref={storyRef}>
       <TopBar>
         {started && (
-          <>
-            <button className="site-nav-link site-nav-btn" onClick={toggle3D}>
-              {is3D ? 'Flat' : '3D'}
-            </button>
-            <LabelPanel groups={labelGroups} onToggle={toggleLabelGroup} />
-          </>
+          <button className="site-nav-link site-nav-btn" onClick={toggle3D}>
+            {is3D ? 'Flat' : '3D'}
+          </button>
         )}
       </TopBar>
 
