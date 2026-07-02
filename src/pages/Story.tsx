@@ -64,8 +64,8 @@ const DEM_SOURCE = 'terrain-dem'
 const ISLANDS_FC: FeatureCollection<Point, { name: string }> = {
   type: 'FeatureCollection',
   features: [
-    { type: 'Feature', properties: { name: 'Paracel Is. (Hoàng Sa) — disputed' }, geometry: { type: 'Point', coordinates: [112.0, 16.5] } },
-    { type: 'Feature', properties: { name: 'Spratly Is. (Trường Sa) — disputed' }, geometry: { type: 'Point', coordinates: [114.0, 9.8] } },
+    { type: 'Feature', properties: { name: 'Paracel Is. (Hoàng Sa) · disputed' }, geometry: { type: 'Point', coordinates: [112.0, 16.5] } },
+    { type: 'Feature', properties: { name: 'Spratly Is. (Trường Sa) · disputed' }, geometry: { type: 'Point', coordinates: [114.0, 9.8] } },
   ],
 }
 
@@ -440,6 +440,7 @@ export default function Story() {
             <div />
             <div />
           </div>
+          <div className="story-hook-wash" aria-hidden="true" />
           <RainField drops={rainDrops} />
           <div className="story-hook-inner">
             <p className="story-hook-eyebrow">{HOOK.eyebrow}</p>
