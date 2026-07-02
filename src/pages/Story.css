@@ -132,107 +132,100 @@
   }
 }
 
-/* ── timeline rail: cumulative gallons + vertical progress bar ─────────── */
-.story-rail {
+/* ── timeline ruler: full-height 10-year scale + cumulative bars + scan ─── */
+.timeline-ruler {
   position: fixed;
-  left: 34px;
+  left: 0;
   top: 0;
+  width: 224px;
   height: 100vh;
   z-index: 4;
-  display: flex;
-  align-items: center; /* vertically centre the whole group */
   pointer-events: none;
   opacity: 0;
-  transform: translateX(-8px);
+  transform: translateX(-10px);
   transition: opacity 0.5s, transform 0.5s;
 }
 
-.story-rail.is-visible {
+.timeline-ruler.is-visible {
   opacity: 1;
   transform: none;
 }
 
-/* Meter and track are top-aligned so the gallons chip sits at the timeline's
-   top; the group as a whole is centred by the fixed parent above. */
-.story-rail-inner {
-  display: flex;
-  align-items: flex-start;
-  gap: 16px;
+/* Year labels down the left gutter. */
+.timeline-years {
+  position: absolute;
+  left: 14px;
+  top: 0;
+  width: 40px;
+  height: 100%;
 }
 
-.story-rail-meter {
-  width: 92px;
+.timeline-year {
+  position: absolute;
+  right: 0;
+  transform: translateY(-50%);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 3px rgba(250, 249, 244, 0.9), 0 0 2px rgba(250, 249, 244, 0.9);
+}
+
+/* Stepped cumulative-volume area, widening downward. */
+.timeline-chart {
+  position: absolute;
+  left: 62px;
+  top: 0;
+  width: 108px;
+  height: 100%;
+}
+
+/* Scan line + running volume readout; sits at the current scroll position. */
+.timeline-scan {
+  position: absolute;
+  left: 14px;
+  right: 8px;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateY(-50%);
+}
+
+.timeline-scan-line {
+  flex: 1;
+  height: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(255, 84, 73, 0.5);
+}
+
+.timeline-scan-vol {
+  flex: none;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
-  padding: 9px 10px 10px;
+  align-items: flex-start;
+  padding: 5px 9px 6px;
   background: var(--accent);
   border-radius: 4px;
-  box-shadow: 0 10px 26px rgba(255, 84, 73, 0.32);
+  box-shadow: 0 6px 18px rgba(255, 84, 73, 0.34);
 }
 
-.story-rail-num {
+.timeline-scan-num {
   font-family: var(--font-serif);
-  font-size: 20px;
-  font-weight: 400;
+  font-size: 17px;
   line-height: 1;
-  letter-spacing: 0;
   color: #fff;
   font-variant-numeric: tabular-nums;
 }
 
-.story-rail-unit {
-  margin-top: 5px;
-  font-size: 8.5px;
+.timeline-scan-unit {
+  margin-top: 3px;
+  font-size: 8px;
   font-weight: 700;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  line-height: 1.3;
   color: rgba(255, 255, 255, 0.9);
-}
-
-.story-rail-track {
-  position: relative;
-  width: 2px;
-  height: min(56vh, 460px);
-  background: rgba(33, 53, 40, 0.18);
-  border-radius: 2px;
-}
-
-.story-rail-fill {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  background: var(--accent);
-  border-radius: 2px;
-  transition: height 0.6s ease;
-}
-
-.story-rail-dot {
-  position: absolute;
-  left: 50%;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: rgba(250, 249, 244, 0.95);
-  border: 1.5px solid rgba(33, 53, 40, 0.32);
-  transform: translate(-50%, -50%);
-  transition: all 0.4s ease;
-}
-
-.story-rail-dot.is-past {
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
-.story-rail-dot.is-active {
-  width: 14px;
-  height: 14px;
-  background: var(--accent);
-  border: 2px solid rgba(250, 249, 244, 0.95);
-  box-shadow: 0 0 0 3px rgba(255, 84, 73, 0.28);
 }
 
 /* Hook + steps overlay the sticky graphic. */
@@ -318,60 +311,15 @@
   background: linear-gradient(to bottom, rgba(255, 84, 73, 1) 0%, rgba(255, 84, 73, 0) 100%);
 }
 
-/* Orange rain streaks — banner ambiance for "A decade of rain". The container
-   pulses (shower ↔ downpour) for rhythm; each drop is randomised in JS. */
-.story-rain {
+/* Orange rain on a single canvas (one composited layer) — banner ambiance for
+   "A decade of rain". Sits above the frosted map, below the text. */
+.story-rain-canvas {
   position: absolute;
   inset: 0;
   z-index: 1;
-  overflow: hidden;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
-  animation: rain-intensity 13s ease-in-out infinite;
-}
-
-.story-rain span {
-  position: absolute;
-  top: 0;
-  border-radius: 2px;
-  background: linear-gradient(to bottom, rgba(255, 84, 73, 0) 0%, #ff5449 55%, rgba(255, 84, 73, 0) 100%);
-  animation-name: rain-fall;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-  will-change: transform;
-}
-
-@keyframes rain-fall {
-  0% {
-    transform: translate3d(0, -28vh, 0);
-  }
-  100% {
-    transform: translate3d(0, 122vh, 0);
-  }
-}
-
-/* Slow, uneven swell so the rain feels like passing showers and squalls. */
-@keyframes rain-intensity {
-  0% {
-    opacity: 0;
-  }
-  10% {
-    opacity: 0.95;
-  }
-  32% {
-    opacity: 0.42;
-  }
-  52% {
-    opacity: 1;
-  }
-  70% {
-    opacity: 0.5;
-  }
-  86% {
-    opacity: 0.85;
-  }
-  100% {
-    opacity: 0.6;
-  }
 }
 
 .story-hook-inner {
@@ -435,9 +383,8 @@
   min-height: 100vh;
   display: flex;
   align-items: center;
-  /* Left inset sits the card 16px to the right of the timeline track
-     (rail 34 + meter 92 + 16 gap + 2 track + 16 gap = 160). */
-  padding: 0 6vw 0 160px;
+  /* Left inset clears the full-height timeline ruler (224px wide). */
+  padding: 0 6vw 0 244px;
   pointer-events: none;
 }
 
@@ -549,7 +496,7 @@
   .story-card {
     width: 100%;
   }
-  .story-rail {
+  .timeline-ruler {
     display: none;
   }
 }

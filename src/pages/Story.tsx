@@ -1,9 +1,9 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import scrollama from 'scrollama'
-import { loadSpray, dateToDay, type SprayDataset } from '../data/spray'
+import { loadSpray, dateToDay, dayToDate, type SprayDataset } from '../data/spray'
 import { mapConfig } from '../config/mapConfig'
 import {
   resolveMapStyle,
@@ -19,39 +19,10 @@ import { HOOK } from '../content/facts/hook'
 import { SOURCES } from '../content/sources'
 import { TopBar } from '../App'
 import LabelPanel from '../components/LabelPanel'
+import RainCanvas from '../components/RainCanvas'
+import TimelineRuler from '../components/TimelineRuler'
 import { readLabelGroups, setGroupVisible, type LabelGroup } from '../components/labelLayers'
 import './Story.css'
-
-interface RainDrop {
-  left: number
-  delay: number
-  dur: number
-  len: number
-  width: number
-  op: number
-}
-
-// The rain field is memoised so the per-frame count-up re-renders never touch
-// its ~90 animated nodes (that reconciliation was the banner flicker).
-const RainField = memo(function RainField({ drops }: { drops: RainDrop[] }) {
-  return (
-    <div className="story-rain" aria-hidden="true">
-      {drops.map((d, i) => (
-        <span
-          key={i}
-          style={{
-            left: `${d.left}%`,
-            width: `${d.width}px`,
-            height: `${d.len}px`,
-            opacity: d.op,
-            animationDelay: `${d.delay}s`,
-            animationDuration: `${d.dur}s`,
-          }}
-        />
-      ))}
-    </div>
-  )
-})
 
 const SPRAY_SOURCE = 'spray'
 const VN_SOURCE = 'vietnam'
@@ -69,17 +40,19 @@ const ISLANDS_FC: FeatureCollection<Point, { name: string }> = {
   ],
 }
 
-// Cumulative gallons sprayed up to each node's playhead date — the running
-// total shown on the timeline rail.
-function cumulativeGallons(spray: SprayDataset): number[] {
-  return FACTS_EVENTS.map((ev) => {
-    const day = dateToDay(ev.date)
-    let sum = 0
-    for (const f of spray.features.features) {
-      if (f.properties.day <= day) sum += f.properties.gallons
-    }
-    return sum
-  })
+// Cumulative gallons at the end of each month from January of the first data
+// year — drives the timeline ruler's stacked bars and its scan-line readout.
+function monthlyCumulative(spray: SprayDataset): { months: number[]; yearStart: number } {
+  const yearStart = spray.yearMin
+  const N = (spray.yearMax - yearStart + 1) * 12
+  const months = new Array(N).fill(0)
+  for (const f of spray.features.features) {
+    const dt = dayToDate(f.properties.day)
+    const mi = (dt.getUTCFullYear() - yearStart) * 12 + dt.getUTCMonth()
+    if (mi >= 0 && mi < N) months[mi] += f.properties.gallons
+  }
+  for (let i = 1; i < N; i++) months[i] += months[i - 1]
+  return { months, yearStart }
 }
 
 function fmtGallons(v: number): string {
@@ -88,30 +61,9 @@ function fmtGallons(v: number): string {
   return `${Math.round(v)}`
 }
 
-/** Tween a number toward `target` whenever it changes (ease-out cubic). */
-function useCountUp(target: number, ms = 850): number {
-  const [val, setVal] = useState(target)
-  const fromRef = useRef(target)
-  useEffect(() => {
-    const from = fromRef.current
-    if (from === target) return
-    const start = performance.now()
-    let raf = 0
-    const tick = (t: number) => {
-      const p = Math.min(1, (t - start) / ms)
-      const eased = 1 - Math.pow(1 - p, 3)
-      setVal(from + (target - from) * eased)
-      if (p < 1) raf = requestAnimationFrame(tick)
-      else fromRef.current = target
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [target, ms])
-  return val
-}
-
 export default function Story() {
   const containerRef = useRef<HTMLDivElement>(null)
+  const storyRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const dataRef = useRef<SprayDataset | null>(null)
   const readyRef = useRef(false)
@@ -121,28 +73,8 @@ export default function Story() {
   const [started, setStarted] = useState(false)
   const [is3D, setIs3D] = useState(false)
   const [labelGroups, setLabelGroups] = useState<LabelGroup[]>([])
-  const [cumGallons, setCumGallons] = useState<number[]>([])
-
-  // A field of orange rain streaks for the banner ("A decade of rain").
-  // Heavily randomised — most drops are short/thin, a few are long fast streaks
-  // — so it reads as real rain; the container adds shower↔downpour rhythm.
-  const rainDrops = useMemo<RainDrop[]>(
-    () =>
-      Array.from({ length: 90 }, () => {
-        const long = Math.random() > 0.82
-        return {
-          left: Math.random() * 100,
-          delay: -Math.random() * 5,
-          dur: 0.45 + Math.random() * 1.25,
-          len: long ? 90 + Math.random() * 100 : 18 + Math.random() * 68,
-          width: Math.random() > 0.8 ? 2.4 : 1.3,
-          op: 0.12 + Math.random() * 0.5,
-        }
-      }),
-    [],
-  )
-
-  const gallons = useCountUp(cumGallons[active] ?? 0)
+  const [monthlyCum, setMonthlyCum] = useState<number[]>([])
+  const [yearStart, setYearStart] = useState(1961)
 
   function toggleLabelGroup(key: string) {
     const map = mapRef.current
@@ -192,7 +124,7 @@ export default function Story() {
   // Keep framed content clear of the card (left on desktop, bottom on mobile).
   function framePadding(): maplibregl.PaddingOptions {
     return window.innerWidth > 640
-      ? { left: 620, top: 70, right: 70, bottom: 70 }
+      ? { left: 700, top: 70, right: 70, bottom: 70 }
       : { left: 24, right: 24, top: 48, bottom: 340 }
   }
 
@@ -272,7 +204,9 @@ export default function Story() {
       ]).then(([spray, vnGeo]) => {
         if (!mapRef.current) return
         dataRef.current = spray
-        setCumGallons(cumulativeGallons(spray))
+        const mc = monthlyCumulative(spray)
+        setMonthlyCum(mc.months)
+        setYearStart(mc.yearStart)
         applyMapTheme(map)
 
         // Enumerate label tiers; hide the granular ones (wards/hamlets/POI).
@@ -391,11 +325,8 @@ export default function Story() {
     }
   }
 
-  const lastIndex = FACTS_EVENTS.length - 1
-  const progress = lastIndex ? (active / lastIndex) * 100 : 0
-
   return (
-    <div className="story">
+    <div className="story" ref={storyRef}>
       <TopBar>
         {started && (
           <>
@@ -411,25 +342,13 @@ export default function Story() {
         <div ref={containerRef} className="story-map" />
       </div>
 
-      {/* Timeline rail: cumulative gallons (top-aligned) + a vertical bar. */}
-      <aside className={`story-rail${started ? ' is-visible' : ''}`} aria-hidden="true">
-        <div className="story-rail-inner">
-          <div className="story-rail-meter">
-            <span className="story-rail-num">{fmtGallons(gallons)}</span>
-            <span className="story-rail-unit">gallons sprayed to date</span>
-          </div>
-          <div className="story-rail-track">
-            <div className="story-rail-fill" style={{ height: `${progress}%` }} />
-            {FACTS_EVENTS.map((ev, i) => (
-              <span
-                key={ev.id}
-                className={`story-rail-dot${i === active ? ' is-active' : ''}${i < active ? ' is-past' : ''}`}
-                style={{ top: `${lastIndex ? (i / lastIndex) * 100 : 0}%` }}
-              />
-            ))}
-          </div>
-        </div>
-      </aside>
+      <TimelineRuler
+        monthlyCum={monthlyCum}
+        yearStart={yearStart}
+        fmt={fmtGallons}
+        storyRef={storyRef}
+        started={started}
+      />
 
       <div className="story-scroll">
         <section className="story-hook">
@@ -441,7 +360,7 @@ export default function Story() {
             <div />
           </div>
           <div className="story-hook-wash" aria-hidden="true" />
-          <RainField drops={rainDrops} />
+          <RainCanvas />
           <div className="story-hook-inner">
             <p className="story-hook-eyebrow">{HOOK.eyebrow}</p>
             <h1 className="story-hook-title">{HOOK.title}</h1>
