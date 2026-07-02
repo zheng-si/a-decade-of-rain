@@ -132,8 +132,7 @@
   }
 }
 
-/* ── timeline ruler: full-height 10-year scale + cumulative bars + scan ───
-   A narrow left column, independent of the card; --bars-w is its widest bar. */
+/* ── timeline ruler: a floating full-height panel with the 10-year scale ─── */
 .timeline-ruler {
   --bars-w: 120px;
   position: fixed;
@@ -151,18 +150,26 @@
   opacity: 1;
 }
 
-/* Light paper backdrop (100%→0% left-to-right) behind the ruler column, so the
-   bars read cleanly instead of fighting the map. */
-.timeline-bg {
+/* The floating panel (overflow visible so the chip/connector can overhang). */
+.timeline-panel {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 210px;
-  height: 100%;
-  background: linear-gradient(to right, rgba(250, 249, 244, 0.82) 0%, rgba(250, 249, 244, 0) 100%);
+  left: 16px;
+  top: 16px;
+  bottom: 16px;
+  width: 134px;
 }
 
-/* Bars grow from the very left edge; widest bar reaches the card's right edge. */
+/* The visible, clipped face: a light paper card holding the ruler graphics. */
+.timeline-panel-face {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: rgba(250, 249, 244, 0.9);
+  border: 1px solid rgba(33, 53, 40, 0.08);
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(33, 53, 40, 0.12);
+}
+
 .timeline-area {
   position: absolute;
   left: 0;
@@ -180,18 +187,18 @@
   height: 100%;
 }
 
-/* Year labels sit just above each year tick, right of the axis. */
+/* Year labels sit just above each year tick. */
 .timeline-years {
   position: absolute;
   left: 0;
   top: 0;
-  width: var(--bars-w);
+  width: 100%;
   height: 100%;
 }
 
 .timeline-year {
   position: absolute;
-  left: 3px;
+  left: 4px;
   transform: translateY(-100%);
   padding-bottom: 3px;
   font-size: 11px;
@@ -199,10 +206,10 @@
   letter-spacing: 0.02em;
   color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 1px 3px rgba(250, 249, 244, 0.95), 0 0 3px rgba(250, 249, 244, 0.95);
+  text-shadow: 0 1px 2px rgba(250, 249, 244, 0.95);
 }
 
-/* Forest-green node markers on the axis; the active one is highlighted. */
+/* Orange node triangles on the axis (no stroke); the active one grows + glows. */
 .timeline-nodes {
   position: absolute;
   left: 0;
@@ -213,22 +220,20 @@
 
 .timeline-node {
   position: absolute;
-  left: 1px;
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: var(--forest);
-  border: 2px solid rgba(250, 249, 244, 0.92);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+  left: 2px;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 8px solid var(--accent);
   transform: translateY(-50%);
-  transition: width 0.3s, height 0.3s, box-shadow 0.3s;
+  transform-origin: left center;
+  transition: transform 0.3s, filter 0.3s;
 }
 
 .timeline-node.is-active {
-  width: 14px;
-  height: 14px;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 4px rgba(255, 84, 73, 0.28), 0 1px 6px rgba(0, 0, 0, 0.25);
+  transform: translateY(-50%) scale(1.5);
+  filter: drop-shadow(0 0 5px rgba(255, 84, 73, 0.7));
 }
 
 /* Scan line: length tracks the bar under it; grows from the left edge. */
@@ -240,6 +245,39 @@
   border-radius: 1px;
   box-shadow: 0 0 8px rgba(255, 84, 73, 0.5);
   transform: translateY(-50%);
+}
+
+/* Animated diagonal connector: draws from the active node's triangle to the
+   card's centre. --ang orients it; it's keyed on the active node so it replays. */
+.timeline-connector {
+  position: absolute;
+  height: 2px;
+  transform-origin: 0 50%;
+  background: linear-gradient(to right, var(--accent), rgba(255, 84, 73, 0.3));
+  animation: connector-draw 0.5s ease both;
+}
+
+.timeline-connector::after {
+  content: '';
+  position: absolute;
+  right: -3px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  transform: translateY(-50%);
+}
+
+@keyframes connector-draw {
+  from {
+    transform: rotate(var(--ang)) scaleX(0);
+    opacity: 0.2;
+  }
+  to {
+    transform: rotate(var(--ang)) scaleX(1);
+    opacity: 1;
+  }
 }
 
 /* Running-total chip — rides the scan line's right end, clear of the card. */
@@ -295,18 +333,17 @@
   text-align: center;
 }
 
-/* Progressive frosted glass: a smooth top→bottom blur from ~20px to 0. Several
-   backdrop-filter layers stack — each blurs the (already-blurred) layers behind
-   it, so the blur accumulates toward the top. Each layer's mask fades out lower
-   down, dropping layers out one by one for a seamless gradient with no hard
-   edge. A faint paper tint up top keeps the title legible. */
+/* Progressive frosted glass, tuned to a 40 → 24 → 0 profile: ~40px blur at the
+   top, easing to ~24px through the middle, then fading to zero over the bottom
+   20% (80%→100%) so the map reads clear as you scroll in. Three "base" layers
+   hold ~24px down to 80% then fade out together; two "top" layers add the extra
+   punch near the top. A faint paper tint (also gone by 80%) keeps the title
+   legible. */
 .story-hook-blur {
   position: absolute;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* Stronger paper tint through the upper 60% keeps the title readable under
-     the heavy top blur. */
   background: linear-gradient(
     to bottom,
     rgba(250, 249, 244, 0.64) 0%,
@@ -320,34 +357,37 @@
   inset: 0;
 }
 
-/* Base layer covers the whole banner so the bottom keeps a soft ~4px blur. */
+/* Base layers: hold through the top 80%, then fade to clear by 100%. */
 .story-hook-blur > div:nth-child(1) {
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
 }
 .story-hook-blur > div:nth-child(2) {
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 82%);
-  mask-image: linear-gradient(to bottom, #000 0%, transparent 82%);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
 }
 .story-hook-blur > div:nth-child(3) {
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 60%);
-  mask-image: linear-gradient(to bottom, #000 0%, transparent 60%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
 }
+/* Top layers: extra blur near the top, gone by the middle. */
 .story-hook-blur > div:nth-child(4) {
-  -webkit-backdrop-filter: blur(22px);
-  backdrop-filter: blur(22px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 40%);
-  mask-image: linear-gradient(to bottom, #000 0%, transparent 40%);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 58%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 58%);
 }
 .story-hook-blur > div:nth-child(5) {
-  -webkit-backdrop-filter: blur(30px);
-  backdrop-filter: blur(30px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 22%);
-  mask-image: linear-gradient(to bottom, #000 0%, transparent 22%);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 16%, transparent 38%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 16%, transparent 38%);
 }
 
 /* Dramatic brand-orange wash over the banner: full strength at the top fading
@@ -432,8 +472,8 @@
   min-height: 100vh;
   display: flex;
   align-items: center;
-  /* Card sits clear of the ruler column (bars ≤120 + the running-total chip). */
-  padding: 0 6vw 0 232px;
+  /* Card sits clear of the floating ruler panel (left 16 + width 134 + gap). */
+  padding: 0 6vw 0 240px;
   pointer-events: none;
 }
 

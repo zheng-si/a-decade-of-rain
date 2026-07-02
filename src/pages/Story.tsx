@@ -25,7 +25,6 @@ import { readLabelGroups, setGroupVisible, type LabelGroup } from '../components
 import './Story.css'
 
 const SPRAY_SOURCE = 'spray'
-const VN_SOURCE = 'vietnam'
 const ISLAND_SOURCE = 'islands'
 const DEM_SOURCE = 'terrain-dem'
 
@@ -209,9 +208,8 @@ export default function Story() {
 
       Promise.all([
         loadSpray(),
-        fetch(`${import.meta.env.BASE_URL}data/vietnam.geojson`).then((r) => r.json()),
         new Promise<void>((resolve) => map.once('load', () => resolve())),
-      ]).then(([spray, vnGeo]) => {
+      ]).then(([spray]) => {
         if (!mapRef.current) return
         dataRef.current = spray
         const mc = monthlyCumulative(spray)
@@ -242,15 +240,7 @@ export default function Story() {
         map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
         addStoryHeat(map, SPRAY_SOURCE, spray.dayMax)
 
-        // Vietnam national border (brand orange) + disputed-island labels.
-        map.addSource(VN_SOURCE, { type: 'geojson', data: vnGeo })
-        map.addLayer({
-          id: 'vietnam-outline',
-          type: 'line',
-          source: VN_SOURCE,
-          layout: { 'line-join': 'round' },
-          paint: { 'line-color': '#ff5449', 'line-width': 1, 'line-opacity': 0.9 },
-        })
+        // Disputed-island labels (the basemap already draws the grey borders).
         map.addSource(ISLAND_SOURCE, { type: 'geojson', data: ISLANDS_FC })
         map.addLayer({
           id: 'island-dot',
