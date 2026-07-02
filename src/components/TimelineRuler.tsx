@@ -16,43 +16,36 @@ interface Props {
 
 const H = 1000
 const CHART_W = 100
+// Widest bar, in px — lines up with the card's right edge (190 + 408).
+const BARS_W = 598
 
-// Static year lines + month ticks. Memoised so per-scroll-frame updates don't
-// re-reconcile ~140 SVG nodes.
-const RulerGrid = memo(function RulerGrid({ n }: { n: number }) {
-  const years: number[] = []
-  for (let y = 0; y * 12 < n; y++) years.push(y)
+// Tick marks at every month boundary; year boundaries are twice as long. Memoised.
+const RulerTicks = memo(function RulerTicks({ n }: { n: number }) {
+  const ticks = []
+  for (let i = 0; i <= n; i++) {
+    const isYear = i % 12 === 0
+    const y = (i / n) * H
+    ticks.push(
+      <line
+        key={i}
+        x1="0"
+        x2={isYear ? 12 : 6}
+        y1={y}
+        y2={y}
+        stroke={isYear ? 'rgba(33,53,40,0.5)' : 'rgba(33,53,40,0.26)'}
+        strokeWidth="1"
+        vectorEffect="non-scaling-stroke"
+      />,
+    )
+  }
   return (
-    <svg className="timeline-grid" viewBox={`0 0 ${CHART_W} ${H}`} preserveAspectRatio="none">
-      {Array.from({ length: n }, (_, i) => (
-        <line
-          key={`m${i}`}
-          x1="0"
-          x2="2.4"
-          y1={((i + 0.5) / n) * H}
-          y2={((i + 0.5) / n) * H}
-          stroke="rgba(33,53,40,0.22)"
-          strokeWidth="1"
-          vectorEffect="non-scaling-stroke"
-        />
-      ))}
-      {years.map((y) => (
-        <line
-          key={`y${y}`}
-          x1="0"
-          x2={CHART_W}
-          y1={((y * 12) / n) * H}
-          y2={((y * 12) / n) * H}
-          stroke="rgba(33,53,40,0.13)"
-          strokeWidth="1"
-          vectorEffect="non-scaling-stroke"
-        />
-      ))}
+    <svg className="timeline-ticks" viewBox="0 0 16 1000" preserveAspectRatio="none">
+      {ticks}
     </svg>
   )
 })
 
-// Year labels — sit just above each year line, right of the axis. Memoised.
+// Year labels — sit just above each year tick. Memoised.
 const RulerYears = memo(function RulerYears({ n, yearStart }: { n: number; yearStart: number }) {
   const years: number[] = []
   for (let y = 0; y * 12 < n; y++) years.push(y)
@@ -68,9 +61,8 @@ const RulerYears = memo(function RulerYears({ n, yearStart }: { n: number; yearS
 })
 
 // A full-height ruler: the whole 1961–1971 span at a uniform monthly scale, with
-// cumulative spray volume as a stacked area that widens downward. The scan line
-// is anchored to the story nodes' dates (it lands on a node's dot when that
-// card is active) and only the area above it is revealed.
+// cumulative spray volume as a stacked area that widens downward. The scan line's
+// length tracks the bar under it, and the running-total chip rides its right end.
 export default function TimelineRuler({
   monthlyCum,
   yearStart,
@@ -138,7 +130,6 @@ export default function TimelineRuler({
 
   const n = monthlyCum.length
 
-  // Stepped cumulative area (static geometry).
   const areaPath = useMemo(() => {
     if (!n) return ''
     const maxCum = monthlyCum[n - 1] || 1
@@ -155,49 +146,58 @@ export default function TimelineRuler({
 
   if (!n) return null
 
+  const maxCum = monthlyCum[n - 1] || 1
   const fpos = pos * (n - 1)
   const i0 = Math.floor(fpos)
   const frac = fpos - i0
   const vol = monthlyCum[i0] + ((monthlyCum[Math.min(i0 + 1, n - 1)] ?? monthlyCum[i0]) - monthlyCum[i0]) * frac
 
   const clampPx = 34
-  const scanTop = vh ? `${Math.min(vh - clampPx, Math.max(clampPx, pos * vh))}px` : `${pos * 100}%`
+  const scanTop = vh ? Math.min(vh - clampPx, Math.max(clampPx, pos * vh)) : pos * (vh || 0)
+  const scanTopCss = vh ? `${scanTop}px` : `${pos * 100}%`
+  const barTip = Math.max(2, (vol / maxCum) * BARS_W) // px, right end of the scan line
   const reveal = `inset(0 0 ${((1 - pos) * 100).toFixed(2)}% 0)`
+  const vis = started ? ' is-visible' : ''
 
   return (
-    <aside className={`timeline-ruler${started ? ' is-visible' : ''}`} aria-hidden="true">
-      <RulerGrid n={n} />
-      <svg
-        className="timeline-area"
-        viewBox={`0 0 ${CHART_W} ${H}`}
-        preserveAspectRatio="none"
-        style={{ clipPath: reveal, WebkitClipPath: reveal }}
-      >
-        <defs>
-          <linearGradient id="tl-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="rgba(255,84,73,0.5)" />
-            <stop offset="100%" stopColor="rgba(255,84,73,0.9)" />
-          </linearGradient>
-        </defs>
-        <path d={areaPath} fill="url(#tl-area)" />
-      </svg>
-      <RulerYears n={n} yearStart={yearStart} />
-      <div className="timeline-nodes">
-        {nodeFracs.map((f, i) => (
-          <span
-            key={i}
-            className={`timeline-node${i === activeIndex ? ' is-active' : ''}`}
-            style={{ top: `${f * 100}%` }}
-          />
-        ))}
-      </div>
-      <div className="timeline-scan" style={{ top: scanTop }}>
+    <>
+      {/* Bars, ticks, dots and the scan line sit BELOW the card. */}
+      <aside className={`timeline-ruler${vis}`} aria-hidden="true">
+        <svg
+          className="timeline-area"
+          viewBox={`0 0 ${CHART_W} ${H}`}
+          preserveAspectRatio="none"
+          style={{ clipPath: reveal, WebkitClipPath: reveal }}
+        >
+          <defs>
+            <linearGradient id="tl-area" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="rgba(255,84,73,0.5)" />
+              <stop offset="100%" stopColor="rgba(255,84,73,0.9)" />
+            </linearGradient>
+          </defs>
+          <path d={areaPath} fill="url(#tl-area)" />
+        </svg>
+        <RulerTicks n={n} />
+        <RulerYears n={n} yearStart={yearStart} />
+        <div className="timeline-nodes">
+          {nodeFracs.map((f, i) => (
+            <span
+              key={i}
+              className={`timeline-node${i === activeIndex ? ' is-active' : ''}`}
+              style={{ top: `${f * 100}%` }}
+            />
+          ))}
+        </div>
+        <span className="timeline-scan-line" style={{ top: scanTopCss, width: `${barTip}px` }} />
+      </aside>
+
+      {/* The running-total chip rides the scan line's right end, ABOVE the card. */}
+      <div className={`timeline-cursor${vis}`} style={{ top: scanTopCss, left: `${barTip}px` }} aria-hidden="true">
         <div className="timeline-scan-vol">
           <span className="timeline-scan-num">{fmt(vol)}</span>
           <span className="timeline-scan-unit">gallons sprayed</span>
         </div>
-        <span className="timeline-scan-line" />
       </div>
-    </aside>
+    </>
   )
 }

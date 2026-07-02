@@ -134,7 +134,8 @@
 
 /* ── timeline ruler: full-height 10-year scale + cumulative bars + scan ───
    --bars-w is the chart's widest point; it lines up with the card's right edge
-   (card left 190 + width 408 = 598), so the bars grow behind the card. */
+   (card left 190 + width 408 = 598). z-index 0 puts the whole ruler BELOW the
+   card (which lives in .story-scroll, z-index 1), so the bars pass behind it. */
 .timeline-ruler {
   --bars-w: 598px;
   position: fixed;
@@ -142,7 +143,7 @@
   top: 0;
   right: 0;
   height: 100vh;
-  z-index: 4;
+  z-index: 0;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.5s;
@@ -153,7 +154,6 @@
 }
 
 /* Bars grow from the very left edge; widest bar reaches the card's right edge. */
-.timeline-grid,
 .timeline-area {
   position: absolute;
   left: 0;
@@ -162,7 +162,16 @@
   height: 100%;
 }
 
-/* Year labels sit just above each year line, to the right of the axis. */
+/* Short axis ticks: month marks, with year boundaries drawn twice as long. */
+.timeline-ticks {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 16px;
+  height: 100%;
+}
+
+/* Year labels sit just above each year tick, right of the axis. */
 .timeline-years {
   position: absolute;
   left: 0;
@@ -173,7 +182,7 @@
 
 .timeline-year {
   position: absolute;
-  left: 10px;
+  left: 3px;
   transform: translateY(-100%);
   padding-bottom: 3px;
   font-size: 11px;
@@ -213,22 +222,33 @@
   box-shadow: 0 0 0 4px rgba(255, 84, 73, 0.28), 0 1px 6px rgba(0, 0, 0, 0.25);
 }
 
-/* Scan line + running volume readout; the chip stays at the left so it's never
-   occluded by the card, and its vertical position is clamped so it can't be
-   cut off at the top or bottom of the viewport. */
-.timeline-scan {
+/* Scan line: length tracks the bar under it; grows from the left edge. */
+.timeline-scan-line {
   position: absolute;
   left: 0;
-  width: var(--bars-w);
-  top: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+  box-shadow: 0 0 8px rgba(255, 84, 73, 0.5);
   transform: translateY(-50%);
 }
 
+/* Running-total chip — rides the scan line's right end, ABOVE the card
+   (z-index 2 > the card's z-index 1) so the number is always legible. */
+.timeline-cursor {
+  position: fixed;
+  z-index: 2;
+  pointer-events: none;
+  transform: translate(8px, -50%);
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.timeline-cursor.is-visible {
+  opacity: 1;
+}
+
 .timeline-scan-vol {
-  flex: none;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -254,13 +274,6 @@
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.9);
-}
-
-.timeline-scan-line {
-  flex: 1;
-  height: 2px;
-  background: var(--accent);
-  box-shadow: 0 0 8px rgba(255, 84, 73, 0.5);
 }
 
 /* Hook + steps overlay the sticky graphic. */
@@ -532,7 +545,8 @@
   .story-card {
     width: 100%;
   }
-  .timeline-ruler {
+  .timeline-ruler,
+  .timeline-cursor {
     display: none;
   }
 }
