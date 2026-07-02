@@ -132,72 +132,99 @@
   }
 }
 
-/* ── timeline ruler: full-height 10-year scale + cumulative bars + scan ─── */
+/* ── timeline ruler: full-height 10-year scale + cumulative bars + scan ───
+   --bars-w is the chart's widest point; it lines up with the card's right edge
+   (card left 190 + width 408 = 598), so the bars grow behind the card. */
 .timeline-ruler {
+  --bars-w: 598px;
   position: fixed;
   left: 0;
   top: 0;
-  width: 224px;
+  right: 0;
   height: 100vh;
   z-index: 4;
   pointer-events: none;
   opacity: 0;
-  transform: translateX(-10px);
-  transition: opacity 0.5s, transform 0.5s;
+  transition: opacity 0.5s;
 }
 
 .timeline-ruler.is-visible {
   opacity: 1;
-  transform: none;
 }
 
-/* Year labels down the left gutter. */
+/* Bars grow from the very left edge; widest bar reaches the card's right edge. */
+.timeline-grid,
+.timeline-area {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--bars-w);
+  height: 100%;
+}
+
+/* Year labels sit just above each year line, to the right of the axis. */
 .timeline-years {
   position: absolute;
-  left: 14px;
+  left: 0;
   top: 0;
-  width: 40px;
+  width: var(--bars-w);
   height: 100%;
 }
 
 .timeline-year {
   position: absolute;
-  right: 0;
-  transform: translateY(-50%);
+  left: 10px;
+  transform: translateY(-100%);
+  padding-bottom: 3px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--ink-soft);
   font-variant-numeric: tabular-nums;
-  text-shadow: 0 1px 3px rgba(250, 249, 244, 0.9), 0 0 2px rgba(250, 249, 244, 0.9);
+  text-shadow: 0 1px 3px rgba(250, 249, 244, 0.95), 0 0 3px rgba(250, 249, 244, 0.95);
 }
 
-/* Stepped cumulative-volume area, widening downward. */
-.timeline-chart {
+/* Forest-green node markers on the axis; the active one is highlighted. */
+.timeline-nodes {
   position: absolute;
-  left: 62px;
+  left: 0;
   top: 0;
-  width: 108px;
+  width: 24px;
   height: 100%;
 }
 
-/* Scan line + running volume readout; sits at the current scroll position. */
+.timeline-node {
+  position: absolute;
+  left: 1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--forest);
+  border: 2px solid rgba(250, 249, 244, 0.92);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+  transform: translateY(-50%);
+  transition: width 0.3s, height 0.3s, box-shadow 0.3s;
+}
+
+.timeline-node.is-active {
+  width: 14px;
+  height: 14px;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(255, 84, 73, 0.28), 0 1px 6px rgba(0, 0, 0, 0.25);
+}
+
+/* Scan line + running volume readout; the chip stays at the left so it's never
+   occluded by the card, and its vertical position is clamped so it can't be
+   cut off at the top or bottom of the viewport. */
 .timeline-scan {
   position: absolute;
-  left: 14px;
-  right: 8px;
+  left: 0;
+  width: var(--bars-w);
   top: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   transform: translateY(-50%);
-}
-
-.timeline-scan-line {
-  flex: 1;
-  height: 2px;
-  background: var(--accent);
-  box-shadow: 0 0 8px rgba(255, 84, 73, 0.5);
 }
 
 .timeline-scan-vol {
@@ -205,15 +232,16 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 5px 9px 6px;
+  padding: 6px 10px 7px;
   background: var(--accent);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 4px;
-  box-shadow: 0 6px 18px rgba(255, 84, 73, 0.34);
+  box-shadow: 0 6px 18px rgba(255, 84, 73, 0.42);
 }
 
 .timeline-scan-num {
   font-family: var(--font-serif);
-  font-size: 17px;
+  font-size: 19px;
   line-height: 1;
   color: #fff;
   font-variant-numeric: tabular-nums;
@@ -226,6 +254,13 @@
   letter-spacing: 0.09em;
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.9);
+}
+
+.timeline-scan-line {
+  flex: 1;
+  height: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(255, 84, 73, 0.5);
 }
 
 /* Hook + steps overlay the sticky graphic. */
@@ -383,8 +418,9 @@
   min-height: 100vh;
   display: flex;
   align-items: center;
-  /* Left inset clears the full-height timeline ruler (224px wide). */
-  padding: 0 6vw 0 244px;
+  /* Card floats over the map at a fixed left edge; the cumulative bars grow
+     behind it and reach its right edge (190 + 408 = 598 = --bars-w). */
+  padding: 0 6vw 0 190px;
   pointer-events: none;
 }
 
