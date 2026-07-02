@@ -133,11 +133,9 @@
 }
 
 /* ── timeline ruler: full-height 10-year scale + cumulative bars + scan ───
-   --bars-w is the chart's widest point; it lines up with the card's right edge
-   (card left 190 + width 408 = 598). z-index 0 puts the whole ruler BELOW the
-   card (which lives in .story-scroll, z-index 1), so the bars pass behind it. */
+   A narrow left column, independent of the card; --bars-w is its widest bar. */
 .timeline-ruler {
-  --bars-w: 598px;
+  --bars-w: 120px;
   position: fixed;
   left: 0;
   top: 0;
@@ -151,6 +149,17 @@
 
 .timeline-ruler.is-visible {
   opacity: 1;
+}
+
+/* Light paper backdrop (100%→0% left-to-right) behind the ruler column, so the
+   bars read cleanly instead of fighting the map. */
+.timeline-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 210px;
+  height: 100%;
+  background: linear-gradient(to right, rgba(250, 249, 244, 0.82) 0%, rgba(250, 249, 244, 0) 100%);
 }
 
 /* Bars grow from the very left edge; widest bar reaches the card's right edge. */
@@ -233,19 +242,11 @@
   transform: translateY(-50%);
 }
 
-/* Running-total chip — rides the scan line's right end, ABOVE the card
-   (z-index 2 > the card's z-index 1) so the number is always legible. */
+/* Running-total chip — rides the scan line's right end, clear of the card. */
 .timeline-cursor {
-  position: fixed;
-  z-index: 2;
+  position: absolute;
   pointer-events: none;
   transform: translate(8px, -50%);
-  opacity: 0;
-  transition: opacity 0.5s;
-}
-
-.timeline-cursor.is-visible {
-  opacity: 1;
 }
 
 .timeline-scan-vol {
@@ -431,9 +432,8 @@
   min-height: 100vh;
   display: flex;
   align-items: center;
-  /* Card floats over the map at a fixed left edge; the cumulative bars grow
-     behind it and reach its right edge (190 + 408 = 598 = --bars-w). */
-  padding: 0 6vw 0 190px;
+  /* Card sits clear of the ruler column (bars ≤120 + the running-total chip). */
+  padding: 0 6vw 0 232px;
   pointer-events: none;
 }
 

@@ -16,8 +16,8 @@ interface Props {
 
 const H = 1000
 const CHART_W = 100
-// Widest bar, in px — lines up with the card's right edge (190 + 408).
-const BARS_W = 598
+// Widest bar, in px — a narrow column on the left, independent of the card.
+const BARS_W = 120
 
 // Tick marks at every month boundary; year boundaries are twice as long. Memoised.
 const RulerTicks = memo(function RulerTicks({ n }: { n: number }) {
@@ -160,44 +160,42 @@ export default function TimelineRuler({
   const vis = started ? ' is-visible' : ''
 
   return (
-    <>
-      {/* Bars, ticks, dots and the scan line sit BELOW the card. */}
-      <aside className={`timeline-ruler${vis}`} aria-hidden="true">
-        <svg
-          className="timeline-area"
-          viewBox={`0 0 ${CHART_W} ${H}`}
-          preserveAspectRatio="none"
-          style={{ clipPath: reveal, WebkitClipPath: reveal }}
-        >
-          <defs>
-            <linearGradient id="tl-area" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgba(255,84,73,0.5)" />
-              <stop offset="100%" stopColor="rgba(255,84,73,0.9)" />
-            </linearGradient>
-          </defs>
-          <path d={areaPath} fill="url(#tl-area)" />
-        </svg>
-        <RulerTicks n={n} />
-        <RulerYears n={n} yearStart={yearStart} />
-        <div className="timeline-nodes">
-          {nodeFracs.map((f, i) => (
-            <span
-              key={i}
-              className={`timeline-node${i === activeIndex ? ' is-active' : ''}`}
-              style={{ top: `${f * 100}%` }}
-            />
-          ))}
-        </div>
-        <span className="timeline-scan-line" style={{ top: scanTopCss, width: `${barTip}px` }} />
-      </aside>
-
-      {/* The running-total chip rides the scan line's right end, ABOVE the card. */}
-      <div className={`timeline-cursor${vis}`} style={{ top: scanTopCss, left: `${barTip}px` }} aria-hidden="true">
+    <aside className={`timeline-ruler${vis}`} aria-hidden="true">
+      {/* Light backdrop so the bars don't fight the map behind them. */}
+      <div className="timeline-bg" />
+      <svg
+        className="timeline-area"
+        viewBox={`0 0 ${CHART_W} ${H}`}
+        preserveAspectRatio="none"
+        style={{ clipPath: reveal, WebkitClipPath: reveal }}
+      >
+        <defs>
+          <linearGradient id="tl-area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="rgba(255,84,73,0.5)" />
+            <stop offset="100%" stopColor="rgba(255,84,73,0.9)" />
+          </linearGradient>
+        </defs>
+        <path d={areaPath} fill="url(#tl-area)" />
+      </svg>
+      <RulerTicks n={n} />
+      <RulerYears n={n} yearStart={yearStart} />
+      <div className="timeline-nodes">
+        {nodeFracs.map((f, i) => (
+          <span
+            key={i}
+            className={`timeline-node${i === activeIndex ? ' is-active' : ''}`}
+            style={{ top: `${f * 100}%` }}
+          />
+        ))}
+      </div>
+      <span className="timeline-scan-line" style={{ top: scanTopCss, width: `${barTip}px` }} />
+      {/* Running-total chip rides the scan line's right end (clear of the card). */}
+      <div className="timeline-cursor" style={{ top: scanTopCss, left: `${barTip}px` }}>
         <div className="timeline-scan-vol">
           <span className="timeline-scan-num">{fmt(vol)}</span>
           <span className="timeline-scan-unit">gallons sprayed</span>
         </div>
       </div>
-    </>
+    </aside>
   )
 }
