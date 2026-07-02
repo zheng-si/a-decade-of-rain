@@ -50,8 +50,21 @@ function monthlyCumulative(spray: SprayDataset): { months: number[]; yearStart: 
     const mi = (dt.getUTCFullYear() - yearStart) * 12 + dt.getUTCMonth()
     if (mi >= 0 && mi < N) months[mi] += f.properties.gallons
   }
+  // End the ruler at the last month that actually got sprayed. Trim trailing
+  // empty months, and also an isolated stray run sitting after a run of empty
+  // months (the dataset has a lone Dec-1971 point after a mid-1971 stop).
+  let last = N - 1
+  while (last > 0) {
+    if (months[last] === 0) {
+      last--
+    } else if (last >= 3 && months[last - 1] === 0 && months[last - 2] === 0 && months[last - 3] === 0) {
+      last-- // isolated stray after ≥3 empty months
+    } else {
+      break
+    }
+  }
   for (let i = 1; i < N; i++) months[i] += months[i - 1]
-  return { months, yearStart }
+  return { months: months.slice(0, last + 1), yearStart }
 }
 
 function fmtGallons(v: number): string {
