@@ -132,7 +132,7 @@ export const mapConfig: MapConfig = {
     greenspace: '#cdd8c3',
     building: '#e9e3d6',
     road: '#ffffff',
-    boundary: '#d8d1c2',
+    boundary: '#6b6e66',
     label: {
       color: '#5b5e57',
       halo: '#ffffff',

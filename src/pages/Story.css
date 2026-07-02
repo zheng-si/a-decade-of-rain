@@ -19,34 +19,6 @@
   inset: 0;
 }
 
-/* Period readout, top-centre over the map. */
-.story-period {
-  position: absolute;
-  top: 22px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 5px 14px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 8px;
-  -webkit-backdrop-filter: blur(16px) saturate(1.3);
-  backdrop-filter: blur(16px) saturate(1.3);
-}
-
-.story-period {
-  transition: opacity 0.4s;
-}
-
-.story-period.is-hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* ── label control (dropdown inside the top-right nav pill) ────────────── */
 .label-menu {
   position: relative;
@@ -107,62 +79,24 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ── city pins: a solid banner tag with a downward pointer, gently jumping ─
-   The jump animates the label (not the marker element) — MapLibre owns the
-   element's transform for positioning, so animating it would fling the pin. */
-.city-pin {
-  pointer-events: none;
-}
-
-.city-pin-label {
-  position: relative;
-  display: block;
-  padding: 4px 10px;
-  animation: city-jump 1.1s ease-in-out infinite;
-  font-family: var(--font-sans);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  color: #fff;
-  background: var(--ink);
-  border: 1.5px solid #fff;
-  border-radius: 5px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
-}
-
-.city-pin-label::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  margin-top: -1px;
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: var(--ink);
-}
-
-@keyframes city-jump {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-5px);
-  }
-}
-
 /* ── pilot / test-spray crosses (orange +) ────────────────────────────── */
+/* The marker root carries MapLibre's positioning transform; the pulse lives on
+   an inner element so it never clobbers the position. */
 .pilot-cross {
   position: relative;
   width: 22px;
   height: 22px;
   pointer-events: none;
+}
+
+.pilot-cross-mark {
+  position: absolute;
+  inset: 0;
   animation: cross-pulse 1.8s ease-in-out infinite;
 }
 
-.pilot-cross::before,
-.pilot-cross::after {
+.pilot-cross-mark::before,
+.pilot-cross-mark::after {
   content: '';
   position: absolute;
   background: var(--accent);
@@ -170,7 +104,7 @@
   box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.9);
 }
 
-.pilot-cross::before {
+.pilot-cross-mark::before {
   left: 50%;
   top: 0;
   width: 3px;
@@ -178,7 +112,7 @@
   transform: translateX(-50%);
 }
 
-.pilot-cross::after {
+.pilot-cross-mark::after {
   top: 50%;
   left: 0;
   height: 3px;
@@ -206,8 +140,7 @@
   height: 100vh;
   z-index: 4;
   display: flex;
-  align-items: center;
-  gap: 16px;
+  align-items: center; /* vertically centre the whole group */
   pointer-events: none;
   opacity: 0;
   transform: translateX(-8px);
@@ -219,38 +152,44 @@
   transform: none;
 }
 
+/* Meter and track are top-aligned so the gallons chip sits at the timeline's
+   top; the group as a whole is centred by the fixed parent above. */
+.story-rail-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
 .story-rail-meter {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   text-align: right;
-  padding: 10px 13px;
-  background: rgba(250, 249, 244, 0.72);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 9px;
-  box-shadow: 0 8px 24px rgba(33, 53, 40, 0.12);
-  -webkit-backdrop-filter: blur(12px) saturate(1.3);
-  backdrop-filter: blur(12px) saturate(1.3);
+  padding: 11px 14px 12px;
+  background: var(--accent);
+  border-radius: 10px;
+  box-shadow: 0 10px 26px rgba(255, 84, 73, 0.32);
 }
 
 .story-rail-num {
-  font-size: 27px;
-  font-weight: 700;
+  font-family: var(--font-serif);
+  font-size: 30px;
+  font-weight: 400;
   line-height: 1;
-  letter-spacing: -0.01em;
-  color: var(--ink);
+  letter-spacing: 0;
+  color: #fff;
   font-variant-numeric: tabular-nums;
 }
 
 .story-rail-unit {
-  margin-top: 5px;
-  max-width: 92px;
+  margin-top: 6px;
+  max-width: 84px;
   font-size: 9.5px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  line-height: 1.3;
-  color: var(--ink-soft);
+  line-height: 1.32;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .story-rail-track {
@@ -369,42 +308,59 @@
   mask-image: linear-gradient(to bottom, #000 0%, transparent 22%);
 }
 
-/* Orange rain streaks — banner ambiance for "A decade of rain". */
+/* Orange rain streaks — banner ambiance for "A decade of rain". The container
+   pulses (shower ↔ downpour) for rhythm; each drop is randomised in JS. */
 .story-rain {
   position: absolute;
   inset: 0;
   z-index: 1;
   overflow: hidden;
   pointer-events: none;
-  animation: rain-in 1.6s ease both;
+  animation: rain-intensity 13s ease-in-out infinite;
 }
 
 .story-rain span {
   position: absolute;
   top: 0;
-  width: 2px;
   border-radius: 2px;
-  background: linear-gradient(to bottom, rgba(255, 84, 73, 0) 0%, #ff5449 60%, rgba(255, 84, 73, 0) 100%);
+  background: linear-gradient(to bottom, rgba(255, 84, 73, 0) 0%, #ff5449 55%, rgba(255, 84, 73, 0) 100%);
   animation-name: rain-fall;
   animation-timing-function: linear;
   animation-iteration-count: infinite;
+  will-change: transform;
 }
 
 @keyframes rain-fall {
   0% {
-    transform: translateY(-24vh);
+    transform: translate3d(0, -28vh, 0);
   }
   100% {
-    transform: translateY(120vh);
+    transform: translate3d(-4vw, 122vh, 0);
   }
 }
 
-@keyframes rain-in {
-  from {
+/* Slow, uneven swell so the rain feels like passing showers and squalls. */
+@keyframes rain-intensity {
+  0% {
     opacity: 0;
   }
-  to {
+  10% {
+    opacity: 0.95;
+  }
+  32% {
+    opacity: 0.42;
+  }
+  52% {
     opacity: 1;
+  }
+  70% {
+    opacity: 0.5;
+  }
+  86% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0.6;
   }
 }
 
@@ -468,8 +424,8 @@
   min-height: 100vh;
   display: flex;
   align-items: center;
-  /* Extra left inset clears the timeline rail. */
-  padding: 0 6vw 0 clamp(190px, 15vw, 260px);
+  /* Left inset sits the card ~24px to the right of the timeline rail. */
+  padding: 0 6vw 0 196px;
   pointer-events: none;
 }
 
@@ -492,12 +448,12 @@
 }
 
 .story-eyebrow {
-  margin: 0 0 10px;
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  margin: 0 0 8px;
+  font-family: var(--font-serif);
+  font-size: 23px;
+  font-weight: 400;
+  letter-spacing: 0.01em;
   color: var(--accent);
-  font-weight: 600;
 }
 
 /* Stat chip — a lifted pill inside the card. */

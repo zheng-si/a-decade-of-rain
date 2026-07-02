@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -14,13 +14,44 @@ import {
   addHillshade,
   setHillshade,
 } from '../components/mapTheme'
-import { FACTS_EVENTS, type City } from '../content/facts/events'
+import { FACTS_EVENTS } from '../content/facts/events'
 import { HOOK } from '../content/facts/hook'
 import { SOURCES } from '../content/sources'
 import { TopBar } from '../App'
 import LabelPanel from '../components/LabelPanel'
 import { readLabelGroups, setGroupVisible, type LabelGroup } from '../components/labelLayers'
 import './Story.css'
+
+interface RainDrop {
+  left: number
+  delay: number
+  dur: number
+  len: number
+  width: number
+  op: number
+}
+
+// The rain field is memoised so the per-frame count-up re-renders never touch
+// its ~90 animated nodes (that reconciliation was the banner flicker).
+const RainField = memo(function RainField({ drops }: { drops: RainDrop[] }) {
+  return (
+    <div className="story-rain" aria-hidden="true">
+      {drops.map((d, i) => (
+        <span
+          key={i}
+          style={{
+            left: `${d.left}%`,
+            width: `${d.width}px`,
+            height: `${d.len}px`,
+            opacity: d.op,
+            animationDelay: `${d.delay}s`,
+            animationDuration: `${d.dur}s`,
+          }}
+        />
+      ))}
+    </div>
+  )
+})
 
 const SPRAY_SOURCE = 'spray'
 const VN_SOURCE = 'vietnam'
@@ -84,7 +115,6 @@ export default function Story() {
   const mapRef = useRef<maplibregl.Map | null>(null)
   const dataRef = useRef<SprayDataset | null>(null)
   const readyRef = useRef(false)
-  const cityMarkersRef = useRef<maplibregl.Marker[]>([])
   const crossMarkersRef = useRef<maplibregl.Marker[]>([])
   const is3DRef = useRef(false)
   const [active, setActive] = useState(0)
@@ -94,15 +124,21 @@ export default function Story() {
   const [cumGallons, setCumGallons] = useState<number[]>([])
 
   // A field of orange rain streaks for the banner ("A decade of rain").
-  const rainDrops = useMemo(
+  // Heavily randomised — most drops are short/thin, a few are long fast streaks
+  // — so it reads as real rain; the container adds shower↔downpour rhythm.
+  const rainDrops = useMemo<RainDrop[]>(
     () =>
-      Array.from({ length: 56 }, () => ({
-        left: Math.random() * 100,
-        delay: -Math.random() * 2.4,
-        dur: 0.9 + Math.random() * 1.2,
-        len: 34 + Math.random() * 66,
-        op: 0.22 + Math.random() * 0.4,
-      })),
+      Array.from({ length: 90 }, () => {
+        const long = Math.random() > 0.82
+        return {
+          left: Math.random() * 100,
+          delay: -Math.random() * 5,
+          dur: 0.45 + Math.random() * 1.25,
+          len: long ? 90 + Math.random() * 100 : 18 + Math.random() * 68,
+          width: Math.random() > 0.8 ? 2.4 : 1.3,
+          op: 0.12 + Math.random() * 0.5,
+        }
+      }),
     [],
   )
 
@@ -121,35 +157,15 @@ export default function Story() {
     )
   }
 
-  function clearCities() {
-    cityMarkersRef.current.forEach((m) => m.remove())
-    cityMarkersRef.current = []
-  }
-
-  function showCities(cities: City[] | undefined) {
-    const map = mapRef.current
-    if (!map) return
-    clearCities()
-    if (!cities) return
-    for (const c of cities) {
-      const el = document.createElement('div')
-      el.className = 'city-pin'
-      el.innerHTML = `<span class="city-pin-label">${c.name}</span>`
-      cityMarkersRef.current.push(
-        new maplibregl.Marker({ element: el, anchor: 'bottom', offset: [0, -6] })
-          .setLngLat([c.lng, c.lat])
-          .addTo(map),
-      )
-    }
-  }
-
   function clearCrosses() {
     crossMarkersRef.current.forEach((m) => m.remove())
     crossMarkersRef.current = []
   }
 
   // Orange crosses mark pilot / test-spray sites where the volume is too small
-  // to register as a heatmap.
+  // to register as a heatmap. The pulse animates a CHILD element — MapLibre owns
+  // the marker root's transform for positioning, so animating it would fling the
+  // marker to the corner.
   function showCrosses(crosses: [number, number][] | undefined) {
     const map = mapRef.current
     if (!map) return
@@ -158,6 +174,7 @@ export default function Story() {
     for (const [lng, lat] of crosses) {
       const el = document.createElement('div')
       el.className = 'pilot-cross'
+      el.innerHTML = '<span class="pilot-cross-mark"></span>'
       crossMarkersRef.current.push(new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(map))
     }
   }
@@ -175,7 +192,7 @@ export default function Story() {
   // Keep framed content clear of the card (left on desktop, bottom on mobile).
   function framePadding(): maplibregl.PaddingOptions {
     return window.innerWidth > 640
-      ? { left: 480, top: 70, right: 70, bottom: 70 }
+      ? { left: 620, top: 70, right: 70, bottom: 70 }
       : { left: 24, right: 24, top: 48, bottom: 340 }
   }
 
@@ -189,7 +206,6 @@ export default function Story() {
     setStoryHeatVisible(map, true)
     setStoryHeatTime(map, 0) // before 1962 → nothing shown
     setSVVisible(true)
-    clearCities()
     clearCrosses()
   }
 
@@ -226,7 +242,6 @@ export default function Story() {
     if (isPilot) showCrosses(ev.crosses)
     else clearCrosses()
     setSVVisible(false)
-    showCities(ev.cities)
   }
 
   // Create the map once; it's a passive stage driven by scroll.
@@ -326,7 +341,6 @@ export default function Story() {
 
     return () => {
       cancelled = true
-      clearCities()
       clearCrosses()
       mapRef.current?.remove()
       mapRef.current = null
@@ -377,7 +391,6 @@ export default function Story() {
     }
   }
 
-  const activeEvent = FACTS_EVENTS[active]
   const lastIndex = FACTS_EVENTS.length - 1
   const progress = lastIndex ? (active / lastIndex) * 100 : 0
 
@@ -396,24 +409,25 @@ export default function Story() {
 
       <div className="story-graphic">
         <div ref={containerRef} className="story-map" />
-        <div className={`story-period${started ? '' : ' is-hidden'}`}>{activeEvent?.period}</div>
       </div>
 
-      {/* Timeline rail: cumulative gallons + a vertical progress bar. */}
+      {/* Timeline rail: cumulative gallons (top-aligned) + a vertical bar. */}
       <aside className={`story-rail${started ? ' is-visible' : ''}`} aria-hidden="true">
-        <div className="story-rail-meter">
-          <span className="story-rail-num">{fmtGallons(gallons)}</span>
-          <span className="story-rail-unit">gallons sprayed to date</span>
-        </div>
-        <div className="story-rail-track">
-          <div className="story-rail-fill" style={{ height: `${progress}%` }} />
-          {FACTS_EVENTS.map((ev, i) => (
-            <span
-              key={ev.id}
-              className={`story-rail-dot${i === active ? ' is-active' : ''}${i < active ? ' is-past' : ''}`}
-              style={{ top: `${lastIndex ? (i / lastIndex) * 100 : 0}%` }}
-            />
-          ))}
+        <div className="story-rail-inner">
+          <div className="story-rail-meter">
+            <span className="story-rail-num">{fmtGallons(gallons)}</span>
+            <span className="story-rail-unit">gallons sprayed to date</span>
+          </div>
+          <div className="story-rail-track">
+            <div className="story-rail-fill" style={{ height: `${progress}%` }} />
+            {FACTS_EVENTS.map((ev, i) => (
+              <span
+                key={ev.id}
+                className={`story-rail-dot${i === active ? ' is-active' : ''}${i < active ? ' is-past' : ''}`}
+                style={{ top: `${lastIndex ? (i / lastIndex) * 100 : 0}%` }}
+              />
+            ))}
+          </div>
         </div>
       </aside>
 
@@ -426,20 +440,7 @@ export default function Story() {
             <div />
             <div />
           </div>
-          <div className="story-rain" aria-hidden="true">
-            {rainDrops.map((d, i) => (
-              <span
-                key={i}
-                style={{
-                  left: `${d.left}%`,
-                  height: `${d.len}px`,
-                  opacity: d.op,
-                  animationDelay: `${d.delay}s`,
-                  animationDuration: `${d.dur}s`,
-                }}
-              />
-            ))}
-          </div>
+          <RainField drops={rainDrops} />
           <div className="story-hook-inner">
             <p className="story-hook-eyebrow">{HOOK.eyebrow}</p>
             <h1 className="story-hook-title">{HOOK.title}</h1>
