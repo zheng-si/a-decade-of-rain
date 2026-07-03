@@ -87,6 +87,44 @@
   border-top-color: var(--accent);
 }
 
+/* ── landmark reference point (areas with no authoritative boundary) ──────
+   A hollow orange ring + an uppercase label chip, matching the boundary
+   outline's label. Steady (not pulsing) so it reads apart from a test-spray. */
+.landmark-pt {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  pointer-events: none;
+}
+
+.landmark-pt-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2.5px solid var(--accent);
+  background: rgba(255, 84, 73, 0.18);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85), 0 1px 5px rgba(0, 0, 0, 0.3);
+}
+
+.landmark-pt-label {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 7px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  padding: 3px 8px;
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(250, 249, 244, 0.92);
+  border: 1px solid rgba(255, 84, 73, 0.5);
+  border-radius: 4px;
+  box-shadow: 0 3px 10px rgba(33, 53, 40, 0.14);
+}
+
 /* ── timeline ruler: full-height 10-year scale + cumulative bars + scan ───
    A narrow left column, independent of the card; --bars-w is its widest bar. */
 .timeline-ruler {
