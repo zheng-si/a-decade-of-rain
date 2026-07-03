@@ -1,10 +1,40 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { VEG_TYPES, VEG_AXIS_MAX, VEG_AXIS_STEP, ECOSYSTEMS, type VegKey } from '../content/facts/ecosystems'
 import { SOURCES } from '../content/sources'
 import vegRaw from '../figures/vegetation-map.svg?raw'
 
 const pct = (s: number, t: number) => (t > 0 ? Math.round((s / t) * 100) : 0)
 const axisTicks = Array.from({ length: VEG_AXIS_MAX / VEG_AXIS_STEP + 1 }, (_, i) => i * VEG_AXIS_STEP)
+
+// Tween the headline figure toward `target` (easeOutCubic) so it rolls up/down
+// on selection instead of hard-cutting. Honours prefers-reduced-motion.
+function useCountUp(target: number, duration = 450) {
+  const [val, setVal] = useState(target)
+  const fromRef = useRef(target)
+  useEffect(() => {
+    fromRef.current = val
+  }, [val])
+  useEffect(() => {
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    const from = fromRef.current
+    if (reduce || from === target) {
+      setVal(target)
+      return
+    }
+    let raf = 0
+    const start = performance.now()
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration)
+      const eased = 1 - Math.pow(1 - t, 3)
+      setVal(Math.round(from + (target - from) * eased))
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target, duration])
+  return val
+}
 
 // Full-screen interlude: the redrawn wartime vegetation map + an interactive
 // legend. Selecting a type highlights it on the map (the rest fade), the bars
@@ -17,6 +47,7 @@ export default function EcosystemsFigure() {
   const sumTot = VEG_TYPES.reduce((a, v) => a + v.total, 0)
   const headPct = active ? pct(active.sprayed, active.total) : pct(sumSpr, sumTot)
   const headColor = active ? active.ink : '#51625a'
+  const displayPct = useCountUp(headPct)
 
   return (
     <section className="story-fullscreen ecosystems" aria-label={ECOSYSTEMS.title}>
@@ -87,7 +118,7 @@ export default function EcosystemsFigure() {
           <figure className="eco-map" data-sel={sel ?? undefined}>
             <div className="eco-map-svg" aria-label={ECOSYSTEMS.mapAlt} role="img" dangerouslySetInnerHTML={{ __html: vegRaw }} />
             <figcaption className="eco-headline" style={{ color: headColor }}>
-              <strong>{headPct}%</strong>
+              <strong>{displayPct}%</strong>
               <span>{active ? `of ${active.name.toLowerCase()} sprayed` : 'of vegetation sprayed'}</span>
               {active?.sourceId && SOURCES[active.sourceId] && (
                 <a href={SOURCES[active.sourceId].url} target="_blank" rel="noreferrer" className="eco-headline-src">
