@@ -24,7 +24,6 @@ import MapKey from '../components/MapKey'
 import RainbowHerbicides, { type AgentSeries } from '../components/RainbowHerbicides'
 import EcosystemsFigure from '../components/EcosystemsFigure'
 import StoryNav from '../components/StoryNav'
-import heroSpray from '../assets/hero-spray.jpg'
 import { readLabelGroups, setGroupVisible, normalizePlaceLabels } from '../components/labelLayers'
 import './Story.css'
 
@@ -92,7 +91,6 @@ export default function Story() {
   const landmarksRef = useRef<FeatureCollection | null>(null)
   const landmarkMarkersRef = useRef<maplibregl.Marker[]>([])
   const veilRef = useRef<HTMLDivElement>(null)
-  const siteNavRef = useRef<HTMLElement>(null)
 
   const [active, setActive] = useState(0)
   const [started, setStarted] = useState(false)
@@ -492,11 +490,7 @@ export default function Story() {
   // a static backdrop, flicker-free.
   useEffect(() => {
     const onScroll = () => {
-      const past = window.scrollY > window.innerHeight * 0.35
-      veilRef.current?.classList.toggle('is-off', past)
-      // The Flat/3D map switch is meaningless over the banner photo — hide it
-      // until the reader is into the map scrollytelling.
-      siteNavRef.current?.classList.toggle('is-hidden', !past)
+      veilRef.current?.classList.toggle('is-off', window.scrollY > window.innerHeight * 0.35)
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -556,7 +550,7 @@ export default function Story() {
           sits underneath the orange wash (z-order), so there's no show/hide or
           narrow→wide animation to flicker. Just the Flat/3D view switch for
           now (the Explore tab is parked). */}
-      <nav className="site-nav is-hidden" ref={siteNavRef}>
+      <nav className="site-nav">
         <button
           className={`site-nav-link site-nav-btn${is3D ? '' : ' is-active'}`}
           onClick={() => is3D && toggle3D()}
@@ -573,25 +567,6 @@ export default function Story() {
 
       <div className="story-graphic">
         <div ref={containerRef} className="story-map" />
-        {/* Orange colorwash filter for the banner hero photo. The photo itself
-            now lives in the scrolling hook (below) so it scrolls up with the
-            title; only the filter def needs to be in the document. */}
-        <svg className="story-hero-defs" aria-hidden="true" focusable="false">
-          <filter id="hero-duotone" colorInterpolationFilters="sRGB">
-            <feColorMatrix
-              type="matrix"
-              values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0"
-            />
-            {/* Single-hue orange colorwash: luminance mapped along one warm
-                ramp (deep burnt orange shadows, pale cream-orange highlights),
-                so the plane and spray plumes keep their contrast. */}
-            <feComponentTransfer>
-              <feFuncR type="table" tableValues="0.22 1.00" />
-              <feFuncG type="table" tableValues="0.08 0.86" />
-              <feFuncB type="table" tableValues="0.02 0.66" />
-            </feComponentTransfer>
-          </filter>
-        </svg>
         {/* Progressive frosted blur for the banner. It lives INSIDE the sticky
             container so it never moves relative to the map it blurs — the
             blurred result rasterizes once instead of every scroll frame (which
@@ -617,15 +592,6 @@ export default function Story() {
 
       <div className="story-scroll">
         <section className="story-hook">
-          {/* Hero photo lives in the hook so it scrolls up with the title.
-              Base = sharp (keeps the plane legible); frost = a blurred copy
-              masked to the top/bottom so the trees soften into a haze. The
-              wrapper fades to transparent at the very bottom so a strip of the
-              live map shows through beneath the banner. */}
-          <div className="story-hook-media" aria-hidden="true">
-            <div className="story-hook-photo" style={{ backgroundImage: `url(${heroSpray})` }} />
-            <div className="story-hook-frost" style={{ backgroundImage: `url(${heroSpray})` }} />
-          </div>
           <div className="story-hook-blur" aria-hidden="true" />
           <div className="story-hook-wash" aria-hidden="true" />
           <RainCanvas />
