@@ -498,13 +498,14 @@ export default function Story() {
   }
 
   return (
-    <div className={`story${started ? '' : ' is-hook'}`} ref={storyRef}>
+    <div className="story" ref={storyRef}>
+      {/* One constant-width panel, always mounted — during the banner it just
+          sits underneath the orange wash (z-order), so there's no show/hide or
+          narrow→wide animation to flicker. */}
       <TopBar>
-        {started && (
-          <button className="site-nav-link site-nav-btn" onClick={toggle3D}>
-            {is3D ? 'Flat' : '3D'}
-          </button>
-        )}
+        <button className="site-nav-link site-nav-btn" onClick={toggle3D}>
+          {is3D ? 'Flat' : '3D'}
+        </button>
       </TopBar>
 
       <div className="story-graphic">
