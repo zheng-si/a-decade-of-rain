@@ -100,6 +100,39 @@
   border-bottom-color: var(--accent);
 }
 
+/* Label led out to the right on a hairline (--leader px) — parks the chip
+   over open sea/space so it doesn't cover the basemap's own labels. */
+.pilot-dot--leader::after {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  width: var(--leader, 240px);
+  border-top: 1.5px solid var(--accent);
+  transform: translateY(-50%);
+  opacity: 0.75;
+}
+
+.pilot-dot--leader .pilot-dot-label {
+  bottom: auto;
+  left: calc(100% + var(--leader, 240px));
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.pilot-dot--leader .pilot-dot-label::after {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .pilot-dot--leader::after {
+    width: 90px;
+  }
+  .pilot-dot--leader .pilot-dot-label {
+    left: calc(100% + 90px);
+  }
+}
+
 /* ── landmark reference point (areas with no authoritative boundary) ──────
    A hollow orange ring + an uppercase label chip, matching the boundary
    outline's label. Steady (not pulsing) so it reads apart from a test-spray. */

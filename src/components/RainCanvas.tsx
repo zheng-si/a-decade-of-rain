@@ -48,16 +48,25 @@ export default function RainCanvas() {
       drops = Array.from({ length: count }, () => spawn(true))
     }
 
-    // The rain runs only for the opening beat: once the reader has scrolled
-    // half a viewport down it fades out (~1.4s) and the loop stops for good.
-    const FADE_MS = 1400
-    let fadeAt = 0 // timestamp the fade started; 0 = still raining
-    let stopped = false
+    // The rain plays for the opening beat only: half a viewport down it fades
+    // out (~1.4s) and the loop parks (zero repaint cost); scrolling back to the
+    // very top fades it back in (~0.8s).
+    const FADE_OUT_S = 1.4
+    const FADE_IN_S = 0.8
+    let fade = 1 // current opacity multiplier
+    let target = 1 // where fade is easing to (0 = stopped)
+    let running = false
+    const start = () => {
+      if (running) return
+      running = true
+      last = 0 // avoid a dt jump after a long park
+      raf = requestAnimationFrame(frame)
+    }
     const onScroll = () => {
-      if (!fadeAt && window.scrollY > window.innerHeight * 0.5) {
-        fadeAt = performance.now()
-        window.removeEventListener('scroll', onScroll)
-      }
+      const y = window.scrollY
+      if (y > window.innerHeight * 0.5) target = 0
+      else if (y < 4) target = 1
+      if (target === 1) start()
     }
 
     let raf = 0
@@ -67,12 +76,12 @@ export default function RainCanvas() {
       if (!t0) t0 = t
       const dt = last ? Math.min(0.05, (t - last) / 1000) : 0
       last = t
-      const fade = fadeAt ? Math.max(0, 1 - (t - fadeAt) / FADE_MS) : 1
+      fade =
+        target > fade ? Math.min(target, fade + dt / FADE_IN_S) : Math.max(target, fade - dt / FADE_OUT_S)
       if (fade === 0) {
         ctx.clearRect(0, 0, w, h)
-        stopped = true
-        window.removeEventListener('resize', resize)
-        return // no further frames scheduled
+        running = false
+        return // parked — no further frames until scrolled back to the top
       }
       // Smooth shower ↔ downpour swell over ~13s.
       const phase = (((t - t0) / 1000) % 13) / 13
@@ -96,11 +105,13 @@ export default function RainCanvas() {
     window.addEventListener('resize', resize)
     window.addEventListener('scroll', onScroll, { passive: true })
     onScroll() // the page may load already scrolled past the banner
-    raf = requestAnimationFrame(frame)
+    if (target === 0) fade = 0 // no fade-out flash on an already-scrolled load
+    start()
     return () => {
       cancelAnimationFrame(raf)
+      running = false
       window.removeEventListener('scroll', onScroll)
-      if (!stopped) window.removeEventListener('resize', resize)
+      window.removeEventListener('resize', resize)
     }
   }, [])
 

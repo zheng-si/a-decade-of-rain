@@ -2,6 +2,7 @@
 // toggled from the UI. Works off the live style, so it adapts to whatever the
 // basemap actually ships.
 import type maplibregl from 'maplibre-gl'
+import type { ExpressionSpecification } from 'maplibre-gl'
 
 export interface LabelGroup {
   key: string
@@ -55,5 +56,54 @@ export function readLabelGroups(map: maplibregl.Map): LabelGroup[] {
 export function setGroupVisible(map: maplibregl.Map, layerIds: string[], on: boolean) {
   for (const id of layerIds) {
     if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
+  }
+}
+
+// ── casing + name normalisation ───────────────────────────────────────────
+// The basemap uppercases its state/other tiers (ATTAPEU, CHAMPASAK) while city
+// and town labels are title-case; and since Vietnam's 2025 admin reform some
+// OSM city nodes carry a literal " Ward" suffix (Nha Trang Ward) while others
+// don't (Da Lat). Normalise both so every place reads the same:
+//   - text-transform: none everywhere (title-case across the board)
+//   - strip a trailing " Ward" / " Commune" from place names
+//   - Latin name only (drops the non-Latin second line for neighbours)
+
+/** Expression: the place's Latin name with any " Ward"/" Commune" tail cut off. */
+function strippedName(): ExpressionSpecification {
+  const name: ExpressionSpecification = ['coalesce', ['get', 'name:latin'], ['get', 'name_en'], ['get', 'name']]
+  // ends-with, guarded so a short name can't false-match via index-of's -1
+  // (e.g. a place literally named "Ward": -1 === 4-5 would slice it to "War").
+  const endsWith = (suffix: string): ExpressionSpecification => [
+    'all',
+    ['>', ['length', ['var', 'n']], suffix.length],
+    ['==', ['index-of', suffix, ['var', 'n']], ['-', ['length', ['var', 'n']], suffix.length]],
+  ]
+  const cut = (suffix: string): ExpressionSpecification => [
+    'slice',
+    ['var', 'n'],
+    0,
+    ['-', ['length', ['var', 'n']], suffix.length],
+  ]
+  return [
+    'let',
+    'n',
+    name,
+    ['case', endsWith(' Ward'), cut(' Ward'), endsWith(' Commune'), cut(' Commune'), ['var', 'n']],
+  ]
+}
+
+export function normalizePlaceLabels(map: maplibregl.Map) {
+  for (const l of map.getStyle().layers ?? []) {
+    if (l.type !== 'symbol') continue
+    const layout = (l as { layout?: Record<string, unknown> }).layout
+    if (!layout || layout['text-field'] == null) continue
+    try {
+      // Uniform casing (kills the basemap's uppercase state/other tiers).
+      map.setLayoutProperty(l.id, 'text-transform', 'none')
+      // Suffix-stripped names for the place tiers that can carry " Ward".
+      if (l['source-layer'] === 'place') map.setLayoutProperty(l.id, 'text-field', strippedName())
+    } catch {
+      /* layer doesn't support the override — leave it as shipped */
+    }
   }
 }
