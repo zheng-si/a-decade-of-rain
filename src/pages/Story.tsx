@@ -92,7 +92,6 @@ export default function Story() {
   const landmarksRef = useRef<FeatureCollection | null>(null)
   const landmarkMarkersRef = useRef<maplibregl.Marker[]>([])
   const veilRef = useRef<HTMLDivElement>(null)
-  const heroPhotoRef = useRef<HTMLDivElement>(null)
   const siteNavRef = useRef<HTMLElement>(null)
 
   const [active, setActive] = useState(0)
@@ -495,10 +494,6 @@ export default function Story() {
     const onScroll = () => {
       const past = window.scrollY > window.innerHeight * 0.35
       veilRef.current?.classList.toggle('is-off', past)
-      // Fade the duotone hero photo out on the same beat, revealing the map
-      // for the scrollytelling. (Opacity on the PHOTO is fine — it isn't the
-      // backdrop-filter element; only the veil must never use opacity.)
-      heroPhotoRef.current?.classList.toggle('is-off', past)
       // The Flat/3D map switch is meaningless over the banner photo — hide it
       // until the reader is into the map scrollytelling.
       siteNavRef.current?.classList.toggle('is-hidden', !past)
@@ -578,28 +573,22 @@ export default function Story() {
 
       <div className="story-graphic">
         <div ref={containerRef} className="story-map" />
-        {/* Banner hero: the Ranch Hand spray photo, duotoned green→amber and
-            sitting BEHIND the frosted veil so the progressive blur applies to
-            it. Fades out on scroll to hand off to the live map. */}
-        <div
-          ref={heroPhotoRef}
-          className="story-hero-photo"
-          aria-hidden="true"
-          style={{ backgroundImage: `url(${heroSpray})` }}
-        />
+        {/* Orange colorwash filter for the banner hero photo. The photo itself
+            now lives in the scrolling hook (below) so it scrolls up with the
+            title; only the filter def needs to be in the document. */}
         <svg className="story-hero-defs" aria-hidden="true" focusable="false">
           <filter id="hero-duotone" colorInterpolationFilters="sRGB">
             <feColorMatrix
               type="matrix"
               values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0"
             />
-            {/* Green→amber duotone: dark forest maps to deep green (so the
-                lower frame reads green under the fading wash), highlights to
-                amber. The strong orange wash on top handles the warm header. */}
+            {/* Single-hue orange colorwash: luminance mapped along one warm
+                ramp (deep burnt orange shadows, pale cream-orange highlights),
+                so the plane and spray plumes keep their contrast. */}
             <feComponentTransfer>
-              <feFuncR type="table" tableValues="0.09 0.97" />
-              <feFuncG type="table" tableValues="0.20 0.63" />
-              <feFuncB type="table" tableValues="0.13 0.32" />
+              <feFuncR type="table" tableValues="0.22 1.00" />
+              <feFuncG type="table" tableValues="0.08 0.86" />
+              <feFuncB type="table" tableValues="0.02 0.66" />
             </feComponentTransfer>
           </filter>
         </svg>
@@ -628,6 +617,11 @@ export default function Story() {
 
       <div className="story-scroll">
         <section className="story-hook">
+          {/* Hero photo lives in the hook so it scrolls up with the title.
+              Base = sharp (keeps the plane legible); frost = a blurred copy
+              masked to the top/bottom so the trees soften into a haze. */}
+          <div className="story-hook-photo" aria-hidden="true" style={{ backgroundImage: `url(${heroSpray})` }} />
+          <div className="story-hook-frost" aria-hidden="true" style={{ backgroundImage: `url(${heroSpray})` }} />
           <div className="story-hook-blur" aria-hidden="true" />
           <div className="story-hook-wash" aria-hidden="true" />
           <RainCanvas />

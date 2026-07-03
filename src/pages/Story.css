@@ -23,18 +23,29 @@
 /* Banner hero photo (Ranch Hand spray run), duotoned green→amber. Sits above
    the map but below the frosted veil, so the progressive blur applies to it.
    Fades out on scroll (opacity is safe here — it isn't the backdrop element). */
-.story-hero-photo {
+/* Hero photo lives in the scrolling hook so it scrolls up with the title. */
+.story-hook-photo,
+.story-hook-frost {
   position: absolute;
   inset: 0;
+  z-index: 0;
   background-position: center 42%;
   background-size: cover;
   background-repeat: no-repeat;
-  filter: url(#hero-duotone);
   pointer-events: none;
-  transition: opacity 0.6s ease;
+  /* Promote to a compositor layer so scrolling the filtered image is smooth. */
+  transform: translateZ(0);
 }
-.story-hero-photo.is-off {
-  opacity: 0;
+.story-hook-photo {
+  filter: url(#hero-duotone);
+}
+/* Frosted copy: blurred + masked to the top and bottom edges, so the trees
+   soften into a haze while the plane band in the middle stays sharp. */
+.story-hook-frost {
+  filter: url(#hero-duotone) blur(10px);
+  opacity: 0.78;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 20%, transparent 55%, #000 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 20%, transparent 55%, #000 100%);
 }
 .story-hero-defs {
   position: absolute;
