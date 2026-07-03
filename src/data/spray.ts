@@ -28,6 +28,13 @@ export function dateToDay(iso: string): number {
   return Math.floor((Date.parse(iso) - EPOCH_MS) / DAY_MS) + 1
 }
 
+/** Compact gallon label: 5.1M / 494k / 12. */
+export function fmtGallons(v: number): string {
+  if (v >= 1e6) return `${(v / 1e6).toFixed(1)}M`
+  if (v >= 1e3) return `${(v / 1e3).toFixed(0)}k`
+  return `${Math.round(v)}`
+}
+
 export interface SprayProps {
   day: number
   agent: number
