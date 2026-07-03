@@ -854,7 +854,7 @@
   text-wrap: pretty;
 }
 
-/* Text + chart (left) and agent card (right), tops flush. */
+/* Dek + chart (left) and agent card (right); card top aligns with the dek. */
 .rainbow-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
@@ -866,19 +866,53 @@
   min-width: 0;
 }
 
-.rainbow-main .fs-head {
-  margin-bottom: 26px;
+.rainbow-main .fs-dek {
+  margin: 0 0 26px;
 }
 
 .rainbow-chart {
   margin: 0;
 }
 
+/* Chart caption + mode switch on one row. */
+.rainbow-chart-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 8px;
+}
+
 .rainbow-chart-title {
-  margin: 0 0 6px;
   font-size: 12.5px;
   font-weight: 600;
   color: var(--ink-soft);
+}
+
+.rainbow-mode {
+  display: inline-flex;
+  flex: none;
+  padding: 2px;
+  background: rgba(33, 53, 40, 0.06);
+  border-radius: 999px;
+}
+
+.rainbow-mode-btn {
+  padding: 4px 12px;
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.rainbow-mode-btn.is-active {
+  color: #fff;
+  background: var(--forest);
 }
 
 .rainbow-chart-title span {
@@ -895,6 +929,11 @@
 
 .rainbow-grid-line {
   stroke: var(--rule);
+  stroke-width: 1;
+}
+
+.rainbow-axis-line {
+  stroke: var(--ink-faint);
   stroke-width: 1;
 }
 

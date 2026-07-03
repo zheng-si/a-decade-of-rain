@@ -69,6 +69,6 @@ export const RAINBOW = {
   dek: 'Ranch Hand sprayed a family of weedkillers, each known by the colour banded on its drum. Together they came to nearly 20 million gallons, yet they were far from equal, in volume and in what they left behind.',
   chartTitle: 'Herbicide sprayed per year, by agent',
   chartUnit: 'US gallons',
-  chartNote: 'Real yearly totals from the HERBS spray records (Stellman et al., 2003).',
+  chartNote: 'Real spray volumes from the HERBS spray records (Stellman et al., 2003).',
   chartSourceId: 'stellman_2003',
 }
