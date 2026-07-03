@@ -87,6 +87,19 @@
   border-top-color: var(--accent);
 }
 
+/* Label hung BELOW the dot (pointer up) — used where something sits above. */
+.pilot-dot--below .pilot-dot-label {
+  bottom: auto;
+  top: calc(100% + 8px);
+}
+
+.pilot-dot--below .pilot-dot-label::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--accent);
+}
+
 /* ── landmark reference point (areas with no authoritative boundary) ──────
    A hollow orange ring + an uppercase label chip, matching the boundary
    outline's label. Steady (not pulsing) so it reads apart from a test-spray. */
@@ -123,6 +136,13 @@
   border: 1px solid rgba(255, 84, 73, 0.5);
   border-radius: 4px;
   box-shadow: 0 3px 10px rgba(33, 53, 40, 0.14);
+}
+
+/* Area name chip for boundary landmarks — no ring dot, centred on its anchor. */
+.landmark-pt--area .landmark-pt-label {
+  bottom: auto;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 /* ── timeline ruler: full-height 10-year scale + cumulative bars + scan ───
@@ -561,11 +581,11 @@
   color: var(--ink-soft);
 }
 
-/* A ring with a short northward tick (half the radius) at its centre. */
+/* A ring with a vertical needle from the top edge down to the centre. */
 .map-key-compass-dial {
   position: relative;
-  width: 16px;
-  height: 16px;
+  width: 17px;
+  height: 17px;
   border: 1.4px solid var(--ink-soft);
   border-radius: 50%;
 }
@@ -573,13 +593,11 @@
 .map-key-compass-needle {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 0;
   width: 1.6px;
-  height: 4px; /* ≈ half the 8px radius */
+  height: 50%; /* top edge → centre */
   margin-left: -0.8px;
-  margin-top: -4px; /* grows upward from the centre → points north */
-  background: var(--accent);
-  border-radius: 1px;
+  background: var(--ink-soft);
 }
 
 .map-key-scale-bar {

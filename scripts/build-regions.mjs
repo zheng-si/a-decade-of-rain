@@ -33,10 +33,6 @@ const MR = {
   4: ['Tiền Giang', 'Bến Tre', 'Vĩnh Long', 'Trà Vinh', 'Đồng Tháp', 'An Giang', 'Kiên Giang', 'Cần Thơ', 'Hậu Giang', 'Sóc Trăng', 'Bạc Liêu', 'Cà Mau'],
 }
 const MR_LABEL = { 1: 'Military Region I', 2: 'Military Region II', 3: 'Military Region III', 4: 'Military Region IV' }
-// Manual label placements — the auto centroid can land on a crowded spot. MR III's
-// centroid sits over the dense Saigon / Biên Hòa cluster (and its test-spray pin),
-// so nudge it northwest into the open Bình Dương / Tây Ninh area.
-const MR_LABEL_OVERRIDE = { 3: [106.35, 11.6] }
 
 const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
 const round = (n) => Number(n.toFixed(3))
@@ -118,7 +114,7 @@ async function main() {
     labelFeatures.push({
       type: 'Feature',
       properties: { mr: z, name: MR_LABEL[z] },
-      geometry: { type: 'Point', coordinates: MR_LABEL_OVERRIDE[z] ?? labelPoint(unioned) },
+      geometry: { type: 'Point', coordinates: labelPoint(unioned) },
     })
   }
   await writeFile(
@@ -129,6 +125,77 @@ async function main() {
     join(ROOT, 'public/data/military-region-labels.geojson'),
     JSON.stringify({ type: 'FeatureCollection', features: labelFeatures }),
   )
+
+  // 3) internal dividers — only the lines BETWEEN adjacent regions, not the full
+  // outlines (those trace the national border / coast and clash with the
+  // basemap's own border). Both neighbours dissolve from the same provinces, so
+  // a shared border is exactly the edges appearing in two regions' rings.
+  const edgeOwner = new Map() // "x1,y1|x2,y2" (sorted) -> Set<mr>
+  const edgeKey = (a, b) => {
+    const s = `${a[0]},${a[1]}`
+    const t = `${b[0]},${b[1]}`
+    return s < t ? `${s}|${t}` : `${t}|${s}`
+  }
+  for (const f of regionFeatures) {
+    for (const poly of f.geometry.coordinates) {
+      for (const ring of poly) {
+        for (let i = 0; i < ring.length - 1; i++) {
+          const k = edgeKey(ring[i], ring[i + 1])
+          if (!edgeOwner.has(k)) edgeOwner.set(k, new Set())
+          edgeOwner.get(k).add(f.properties.mr)
+        }
+      }
+    }
+  }
+  // Chain the shared edges of each region pair into LineStrings.
+  const dividerFeatures = []
+  const pairs = new Map() // "1-2" -> edges [[a,b],...]
+  for (const [k, owners] of edgeOwner) {
+    if (owners.size < 2) continue
+    const pair = [...owners].sort().join('-')
+    const [a, b] = k.split('|').map((s) => s.split(',').map(Number))
+    if (!pairs.has(pair)) pairs.set(pair, [])
+    pairs.get(pair).push([a, b])
+  }
+  for (const [pair, edges] of pairs) {
+    // vertex adjacency → walk chains from degree-1 endpoints
+    const adj = new Map()
+    const vk = (p) => `${p[0]},${p[1]}`
+    for (const [a, b] of edges) {
+      for (const [p, q] of [[a, b], [b, a]]) {
+        if (!adj.has(vk(p))) adj.set(vk(p), [])
+        adj.get(vk(p)).push(q)
+      }
+    }
+    const used = new Set()
+    const ek = (a, b) => edgeKey(a, b)
+    for (const [a, b] of edges) {
+      if (used.has(ek(a, b))) continue
+      // walk both directions from this edge
+      const chain = [a, b]
+      used.add(ek(a, b))
+      for (const dir of [1, 0]) {
+        for (;;) {
+          const head = dir ? chain[chain.length - 1] : chain[0]
+          const next = (adj.get(vk(head)) || []).find((q) => !used.has(ek(head, q)))
+          if (!next) break
+          used.add(ek(head, next))
+          if (dir) chain.push(next)
+          else chain.unshift(next)
+        }
+      }
+      dividerFeatures.push({
+        type: 'Feature',
+        properties: { pair },
+        geometry: { type: 'LineString', coordinates: chain },
+      })
+    }
+  }
+  await writeFile(
+    join(ROOT, 'public/data/military-region-dividers.geojson'),
+    JSON.stringify({ type: 'FeatureCollection', features: dividerFeatures }),
+  )
+  console.log(`✓ dividers: ${dividerFeatures.length} line(s) across ${pairs.size} region pair(s)`)
 
   if (missing.length) console.warn('⚠ provinces not found in ADM1:', missing.join(', '))
   console.log('✓ provinces:', provinces.features.length)

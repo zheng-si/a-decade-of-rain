@@ -48,6 +48,18 @@ export default function RainCanvas() {
       drops = Array.from({ length: count }, () => spawn(true))
     }
 
+    // The rain runs only for the opening beat: once the reader has scrolled
+    // half a viewport down it fades out (~1.4s) and the loop stops for good.
+    const FADE_MS = 1400
+    let fadeAt = 0 // timestamp the fade started; 0 = still raining
+    let stopped = false
+    const onScroll = () => {
+      if (!fadeAt && window.scrollY > window.innerHeight * 0.5) {
+        fadeAt = performance.now()
+        window.removeEventListener('scroll', onScroll)
+      }
+    }
+
     let raf = 0
     let last = 0
     let t0 = 0
@@ -55,9 +67,16 @@ export default function RainCanvas() {
       if (!t0) t0 = t
       const dt = last ? Math.min(0.05, (t - last) / 1000) : 0
       last = t
+      const fade = fadeAt ? Math.max(0, 1 - (t - fadeAt) / FADE_MS) : 1
+      if (fade === 0) {
+        ctx.clearRect(0, 0, w, h)
+        stopped = true
+        window.removeEventListener('resize', resize)
+        return // no further frames scheduled
+      }
       // Smooth shower ↔ downpour swell over ~13s.
       const phase = (((t - t0) / 1000) % 13) / 13
-      const intensity = 0.4 + 0.6 * (0.5 - 0.5 * Math.cos(phase * Math.PI * 2))
+      const intensity = (0.4 + 0.6 * (0.5 - 0.5 * Math.cos(phase * Math.PI * 2))) * fade
       ctx.clearRect(0, 0, w, h)
       ctx.lineCap = 'round'
       for (const d of drops) {
@@ -75,10 +94,13 @@ export default function RainCanvas() {
 
     resize()
     window.addEventListener('resize', resize)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll() // the page may load already scrolled past the banner
     raf = requestAnimationFrame(frame)
     return () => {
       cancelAnimationFrame(raf)
-      window.removeEventListener('resize', resize)
+      window.removeEventListener('scroll', onScroll)
+      if (!stopped) window.removeEventListener('resize', resize)
     }
   }, [])
 
