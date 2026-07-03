@@ -589,10 +589,13 @@ export default function Story() {
               type="matrix"
               values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0"
             />
+            {/* Single-hue orange colorwash: luminance mapped along one warm ramp
+                (deep burnt orange → pale cream-orange), so the plane and spray
+                plumes keep their contrast instead of washing out. */}
             <feComponentTransfer>
-              <feFuncR type="table" tableValues="0.09 0.97" />
-              <feFuncG type="table" tableValues="0.20 0.63" />
-              <feFuncB type="table" tableValues="0.13 0.32" />
+              <feFuncR type="table" tableValues="0.22 1.00" />
+              <feFuncG type="table" tableValues="0.08 0.86" />
+              <feFuncB type="table" tableValues="0.02 0.66" />
             </feComponentTransfer>
           </filter>
         </svg>

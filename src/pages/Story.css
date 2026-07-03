@@ -76,25 +76,28 @@
   transition: -webkit-backdrop-filter 0.7s ease, backdrop-filter 0.7s ease;
 }
 
+/* Progressive blur, lightened and pulled up: the three masked layers stack to
+   ~15px at the very top and fade to sharp by ~45%, so the plane and forest read
+   instead of the whole frame going mushy. */
 .story-map-veil > div:nth-child(1) {
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 45%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 45%);
 }
 
 .story-map-veil > div:nth-child(2) {
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 46%, transparent 74%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 46%, transparent 74%);
+  -webkit-backdrop-filter: blur(9px);
+  backdrop-filter: blur(9px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 20%, transparent 38%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 20%, transparent 38%);
 }
 
 .story-map-veil > div:nth-child(3) {
-  -webkit-backdrop-filter: blur(24px);
-  backdrop-filter: blur(24px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 44%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 44%);
+  -webkit-backdrop-filter: blur(11px);
+  backdrop-filter: blur(11px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 12%, transparent 30%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 12%, transparent 30%);
 }
 
 .story-map-veil.is-off > div {
@@ -548,10 +551,13 @@
   /* Paper tint only — the actual blur lives in .story-map-veil inside the
      sticky graphic (static backdrop = no flicker); this scrolling layer must
      stay a plain gradient. */
+  /* Faint only — the hero is now a dark-ish orange photo with WHITE type, so
+     the old heavy paper tint (which lightened the top for dark text) would kill
+     the white title's contrast. */
   background: linear-gradient(
     to bottom,
-    rgba(250, 249, 244, 0.64) 0%,
-    rgba(250, 249, 244, 0.24) 52%,
+    rgba(250, 249, 244, 0.18) 0%,
+    rgba(250, 249, 244, 0.06) 52%,
     rgba(250, 249, 244, 0) 80%
   );
 }
@@ -568,8 +574,8 @@
      (the title still sits legibly in the orange top third). */
   background: linear-gradient(
     to bottom,
-    rgba(255, 84, 73, 0.62) 0%,
-    rgba(255, 84, 73, 0.1) 55%,
+    rgba(255, 84, 73, 0.42) 0%,
+    rgba(255, 84, 73, 0.08) 55%,
     rgba(255, 84, 73, 0) 100%
   );
   transform: translateZ(0);
@@ -591,6 +597,8 @@
   position: relative;
   z-index: 2;
   max-width: 720px;
+  /* Legibility for the white type over the orange photo. */
+  text-shadow: 0 2px 16px rgba(35, 8, 4, 0.5), 0 1px 3px rgba(35, 8, 4, 0.42);
 }
 
 .story-hook-title {
@@ -600,7 +608,7 @@
   font-size: var(--type-h1-size);
   line-height: var(--type-h1-lh);
   letter-spacing: 0.01em;
-  color: var(--ink);
+  color: #fff;
   text-wrap: balance;
 }
 
@@ -611,7 +619,7 @@
   font-size: 21px;
   font-weight: 400;
   letter-spacing: 0.01em;
-  color: var(--ink);
+  color: #fff;
   text-wrap: balance;
 }
 
@@ -621,13 +629,13 @@
   font-weight: 300;
   font-size: var(--type-dek-size); /* one step down from lead per review */
   line-height: var(--type-lead-lh);
-  /* Full ink: --ink-soft lost too much contrast over the pink mid-wash. */
-  color: var(--ink);
+  color: rgba(255, 255, 255, 0.95);
   /* No single-word orphan line ("by year."); falls back gracefully. */
   text-wrap: pretty;
 }
 
-/* Scroll cue: serif, sentence case, deep orange — quiet but legible. */
+/* Scroll cue: serif, sentence case. Light warm tone so it reads over the
+   darker orange photo. */
 .story-hook-cta {
   display: inline-flex;
   align-items: center;
@@ -638,7 +646,7 @@
   font-size: 19px;
   font-weight: 400;
   letter-spacing: 0.02em;
-  color: var(--accent-deep);
+  color: #ffdcd4;
   background: none;
   border: none;
   cursor: pointer;
@@ -646,7 +654,7 @@
 }
 
 .story-hook-cta:hover {
-  color: #a8281b;
+  color: #fff;
   transform: translateY(2px);
 }
 
