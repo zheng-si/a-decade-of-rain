@@ -93,6 +93,7 @@ export default function Story() {
   const landmarkMarkersRef = useRef<maplibregl.Marker[]>([])
   const veilRef = useRef<HTMLDivElement>(null)
   const heroPhotoRef = useRef<HTMLDivElement>(null)
+  const siteNavRef = useRef<HTMLElement>(null)
 
   const [active, setActive] = useState(0)
   const [started, setStarted] = useState(false)
@@ -498,6 +499,9 @@ export default function Story() {
       // for the scrollytelling. (Opacity on the PHOTO is fine — it isn't the
       // backdrop-filter element; only the veil must never use opacity.)
       heroPhotoRef.current?.classList.toggle('is-off', past)
+      // The Flat/3D map switch is meaningless over the banner photo — hide it
+      // until the reader is into the map scrollytelling.
+      siteNavRef.current?.classList.toggle('is-hidden', !past)
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -557,7 +561,7 @@ export default function Story() {
           sits underneath the orange wash (z-order), so there's no show/hide or
           narrow→wide animation to flicker. Just the Flat/3D view switch for
           now (the Explore tab is parked). */}
-      <nav className="site-nav">
+      <nav className="site-nav is-hidden" ref={siteNavRef}>
         <button
           className={`site-nav-link site-nav-btn${is3D ? '' : ' is-active'}`}
           onClick={() => is3D && toggle3D()}
@@ -589,13 +593,13 @@ export default function Story() {
               type="matrix"
               values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0"
             />
-            {/* Single-hue orange colorwash: luminance mapped along one warm ramp
-                (deep burnt orange → pale cream-orange), so the plane and spray
-                plumes keep their contrast instead of washing out. */}
+            {/* Green→amber duotone: dark forest maps to deep green (so the
+                lower frame reads green under the fading wash), highlights to
+                amber. The strong orange wash on top handles the warm header. */}
             <feComponentTransfer>
-              <feFuncR type="table" tableValues="0.22 1.00" />
-              <feFuncG type="table" tableValues="0.08 0.86" />
-              <feFuncB type="table" tableValues="0.02 0.66" />
+              <feFuncR type="table" tableValues="0.09 0.97" />
+              <feFuncG type="table" tableValues="0.20 0.63" />
+              <feFuncB type="table" tableValues="0.13 0.32" />
             </feComponentTransfer>
           </filter>
         </svg>

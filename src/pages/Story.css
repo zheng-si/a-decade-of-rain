@@ -528,6 +528,15 @@
   z-index: 1;
 }
 
+/* Hide the Flat/3D switch over the banner; fade it in for the map. */
+.story .site-nav {
+  transition: opacity 0.4s ease;
+}
+.story .site-nav.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* ── hook / banner ────────────────────────────────────────────────────── */
 .story-hook {
   position: relative;
@@ -556,8 +565,8 @@
      the white title's contrast. */
   background: linear-gradient(
     to bottom,
-    rgba(250, 249, 244, 0.18) 0%,
-    rgba(250, 249, 244, 0.06) 52%,
+    rgba(250, 249, 244, 0.06) 0%,
+    rgba(250, 249, 244, 0.02) 52%,
     rgba(250, 249, 244, 0) 80%
   );
 }
@@ -572,11 +581,14 @@
   pointer-events: none;
   /* Pulled back from full strength so the duotone hero photo reads through it
      (the title still sits legibly in the orange top third). */
+  /* Saturated orange at the very top (near the nav rail's tone), fading out by
+     ~68% so the green-duotone forest reads at the bottom. */
   background: linear-gradient(
     to bottom,
-    rgba(255, 84, 73, 0.42) 0%,
-    rgba(255, 84, 73, 0.08) 55%,
-    rgba(255, 84, 73, 0) 100%
+    rgba(255, 84, 73, 0.88) 0%,
+    rgba(255, 84, 73, 0.4) 25%,
+    rgba(255, 84, 73, 0.12) 50%,
+    rgba(255, 84, 73, 0) 68%
   );
   transform: translateZ(0);
   backface-visibility: hidden;
@@ -646,7 +658,7 @@
   font-size: 19px;
   font-weight: 400;
   letter-spacing: 0.02em;
-  color: #ffdcd4;
+  color: #ff6a3a;
   background: none;
   border: none;
   cursor: pointer;
@@ -654,7 +666,7 @@
 }
 
 .story-hook-cta:hover {
-  color: #fff;
+  color: #ff855c;
   transform: translateY(2px);
 }
 
