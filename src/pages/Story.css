@@ -20,49 +20,6 @@
   inset: 0;
 }
 
-/* Banner hero photo (Ranch Hand spray run), duotoned green→amber. Sits above
-   the map but below the frosted veil, so the progressive blur applies to it.
-   Fades out on scroll (opacity is safe here — it isn't the backdrop element). */
-/* Hero photo lives in the scrolling hook so it scrolls up with the title. The
-   wrapper fades to transparent at the very bottom so a strip of the live map
-   shows through beneath the banner. */
-.story-hook-media {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 66%, transparent 100%);
-}
-
-.story-hook-photo,
-.story-hook-frost {
-  position: absolute;
-  inset: 0;
-  background-position: center 42%;
-  background-size: cover;
-  background-repeat: no-repeat;
-  /* Promote to a compositor layer so scrolling the filtered image is smooth. */
-  transform: translateZ(0);
-}
-.story-hook-photo {
-  filter: url(#hero-duotone);
-}
-/* Frosted copy: blurred + masked to the top and bottom edges, so the trees
-   soften into a haze while the plane band in the middle stays sharp. */
-.story-hook-frost {
-  filter: url(#hero-duotone) blur(10px);
-  opacity: 0.78;
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 20%, transparent 55%, #000 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, transparent 20%, transparent 55%, #000 100%);
-}
-.story-hero-defs {
-  position: absolute;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-
 /* ── banner frosted veil (inside the STICKY container) ─────────────────────
    Progressive top-heavy blur over the map, 24 → 16 → 10px via three masked
    layers. Because this sits in the sticky graphic it is STATIC relative to
@@ -96,28 +53,25 @@
   transition: -webkit-backdrop-filter 0.7s ease, backdrop-filter 0.7s ease;
 }
 
-/* Progressive blur, lightened and pulled up: the three masked layers stack to
-   ~15px at the very top and fade to sharp by ~45%, so the plane and forest read
-   instead of the whole frame going mushy. */
 .story-map-veil > div:nth-child(1) {
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 45%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 28%, transparent 45%);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
 }
 
 .story-map-veil > div:nth-child(2) {
-  -webkit-backdrop-filter: blur(9px);
-  backdrop-filter: blur(9px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 20%, transparent 38%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 20%, transparent 38%);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 46%, transparent 74%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 46%, transparent 74%);
 }
 
 .story-map-veil > div:nth-child(3) {
-  -webkit-backdrop-filter: blur(11px);
-  backdrop-filter: blur(11px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 12%, transparent 30%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 12%, transparent 30%);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 44%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 44%);
 }
 
 .story-map-veil.is-off > div {
@@ -548,15 +502,6 @@
   z-index: 1;
 }
 
-/* Hide the Flat/3D switch over the banner; fade it in for the map. */
-.story .site-nav {
-  transition: opacity 0.4s ease;
-}
-.story .site-nav.is-hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* ── hook / banner ────────────────────────────────────────────────────── */
 .story-hook {
   position: relative;
@@ -580,13 +525,10 @@
   /* Paper tint only — the actual blur lives in .story-map-veil inside the
      sticky graphic (static backdrop = no flicker); this scrolling layer must
      stay a plain gradient. */
-  /* Faint only — the hero is now a dark-ish orange photo with WHITE type, so
-     the old heavy paper tint (which lightened the top for dark text) would kill
-     the white title's contrast. */
   background: linear-gradient(
     to bottom,
-    rgba(250, 249, 244, 0.06) 0%,
-    rgba(250, 249, 244, 0.02) 52%,
+    rgba(250, 249, 244, 0.64) 0%,
+    rgba(250, 249, 244, 0.24) 52%,
     rgba(250, 249, 244, 0) 80%
   );
 }
@@ -599,17 +541,7 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  /* Pulled back from full strength so the duotone hero photo reads through it
-     (the title still sits legibly in the orange top third). */
-  /* Saturated orange at the very top (near the nav rail's tone), fading out by
-     ~68% so the green-duotone forest reads at the bottom. */
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 84, 73, 0.88) 0%,
-    rgba(255, 84, 73, 0.4) 25%,
-    rgba(255, 84, 73, 0.12) 50%,
-    rgba(255, 84, 73, 0) 68%
-  );
+  background: linear-gradient(to bottom, rgba(255, 84, 73, 1) 0%, rgba(255, 84, 73, 0) 100%);
   transform: translateZ(0);
   backface-visibility: hidden;
 }
@@ -629,8 +561,6 @@
   position: relative;
   z-index: 2;
   max-width: 720px;
-  /* Legibility for the white type over the orange photo. */
-  text-shadow: 0 2px 16px rgba(35, 8, 4, 0.5), 0 1px 3px rgba(35, 8, 4, 0.42);
 }
 
 .story-hook-title {
@@ -640,7 +570,7 @@
   font-size: var(--type-h1-size);
   line-height: var(--type-h1-lh);
   letter-spacing: 0.01em;
-  color: #fff;
+  color: var(--ink);
   text-wrap: balance;
 }
 
@@ -651,7 +581,7 @@
   font-size: 21px;
   font-weight: 400;
   letter-spacing: 0.01em;
-  color: #fff;
+  color: var(--ink);
   text-wrap: balance;
 }
 
@@ -661,13 +591,13 @@
   font-weight: 300;
   font-size: var(--type-dek-size); /* one step down from lead per review */
   line-height: var(--type-lead-lh);
-  color: rgba(255, 255, 255, 0.95);
+  /* Full ink: --ink-soft lost too much contrast over the pink mid-wash. */
+  color: var(--ink);
   /* No single-word orphan line ("by year."); falls back gracefully. */
   text-wrap: pretty;
 }
 
-/* Scroll cue: serif, sentence case. Light warm tone so it reads over the
-   darker orange photo. */
+/* Scroll cue: serif, sentence case, deep orange — quiet but legible. */
 .story-hook-cta {
   display: inline-flex;
   align-items: center;
@@ -678,7 +608,7 @@
   font-size: 19px;
   font-weight: 400;
   letter-spacing: 0.02em;
-  color: #ff6a3a;
+  color: var(--accent-deep);
   background: none;
   border: none;
   cursor: pointer;
@@ -686,7 +616,7 @@
 }
 
 .story-hook-cta:hover {
-  color: #ff855c;
+  color: #a8281b;
   transform: translateY(2px);
 }
 
