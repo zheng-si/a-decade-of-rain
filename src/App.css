@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════════════════════
    DESIGN TOKENS — the single sheet to edit for colours and type.
    Full spec + contrast table: docs/design-system.md
-   (fonts are declared in src/fonts.css: --font-sans Switzer, --font-serif
+   (fonts are declared in src/fonts.css: --font-sans Public Sans, --font-serif
    Gambarino)
    ══════════════════════════════════════════════════════════════════════════ */
 :root {

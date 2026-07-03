@@ -2,15 +2,13 @@
  * build-glyphs.mjs — generate SDF glyph PBFs for the map's custom label font.
  *
  * MapLibre renders labels from SDF glyph PBFs, not CSS fonts. OpenFreeMap only
- * serves Noto/Metropolis, so to label the map in Switzer we self-host its
- * glyphs and point mapConfig.glyphsUrl at them.
+ * serves Noto/Metropolis, so to label the map in the project font we
+ * self-host its glyphs and point mapConfig.glyphsUrl at them.
  *
- * Switzer (Indian Type Foundry / Fontshare, free for commercial use) has NO
- * Vietnamese glyphs (no ư ơ ạ ề …), and MapLibre silently drops missing
- * glyphs — "A Lưới" rendered as "A Li". So each range is COMPOSITED: Switzer
- * first, then any codepoint Switzer lacks is filled from Noto Sans (full
- * Vietnamese coverage). A couple of Noto letters inside a Switzer word is far
- * better than missing letters.
+ * Public Sans (USWDS, OFL) natively covers Vietnamese, so map labels and UI
+ * text share one face with no mixed letterforms. Each range is still
+ * COMPOSITED with Noto Sans as a safety net: any codepoint the primary font
+ * lacks is filled from Noto instead of being silently dropped by MapLibre.
  *
  * Output: public/fonts/<stack>/<lo>-<hi>.pbf — ranges 0..8447 (Latin world +
  * Vietnamese). Scripts neither font contains (e.g. CJK) simply render blank.
@@ -28,7 +26,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 
 // Primary font + the fallback that fills its gaps.
-const FONTS = [{ file: 'fonts/Switzer-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Switzer Medium' }]
+const FONTS = [{ file: 'fonts/PublicSans-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Public Sans Medium' }]
 
 const LAST_RANGE = 32 // ranges 0..32 → codepoints 0–8447 (Latin + Vietnamese)
 
@@ -95,7 +93,7 @@ function encodeStack(stack) {
   return Buffer.from(pbf.finish())
 }
 
-/** Switzer glyphs win; the fallback fills every id Switzer lacks. */
+/** Primary-font glyphs win; the fallback fills every id the primary lacks. */
 function composite(primaryBuf, fallbackBuf) {
   const a = decodeStack(primaryBuf)
   const b = decodeStack(fallbackBuf)

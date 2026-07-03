@@ -55,7 +55,7 @@ raw `--accent`.
 
 ## 2 · Type scale
 
-Serif = Gambarino (`--font-serif`), sans = Switzer (`--font-sans`).
+Serif = Gambarino (`--font-serif`), sans = Public Sans (`--font-sans`, native Vietnamese coverage).
 Sizes/line-heights live as `--type-*` tokens in `src/App.css`.
 
 | Level | Token pair | Face & weight | Used for |

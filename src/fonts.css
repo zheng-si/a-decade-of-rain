@@ -1,26 +1,27 @@
-/* Self-hosted webfonts (Fontshare / ITF, free for commercial use).
-   Switzer — UI, body, and map labels. Gambarino — editorial headlines. */
+/* Self-hosted webfonts. Public Sans (USWDS, OFL — native Vietnamese
+   coverage, so UI text and map glyphs share ONE face with no fallback
+   mixing) — UI, body, and map labels. Gambarino — editorial headlines. */
 
 @font-face {
-  font-family: 'Switzer';
+  font-family: 'Public Sans';
   font-style: normal;
   font-weight: 300;
   font-display: swap;
-  src: url('/fonts/ui/Switzer-Light.woff2') format('woff2');
+  src: url('/fonts/ui/PublicSans-Light.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Switzer';
+  font-family: 'Public Sans';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url('/fonts/ui/Switzer-Regular.woff2') format('woff2');
+  src: url('/fonts/ui/PublicSans-Regular.woff2') format('woff2');
 }
 @font-face {
-  font-family: 'Switzer';
+  font-family: 'Public Sans';
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url('/fonts/ui/Switzer-Medium.woff2') format('woff2');
+  src: url('/fonts/ui/PublicSans-Medium.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Gambarino';
@@ -33,6 +34,6 @@
 }
 
 :root {
-  --font-sans: 'Switzer', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Gambarino', Georgia, 'Times New Roman', serif;
 }
