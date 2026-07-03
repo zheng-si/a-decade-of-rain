@@ -78,9 +78,9 @@ export const FACTS_EVENTS: StoryEvent[] = [
       { name: 'Sài Gòn', lng: 106.7, lat: 10.78 },
     ],
     // Đắk Tô test spray (Aug 1961) + first mission on Route 15 toward Biên Hòa.
+    // Labels led out to the open sea so they don't sit on the basemap's labels.
     crosses: [
-      { lng: 107.83, lat: 14.65, label: 'Đắk Tô — test spray, Aug 1961' },
-      // Label led out to the open sea so it doesn't sit on Saigon's labels.
+      { lng: 107.83, lat: 14.65, label: 'Đắk Tô — test spray, Aug 1961', leader: 300 },
       { lng: 106.82, lat: 10.97, label: 'Biên Hòa — first mission, Jan 1962', leader: 250 },
     ],
     dek: 'Operation Ranch Hand begins.',
