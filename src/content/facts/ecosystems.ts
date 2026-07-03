@@ -7,10 +7,14 @@
 //   total   — total area of that vegetation type in South Vietnam
 // so the bar reads sprayed-over-total, and the headline % = sprayed / total.
 //
-// DATA STATUS (please confirm/replace from the Figma source):
-//   ✓ literature-confirmed: forest (dense, ~35% — Westing 1971),
-//     mangrove (~124k ha / ~40% — NAS 1974), rice (~2%).
-//   ~ ESTIMATE, pending your numbers: slashburn, grassland, marsh, rubber.
+// DATA STATUS:
+//   ✓ literature-confirmed:
+//       forest    — 35% of ~5.5M ha dense forest (Westing 1971).
+//       mangrove  — 105k of 291k ha = 36% (Westing 1971; Stellman et al. 2003).
+//       rice      — ~200k ha of crop spraying, chiefly rice (NAS 1974 / Stellman).
+//   ~ ESTIMATE (not separately tabulated in the literature; a spray-track ×
+//     land-cover GIS overlay is the only rigorous source — see scripts/overlay):
+//       slashburn, grassland, marsh, rubber.
 
 export type VegKey = 'forest' | 'slashburn' | 'grassland' | 'rice' | 'mangrove' | 'marsh' | 'rubber'
 
@@ -34,8 +38,8 @@ export const VEG_TYPES: VegType[] = [
   { key: 'forest', color: '#8FB4A0', ink: '#3F6D55', name: 'Forest', sprayed: 1925, total: 5500, sourced: true, sourceId: 'westing_bioscience' },
   { key: 'slashburn', color: '#859F97', ink: '#4C6459', name: 'Forest, with slash / burn', sprayed: 300, total: 1200, sourced: false },
   { key: 'grassland', color: '#C3D888', ink: '#5E7A2C', name: 'Grassland', sprayed: 50, total: 700, sourced: false },
-  { key: 'rice', color: '#544685', ink: '#4A3D77', name: 'Rice', sprayed: 60, total: 2900, sourced: true, sourceId: 'nas_1974' },
-  { key: 'mangrove', color: '#ABA1CD', ink: '#5C4F97', name: 'Mangrove', sprayed: 124, total: 291, sourced: true, sourceId: 'nas_1974' },
+  { key: 'rice', color: '#544685', ink: '#4A3D77', name: 'Rice', sprayed: 200, total: 2900, sourced: true, sourceId: 'nas_1974' },
+  { key: 'mangrove', color: '#ABA1CD', ink: '#5C4F97', name: 'Mangrove', sprayed: 105, total: 291, sourced: true, sourceId: 'nas_1974' },
   { key: 'marsh', color: '#61C1C2', ink: '#2C7E7F', name: 'Marshes & other inundated vegetation', sprayed: 8, total: 350, sourced: false },
   { key: 'rubber', color: '#DDC21A', ink: '#7C6D0F', name: 'Tree crops, chiefly rubber', sprayed: 25, total: 120, sourced: false },
 ]
@@ -51,6 +55,6 @@ export const ECOSYSTEMS = {
   scaleUnit: '×10³ ha',
   scaleSprayed: 'Area sprayed once or more',
   scaleTotal: 'Area of type',
-  note: 'Vegetation map redrawn from the project’s source infographic (after Westing / SIPRI). Sprayed and total areas: Westing (1971) and the U.S. National Academy of Sciences (1974); figures marked “est.” await confirmation.',
+  note: 'Vegetation map redrawn from the war-era U.S. land-use survey (after Westing / SIPRI). Well-documented shares: dense forest ~35% and mangrove ~36% sprayed one or more times (Westing 1971; Stellman et al. 2003, ~105,000 of 291,000 ha), plus ~200,000 ha of crop spraying, chiefly rice (NAS 1974). Types marked “est.” are not separately tabulated in the literature and await a spray-track overlay.',
   mapAlt: 'Map of South Vietnam shaded by vegetation type — forest, mangrove, rice, grassland, rubber and marsh.',
 }

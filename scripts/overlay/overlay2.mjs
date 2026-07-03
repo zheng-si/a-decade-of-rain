@@ -3,11 +3,9 @@ import { loadPolys, inRing, KEYS } from './lib.mjs'
 import { lonlatToPx } from './georef.mjs'
 
 const polys=loadPolys()
-const STEP=1.5, W=494,H=750
-// ground area per cell from georef: sample local scale near map centre
-const [x0,y0]=lonlatToPx(106.5,12.0), [x1]=lonlatToPx(106.5+0.01,12.0), [,,]=[0,0]
 import { pxToLonLat } from './georef.mjs'
-// compute cell ha via finite diff of pxToLonLat at centre
+const STEP=1.5, W=494,H=750
+// ground area per cell via finite diff of pxToLonLat at the map centre
 const c0=pxToLonLat(247,375), cx=pxToLonLat(248,375), cy=pxToLonLat(247,376)
 const dLon_dx=cx[0]-c0[0], dLat_dx=cx[1]-c0[1], dLon_dy=cy[0]-c0[0], dLat_dy=cy[1]-c0[1]
 const KLAT=110.57, KLON=111.32*Math.cos(12*Math.PI/180)

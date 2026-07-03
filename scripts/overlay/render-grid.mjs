@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs'
+import { writeFileSync } from 'node:fs'
 import { loadPolys, COLOR } from './lib.mjs'
 const P = loadPolys()
 const W=494, H=750
