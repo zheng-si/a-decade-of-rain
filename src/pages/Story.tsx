@@ -22,7 +22,7 @@ import { TopBar } from '../App'
 import RainCanvas from '../components/RainCanvas'
 import TimelineRuler from '../components/TimelineRuler'
 import MapKey from '../components/MapKey'
-import { readLabelGroups, setGroupVisible } from '../components/labelLayers'
+import { readLabelGroups, setGroupVisible, normalizePlaceLabels } from '../components/labelLayers'
 import './Story.css'
 
 const SPRAY_SOURCE = 'spray'
@@ -113,14 +113,17 @@ export default function Story() {
   // Pilot / test-spray sites where the volume is too small to read as heat:
   // an orange dot with a periodically pulsing ring, plus a label. The pulse
   // animates CHILD elements — MapLibre owns the marker root's transform.
-  function showCrosses(crosses: { lng: number; lat: number; label: string; below?: boolean }[] | undefined) {
+  function showCrosses(
+    crosses: { lng: number; lat: number; label: string; below?: boolean; leader?: number }[] | undefined,
+  ) {
     const map = mapRef.current
     if (!map) return
     clearCrosses()
     if (!crosses) return
     for (const c of crosses) {
       const el = document.createElement('div')
-      el.className = c.below ? 'pilot-dot pilot-dot--below' : 'pilot-dot'
+      el.className = c.leader ? 'pilot-dot pilot-dot--leader' : c.below ? 'pilot-dot pilot-dot--below' : 'pilot-dot'
+      if (c.leader) el.style.setProperty('--leader', `${c.leader}px`)
       el.innerHTML =
         '<span class="pilot-dot-ring"></span><span class="pilot-dot-core"></span>' +
         `<span class="pilot-dot-label">${c.label}</span>`
@@ -314,7 +317,10 @@ export default function Story() {
 
         // Curated labels: hide the noisy tiers (wards/hamlets, POIs, road names,
         // uncategorised) and, so provinces anchor the reader at the zoomed-out
-        // overview, let the province labels appear from a low zoom.
+        // overview, let the province labels appear from a low zoom. Casing and
+        // " Ward" suffixes are normalised so every place reads the same
+        // (see docs/map-labels.md for the full tier spec).
+        normalizePlaceLabels(map)
         for (const g of readLabelGroups(map)) {
           if (!g.visible) setGroupVisible(map, g.layerIds, false)
           if (g.key === 'state') {

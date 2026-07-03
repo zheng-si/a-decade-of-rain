@@ -52,8 +52,10 @@ export interface StoryEvent {
   cities?: City[]
   /** Pilot / test-spray locations marked with a pulsing dot instead of heat
    *  (used where the sprayed volume is too small to read as a heatmap).
-   *  `below` hangs the label under the dot (pointer up) to dodge overlaps. */
-  crosses?: { lng: number; lat: number; label: string; below?: boolean }[]
+   *  `below` hangs the label under the dot (pointer up); `leader` floats it
+   *  `leader`px to the right on a hairline — for parking a label over open sea
+   *  clear of the basemap's own labels. */
+  crosses?: { lng: number; lat: number; label: string; below?: boolean; leader?: number }[]
   /** Representative reference points / boundaries highlighted so the reader can
    *  place the node's hotspot fast (marked once the camera zooms in). */
   landmarks?: Landmark[]
@@ -78,7 +80,8 @@ export const FACTS_EVENTS: StoryEvent[] = [
     // Đắk Tô test spray (Aug 1961) + first mission on Route 15 toward Biên Hòa.
     crosses: [
       { lng: 107.83, lat: 14.65, label: 'Đắk Tô — test spray, Aug 1961' },
-      { lng: 106.82, lat: 10.97, label: 'Biên Hòa — first mission, Jan 1962', below: true },
+      // Label led out to the open sea so it doesn't sit on Saigon's labels.
+      { lng: 106.82, lat: 10.97, label: 'Biên Hòa — first mission, Jan 1962', leader: 250 },
     ],
     dek: 'Operation Ranch Hand begins.',
     body: 'The first test spray runs on 10 August 1961 near Đắk Tô in the central highlands; the first official mission follows in January 1962 along Route 15 toward Biên Hòa. Just 107 missions fly in 1962, the quiet start of a decade-long campaign.',
