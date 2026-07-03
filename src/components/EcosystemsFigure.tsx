@@ -16,7 +16,7 @@ export default function EcosystemsFigure() {
   const sumSpr = VEG_TYPES.reduce((a, v) => a + v.sprayed, 0)
   const sumTot = VEG_TYPES.reduce((a, v) => a + v.total, 0)
   const headPct = active ? pct(active.sprayed, active.total) : pct(sumSpr, sumTot)
-  const headColor = active ? active.color : '#8fa79a'
+  const headColor = active ? active.ink : '#51625a'
 
   return (
     <section className="story-fullscreen ecosystems" aria-label={ECOSYSTEMS.title}>
