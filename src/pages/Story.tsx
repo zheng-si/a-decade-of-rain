@@ -224,11 +224,9 @@ export default function Story() {
   }
 
   // Keep framed content clear of the card (left on desktop, bottom on mobile).
-  // The card column ends ~640px from the left edge, so the desktop left pad
-  // pushes the framed area right of it (capped on narrower windows).
   function framePadding(): maplibregl.PaddingOptions {
     return window.innerWidth > 640
-      ? { left: Math.min(660, Math.round(window.innerWidth * 0.55)), top: 70, right: 70, bottom: 70 }
+      ? { left: 70, top: 70, right: 70, bottom: 70 }
       : { left: 24, right: 24, top: 48, bottom: 340 }
   }
 
@@ -536,10 +534,7 @@ export default function Story() {
 
       <div className="story-scroll">
         <section className="story-hook">
-          <div className="story-hook-blur" aria-hidden="true">
-            <div />
-            <div />
-          </div>
+          <div className="story-hook-blur" aria-hidden="true" />
           <div className="story-hook-wash" aria-hidden="true" />
           <RainCanvas />
           <div className="story-hook-inner">

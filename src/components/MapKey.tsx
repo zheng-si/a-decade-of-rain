@@ -32,8 +32,6 @@ function computeScale(map: maplibregl.Map): { label: string; w: number } {
 // A scale bar + curated legend, docked under the top-right nav pill.
 export default function MapKey({ map, ready, started }: Props) {
   const [scale, setScale] = useState<{ label: string; w: number }>({ label: '', w: 0 })
-  // Match the panel width to the nav pill above it so their edges line up.
-  const [navW, setNavW] = useState<number | null>(null)
 
   useEffect(() => {
     if (!ready || !map) return
@@ -47,26 +45,8 @@ export default function MapKey({ map, ready, started }: Props) {
     }
   }, [ready, map])
 
-  useEffect(() => {
-    const measure = () => {
-      const nav = document.querySelector('.site-nav') as HTMLElement | null
-      if (nav) setNavW(nav.getBoundingClientRect().width)
-    }
-    measure()
-    const raf = requestAnimationFrame(measure) // re-measure once layout settles
-    window.addEventListener('resize', measure)
-    return () => {
-      cancelAnimationFrame(raf)
-      window.removeEventListener('resize', measure)
-    }
-  }, [started])
-
   return (
-    <div
-      className={`map-key${started ? ' is-visible' : ''}`}
-      style={navW ? { width: `${navW}px` } : undefined}
-      aria-hidden="true"
-    >
+    <div className={`map-key${started ? ' is-visible' : ''}`} aria-hidden="true">
       <div className="map-key-top">
         <div className="map-key-scale">
           <div className="map-key-scale-bar" style={{ width: `${scale.w}px` }} />
