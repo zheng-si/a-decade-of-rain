@@ -93,7 +93,7 @@ export interface MapConfig {
 export const mapConfig: MapConfig = {
   baseStyleUrl: 'https://tiles.openfreemap.org/styles/positron',
 
-  // Self-hosted Switzer glyphs (see scripts/build-glyphs.mjs) label the map in
+  // Self-hosted Public Sans glyphs (see scripts/build-glyphs.mjs) label the map in
   // the project font instead of OpenFreeMap's Noto.
   glyphsUrl: '/fonts/{fontstack}/{range}.pbf',
 
@@ -140,7 +140,7 @@ export const mapConfig: MapConfig = {
       sizeScale: 1,
       // Must match a self-hosted glyph stack (public/fonts/<name>/). See
       // scripts/build-glyphs.mjs to add more fonts/weights.
-      font: ['Switzer Medium'],
+      font: ['Public Sans Medium'],
     },
   },
 

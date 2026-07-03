@@ -384,7 +384,7 @@ export default function Story() {
           maxzoom: 8.5,
           layout: {
             'text-field': ['get', 'name'],
-            'text-font': ['Switzer Medium'],
+            'text-font': ['Public Sans Medium'],
             'text-size': 12.5,
             'text-transform': 'uppercase',
             'text-letter-spacing': 0.1,
@@ -424,7 +424,7 @@ export default function Story() {
           source: ISLAND_SOURCE,
           layout: {
             'text-field': ['get', 'name'],
-            'text-font': ['Switzer Medium'],
+            'text-font': ['Public Sans Medium'],
             'text-size': 10,
             'text-offset': [0, 1.1],
             'text-anchor': 'top',
