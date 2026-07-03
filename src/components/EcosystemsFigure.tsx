@@ -41,6 +41,12 @@ function useCountUp(target: number, duration = 450) {
 // read sprayed-over-total, and the headline % follows the selection.
 export default function EcosystemsFigure() {
   const [sel, setSel] = useState<VegKey | null>(null)
+  const [sortMode, setSortMode] = useState<'pct' | 'vol'>('pct')
+
+  // Rank the rows by share sprayed (sprayed/total) or by absolute sprayed area.
+  const ordered = [...VEG_TYPES].sort((a, b) =>
+    sortMode === 'pct' ? b.sprayed / b.total - a.sprayed / a.total : b.sprayed - a.sprayed,
+  )
 
   const active = sel ? VEG_TYPES.find((v) => v.key === sel)! : null
   const sumSpr = VEG_TYPES.reduce((a, v) => a + v.sprayed, 0)
@@ -81,8 +87,31 @@ export default function EcosystemsFigure() {
               </div>
             </div>
 
+            {/* Sort toggle + the affordance hint that these rows are clickable. */}
+            <div className="eco-controls">
+              <div className="eco-sort" role="group" aria-label="Rank vegetation types by">
+                <button
+                  className={`eco-sort-btn${sortMode === 'pct' ? ' is-active' : ''}`}
+                  aria-pressed={sortMode === 'pct'}
+                  onClick={() => setSortMode('pct')}
+                >
+                  Share sprayed
+                </button>
+                <button
+                  className={`eco-sort-btn${sortMode === 'vol' ? ' is-active' : ''}`}
+                  aria-pressed={sortMode === 'vol'}
+                  onClick={() => setSortMode('vol')}
+                >
+                  Area sprayed
+                </button>
+              </div>
+              <p className="eco-hint" aria-hidden="true">
+                Select a type <span className="eco-hint-arrow">→</span>
+              </p>
+            </div>
+
             <ul className="eco-types" role="tablist" aria-label="Vegetation types">
-              {VEG_TYPES.map((v) => {
+              {ordered.map((v) => {
                 const on = sel === v.key
                 const segPct = (VEG_AXIS_STEP / 2 / v.total) * 100 // 1000-ha segment, relative to this track
                 return (
@@ -98,7 +127,10 @@ export default function EcosystemsFigure() {
                         {v.name}
                         {!v.sourced && <span className="eco-est" title="estimate pending confirmation">est.</span>}
                       </span>
-                      <span className="eco-type-pct">{pct(v.sprayed, v.total)}%</span>
+                      <span className="eco-type-pct">
+                        {sortMode === 'pct' ? `${pct(v.sprayed, v.total)}%` : v.sprayed.toLocaleString()}
+                      </span>
+                      <span className="eco-type-go" aria-hidden="true">→</span>
                     </button>
                     <div className="eco-bar">
                       <div
