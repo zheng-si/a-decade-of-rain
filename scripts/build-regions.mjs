@@ -33,6 +33,10 @@ const MR = {
   4: ['Tiền Giang', 'Bến Tre', 'Vĩnh Long', 'Trà Vinh', 'Đồng Tháp', 'An Giang', 'Kiên Giang', 'Cần Thơ', 'Hậu Giang', 'Sóc Trăng', 'Bạc Liêu', 'Cà Mau'],
 }
 const MR_LABEL = { 1: 'Military Region I', 2: 'Military Region II', 3: 'Military Region III', 4: 'Military Region IV' }
+// Manual label placements — the auto centroid can land on a crowded spot. MR III's
+// centroid sits over the dense Saigon / Biên Hòa cluster (and its test-spray pin),
+// so nudge it northwest into the open Bình Dương / Tây Ninh area.
+const MR_LABEL_OVERRIDE = { 3: [106.35, 11.6] }
 
 const norm = (s) => (s || '').replace(/\s+/g, ' ').trim()
 const round = (n) => Number(n.toFixed(3))
@@ -114,7 +118,7 @@ async function main() {
     labelFeatures.push({
       type: 'Feature',
       properties: { mr: z, name: MR_LABEL[z] },
-      geometry: { type: 'Point', coordinates: labelPoint(unioned) },
+      geometry: { type: 'Point', coordinates: MR_LABEL_OVERRIDE[z] ?? labelPoint(unioned) },
     })
   }
   await writeFile(

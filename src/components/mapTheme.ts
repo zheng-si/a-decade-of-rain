@@ -87,8 +87,17 @@ export function applyMapTheme(map: maplibregl.Map, theme: MapTheme = mapConfig.t
       else if (layer.type === 'fill') map.setPaintProperty(id, 'fill-color', color)
       else if (layer.type === 'line') {
         map.setPaintProperty(id, 'line-color', color)
-        // Neighbour / province borders: solid dark grey. Vietnam's own border
-        // is drawn in brand orange on top as a separate overlay.
+        // Sub-national admin lines (province/district, admin_level ≥ 3) clutter
+        // the map, so knock them back a level: lighter + thinner + more
+        // transparent. The national border (admin_level ≤ 2) stays full-strength.
+        if (bucket === 'boundary') {
+          const subLevel: ExpressionSpecification = ['>=', ['coalesce', ['to-number', ['get', 'admin_level']], 4], 3]
+          map.setPaintProperty(id, 'line-color', ['case', subLevel, '#b9bcb2', color] as ExpressionSpecification)
+          const w = map.getPaintProperty(id, 'line-width') as number | ExpressionSpecification | undefined
+          const base: number | ExpressionSpecification = w != null ? w : 1
+          map.setPaintProperty(id, 'line-width', ['case', subLevel, ['*', base, 0.55], base] as ExpressionSpecification)
+          map.setPaintProperty(id, 'line-opacity', ['case', subLevel, 0.5, 0.9] as ExpressionSpecification)
+        }
       } else if (layer.type === 'fill-extrusion') {
         map.setPaintProperty(id, 'fill-extrusion-color', color)
       }
@@ -218,44 +227,6 @@ export function setStoryHeatTime(map: maplibregl.Map, day: number) {
 export function setStoryHeatVisible(map: maplibregl.Map, on: boolean) {
   if (map.getLayer(STORY_HEAT_LAYER)) {
     map.setLayoutProperty(STORY_HEAT_LAYER, 'visibility', on ? 'visible' : 'none')
-  }
-}
-
-// ── 3D view: extruded spray columns (binned) ──────────────────────────────
-// The 3D toggle swaps the flat heatmap for a grid of extruded columns whose
-// height ∝ √(cumulative gallons in that cell). Binning keeps this to a few
-// thousand boxes (one draw call) so it stays smooth. Heights are scaled to a
-// fixed global maximum so the columns grow through the decade.
-export const STORY_BARS_LAYER = 'spray-bars'
-const BAR_MAX_H = 55000 // metres — a readable column height at country zoom
-
-export function addSprayBars(map: maplibregl.Map, sourceId: string, maxGallons: number) {
-  if (map.getLayer(STORY_BARS_LAYER)) return
-  const s = Math.max(1, Math.sqrt(maxGallons))
-  map.addLayer({
-    id: STORY_BARS_LAYER,
-    type: 'fill-extrusion',
-    source: sourceId,
-    layout: { visibility: 'none' },
-    paint: {
-      'fill-extrusion-base': 0,
-      'fill-extrusion-height': ['interpolate', ['linear'], ['sqrt', ['get', 'gallons']], 0, 0, s, BAR_MAX_H],
-      'fill-extrusion-color': [
-        'interpolate',
-        ['linear'],
-        ['sqrt', ['get', 'gallons']],
-        0, '#ffc7b0',
-        s * 0.5, '#ff7a4d',
-        s, '#cf3720',
-      ],
-      'fill-extrusion-opacity': 0.9,
-    },
-  })
-}
-
-export function setBarsVisible(map: maplibregl.Map, on: boolean) {
-  if (map.getLayer(STORY_BARS_LAYER)) {
-    map.setLayoutProperty(STORY_BARS_LAYER, 'visibility', on ? 'visible' : 'none')
   }
 }
 
