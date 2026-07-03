@@ -498,7 +498,7 @@ export default function Story() {
   }
 
   return (
-    <div className="story" ref={storyRef}>
+    <div className={`story${started ? '' : ' is-hook'}`} ref={storyRef}>
       <TopBar>
         {started && (
           <button className="site-nav-link site-nav-btn" onClick={toggle3D}>
@@ -534,10 +534,18 @@ export default function Story() {
           <div className="story-hook-wash" aria-hidden="true" />
           <RainCanvas />
           <div className="story-hook-inner">
-            <p className="story-hook-eyebrow">{HOOK.eyebrow}</p>
             <h1 className="story-hook-title">{HOOK.title}</h1>
+            <p className="story-hook-sub">{HOOK.subtitle}</p>
             <p className="story-hook-dek">{HOOK.dek}</p>
-            <p className="story-hook-cue">{HOOK.cue}</p>
+            <button
+              className="story-hook-cta"
+              onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
+            >
+              {HOOK.cue}
+              <span className="story-hook-cta-arrow" aria-hidden="true">
+                ↓
+              </span>
+            </button>
           </div>
         </section>
 
