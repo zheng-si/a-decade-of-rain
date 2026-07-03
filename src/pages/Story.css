@@ -255,10 +255,10 @@
   flex-direction: column;
   align-items: flex-start;
   padding: 6px 10px 7px;
-  background: var(--accent-chip);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: var(--accent);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 4px;
-  box-shadow: 0 6px 18px rgba(214, 51, 40, 0.35);
+  box-shadow: 0 6px 18px rgba(255, 84, 73, 0.42);
 }
 
 .timeline-scan-num {
@@ -283,6 +283,16 @@
   position: relative;
   z-index: 1;
   margin-top: -100vh;
+}
+
+/* The nav pill stays out of the banner; it fades in once the story starts. */
+.story .site-nav {
+  transition: opacity 0.5s;
+}
+
+.story.is-hook .site-nav {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ── hook / banner ────────────────────────────────────────────────────── */
@@ -355,13 +365,24 @@
 }
 
 /* Dramatic brand-orange wash over the banner: full strength at the top fading
-   to nothing at the bottom. Sits above the frosted map, below the text. */
+   to nothing at the bottom. Sits above the frosted map, below the text.
+   translateZ(0) pins wash + blur layers to their own compositor layers — the
+   backdrop-filter stack was re-rasterizing during scroll and making the wash
+   and the fixed panels flicker. */
 .story-hook-wash {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
   background: linear-gradient(to bottom, rgba(255, 84, 73, 1) 0%, rgba(255, 84, 73, 0) 100%);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.story-hook-blur,
+.story-hook-blur > div {
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* Orange rain on a single canvas (one composited layer) — banner ambiance for
@@ -381,24 +402,25 @@
   max-width: 720px;
 }
 
-.story-hook-eyebrow {
-  margin: 0 0 18px;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  /* Deep forest, not the accent — the banner wash behind it is now orange. */
-  color: var(--ink);
-}
-
 .story-hook-title {
-  margin: 0 0 22px;
+  margin: 0 0 14px;
   font-family: var(--font-serif);
   font-weight: 400;
   font-size: var(--type-h1-size);
   line-height: var(--type-h1-lh);
   letter-spacing: 0.01em;
   color: var(--ink);
+  text-wrap: balance;
+}
+
+/* Subtitle line right under the title (replaces the old uppercase eyebrow). */
+.story-hook-sub {
+  margin: 0 0 26px;
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  text-wrap: balance;
 }
 
 .story-hook-dek {
@@ -408,15 +430,43 @@
   font-size: var(--type-lead-size);
   line-height: var(--type-lead-lh);
   color: var(--ink-soft);
+  /* No single-word orphan line ("by year."); falls back gracefully. */
+  text-wrap: pretty;
 }
 
-.story-hook-cue {
-  margin: 40px 0 0;
+/* Scroll cue as a proper button: forest pill, white text, bouncing arrow. */
+.story-hook-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 42px 0 0;
+  padding: 13px 26px;
+  font-family: var(--font-sans);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  color: #fff;
+  background: var(--forest);
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 6px 22px rgba(33, 53, 40, 0.32);
+  transition: background 0.2s, transform 0.2s;
+}
+
+.story-hook-cta:hover {
+  background: var(--forest-2);
+  transform: translateY(-1px);
+}
+
+.story-hook-cta:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.story-hook-cta-arrow {
+  display: inline-block;
   animation: hook-cue 2s ease-in-out infinite;
 }
 
@@ -556,15 +606,16 @@
   -webkit-backdrop-filter: blur(16px) saturate(1.3);
   backdrop-filter: blur(16px) saturate(1.3);
   opacity: 0;
-  transform: translateY(-6px);
+  transform: translateY(-6px) translateZ(0); /* translateZ: own compositor layer (anti-flicker) */
   transition: opacity 0.5s, transform 0.5s;
   pointer-events: none;
   font-family: var(--font-sans);
+  backface-visibility: hidden;
 }
 
 .map-key.is-visible {
   opacity: 1;
-  transform: none;
+  transform: translateZ(0);
 }
 
 .map-key-top {
@@ -705,11 +756,18 @@
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
 }
 
+/* Pulsing boundary outline around a node's highlighted area. */
+.key-area {
+  height: 0;
+  border-top: 3px solid var(--accent-line);
+  border-radius: 2px;
+}
+
 /* WCAG 2.2.2 / motion sensitivity: kill the looping CSS animations when the
    reader asks for reduced motion (the JS rain + pulse loops check this too). */
 @media (prefers-reduced-motion: reduce) {
   .map-dot-ring,
-  .story-hook-cue {
+  .story-hook-cta-arrow {
     animation: none;
   }
 }

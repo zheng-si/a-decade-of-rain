@@ -107,7 +107,11 @@ export default function MapKey({ map, ready, started }: Props) {
         </li>
         <li>
           <span className="key-swatch key-pilot" />
-          Test-spray site
+          Marked site
+        </li>
+        <li>
+          <span className="key-swatch key-area" />
+          Highlighted area
         </li>
       </ul>
     </div>
