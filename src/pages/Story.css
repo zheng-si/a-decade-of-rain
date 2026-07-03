@@ -278,21 +278,26 @@
   color: #fff; /* full white — the 8px size needs every bit of contrast */
 }
 
-/* Hook + steps overlay the sticky graphic. */
+/* Hook + steps overlay the sticky graphic. The container ignores the pointer
+   (interactive bits re-enable it below) so the panels underneath stay usable. */
 .story-scroll {
   position: relative;
   z-index: 1;
   margin-top: -100vh;
-}
-
-/* The nav pill stays out of the banner; it fades in once the story starts. */
-.story .site-nav {
-  transition: opacity 0.5s;
-}
-
-.story.is-hook .site-nav {
-  opacity: 0;
   pointer-events: none;
+}
+
+.story-card,
+.story-hook-inner {
+  pointer-events: auto;
+}
+
+/* The nav pill and map key drop BELOW the scroll overlay inside the story:
+   the banner's opaque orange wash simply covers them (no mount/unmount, no
+   opacity dance), and they surface again over the transparent step sections. */
+.story .site-nav,
+.story .map-key {
+  z-index: 1;
 }
 
 /* ── hook / banner ────────────────────────────────────────────────────── */
@@ -415,9 +420,10 @@
 
 /* Subtitle line right under the title (replaces the old uppercase eyebrow). */
 .story-hook-sub {
-  margin: 0 0 26px;
-  font-size: 15px;
-  font-weight: 500;
+  margin: 0 0 28px;
+  font-family: var(--font-serif);
+  font-size: 21px;
+  font-weight: 400;
   letter-spacing: 0.01em;
   color: var(--ink);
   text-wrap: balance;
@@ -429,40 +435,41 @@
   font-weight: 300;
   font-size: var(--type-lead-size);
   line-height: var(--type-lead-lh);
-  color: var(--ink-soft);
+  /* Full ink: --ink-soft lost too much contrast over the pink mid-wash. */
+  color: var(--ink);
   /* No single-word orphan line ("by year."); falls back gracefully. */
   text-wrap: pretty;
 }
 
-/* Scroll cue as a proper button: forest pill, white text, bouncing arrow. */
+/* Scroll cue: brand-orange type with a soft glow — no pill, just presence. */
 .story-hook-cta {
   display: inline-flex;
   align-items: center;
   gap: 9px;
   margin: 42px 0 0;
-  padding: 13px 26px;
+  padding: 6px 4px;
   font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #fff;
-  background: var(--forest);
+  color: var(--accent);
+  background: none;
   border: none;
-  border-radius: 999px;
   cursor: pointer;
-  box-shadow: 0 6px 22px rgba(33, 53, 40, 0.32);
-  transition: background 0.2s, transform 0.2s;
+  text-shadow: 0 1px 2px rgba(250, 249, 244, 0.9), 0 3px 14px rgba(214, 51, 40, 0.35);
+  transition: color 0.2s, transform 0.2s;
 }
 
 .story-hook-cta:hover {
-  background: var(--forest-2);
-  transform: translateY(-1px);
+  color: var(--accent-deep);
+  transform: translateY(2px);
 }
 
 .story-hook-cta:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 3px;
+  outline: 2px solid var(--accent-deep);
+  outline-offset: 4px;
+  border-radius: 3px;
 }
 
 .story-hook-cta-arrow {

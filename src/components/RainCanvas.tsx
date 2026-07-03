@@ -80,7 +80,9 @@ export default function RainCanvas() {
       last = t
       fade =
         target > fade ? Math.min(target, fade + dt / FADE_IN_S) : Math.max(target, fade - dt / FADE_OUT_S)
-      if (fade === 0) {
+      // Park only when fully faded AND still aiming for 0 — on a restart the
+      // first frame has dt=0 (fade still 0 but target 1) and must keep going.
+      if (fade === 0 && target === 0) {
         ctx.clearRect(0, 0, w, h)
         running = false
         return // parked — no further frames until scrolled back to the top
