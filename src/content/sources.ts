@@ -82,4 +82,28 @@ export const SOURCES: Record<string, Source> = {
     publisher: 'Wikipedia',
     url: 'https://en.wikipedia.org/wiki/Environmental_issues_in_Vietnam',
   },
+  usaid_danang: {
+    id: 'usaid_danang',
+    title: 'Dioxin Remediation at Danang Airport and Bien Hoa Airbase Area (fact sheet)',
+    publisher: 'USAID',
+    url: 'https://2017-2020.usaid.gov/vietnam/documents/fact-sheet-dioxin-remediation-danang-airport-and-bien-hoa-airbase-area',
+  },
+  usembassy_bienhoa: {
+    id: 'usembassy_bienhoa',
+    title: 'Fact Sheets: Dioxin Remediation at Bien Hoa Airbase Area',
+    publisher: 'U.S. Embassy in Vietnam',
+    url: 'https://vn.usembassy.gov/fact-sheets-dioxin-remediation-at-bien-hoa-airbase-area/',
+  },
+  undp_hotspots: {
+    id: 'undp_hotspots',
+    title: 'Comprehensive report: Agent Orange / dioxin contamination at three hotspots — Bien Hoa, Da Nang and Phu Cat airbases',
+    publisher: 'UNDP Viet Nam',
+    url: 'https://www.undp.org/vietnam/publications/comprehensive-report-agent-orange/dioxin-contamination-three-hotspots-bien-hoa-da-nang-and-phu-cat-airbases',
+  },
+  yale_e360: {
+    id: 'yale_e360',
+    title: 'Fifty Years After, A Daunting Cleanup of Vietnam’s Toxic Legacy',
+    publisher: 'Yale Environment 360',
+    url: 'https://e360.yale.edu/features/fifty-years-after-a-daunting-cleanup-of-vietnam-toxic-legacy-dioxin-agent-orange',
+  },
 }

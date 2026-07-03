@@ -1670,3 +1670,205 @@
   font-variant-numeric: tabular-nums;
   font-weight: 700;
 }
+
+/* Shared caption for the interlude / Act II sections. */
+.fs-note {
+  margin: 0;
+  max-width: 760px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+/* ── Interlude · The Consequences ─────────────────────────────────────────── */
+.cons-inner {
+  max-width: 960px;
+}
+
+.cons-stats {
+  list-style: none;
+  margin: 6px 0 34px;
+  padding: 26px 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 26px;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.cons-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cons-stat-value {
+  font-family: var(--font-serif);
+  font-size: clamp(30px, 3.4vw, 44px);
+  line-height: 1;
+  color: var(--accent-deep);
+}
+
+.cons-stat-label {
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}
+
+.cons-body {
+  columns: 2;
+  column-gap: 40px;
+  max-width: 860px;
+  margin: 0 0 26px;
+}
+
+.cons-body p {
+  margin: 0 0 14px;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+  break-inside: avoid;
+}
+
+/* ── Act II · The Actions ─────────────────────────────────────────────────── */
+.act2-inner {
+  max-width: 1120px;
+}
+
+.act2-hotspots {
+  list-style: none;
+  margin: 6px 0 30px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.act2-card {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 20px 18px;
+  background: var(--paper-solid);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--ink-faint);
+  border-radius: 5px;
+}
+.act2-card.is-completed {
+  border-top-color: #3f8f5f;
+}
+.act2-card.is-ongoing {
+  border-top-color: var(--accent);
+}
+.act2-card.is-contained {
+  border-top-color: #5a7ca8;
+}
+
+.act2-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 2px;
+}
+
+.act2-card-name {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 24px;
+  color: var(--ink);
+}
+
+.act2-badge {
+  flex: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 3px 8px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 3px;
+  color: #fff;
+}
+.act2-badge em {
+  font-style: normal;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.85;
+}
+.act2-badge.is-completed {
+  background: #3f8f5f;
+}
+.act2-badge.is-ongoing {
+  background: var(--accent-deep);
+}
+.act2-badge.is-contained {
+  background: #5a7ca8;
+}
+
+.act2-place {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--ink-faint);
+}
+
+.act2-facts {
+  margin: 0 0 12px;
+}
+.act2-facts > div {
+  padding: 8px 0;
+  border-top: 1px solid var(--rule);
+}
+.act2-facts dt {
+  margin: 0 0 3px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.act2-facts dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.act2-card-note {
+  margin: 2px 0 12px;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.act2-src {
+  margin-top: auto;
+  width: fit-content;
+  font-size: 11px;
+  color: var(--accent-deep);
+  text-decoration: underline;
+}
+
+.act2-closing {
+  margin: 0 0 18px;
+  max-width: 760px;
+  font-family: var(--font-serif);
+  font-size: clamp(18px, 2.2vw, 24px);
+  line-height: 1.4;
+  color: var(--ink);
+}
+
+@media (max-width: 860px) {
+  .cons-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cons-body {
+    columns: 1;
+  }
+  .act2-hotspots {
+    grid-template-columns: 1fr;
+  }
+}

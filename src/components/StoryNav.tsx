@@ -24,8 +24,8 @@ const NAV: NavGroup[] = [
       { id: 'sec-ecosystems', label: 'The War-disrupted Ecosystems' },
     ],
   },
-  { act: 'Interlude', items: [{ id: 'sec-consequences', label: 'The Consequences', upcoming: true }] },
-  { act: 'Act 2', items: [{ id: 'sec-actions', label: 'The Actions', upcoming: true }] },
+  { act: 'Interlude', items: [{ id: 'sec-consequences', label: 'The Consequences' }] },
+  { act: 'Act 2', items: [{ id: 'sec-actions', label: 'The Actions' }] },
 ]
 
 const LIVE = NAV.flatMap((g) => g.items).filter((i) => !i.upcoming)
