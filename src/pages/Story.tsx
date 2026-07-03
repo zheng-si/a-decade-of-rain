@@ -153,6 +153,8 @@ export default function Story() {
     const map = mapRef.current
     if (!map) return
     stopPulse()
+    // Reduced motion: hold the outline steady instead of breathing.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     let t = 0
     const tick = () => {
       const m = mapRef.current
@@ -365,7 +367,7 @@ export default function Story() {
             type: 'line',
             source: MR_SOURCE,
             layout: { 'line-join': 'round' },
-            paint: { 'line-color': '#ff5449', 'line-width': 2.2, 'line-opacity': 0.9, 'line-dasharray': [2.4, 1.8] },
+            paint: { 'line-color': '#e8443a', 'line-width': 2.2, 'line-opacity': 0.9, 'line-dasharray': [2.4, 1.8] },
           },
           STORY_HEAT_LAYER,
         )
@@ -383,7 +385,7 @@ export default function Story() {
             'text-transform': 'uppercase',
             'text-letter-spacing': 0.1,
           },
-          paint: { 'text-color': '#ff5449', 'text-halo-color': 'rgba(250,249,244,0.95)', 'text-halo-width': 2 },
+          paint: { 'text-color': '#cf3720', 'text-halo-color': 'rgba(250,249,244,0.95)', 'text-halo-width': 2 },
         })
 
         // Per-node landmark boundary: the active node's representative area
@@ -396,7 +398,7 @@ export default function Story() {
           type: 'line',
           source: LANDMARK_SOURCE,
           layout: { 'line-join': 'round', 'line-cap': 'round' },
-          paint: { 'line-color': '#ff5449', 'line-width': 3, 'line-opacity': 0.95 },
+          paint: { 'line-color': '#e8443a', 'line-width': 3, 'line-opacity': 0.95 },
         })
 
         // Disputed-island labels (the basemap already draws the grey borders).
