@@ -561,6 +561,8 @@
   position: relative;
   z-index: 2;
   max-width: 720px;
+  /* Faint warm (orange-red) shadow, just enough to lift the white type. */
+  text-shadow: 0 1px 5px rgba(150, 34, 22, 0.28);
 }
 
 .story-hook-title {
@@ -607,7 +609,7 @@
   font-size: 19px;
   font-weight: 400;
   letter-spacing: 0.02em;
-  color: var(--accent-deep);
+  color: #ff6a3a;
   background: none;
   border: none;
   cursor: pointer;
@@ -615,7 +617,7 @@
 }
 
 .story-hook-cta:hover {
-  color: #a8281b;
+  color: #ff885f;
   transform: translateY(2px);
 }
 
