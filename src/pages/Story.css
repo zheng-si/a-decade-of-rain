@@ -61,6 +61,9 @@
   }
 }
 
+/* Text chips are deep forest (like the story cards) so they pop against the
+   orange heat and the pale map; orange is reserved for geometry (dots, rings,
+   outlines, leader lines). White on forest = 13:1 (AA). */
 .pilot-dot-label {
   position: absolute;
   left: 50%;
@@ -72,9 +75,10 @@
   font-size: 11px;
   font-weight: 600;
   color: #fff;
-  background: var(--accent);
+  background: var(--forest);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 4px;
-  box-shadow: 0 4px 14px rgba(255, 84, 73, 0.4);
+  box-shadow: 0 4px 14px rgba(33, 53, 40, 0.35);
 }
 
 .pilot-dot-label::after {
@@ -84,7 +88,7 @@
   left: 50%;
   transform: translateX(-50%);
   border: 5px solid transparent;
-  border-top-color: var(--accent);
+  border-top-color: var(--forest);
 }
 
 /* Label hung BELOW the dot (pointer up) — used where something sits above. */
@@ -97,7 +101,7 @@
   top: auto;
   bottom: 100%;
   border-top-color: transparent;
-  border-bottom-color: var(--accent);
+  border-bottom-color: var(--forest);
 }
 
 /* Label led out to the right on a hairline (--leader px) — parks the chip
@@ -108,9 +112,9 @@
   left: 100%;
   top: 50%;
   width: var(--leader, 240px);
-  border-top: 1.5px solid var(--accent);
+  border-top: 1.5px solid var(--accent-line);
   transform: translateY(-50%);
-  opacity: 0.75;
+  opacity: 0.85;
 }
 
 .pilot-dot--leader .pilot-dot-label {
@@ -152,7 +156,8 @@
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.85), 0 1px 5px rgba(0, 0, 0, 0.3);
 }
 
-/* Same chip look as the test-spray labels: orange fill, white text. */
+/* Same chip look as the test-spray labels: deep forest fill, white text —
+   distinct from the orange heat beneath (and 13:1 AA). */
 .landmark-pt-label {
   position: absolute;
   left: 50%;
@@ -164,9 +169,10 @@
   font-size: 11px;
   font-weight: 600;
   color: #fff;
-  background: var(--accent);
+  background: var(--forest);
+  border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 4px;
-  box-shadow: 0 4px 14px rgba(255, 84, 73, 0.4);
+  box-shadow: 0 4px 14px rgba(33, 53, 40, 0.35);
 }
 
 /* Area name chip for boundary landmarks — no ring dot, centred on its anchor. */
@@ -269,10 +275,10 @@
   flex-direction: column;
   align-items: flex-start;
   padding: 6px 10px 7px;
-  background: var(--accent);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: var(--forest);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 4px;
-  box-shadow: 0 6px 18px rgba(255, 84, 73, 0.42);
+  box-shadow: 0 6px 18px rgba(33, 53, 40, 0.35);
 }
 
 .timeline-scan-num {
@@ -498,7 +504,7 @@
 }
 
 .story-stat strong {
-  color: var(--accent);
+  color: var(--accent-bright); /* AA on the dark stat pill */
   font-size: 13px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -550,7 +556,7 @@
 }
 
 .story-quote a {
-  color: var(--accent);
+  color: var(--accent-bright); /* AA on the dark card */
   text-decoration: underline;
 }
 
@@ -690,7 +696,7 @@
 
 .key-mr {
   height: 0;
-  border-top: 2px dashed var(--accent);
+  border-top: 2px dashed var(--accent-line);
 }
 
 .key-border {
@@ -717,6 +723,15 @@
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+/* WCAG 2.2.2 / motion sensitivity: kill the looping CSS animations when the
+   reader asks for reduced motion (the JS rain + pulse loops check this too). */
+@media (prefers-reduced-motion: reduce) {
+  .pilot-dot-ring,
+  .story-hook-cue {
+    animation: none;
+  }
 }
 
 @media (max-width: 640px) {

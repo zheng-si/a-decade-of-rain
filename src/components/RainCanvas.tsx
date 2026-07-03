@@ -18,6 +18,8 @@ export default function RainCanvas() {
   useEffect(() => {
     const canvas = ref.current
     if (!canvas) return
+    // Motion sensitivity (WCAG 2.2.2): no rain at all under reduced motion.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
