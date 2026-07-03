@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
-import type { FeatureCollection, Point, Polygon } from 'geojson'
+import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import scrollama from 'scrollama'
 import { loadSpray, dateToDay, dayToDate, type SprayDataset } from '../data/spray'
@@ -29,72 +29,11 @@ const SPRAY_SOURCE = 'spray'
 const ISLAND_SOURCE = 'islands'
 const MR_SOURCE = 'military-regions'
 const MRLABEL_SOURCE = 'military-region-labels'
-const REGION_SOURCE = 'node-region'
+const LANDMARK_SOURCE = 'landmark-boundary'
 const DEM_SOURCE = 'terrain-dem'
 
-// Monotone-chain convex hull of [lon,lat] points (counter-clockwise ring).
-function convexHull(pts: [number, number][]): [number, number][] {
-  const p = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1])
-  if (p.length < 3) return p
-  const cross = (o: number[], a: number[], b: number[]) =>
-    (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
-  const lower: [number, number][] = []
-  for (const q of p) {
-    while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], q) <= 0) lower.pop()
-    lower.push(q)
-  }
-  const upper: [number, number][] = []
-  for (let i = p.length - 1; i >= 0; i--) {
-    const q = p[i]
-    while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], q) <= 0) upper.pop()
-    upper.push(q)
-  }
-  lower.pop()
-  upper.pop()
-  return lower.concat(upper)
-}
-
-// Outline the node's hotspot: convex hull of the sprayed points inside its bbox
-// (up to its date). The bbox clips outliers so the hull hugs the cluster.
-function regionFC(spray: SprayDataset, ev: StoryEvent): FeatureCollection<Polygon, { name: string }> | null {
-  if (!ev.bbox || !ev.region) return null
-  const [w, s, e, n] = ev.bbox
-  const day = dateToDay(ev.date)
-  const pts: [number, number][] = []
-  for (const f of spray.features.features) {
-    if (f.properties.day > day || f.properties.gallons <= 0) continue
-    const [lon, lat] = f.geometry.coordinates
-    if (lon >= w && lon <= e && lat >= s && lat <= n) pts.push([lon, lat])
-  }
-  if (pts.length < 3) return null
-  const hull = convexHull(pts)
-  hull.push(hull[0])
-  return {
-    type: 'FeatureCollection',
-    features: [{ type: 'Feature', properties: { name: ev.region }, geometry: { type: 'Polygon', coordinates: [hull] } }],
-  }
-}
-
-// A small tile of diagonal orange lines for the region's hatch fill.
-function hatchImage(): { width: number; height: number; data: Uint8Array } {
-  const r = 2
-  const size = 12 * r
-  const c = document.createElement('canvas')
-  c.width = size
-  c.height = size
-  const ctx = c.getContext('2d')!
-  ctx.strokeStyle = '#ff5449'
-  ctx.lineWidth = 1.5 * r
-  ctx.beginPath()
-  ctx.moveTo(0, size)
-  ctx.lineTo(size, 0)
-  ctx.moveTo(-size / 2, size / 2)
-  ctx.lineTo(size / 2, -size / 2)
-  ctx.moveTo(size / 2, size + size / 2)
-  ctx.lineTo(size + size / 2, size / 2)
-  ctx.stroke()
-  return { width: size, height: size, data: new Uint8Array(ctx.getImageData(0, 0, size, size).data.buffer) }
-}
+// Empty polygon collection — the landmark-boundary source when no boundary is shown.
+const EMPTY_FC: FeatureCollection = { type: 'FeatureCollection', features: [] }
 
 // Neutral treatment: the offshore archipelagos are disputed (China, Vietnam,
 // Taiwan et al.) and were never sprayed; shown as reference, no sovereignty
@@ -146,6 +85,8 @@ export default function Story() {
   const is3DRef = useRef(false)
   const dayRef = useRef(0)
   const pulseRef = useRef<number | null>(null)
+  const landmarksRef = useRef<FeatureCollection | null>(null)
+  const landmarkMarkersRef = useRef<maplibregl.Marker[]>([])
 
   const [active, setActive] = useState(0)
   const [started, setStarted] = useState(false)
@@ -197,8 +138,8 @@ export default function Story() {
     }
   }
 
-  // Pulse the region outline/fill opacity with a sine wave, so the highlighted
-  // hotspot gently breathes and draws the eye. Uses setPaintProperty per frame.
+  // Pulse the boundary outline's opacity with a sine wave, so the highlighted
+  // area gently breathes and draws the eye. Uses setPaintProperty per frame.
   function stopPulse() {
     if (pulseRef.current != null) {
       cancelAnimationFrame(pulseRef.current)
@@ -212,15 +153,14 @@ export default function Story() {
     let t = 0
     const tick = () => {
       const m = mapRef.current
-      if (!m || !m.getLayer('region-outline')) {
+      if (!m || !m.getLayer('landmark-outline')) {
         pulseRef.current = null
         return
       }
       t += 0.045
       const s = (Math.sin(t) + 1) / 2 // 0..1
       try {
-        m.setPaintProperty('region-outline', 'line-opacity', 0.4 + 0.55 * s)
-        m.setPaintProperty('region-fill', 'fill-opacity', 0.3 + 0.35 * s)
+        m.setPaintProperty('landmark-outline', 'line-opacity', 0.5 + 0.45 * s)
       } catch {
         /* layer gone */
       }
@@ -229,20 +169,43 @@ export default function Story() {
     pulseRef.current = requestAnimationFrame(tick)
   }
 
-  // Draw (or clear) the active node's hotspot highlight. Only in 2D — the
-  // outline would float above the extruded columns in 3D.
-  function applyRegion(ev: StoryEvent | null) {
+  function clearLandmarkPoints() {
+    landmarkMarkersRef.current.forEach((m) => m.remove())
+    landmarkMarkersRef.current = []
+  }
+
+  // Highlight the node's representative references: real boundaries (Cà Mau,
+  // A Lưới, Biên Hòa airbase) get a pulsing orange outline + label; point
+  // landmarks with no authoritative boundary (War Zone C/D, the Iron Triangle)
+  // get a labelled orange marker. Hidden in 3D — a flat outline would float over
+  // the tilted relief.
+  function applyLandmarks(ev: StoryEvent | null) {
     const map = mapRef.current
-    const spray = dataRef.current
-    if (!map || !map.getSource(REGION_SOURCE)) return
-    const src = map.getSource(REGION_SOURCE) as maplibregl.GeoJSONSource
-    const fc = ev && spray && !is3DRef.current ? regionFC(spray, ev) : null
-    if (fc) {
-      src.setData(fc)
-      startPulse()
-    } else {
+    if (!map || !map.getSource(LANDMARK_SOURCE)) return
+    const src = map.getSource(LANDMARK_SOURCE) as maplibregl.GeoJSONSource
+    clearLandmarkPoints()
+    const landmarks = ev && !is3DRef.current ? ev.landmarks : undefined
+    if (!landmarks || !landmarks.length) {
       stopPulse()
-      src.setData({ type: 'FeatureCollection', features: [] })
+      src.setData(EMPTY_FC)
+      return
+    }
+    // Real boundary outlines, looked up in landmarks.geojson by id.
+    const all = landmarksRef.current
+    const feats = landmarks
+      .filter((l) => l.boundaryId)
+      .map((l) => all?.features.find((f) => (f.properties as { id?: string } | null)?.id === l.boundaryId))
+      .filter((f): f is FeatureCollection['features'][number] => !!f)
+    src.setData({ type: 'FeatureCollection', features: feats })
+    if (feats.length) startPulse()
+    else stopPulse()
+    // Point landmarks → labelled orange markers.
+    for (const l of landmarks) {
+      if (!l.point) continue
+      const el = document.createElement('div')
+      el.className = 'landmark-pt'
+      el.innerHTML = '<span class="landmark-pt-ring"></span>' + `<span class="landmark-pt-label">${l.name}</span>`
+      landmarkMarkersRef.current.push(new maplibregl.Marker({ element: el }).setLngLat(l.point).addTo(map))
     }
   }
 
@@ -265,7 +228,7 @@ export default function Story() {
     setStoryHeatVisible(map, true)
     setSVVisible(true)
     clearCrosses()
-    applyRegion(null)
+    applyLandmarks(null)
   }
 
   function applyStep(i: number) {
@@ -302,7 +265,7 @@ export default function Story() {
     setStoryHeatVisible(map, !isPilot)
     if (isPilot) showCrosses(ev.crosses)
     else clearCrosses()
-    applyRegion(ev)
+    applyLandmarks(ev)
     setSVVisible(false)
   }
 
@@ -332,10 +295,12 @@ export default function Story() {
         loadSpray(),
         asset('data/military-regions.geojson'),
         asset('data/military-region-labels.geojson'),
+        asset('data/landmarks.geojson'),
         new Promise<void>((resolve) => map.once('load', () => resolve())),
-      ]).then(([spray, mrGeo, mrLabelsGeo]) => {
+      ]).then(([spray, mrGeo, mrLabelsGeo, landmarksGeo]) => {
         if (!mapRef.current) return
         dataRef.current = spray
+        landmarksRef.current = landmarksGeo as FeatureCollection
         const mc = monthlyCumulative(spray)
         setMonthlyCum(mc.months)
         setYearStart(mc.yearStart)
@@ -407,32 +372,21 @@ export default function Story() {
           paint: { 'text-color': '#ff5449', 'text-halo-color': 'rgba(250,249,244,0.95)', 'text-halo-width': 2 },
         })
 
-        // Per-node hotspot highlight: a thick orange outline + diagonal-hatch
-        // fill + label around the active node's spray cluster, pulsing so the
-        // reader can locate the area fast. Empty until a node is entered.
-        if (!map.hasImage('region-hatch')) {
-          const img = hatchImage()
-          map.addImage('region-hatch', img, { pixelRatio: 2 })
-        }
-        const emptyFC: FeatureCollection<Polygon, { name: string }> = { type: 'FeatureCollection', features: [] }
-        map.addSource(REGION_SOURCE, { type: 'geojson', data: emptyFC })
+        // Per-node landmark boundary: the active node's representative area
+        // (Cà Mau, A Lưới, Biên Hòa airbase) outlined in pulsing orange with an
+        // uppercase label. Empty until a boundary node is entered.
+        map.addSource(LANDMARK_SOURCE, { type: 'geojson', data: EMPTY_FC })
         map.addLayer({
-          id: 'region-fill',
-          type: 'fill',
-          source: REGION_SOURCE,
-          paint: { 'fill-pattern': 'region-hatch', 'fill-opacity': 0.55 },
-        })
-        map.addLayer({
-          id: 'region-outline',
+          id: 'landmark-outline',
           type: 'line',
-          source: REGION_SOURCE,
+          source: LANDMARK_SOURCE,
           layout: { 'line-join': 'round', 'line-cap': 'round' },
           paint: { 'line-color': '#ff5449', 'line-width': 3, 'line-opacity': 0.95 },
         })
         map.addLayer({
-          id: 'region-label',
+          id: 'landmark-label',
           type: 'symbol',
-          source: REGION_SOURCE,
+          source: LANDMARK_SOURCE,
           layout: {
             'text-field': ['get', 'name'],
             'text-font': ['Switzer Medium'],
@@ -482,6 +436,7 @@ export default function Story() {
       cancelled = true
       stopPulse()
       clearCrosses()
+      clearLandmarkPoints()
       mapRef.current?.remove()
       mapRef.current = null
       readyRef.current = false
@@ -531,8 +486,8 @@ export default function Story() {
         /* terrain is optional */
       }
     }
-    // The hatch outline would float over the tilted relief, so hide it in 3D.
-    applyRegion(next ? null : started ? FACTS_EVENTS[active] : null)
+    // The flat outline would float over the tilted relief, so hide it in 3D.
+    applyLandmarks(next ? null : started ? FACTS_EVENTS[active] : null)
   }
 
   return (
