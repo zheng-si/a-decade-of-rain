@@ -119,16 +119,14 @@ export default function Story() {
       if (yi < 0 || yi >= allYears.length) continue
       byKey[idxToKey[f.properties.agent] ?? 'other'][yi] += f.properties.gallons
     }
-    // Trim leading years with zero total (spray starts 1962).
-    let start = 0
-    while (start < allYears.length - 1 && order.every((k) => byKey[k][start] === 0)) start++
-    const years = allYears.slice(start)
+    // Keep every year 1961–1971 (the axis shows the full span, incl. the quiet
+    // start and the 1971 wind-down).
     const series: AgentSeries[] = order.map((key) => {
       const g = mapConfig.agents.find((a) => a.key === key)!
-      const values = byKey[key].slice(start)
+      const values = byKey[key]
       return { key: key as AgentSeries['key'], name: g.label, color: g.color, total: values.reduce((s, v) => s + v, 0), values }
     })
-    return { years, series }
+    return { years: allYears, series }
   }, [mapReady])
 
   function clearCrosses() {
@@ -638,14 +636,14 @@ export default function Story() {
                   )}
                 </article>
               </section>
-              {/* Full-screen interlude figures. */}
-              {ev.id === 'peak' && agentSeries && (
-                <RainbowHerbicides years={agentSeries.years} series={agentSeries.series} />
-              )}
-              {ev.id === 'mangroves' && <EcosystemsFigure />}
             </Fragment>
           )
         })}
+
+        {/* Summary figures — the two full-screen breakdowns close Act I,
+            after the reckoning node. */}
+        {agentSeries && <RainbowHerbicides years={agentSeries.years} series={agentSeries.series} />}
+        <EcosystemsFigure />
       </div>
     </div>
   )
