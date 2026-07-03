@@ -854,12 +854,20 @@
   text-wrap: pretty;
 }
 
-/* Chart (left) + agent card (right). */
+/* Text + chart (left) and agent card (right), tops flush. */
 .rainbow-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
-  gap: 32px;
+  gap: 40px;
   align-items: start;
+}
+
+.rainbow-main {
+  min-width: 0;
+}
+
+.rainbow-main .fs-head {
+  margin-bottom: 26px;
 }
 
 .rainbow-chart {
@@ -1025,11 +1033,10 @@
 }
 
 .rainbow-defs dt {
-  margin: 12px 0 3px;
-  font-size: 10.5px;
+  margin: 20px 0 5px;
+  font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
   color: var(--accent-bright);
 }
 
@@ -1040,7 +1047,7 @@
 .rainbow-defs dd {
   margin: 0;
   font-size: 13.5px;
-  line-height: 1.5;
+  line-height: 1.55;
   color: var(--forest-text);
 }
 
