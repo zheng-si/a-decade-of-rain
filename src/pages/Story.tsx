@@ -23,6 +23,7 @@ import TimelineRuler from '../components/TimelineRuler'
 import MapKey from '../components/MapKey'
 import RainbowHerbicides, { type AgentSeries } from '../components/RainbowHerbicides'
 import EcosystemsFigure from '../components/EcosystemsFigure'
+import StoryNav from '../components/StoryNav'
 import { readLabelGroups, setGroupVisible, normalizePlaceLabels } from '../components/labelLayers'
 import './Story.css'
 
@@ -32,6 +33,12 @@ const MR_SOURCE = 'military-regions'
 const MRLABEL_SOURCE = 'military-region-labels'
 const LANDMARK_SOURCE = 'landmark-boundary'
 const DEM_SOURCE = 'terrain-dem'
+
+// Left-rail nav anchors: which story nodes carry a jump target.
+const NAV_ANCHOR: Record<string, string | undefined> = {
+  begins: 'sec-facts',
+  'warzone-d': 'sec-missions',
+}
 
 // Empty polygon collection — the landmark-boundary source when no boundary is shown.
 const EMPTY_FC: FeatureCollection = { type: 'FeatureCollection', features: [] }
@@ -538,6 +545,7 @@ export default function Story() {
 
   return (
     <div className="story" ref={storyRef}>
+      <StoryNav />
       {/* One constant-width panel, always mounted — during the banner it just
           sits underneath the orange wash (z-order), so there's no show/hide or
           narrow→wide animation to flicker. Just the Flat/3D view switch for
@@ -607,7 +615,7 @@ export default function Story() {
           const src = ev.quote ? SOURCES[ev.quote.sourceId] : undefined
           return (
             <Fragment key={ev.id}>
-              <section className="story-step" data-index={i}>
+              <section className="story-step" data-index={i} id={NAV_ANCHOR[ev.id]}>
                 <article className={`story-card${i === active ? ' is-active' : ''}`}>
                   <p className="story-eyebrow">{ev.period}</p>
                   <h2 className="story-name">{ev.name}</h2>
@@ -642,8 +650,14 @@ export default function Story() {
 
         {/* Summary figures — the two full-screen breakdowns close Act I,
             after the reckoning node. */}
-        {agentSeries && <RainbowHerbicides years={agentSeries.years} series={agentSeries.series} />}
-        <EcosystemsFigure />
+        {agentSeries && (
+          <div id="sec-rainbow">
+            <RainbowHerbicides years={agentSeries.years} series={agentSeries.series} />
+          </div>
+        )}
+        <div id="sec-ecosystems">
+          <EcosystemsFigure />
+        </div>
       </div>
     </div>
   )
