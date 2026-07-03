@@ -11,8 +11,8 @@ import {
   addStoryHeat,
   setStoryHeatTime,
   setStoryHeatVisible,
-  addSprayBars,
-  setBarsVisible,
+  addHillshade,
+  setHillshade,
   STORY_HEAT_LAYER,
 } from '../components/mapTheme'
 import { FACTS_EVENTS, type StoryEvent } from '../content/facts/events'
@@ -29,10 +29,8 @@ const SPRAY_SOURCE = 'spray'
 const ISLAND_SOURCE = 'islands'
 const MR_SOURCE = 'military-regions'
 const MRLABEL_SOURCE = 'military-region-labels'
-const BARS_SOURCE = 'spray-bars-src'
 const REGION_SOURCE = 'node-region'
-// 3D column grid resolution — finer cells read as slender columns.
-const CELL_DEG = 0.03
+const DEM_SOURCE = 'terrain-dem'
 
 // Monotone-chain convex hull of [lon,lat] points (counter-clockwise ring).
 function convexHull(pts: [number, number][]): [number, number][] {
@@ -98,37 +96,6 @@ function hatchImage(): { width: number; height: number; data: Uint8Array } {
   return { width: size, height: size, data: new Uint8Array(ctx.getImageData(0, 0, size, size).data.buffer) }
 }
 
-// Bin spray points into CELL_DEG cells, summing cumulative gallons up to `day`.
-// Each cell becomes a slightly-inset square (a column footprint).
-function sprayGrid(spray: SprayDataset, day: number): FeatureCollection<Polygon, { gallons: number }> {
-  const cells = new Map<string, number>()
-  for (const f of spray.features.features) {
-    if (f.properties.day > day || f.properties.gallons <= 0) continue
-    const [lon, lat] = f.geometry.coordinates
-    const cx = Math.floor(lon / CELL_DEG)
-    const cy = Math.floor(lat / CELL_DEG)
-    const k = `${cx}|${cy}`
-    cells.set(k, (cells.get(k) || 0) + f.properties.gallons)
-  }
-  const pad = CELL_DEG * 0.12
-  const features = [...cells].map(([k, gallons]) => {
-    const [cx, cy] = k.split('|').map(Number)
-    const x0 = cx * CELL_DEG + pad
-    const y0 = cy * CELL_DEG + pad
-    const x1 = (cx + 1) * CELL_DEG - pad
-    const y1 = (cy + 1) * CELL_DEG - pad
-    return {
-      type: 'Feature' as const,
-      properties: { gallons },
-      geometry: {
-        type: 'Polygon' as const,
-        coordinates: [[[x0, y0], [x1, y0], [x1, y1], [x0, y1], [x0, y0]]],
-      },
-    }
-  })
-  return { type: 'FeatureCollection', features }
-}
-
 // Neutral treatment: the offshore archipelagos are disputed (China, Vietnam,
 // Taiwan et al.) and were never sprayed; shown as reference, no sovereignty
 // assigned. Names use the common English forms + Vietnamese in parentheses.
@@ -180,14 +147,6 @@ export default function Story() {
   const dayRef = useRef(0)
   const pulseRef = useRef<number | null>(null)
 
-  // Rebuild the 3D column grid for the cumulative window up to `day`.
-  function updateBars(day: number) {
-    const map = mapRef.current
-    const spray = dataRef.current
-    if (!map || !spray) return
-    const src = map.getSource(BARS_SOURCE) as maplibregl.GeoJSONSource | undefined
-    if (src) src.setData(sprayGrid(spray, day))
-  }
   const [active, setActive] = useState(0)
   const [started, setStarted] = useState(false)
   const [is3D, setIs3D] = useState(false)
@@ -303,9 +262,7 @@ export default function Story() {
     map.flyTo({ ...HOOK.camera, pitch, bearing: 0, padding: { top: 40, right: 40, bottom: 40, left: 40 }, duration: 1200, essential: true })
     dayRef.current = 0
     setStoryHeatTime(map, 0) // before 1962 → nothing shown
-    setStoryHeatVisible(map, !is3DRef.current)
-    if (is3DRef.current) updateBars(0)
-    setBarsVisible(map, is3DRef.current)
+    setStoryHeatVisible(map, true)
     setSVVisible(true)
     clearCrosses()
     applyRegion(null)
@@ -342,14 +299,7 @@ export default function Story() {
     const day = dateToDay(ev.date)
     dayRef.current = day
     setStoryHeatTime(map, day)
-    if (is3DRef.current) {
-      updateBars(day)
-      setBarsVisible(map, true)
-      setStoryHeatVisible(map, false)
-    } else {
-      setBarsVisible(map, false)
-      setStoryHeatVisible(map, !isPilot)
-    }
+    setStoryHeatVisible(map, !isPilot)
     if (isPilot) showCrosses(ev.crosses)
     else clearCrosses()
     applyRegion(ev)
@@ -408,17 +358,24 @@ export default function Story() {
         }
 
 
+        // 3D view: real terrain relief (hidden until the 3D toggle). The DEM is
+        // free AWS Terrarium tiles; a hillshade shades the slopes. Added first so
+        // it sits beneath the spray heatmap.
+        if (mapConfig.terrain && !map.getSource(DEM_SOURCE)) {
+          map.addSource(DEM_SOURCE, {
+            type: 'raster-dem',
+            tiles: [mapConfig.terrain.demUrl],
+            tileSize: 256,
+            encoding: mapConfig.terrain.encoding,
+            maxzoom: 15,
+          })
+          addHillshade(map, DEM_SOURCE)
+        }
+
         // One combined, brand-orange heatmap (all agents merged) — no muddy
         // per-agent overlap.
         map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
         addStoryHeat(map, SPRAY_SOURCE, spray.dayMax)
-
-        // 3D view: extruded columns, binned. Heights scale to the global max cell
-        // so the columns grow through the decade. Hidden until the 3D toggle.
-        map.addSource(BARS_SOURCE, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
-        let globalMax = 1
-        for (const f of sprayGrid(spray, spray.dayMax).features) globalMax = Math.max(globalMax, f.properties.gallons)
-        addSprayBars(map, BARS_SOURCE, globalMax)
 
         // The four Corps Tactical Zones / Military Regions — bold orange dashed
         // boundaries (kept under the spray heat) with uppercase orange tags.
@@ -557,7 +514,8 @@ export default function Story() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // 3D view swaps the flat heatmap for extruded spray columns (no terrain).
+  // 3D view tilts the camera and turns on real terrain relief; the flat heatmap
+  // drapes over it (no columns).
   function toggle3D() {
     const map = mapRef.current
     if (!map) return
@@ -565,18 +523,16 @@ export default function Story() {
     setIs3D(next)
     is3DRef.current = next
     map.easeTo({ pitch: next ? mapConfig.view.pitch3d : 0, duration: 800 })
-    if (next) {
-      updateBars(dayRef.current)
-      setBarsVisible(map, true)
-      setStoryHeatVisible(map, false)
-      applyRegion(null) // outline would float over the columns in 3D
-    } else {
-      setBarsVisible(map, false)
-      // Restore the flat heatmap unless we're on a pilot node (crosses only).
-      const isPilot = !!FACTS_EVENTS[active]?.crosses
-      setStoryHeatVisible(map, started ? !isPilot : true)
-      applyRegion(started ? FACTS_EVENTS[active] : null)
+    if (mapConfig.terrain && map.getSource(DEM_SOURCE)) {
+      try {
+        map.setTerrain(next ? { source: DEM_SOURCE, exaggeration: mapConfig.terrain.exaggeration } : null)
+        setHillshade(map, next)
+      } catch {
+        /* terrain is optional */
+      }
     }
+    // The hatch outline would float over the tilted relief, so hide it in 3D.
+    applyRegion(next ? null : started ? FACTS_EVENTS[active] : null)
   }
 
   return (
