@@ -1123,7 +1123,9 @@
   .rainbow-card-inner,
   .rainbow-band,
   .vt,
-  .eco-headline {
+  .eco-headline,
+  .eco-hint-arrow,
+  .eco-type-go {
     animation: none;
     transition: none;
   }
@@ -1217,12 +1219,73 @@
   margin: 0 0 13px;
 }
 
+/* Sort toggle + click hint. */
+.eco-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 15px;
+  flex-wrap: wrap;
+}
+
+.eco-sort {
+  display: inline-flex;
+  padding: 2px;
+  background: rgba(33, 53, 40, 0.06);
+  border-radius: 999px;
+}
+
+.eco-sort-btn {
+  padding: 4px 11px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: none;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.eco-sort-btn.is-active {
+  color: #fff;
+  background: var(--forest);
+}
+
+.eco-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--ink-faint);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.eco-hint-arrow {
+  display: inline-block;
+  animation: eco-hint-nudge 1.8s ease-in-out infinite;
+}
+
+@keyframes eco-hint-nudge {
+  0%,
+  100% {
+    transform: none;
+  }
+  50% {
+    transform: translateX(3px);
+  }
+}
+
 .eco-type {
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 3px 0;
+  padding: 5px 8px 5px 0;
+  border-radius: 8px;
   background: none;
   border: none;
   cursor: pointer;
@@ -1230,6 +1293,34 @@
   font-size: 13.5px;
   color: var(--ink);
   text-align: left;
+  transition: background 0.15s;
+}
+
+.eco-type:hover,
+.eco-type.is-on {
+  background: rgba(33, 53, 40, 0.05);
+}
+
+.eco-type:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Arrow that surfaces on hover / selection, pointing to the map. */
+.eco-type-go {
+  flex: none;
+  width: 12px;
+  text-align: center;
+  color: var(--ink-faint);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.eco-type:hover .eco-type-go,
+.eco-type.is-on .eco-type-go {
+  opacity: 1;
+  transform: none;
 }
 
 .eco-swatch {
