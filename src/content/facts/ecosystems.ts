@@ -28,13 +28,13 @@ export interface VegType {
 }
 
 export const VEG_TYPES: VegType[] = [
-  { key: 'forest', color: '#B4CEC0', name: 'Forest', sprayed: 1925, total: 5500, sourced: true, sourceId: 'westing_bioscience' },
+  { key: 'forest', color: '#9DBFAB', name: 'Forest', sprayed: 1925, total: 5500, sourced: true, sourceId: 'westing_bioscience' },
   { key: 'slashburn', color: '#859F97', name: 'Forest, with slash / burn', sprayed: 300, total: 1200, sourced: false },
-  { key: 'grassland', color: '#DCEABD', name: 'Grassland', sprayed: 50, total: 700, sourced: false },
+  { key: 'grassland', color: '#C9DD95', name: 'Grassland', sprayed: 50, total: 700, sourced: false },
   { key: 'rice', color: '#544685', name: 'Rice', sprayed: 60, total: 2900, sourced: true, sourceId: 'nas_1974' },
   { key: 'mangrove', color: '#ABA1CD', name: 'Mangrove', sprayed: 124, total: 291, sourced: true, sourceId: 'nas_1974' },
   { key: 'marsh', color: '#61C1C2', name: 'Marshes & other inundated vegetation', sprayed: 8, total: 350, sourced: false },
-  { key: 'rubber', color: '#EFE12A', name: 'Tree crops, chiefly rubber', sprayed: 25, total: 120, sourced: false },
+  { key: 'rubber', color: '#E4CA1C', name: 'Tree crops, chiefly rubber', sprayed: 25, total: 120, sourced: false },
 ]
 
 /** Axis maximum for the shared scale (×10³ ha), a round step above the biggest total. */

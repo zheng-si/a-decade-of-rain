@@ -1237,7 +1237,7 @@
   width: 15px;
   height: 15px;
   border-radius: 50%;
-  box-shadow: 0 0 0 1px rgba(33, 53, 40, 0.12) inset;
+  box-shadow: 0 0 0 1px rgba(33, 53, 40, 0.22) inset;
   transition: box-shadow 0.15s;
 }
 
@@ -1276,7 +1276,7 @@
 /* Bar: full width = axis; grey track = total; orange fill = sprayed. */
 .eco-bar {
   margin: 7px 0 0;
-  height: 9px;
+  height: 6px;
 }
 
 .eco-bar-track {
@@ -1319,27 +1319,27 @@
   max-height: 80vh;
 }
 
-/* Vegetation fills (must match ecosystems.ts colours). */
-.vt-forest { fill: #b4cec0; }
+/* Vegetation fills (must match ecosystems.ts colours). The three palest
+   families — forest, grassland, rubber — are deepened a touch from the raw
+   Figma swatches so the legend chips and the selected map both read. */
+.vt-forest { fill: #9dbfab; }
 .vt-slashburn { fill: #859f97; }
-.vt-grassland { fill: #dceabd; }
+.vt-grassland { fill: #c9dd95; }
 .vt-rice { fill: #544685; }
 .vt-mangrove { fill: #aba1cd; }
 .vt-marsh { fill: #61c1c2; }
-.vt-rubber { fill: #efe12a; }
+.vt-rubber { fill: #e4ca1c; }
 
 .vt {
-  transition: fill 0.35s, opacity 0.35s;
+  transition: opacity 0.35s;
 }
 
-/* When a type is selected, wash every other type out to near-paper so even a
-   pale selected type (forest sage, grassland) still reads. */
+/* Two-tone selection model (per the Figma design): the chosen type keeps its
+   full colour; every other type drops to 20% opacity — i.e. a pale wash of its
+   OWN colour, not a shared grey. */
 .eco-map[data-sel] .vt {
-  fill: #ececE6;
-  opacity: 0.6;
+  opacity: 0.2;
 }
-/* The selected type keeps its colour and gains a thin dark outline so its
-   patches are legible whatever the fill's lightness. */
 .eco-map[data-sel='forest'] .vt-forest,
 .eco-map[data-sel='slashburn'] .vt-slashburn,
 .eco-map[data-sel='grassland'] .vt-grassland,
@@ -1348,18 +1348,7 @@
 .eco-map[data-sel='marsh'] .vt-marsh,
 .eco-map[data-sel='rubber'] .vt-rubber {
   opacity: 1;
-  stroke: rgba(45, 64, 54, 0.5);
-  stroke-width: 0.5;
-  stroke-linejoin: round;
-  paint-order: stroke;
 }
-.eco-map[data-sel='forest'] .vt-forest { fill: #9cbcac; }
-.eco-map[data-sel='slashburn'] .vt-slashburn { fill: #859f97; }
-.eco-map[data-sel='grassland'] .vt-grassland { fill: #cfe3a8; }
-.eco-map[data-sel='rice'] .vt-rice { fill: #544685; }
-.eco-map[data-sel='mangrove'] .vt-mangrove { fill: #aba1cd; }
-.eco-map[data-sel='marsh'] .vt-marsh { fill: #61c1c2; }
-.eco-map[data-sel='rubber'] .vt-rubber { fill: #efe12a; }
 
 /* Big sprayed-figure callout, floating over the open left of the map. */
 .eco-headline {
