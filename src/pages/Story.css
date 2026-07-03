@@ -930,6 +930,7 @@
 .rainbow-grid-line {
   stroke: var(--rule);
   stroke-width: 1;
+  stroke-dasharray: 3 3;
 }
 
 .rainbow-axis-line {
@@ -940,7 +941,8 @@
 .rainbow-axis-label {
   fill: var(--ink-faint);
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: 10px;
+  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
 }
 
@@ -995,13 +997,19 @@
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 12px 34px rgba(33, 53, 40, 0.16);
-  animation: rainbow-card-in 0.35s ease;
+  background: var(--forest);
 }
 
-@keyframes rainbow-card-in {
+/* Only the inner content crossfades on agent switch — the card frame stays
+   put (no pop / no reflow of the surrounding layout). */
+.rainbow-card-inner {
+  animation: rainbow-fade 0.28s ease;
+}
+
+@keyframes rainbow-fade {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(4px);
   }
 }
 
@@ -1038,6 +1046,8 @@
   font-size: 12.5px;
   line-height: 1.35;
   color: var(--forest-text-soft);
+  /* Reserve two lines so switching agents never reflows the header. */
+  min-height: calc(2 * 1.35em);
 }
 
 .rainbow-card-body {
@@ -1060,6 +1070,7 @@
   font-size: 30px;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  color: var(--agent);
 }
 
 .rainbow-stat span {
@@ -1076,7 +1087,7 @@
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.01em;
-  color: var(--accent-bright);
+  color: var(--agent-text);
 }
 
 .rainbow-defs dt:first-child {
@@ -1109,8 +1120,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .rainbow-card {
+  .rainbow-card-inner,
+  .rainbow-band {
     animation: none;
+    transition: none;
   }
 }
 
@@ -1262,4 +1275,41 @@
     max-width: 380px;
     margin: 0 auto;
   }
+}
+
+/* "All agents" summary — per-agent breakdown list. */
+.rainbow-breakdown {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.rainbow-breakdown li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(146, 247, 188, 0.12);
+  font-size: 13.5px;
+  color: var(--forest-text);
+}
+
+.rainbow-breakdown li:last-child {
+  border-bottom: none;
+}
+
+.rainbow-bd-dot {
+  flex: none;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+
+.rainbow-bd-name {
+  flex: 1;
+}
+
+.rainbow-bd-val {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
 }
