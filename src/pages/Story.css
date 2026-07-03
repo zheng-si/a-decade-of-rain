@@ -1176,7 +1176,7 @@
 /* Orange (sprayed) over an outlined track, divided into unit segments. */
 .eco-scale-bar {
   position: relative;
-  height: 12px;
+  height: 6px;
   border: 1px solid var(--accent-line);
   border-radius: 2px;
   background-image: repeating-linear-gradient(
@@ -1330,15 +1330,12 @@
 .vt-marsh { fill: #61c1c2; }
 .vt-rubber { fill: #ddc21a; }
 
+/* Two-tone model (per the Figma design): by DEFAULT every type sits at 20%
+   opacity — a pale wash of its own colour. Selecting a type lifts just that
+   one to full colour (20% → 100%), so it reads as the highlight. */
 .vt {
-  transition: opacity 0.35s;
-}
-
-/* Two-tone selection model (per the Figma design): the chosen type keeps its
-   full colour; every other type drops to 20% opacity — i.e. a pale wash of its
-   OWN colour, not a shared grey. */
-.eco-map[data-sel] .vt {
   opacity: 0.2;
+  transition: opacity 0.35s;
 }
 .eco-map[data-sel='forest'] .vt-forest,
 .eco-map[data-sel='slashburn'] .vt-slashburn,
