@@ -619,9 +619,13 @@ export default function Story() {
         <section className="story-hook">
           {/* Hero photo lives in the hook so it scrolls up with the title.
               Base = sharp (keeps the plane legible); frost = a blurred copy
-              masked to the top/bottom so the trees soften into a haze. */}
-          <div className="story-hook-photo" aria-hidden="true" style={{ backgroundImage: `url(${heroSpray})` }} />
-          <div className="story-hook-frost" aria-hidden="true" style={{ backgroundImage: `url(${heroSpray})` }} />
+              masked to the top/bottom so the trees soften into a haze. The
+              wrapper fades to transparent at the very bottom so a strip of the
+              live map shows through beneath the banner. */}
+          <div className="story-hook-media" aria-hidden="true">
+            <div className="story-hook-photo" style={{ backgroundImage: `url(${heroSpray})` }} />
+            <div className="story-hook-frost" style={{ backgroundImage: `url(${heroSpray})` }} />
+          </div>
           <div className="story-hook-blur" aria-hidden="true" />
           <div className="story-hook-wash" aria-hidden="true" />
           <RainCanvas />
