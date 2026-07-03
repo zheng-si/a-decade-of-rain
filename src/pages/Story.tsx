@@ -18,7 +18,6 @@ import {
 import { FACTS_EVENTS, type StoryEvent } from '../content/facts/events'
 import { HOOK } from '../content/facts/hook'
 import { SOURCES } from '../content/sources'
-import { TopBar } from '../App'
 import RainCanvas from '../components/RainCanvas'
 import TimelineRuler from '../components/TimelineRuler'
 import MapKey from '../components/MapKey'
@@ -182,14 +181,14 @@ export default function Story() {
   // Highlight the node's representative references: real boundaries (Cà Mau,
   // A Lưới) get a pulsing orange outline + a floating label chip; point
   // landmarks with no authoritative boundary (War Zone C/D, the Iron Triangle,
-  // Biên Hòa airbase) get a labelled orange ring marker. Hidden in 3D — a flat
-  // outline would float over the tilted relief.
+  // Biên Hòa airbase) get a labelled orange ring marker. Shown in 3D too —
+  // the outline drapes over the terrain and markers track its elevation.
   function applyLandmarks(ev: StoryEvent | null) {
     const map = mapRef.current
     if (!map || !map.getSource(LANDMARK_SOURCE)) return
     const src = map.getSource(LANDMARK_SOURCE) as maplibregl.GeoJSONSource
     clearLandmarkPoints()
-    const landmarks = ev && !is3DRef.current ? ev.landmarks : undefined
+    const landmarks = ev ? ev.landmarks : undefined
     if (!landmarks || !landmarks.length) {
       stopPulse()
       src.setData(EMPTY_FC)
@@ -225,9 +224,11 @@ export default function Story() {
   }
 
   // Keep framed content clear of the card (left on desktop, bottom on mobile).
+  // The card column ends ~640px from the left edge, so the desktop left pad
+  // pushes the framed area right of it (capped on narrower windows).
   function framePadding(): maplibregl.PaddingOptions {
     return window.innerWidth > 640
-      ? { left: 70, top: 70, right: 70, bottom: 70 }
+      ? { left: Math.min(660, Math.round(window.innerWidth * 0.55)), top: 70, right: 70, bottom: 70 }
       : { left: 24, right: 24, top: 48, bottom: 340 }
   }
 
@@ -493,20 +494,30 @@ export default function Story() {
         /* terrain is optional */
       }
     }
-    // The flat outline would float over the tilted relief, so hide it in 3D.
-    applyLandmarks(next ? null : started ? FACTS_EVENTS[active] : null)
+    // Landmarks stay on in 3D (they drape over the relief).
+    applyLandmarks(started ? FACTS_EVENTS[active] : null)
   }
 
   return (
     <div className="story" ref={storyRef}>
       {/* One constant-width panel, always mounted — during the banner it just
           sits underneath the orange wash (z-order), so there's no show/hide or
-          narrow→wide animation to flicker. */}
-      <TopBar>
-        <button className="site-nav-link site-nav-btn" onClick={toggle3D}>
-          {is3D ? 'Flat' : '3D'}
+          narrow→wide animation to flicker. Just the Flat/3D view switch for
+          now (the Explore tab is parked). */}
+      <nav className="site-nav">
+        <button
+          className={`site-nav-link site-nav-btn${is3D ? '' : ' is-active'}`}
+          onClick={() => is3D && toggle3D()}
+        >
+          Flat
         </button>
-      </TopBar>
+        <button
+          className={`site-nav-link site-nav-btn${is3D ? ' is-active' : ''}`}
+          onClick={() => !is3D && toggle3D()}
+        >
+          3D
+        </button>
+      </nav>
 
       <div className="story-graphic">
         <div ref={containerRef} className="story-map" />
@@ -526,9 +537,6 @@ export default function Story() {
       <div className="story-scroll">
         <section className="story-hook">
           <div className="story-hook-blur" aria-hidden="true">
-            <div />
-            <div />
-            <div />
             <div />
             <div />
           </div>

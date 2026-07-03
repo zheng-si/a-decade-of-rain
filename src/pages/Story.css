@@ -336,37 +336,22 @@
   inset: 0;
 }
 
-/* 40 → 24 → 0 profile: three base layers hold ~24px down to 80% then fade to
-   clear by 100%; two top layers add the extra punch near the top. */
+/* Two-layer blur profile (was five): a base ~14px holding to 80% then fading,
+   plus one stronger top layer. Fewer backdrop-filter layers = far less
+   re-rasterization while the banner scrolls (the five-layer stack flickered).
+   NOTE: never put transform/translateZ on these — a composited backdrop-filter
+   element samples a stale backdrop in Chromium and shimmers. */
 .story-hook-blur > div:nth-child(1) {
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
-}
-.story-hook-blur > div:nth-child(2) {
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
-}
-.story-hook-blur > div:nth-child(3) {
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 80%, transparent 100%);
 }
-.story-hook-blur > div:nth-child(4) {
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 58%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 30%, transparent 58%);
-}
-.story-hook-blur > div:nth-child(5) {
-  -webkit-backdrop-filter: blur(24px);
-  backdrop-filter: blur(24px);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 16%, transparent 38%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 16%, transparent 38%);
+.story-hook-blur > div:nth-child(2) {
+  -webkit-backdrop-filter: blur(22px);
+  backdrop-filter: blur(22px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 26%, transparent 56%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 26%, transparent 56%);
 }
 
 /* Dramatic brand-orange wash over the banner: full strength at the top fading
@@ -380,12 +365,6 @@
   z-index: 1;
   pointer-events: none;
   background: linear-gradient(to bottom, rgba(255, 84, 73, 1) 0%, rgba(255, 84, 73, 0) 100%);
-  transform: translateZ(0);
-  backface-visibility: hidden;
-}
-
-.story-hook-blur,
-.story-hook-blur > div {
   transform: translateZ(0);
   backface-visibility: hidden;
 }
@@ -433,7 +412,7 @@
   margin: 0 auto;
   max-width: 560px;
   font-weight: 300;
-  font-size: var(--type-lead-size);
+  font-size: var(--type-dek-size); /* one step down from lead per review */
   line-height: var(--type-lead-lh);
   /* Full ink: --ink-soft lost too much contrast over the pink mid-wash. */
   color: var(--ink);
@@ -441,28 +420,26 @@
   text-wrap: pretty;
 }
 
-/* Scroll cue: brand-orange type with a soft glow — no pill, just presence. */
+/* Scroll cue: serif, sentence case, deep orange — quiet but legible. */
 .story-hook-cta {
   display: inline-flex;
   align-items: center;
   gap: 9px;
   margin: 42px 0 0;
   padding: 6px 4px;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent);
+  font-family: var(--font-serif);
+  font-size: 19px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: var(--accent-deep);
   background: none;
   border: none;
   cursor: pointer;
-  text-shadow: 0 1px 2px rgba(250, 249, 244, 0.9), 0 3px 14px rgba(214, 51, 40, 0.35);
   transition: color 0.2s, transform 0.2s;
 }
 
 .story-hook-cta:hover {
-  color: var(--accent-deep);
+  color: #a8281b;
   transform: translateY(2px);
 }
 
