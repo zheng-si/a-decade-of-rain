@@ -113,14 +113,14 @@ export default function Story() {
   // Pilot / test-spray sites where the volume is too small to read as heat:
   // an orange dot with a periodically pulsing ring, plus a label. The pulse
   // animates CHILD elements — MapLibre owns the marker root's transform.
-  function showCrosses(crosses: { lng: number; lat: number; label: string }[] | undefined) {
+  function showCrosses(crosses: { lng: number; lat: number; label: string; below?: boolean }[] | undefined) {
     const map = mapRef.current
     if (!map) return
     clearCrosses()
     if (!crosses) return
     for (const c of crosses) {
       const el = document.createElement('div')
-      el.className = 'pilot-dot'
+      el.className = c.below ? 'pilot-dot pilot-dot--below' : 'pilot-dot'
       el.innerHTML =
         '<span class="pilot-dot-ring"></span><span class="pilot-dot-core"></span>' +
         `<span class="pilot-dot-label">${c.label}</span>`
@@ -175,10 +175,10 @@ export default function Story() {
   }
 
   // Highlight the node's representative references: real boundaries (Cà Mau,
-  // A Lưới, Biên Hòa airbase) get a pulsing orange outline + label; point
-  // landmarks with no authoritative boundary (War Zone C/D, the Iron Triangle)
-  // get a labelled orange marker. Hidden in 3D — a flat outline would float over
-  // the tilted relief.
+  // A Lưới) get a pulsing orange outline + a floating label chip; point
+  // landmarks with no authoritative boundary (War Zone C/D, the Iron Triangle,
+  // Biên Hòa airbase) get a labelled orange ring marker. Hidden in 3D — a flat
+  // outline would float over the tilted relief.
   function applyLandmarks(ev: StoryEvent | null) {
     const map = mapRef.current
     if (!map || !map.getSource(LANDMARK_SOURCE)) return
@@ -199,12 +199,18 @@ export default function Story() {
     src.setData({ type: 'FeatureCollection', features: feats })
     if (feats.length) startPulse()
     else stopPulse()
-    // Point landmarks → labelled orange markers.
+    // Labels/markers — HTML chips (map glyphs lack Vietnamese diacritics).
     for (const l of landmarks) {
       if (!l.point) continue
       const el = document.createElement('div')
-      el.className = 'landmark-pt'
-      el.innerHTML = '<span class="landmark-pt-ring"></span>' + `<span class="landmark-pt-label">${l.name}</span>`
+      if (l.boundaryId) {
+        // Boundary already outlines the area — just float its name chip.
+        el.className = 'landmark-pt landmark-pt--area'
+        el.innerHTML = `<span class="landmark-pt-label">${l.name}</span>`
+      } else {
+        el.className = 'landmark-pt'
+        el.innerHTML = '<span class="landmark-pt-ring"></span>' + `<span class="landmark-pt-label">${l.name}</span>`
+      }
       landmarkMarkersRef.current.push(new maplibregl.Marker({ element: el }).setLngLat(l.point).addTo(map))
     }
   }
@@ -293,7 +299,7 @@ export default function Story() {
       const asset = (f: string) => fetch(`${import.meta.env.BASE_URL}${f}`).then((r) => r.json())
       Promise.all([
         loadSpray(),
-        asset('data/military-regions.geojson'),
+        asset('data/military-region-dividers.geojson'),
         asset('data/military-region-labels.geojson'),
         asset('data/landmarks.geojson'),
         new Promise<void>((resolve) => map.once('load', () => resolve())),
@@ -342,8 +348,10 @@ export default function Story() {
         map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
         addStoryHeat(map, SPRAY_SOURCE, spray.dayMax)
 
-        // The four Corps Tactical Zones / Military Regions — bold orange dashed
-        // boundaries (kept under the spray heat) with uppercase orange tags.
+        // The four Corps Tactical Zones / Military Regions — only the three
+        // INTERNAL dividers are drawn (bold orange dashed, kept under the spray
+        // heat); the outer edges trace the national border / coast and would
+        // clash with the basemap's own lines. Uppercase orange tags per region.
         map.addSource(MR_SOURCE, { type: 'geojson', data: mrGeo })
         map.addLayer(
           {
@@ -373,8 +381,9 @@ export default function Story() {
         })
 
         // Per-node landmark boundary: the active node's representative area
-        // (Cà Mau, A Lưới, Biên Hòa airbase) outlined in pulsing orange with an
-        // uppercase label. Empty until a boundary node is entered.
+        // (Cà Mau, A Lưới) outlined in pulsing orange. Labels are HTML chips
+        // (markers) — the self-hosted glyphs miss Vietnamese diacritics, so a
+        // symbol layer would render "A LƯỚI" as "A LI".
         map.addSource(LANDMARK_SOURCE, { type: 'geojson', data: EMPTY_FC })
         map.addLayer({
           id: 'landmark-outline',
@@ -382,20 +391,6 @@ export default function Story() {
           source: LANDMARK_SOURCE,
           layout: { 'line-join': 'round', 'line-cap': 'round' },
           paint: { 'line-color': '#ff5449', 'line-width': 3, 'line-opacity': 0.95 },
-        })
-        map.addLayer({
-          id: 'landmark-label',
-          type: 'symbol',
-          source: LANDMARK_SOURCE,
-          layout: {
-            'text-field': ['get', 'name'],
-            'text-font': ['Switzer Medium'],
-            'text-size': 13,
-            'text-transform': 'uppercase',
-            'text-letter-spacing': 0.08,
-            'text-max-width': 9,
-          },
-          paint: { 'text-color': '#ff5449', 'text-halo-color': 'rgba(250,249,244,0.95)', 'text-halo-width': 2 },
         })
 
         // Disputed-island labels (the basemap already draws the grey borders).

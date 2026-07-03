@@ -3,11 +3,10 @@
 //   - Cà Mau        → province boundary (from the existing provinces.geojson, ADM1)
 //   - A Lưới        → district boundary (geoBoundaries VNM ADM2) — the admin unit
 //                     that contains the A Sầu valley (the valley itself has none)
-//   - Biên Hòa AB   → the airbase footprint, hand-digitised (no open vector source
-//                     was reachable from the build sandbox)
 //
-// Point landmarks that have NO authoritative boundary (War Zone C/D, the Iron
-// Triangle, Sài Gòn) are not here — they're marked inline in content/facts/events.ts.
+// Point landmarks (no authoritative boundary, or a boundary that reads poorly at
+// the node's zoom — War Zone C/D, the Iron Triangle, Biên Hòa airbase) are not
+// here; they're marked inline in content/facts/events.ts.
 //
 // Run: node scripts/build-landmarks.mjs
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
@@ -83,21 +82,6 @@ async function loadAdm2() {
   return JSON.parse(txt)
 }
 
-// Biên Hòa Air Base — approximate footprint around the airfield (~10.97°N,
-// 106.82°E). Hand-digitised: a NW–SE quad covering the runways and apron.
-const BIEN_HOA_AIRBASE = {
-  type: 'Polygon',
-  coordinates: [
-    [
-      [106.789, 10.949],
-      [106.845, 10.957],
-      [106.84, 11.001],
-      [106.784, 10.993],
-      [106.789, 10.949],
-    ],
-  ],
-}
-
 async function main() {
   const features = []
 
@@ -119,13 +103,6 @@ async function main() {
     type: 'Feature',
     properties: { id: 'a-luoi', name: 'A Lưới', kind: 'district' },
     geometry: roundGeom(aLuoi.geometry),
-  })
-
-  // Biên Hòa Air Base — hand-digitised footprint.
-  features.push({
-    type: 'Feature',
-    properties: { id: 'bien-hoa-airbase', name: 'Biên Hòa Air Base', kind: 'airbase' },
-    geometry: BIEN_HOA_AIRBASE,
   })
 
   const out = { type: 'FeatureCollection', features }

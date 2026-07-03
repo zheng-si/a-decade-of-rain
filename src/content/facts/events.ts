@@ -27,9 +27,10 @@ export interface City {
   lat: number
 }
 
-/** A node's representative reference — either a labelled orange point (for areas
- *  with no authoritative boundary, e.g. War Zone C/D, the Iron Triangle) or a
- *  real boundary polygon outlined from public/data/landmarks.geojson (by id). */
+/** A node's representative reference. `point` alone → a labelled orange ring
+ *  marker (areas with no authoritative boundary, e.g. War Zone C/D). With
+ *  `boundaryId`, the real polygon from public/data/landmarks.geojson is
+ *  outlined and `point` anchors its floating label chip. */
 export interface Landmark {
   name: string
   point?: [number, number]
@@ -50,8 +51,9 @@ export interface StoryEvent {
   /** Nearby places to pin. */
   cities?: City[]
   /** Pilot / test-spray locations marked with a pulsing dot instead of heat
-   *  (used where the sprayed volume is too small to read as a heatmap). */
-  crosses?: { lng: number; lat: number; label: string }[]
+   *  (used where the sprayed volume is too small to read as a heatmap).
+   *  `below` hangs the label under the dot (pointer up) to dodge overlaps. */
+  crosses?: { lng: number; lat: number; label: string; below?: boolean }[]
   /** Representative reference points / boundaries highlighted so the reader can
    *  place the node's hotspot fast (marked once the camera zooms in). */
   landmarks?: Landmark[]
@@ -76,7 +78,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
     // Đắk Tô test spray (Aug 1961) + first mission on Route 15 toward Biên Hòa.
     crosses: [
       { lng: 107.83, lat: 14.65, label: 'Đắk Tô — test spray, Aug 1961' },
-      { lng: 106.82, lat: 10.97, label: 'Biên Hòa — first mission, Jan 1962' },
+      { lng: 106.82, lat: 10.97, label: 'Biên Hòa — first mission, Jan 1962', below: true },
     ],
     dek: 'Operation Ranch Hand begins.',
     body: 'The first test spray runs on 10 August 1961 near Đắk Tô in the central highlands; the first official mission follows in January 1962 along Route 15 toward Biên Hòa. Just 107 missions fly in 1962, the quiet start of a decade-long campaign.',
@@ -137,7 +139,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
   {
     id: 'mangroves',
     name: 'Ecocide: the Mangroves',
-    landmarks: [{ name: 'Cà Mau', boundaryId: 'ca-mau' }],
+    landmarks: [{ name: 'Cà Mau', boundaryId: 'ca-mau', point: [104.95, 8.85] }],
     period: '1968',
     date: '1968-09-01',
     camera: { center: [105.5, 9.5], zoom: 6.9 },
@@ -160,7 +162,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
   {
     id: 'a-sau',
     name: 'A Sầu Valley: sprayed eleven times',
-    landmarks: [{ name: 'A Lưới', boundaryId: 'a-luoi' }],
+    landmarks: [{ name: 'A Lưới', boundaryId: 'a-luoi', point: [107.1, 16.38] }],
     period: '1965–70',
     date: '1969-08-01',
     camera: { center: [107.18, 16.3], zoom: 8.6 },
@@ -183,7 +185,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
   {
     id: 'hotspots',
     name: 'The Halt, and the Hotspots',
-    landmarks: [{ name: 'Biên Hòa Air Base', boundaryId: 'bien-hoa-airbase' }],
+    landmarks: [{ name: 'Biên Hòa Air Base', point: [106.815, 10.976] }],
     period: '1970–71 → today',
     date: '1971-01-01',
     camera: { center: [106.83, 10.99], zoom: 9.6 },
