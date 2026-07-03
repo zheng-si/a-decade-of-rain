@@ -23,16 +23,25 @@
 /* Banner hero photo (Ranch Hand spray run), duotoned green→amber. Sits above
    the map but below the frosted veil, so the progressive blur applies to it.
    Fades out on scroll (opacity is safe here — it isn't the backdrop element). */
-/* Hero photo lives in the scrolling hook so it scrolls up with the title. */
+/* Hero photo lives in the scrolling hook so it scrolls up with the title. The
+   wrapper fades to transparent at the very bottom so a strip of the live map
+   shows through beneath the banner. */
+.story-hook-media {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
+}
+
 .story-hook-photo,
 .story-hook-frost {
   position: absolute;
   inset: 0;
-  z-index: 0;
   background-position: center 42%;
   background-size: cover;
   background-repeat: no-repeat;
-  pointer-events: none;
   /* Promote to a compositor layer so scrolling the filtered image is smooth. */
   transform: translateZ(0);
 }
