@@ -52,4 +52,16 @@ export const SOURCES: Record<string, Source> = {
     publisher: 'Stellman et al. 2003',
     url: 'https://www.nature.com/articles/nature01537',
   },
+  va_basics: {
+    id: 'va_basics',
+    title: 'Facts About Herbicides',
+    publisher: 'U.S. Dept. of Veterans Affairs',
+    url: 'https://www.publichealth.va.gov/exposures/agentorange/basics.asp',
+  },
+  aspen_whatis: {
+    id: 'aspen_whatis',
+    title: 'What is Agent Orange?',
+    publisher: 'Aspen Institute',
+    url: 'https://www.aspeninstitute.org/programs/agent-orange-in-vietnam-program/what-is-agent-orange/',
+  },
 }

@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import type { FeatureCollection, Point } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import scrollama from 'scrollama'
-import { loadSpray, dateToDay, dayToDate, type SprayDataset } from '../data/spray'
+import { loadSpray, dateToDay, dayToDate, fmtGallons, type SprayDataset } from '../data/spray'
 import { mapConfig } from '../config/mapConfig'
 import {
   resolveMapStyle,
@@ -21,6 +21,7 @@ import { SOURCES } from '../content/sources'
 import RainCanvas from '../components/RainCanvas'
 import TimelineRuler from '../components/TimelineRuler'
 import MapKey from '../components/MapKey'
+import RainbowHerbicides, { type AgentSeries } from '../components/RainbowHerbicides'
 import { readLabelGroups, setGroupVisible, normalizePlaceLabels } from '../components/labelLayers'
 import './Story.css'
 
@@ -68,11 +69,6 @@ function monthlyCumulative(spray: SprayDataset): { months: number[]; yearStart: 
   return { months: kept, yearStart }
 }
 
-function fmtGallons(v: number): string {
-  if (v >= 1e6) return `${(v / 1e6).toFixed(1)}M`
-  if (v >= 1e3) return `${(v / 1e3).toFixed(0)}k`
-  return `${Math.round(v)}`
-}
 
 export default function Story() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -104,6 +100,35 @@ export default function Story() {
       return Math.min(1, Math.max(0, (mi + 0.5) / N))
     })
   }, [monthlyCum.length, yearStart])
+
+  // Per-agent yearly gallons for the Rainbow Herbicides figure — aggregated once
+  // from the loaded spray dataset (stack order: largest volume at the bottom).
+  const agentSeries = useMemo<{ years: number[]; series: AgentSeries[] } | null>(() => {
+    const spray = dataRef.current
+    if (!mapReady || !spray) return null
+    const codeToKey: Record<string, string> = {}
+    for (const g of mapConfig.agents) for (const c of g.codes) codeToKey[c] = g.key
+    const idxToKey = spray.agents.map((a) => codeToKey[a.code] ?? 'other')
+    const order = mapConfig.agents.map((g) => g.key) // O, W, B, other
+    const yMin = spray.yearMin
+    const allYears = Array.from({ length: spray.yearMax - yMin + 1 }, (_, i) => yMin + i)
+    const byKey: Record<string, number[]> = Object.fromEntries(order.map((k) => [k, allYears.map(() => 0)]))
+    for (const f of spray.features.features) {
+      const yi = dayToDate(f.properties.day).getUTCFullYear() - yMin
+      if (yi < 0 || yi >= allYears.length) continue
+      byKey[idxToKey[f.properties.agent] ?? 'other'][yi] += f.properties.gallons
+    }
+    // Trim leading years with zero total (spray starts 1962).
+    let start = 0
+    while (start < allYears.length - 1 && order.every((k) => byKey[k][start] === 0)) start++
+    const years = allYears.slice(start)
+    const series: AgentSeries[] = order.map((key) => {
+      const g = mapConfig.agents.find((a) => a.key === key)!
+      const values = byKey[key].slice(start)
+      return { key: key as AgentSeries['key'], name: g.label, color: g.color, total: values.reduce((s, v) => s + v, 0), values }
+    })
+    return { years, series }
+  }, [mapReady])
 
   function clearCrosses() {
     crossMarkersRef.current.forEach((m) => m.remove())
@@ -582,35 +607,41 @@ export default function Story() {
         {FACTS_EVENTS.map((ev, i) => {
           const src = ev.quote ? SOURCES[ev.quote.sourceId] : undefined
           return (
-            <section className="story-step" key={ev.id} data-index={i}>
-              <article className={`story-card${i === active ? ' is-active' : ''}`}>
-                <p className="story-eyebrow">{ev.period}</p>
-                <h2 className="story-name">{ev.name}</h2>
-                <p className="story-dek">{ev.dek}</p>
-                <p className="story-body">{ev.body}</p>
-                {ev.stat && (
-                  <p className="story-stat">
-                    <strong>{ev.stat.value}</strong> {ev.stat.label}
-                  </p>
-                )}
-                {ev.quote && (
-                  <blockquote className="story-quote">
-                    <p>“{ev.quote.text}”</p>
-                    <cite>
-                      — {ev.quote.speaker}
-                      {src && (
-                        <>
-                          {', '}
-                          <a href={src.url} target="_blank" rel="noreferrer">
-                            {src.publisher}
-                          </a>
-                        </>
-                      )}
-                    </cite>
-                  </blockquote>
-                )}
-              </article>
-            </section>
+            <Fragment key={ev.id}>
+              <section className="story-step" data-index={i}>
+                <article className={`story-card${i === active ? ' is-active' : ''}`}>
+                  <p className="story-eyebrow">{ev.period}</p>
+                  <h2 className="story-name">{ev.name}</h2>
+                  <p className="story-dek">{ev.dek}</p>
+                  <p className="story-body">{ev.body}</p>
+                  {ev.stat && (
+                    <p className="story-stat">
+                      <strong>{ev.stat.value}</strong> {ev.stat.label}
+                    </p>
+                  )}
+                  {ev.quote && (
+                    <blockquote className="story-quote">
+                      <p>“{ev.quote.text}”</p>
+                      <cite>
+                        — {ev.quote.speaker}
+                        {src && (
+                          <>
+                            {', '}
+                            <a href={src.url} target="_blank" rel="noreferrer">
+                              {src.publisher}
+                            </a>
+                          </>
+                        )}
+                      </cite>
+                    </blockquote>
+                  )}
+                </article>
+              </section>
+              {/* Full-screen interlude figure after the 1967 peak node. */}
+              {ev.id === 'peak' && agentSeries && (
+                <RainbowHerbicides years={agentSeries.years} series={agentSeries.series} />
+              )}
+            </Fragment>
           )
         })}
       </div>
