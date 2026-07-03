@@ -1,6 +1,7 @@
 /* Sticky-graphic scrollytelling: the map stays pinned while narrative steps
    scroll over it (Kontinentalist pattern). */
 .story {
+  --nav-w: 154px;
   position: relative;
   background: rgb(var(--paper));
 }
@@ -223,10 +224,134 @@
 
 /* ── timeline ruler: full-height 10-year scale + cumulative bars + scan ───
    A narrow left column, independent of the card; --bars-w is its widest bar. */
+/* ── persistent left navigation rail ──────────────────────────────────────
+   Always docked far-left across all acts. Its top "A Decade of Rain" marker
+   sits under the hero banner at the very top; the section list below jumps to
+   each part of the story. */
+.story-rail {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: var(--nav-w);
+  height: 100vh;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  color: #fff;
+  background: linear-gradient(180deg, #d1483c 0%, #df554a 34%, #e97a70 70%, #f2a69d 100%);
+  box-shadow: 2px 0 14px rgba(60, 20, 16, 0.16);
+}
+
+.story-rail-mark {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 20px 12px 16px;
+  color: #fff;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.story-rail-bio {
+  width: 28px;
+  height: 26px;
+  opacity: 0.96;
+}
+
+.story-rail-mark span {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  line-height: 1.35;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.story-rail-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 0 22px;
+  scrollbar-width: none;
+}
+.story-rail-body::-webkit-scrollbar {
+  display: none;
+}
+
+.story-rail-group {
+  padding: 11px 0 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+.story-rail-group:first-child {
+  border-top: none;
+}
+
+.story-rail-act {
+  margin: 0 0 4px;
+  padding: 0 14px;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 19px;
+  letter-spacing: 0.01em;
+  color: #fff;
+}
+
+.story-rail-group ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.story-rail-link {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  width: 100%;
+  padding: 6px 12px 6px 10px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  line-height: 1.28;
+  color: rgba(255, 255, 255, 0.74);
+  transition: color 0.15s, background 0.15s;
+}
+
+.story-rail-link:hover:not(.is-upcoming) {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.story-rail-link.is-on {
+  color: #fff;
+  font-weight: 700;
+}
+
+.story-rail-caret {
+  flex: none;
+  width: 8px;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.15s, transform 0.15s;
+}
+.story-rail-link.is-on .story-rail-caret {
+  opacity: 1;
+  transform: none;
+}
+
+.story-rail-link.is-upcoming {
+  color: rgba(255, 255, 255, 0.42);
+  cursor: default;
+}
+
 .timeline-ruler {
   --bars-w: 120px;
   position: fixed;
-  left: 0;
+  left: var(--nav-w); /* clear the persistent nav rail */
   top: 0;
   right: 0;
   height: 100vh;
@@ -504,8 +629,8 @@
   min-height: 100vh;
   display: flex;
   align-items: center;
-  /* Card sits clear of the ruler column (bars ≤120 + the running-total chip). */
-  padding: 0 6vw 0 232px;
+  /* Card sits clear of the nav rail + the ruler column (bars ≤120 + chip). */
+  padding: 0 6vw 0 calc(var(--nav-w) + 232px);
   pointer-events: none;
 }
 
@@ -789,17 +914,21 @@
 }
 
 @media (max-width: 640px) {
+  .story {
+    --nav-w: 0px;
+  }
+  .story-rail,
+  .timeline-ruler,
+  .timeline-cursor,
+  .map-key {
+    display: none;
+  }
   .story-step {
     align-items: flex-end;
     padding: 0 4vw 8vh;
   }
   .story-card {
     width: 100%;
-  }
-  .timeline-ruler,
-  .timeline-cursor,
-  .map-key {
-    display: none;
   }
 }
 
@@ -813,7 +942,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8vh 6vw;
+  padding: 8vh 6vw 8vh calc(6vw + var(--nav-w));
   background: rgb(var(--paper));
   pointer-events: auto;
 }
