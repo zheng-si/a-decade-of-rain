@@ -451,16 +451,15 @@ export default function Story() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Fade the banner's frosted veil with scroll: full at the top, gone by
-  // ~80% of a viewport. Opacity on a static backdrop-filter layer is a pure
-  // compositor change — no re-blur, no flicker.
+  // Dissolve the banner's frosted veil once the reader scrolls past ~35% of a
+  // viewport, and bring it back at the top. IMPORTANT: never fade this with
+  // opacity — opacity < 1 turns a backdrop-filter element into its own
+  // backdrop root and it instantly stops sampling the map (goes clear). The
+  // CSS transitions blur(N) -> blur(0) instead, which is animatable and, with
+  // a static backdrop, flicker-free.
   useEffect(() => {
     const onScroll = () => {
-      const el = veilRef.current
-      if (!el) return
-      const o = Math.max(0, 1 - window.scrollY / (window.innerHeight * 0.8))
-      el.style.opacity = o.toFixed(3)
-      el.style.visibility = o === 0 ? 'hidden' : 'visible' // free the layer when gone
+      veilRef.current?.classList.toggle('is-off', window.scrollY > window.innerHeight * 0.35)
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })

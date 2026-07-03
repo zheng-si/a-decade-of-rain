@@ -22,20 +22,34 @@
 /* ── banner frosted veil (inside the STICKY container) ─────────────────────
    Progressive top-heavy blur over the map, 24 → 16 → 10px via three masked
    layers. Because this sits in the sticky graphic it is STATIC relative to
-   the map it samples — the blur rasterizes once, and scrolling only fades it
-   (opacity set from JS). Never add transform/translateZ here, and never move
-   it into the scrolling hook: a backdrop-filter whose backdrop shifts under
-   it re-rasterizes every frame and flickers. */
+   the map it samples — no per-frame re-rasterization while scrolling.
+
+   Dissolve rules (learned the hard way):
+   - NEVER fade this with opacity: opacity < 1 makes a backdrop-filter element
+     its own backdrop root — it stops sampling the map and goes clear at once.
+   - NEVER add transform/translateZ, and never move it into the scrolling
+     hook: a shifting backdrop re-rasterizes every frame and flickers.
+   Instead, .is-off (set from a scroll listener) transitions the blur radius
+   itself to 0 — backdrop-filter is animatable — then a delayed visibility
+   flip frees the layers. */
 .story-map-veil {
   position: absolute;
   inset: 0;
   z-index: 1;
   pointer-events: none;
+  visibility: visible;
+  transition: visibility 0s;
+}
+
+.story-map-veil.is-off {
+  visibility: hidden;
+  transition: visibility 0s 0.75s; /* after the blur has dissolved */
 }
 
 .story-map-veil > div {
   position: absolute;
   inset: 0;
+  transition: -webkit-backdrop-filter 0.7s ease, backdrop-filter 0.7s ease;
 }
 
 .story-map-veil > div:nth-child(1) {
@@ -57,6 +71,11 @@
   backdrop-filter: blur(24px);
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 44%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 44%);
+}
+
+.story-map-veil.is-off > div {
+  -webkit-backdrop-filter: blur(0px);
+  backdrop-filter: blur(0px);
 }
 
 /* ── map markers: ONE system for every point/area callout ──────────────────
