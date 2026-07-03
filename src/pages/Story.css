@@ -1322,13 +1322,13 @@
 /* Vegetation fills (must match ecosystems.ts colours). The three palest
    families — forest, grassland, rubber — are deepened a touch from the raw
    Figma swatches so the legend chips and the selected map both read. */
-.vt-forest { fill: #9dbfab; }
+.vt-forest { fill: #8fb4a0; }
 .vt-slashburn { fill: #859f97; }
-.vt-grassland { fill: #c9dd95; }
+.vt-grassland { fill: #c3d888; }
 .vt-rice { fill: #544685; }
 .vt-mangrove { fill: #aba1cd; }
 .vt-marsh { fill: #61c1c2; }
-.vt-rubber { fill: #e4ca1c; }
+.vt-rubber { fill: #ddc21a; }
 
 .vt {
   transition: opacity 0.35s;
