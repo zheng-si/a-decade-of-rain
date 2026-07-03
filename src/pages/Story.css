@@ -1,7 +1,7 @@
 /* Sticky-graphic scrollytelling: the map stays pinned while narrative steps
    scroll over it (Kontinentalist pattern). */
 .story {
-  --nav-w: 80px;
+  --nav-w: 120px;
   position: relative;
   background: rgb(var(--paper));
 }
@@ -239,7 +239,11 @@
   flex-direction: column;
   color: #fff;
   background: linear-gradient(180deg, #d1483c 0%, #df554a 34%, #e97a70 70%, #f2a69d 100%);
-  box-shadow: 2px 0 14px rgba(60, 20, 16, 0.16);
+  /* Crisp divider between the rail and the year/volume ruler to its right:
+     a white hairline (reads on the crimson) plus a soft shadow (reads on the
+     pale ruler). */
+  border-right: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 1px 0 0 rgba(33, 53, 40, 0.14), 3px 0 12px rgba(60, 20, 16, 0.14);
 }
 
 .story-rail-mark {
@@ -318,7 +322,7 @@
   text-align: center;
   cursor: pointer;
   font-family: var(--font-sans);
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.32;
   color: rgba(255, 255, 255, 0.76);
   overflow-wrap: break-word;
