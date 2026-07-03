@@ -22,6 +22,7 @@ import RainCanvas from '../components/RainCanvas'
 import TimelineRuler from '../components/TimelineRuler'
 import MapKey from '../components/MapKey'
 import RainbowHerbicides, { type AgentSeries } from '../components/RainbowHerbicides'
+import EcosystemsFigure from '../components/EcosystemsFigure'
 import { readLabelGroups, setGroupVisible, normalizePlaceLabels } from '../components/labelLayers'
 import './Story.css'
 
@@ -637,10 +638,11 @@ export default function Story() {
                   )}
                 </article>
               </section>
-              {/* Full-screen interlude figure after the 1967 peak node. */}
+              {/* Full-screen interlude figures. */}
               {ev.id === 'peak' && agentSeries && (
                 <RainbowHerbicides years={agentSeries.years} series={agentSeries.series} />
               )}
+              {ev.id === 'mangroves' && <EcosystemsFigure />}
             </Fragment>
           )
         })}
