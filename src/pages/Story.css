@@ -19,6 +19,46 @@
   inset: 0;
 }
 
+/* ── banner frosted veil (inside the STICKY container) ─────────────────────
+   Progressive top-heavy blur over the map, 24 → 16 → 10px via three masked
+   layers. Because this sits in the sticky graphic it is STATIC relative to
+   the map it samples — the blur rasterizes once, and scrolling only fades it
+   (opacity set from JS). Never add transform/translateZ here, and never move
+   it into the scrolling hook: a backdrop-filter whose backdrop shifts under
+   it re-rasterizes every frame and flickers. */
+.story-map-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.story-map-veil > div {
+  position: absolute;
+  inset: 0;
+}
+
+.story-map-veil > div:nth-child(1) {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 78%, transparent 100%);
+}
+
+.story-map-veil > div:nth-child(2) {
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 46%, transparent 74%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 46%, transparent 74%);
+}
+
+.story-map-veil > div:nth-child(3) {
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 44%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 18%, transparent 44%);
+}
+
 /* ── map markers: ONE system for every point/area callout ──────────────────
    (spec: docs/design-system.md · “Map markers”)
 
@@ -320,15 +360,14 @@
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* Pure gradient veil — NO backdrop-filter anywhere in the banner. Every
-     blur layer re-rasterized its backdrop on each scroll frame, and that was
-     the flicker engine; a slightly stronger paper tint stands in for the
-     softening the blur used to provide. */
+  /* Paper tint only — the actual blur lives in .story-map-veil inside the
+     sticky graphic (static backdrop = no flicker); this scrolling layer must
+     stay a plain gradient. */
   background: linear-gradient(
     to bottom,
-    rgba(250, 249, 244, 0.78) 0%,
-    rgba(250, 249, 244, 0.42) 52%,
-    rgba(250, 249, 244, 0) 82%
+    rgba(250, 249, 244, 0.64) 0%,
+    rgba(250, 249, 244, 0.24) 52%,
+    rgba(250, 249, 244, 0) 80%
   );
 }
 
