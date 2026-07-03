@@ -293,7 +293,9 @@
   content: '';
   display: block;
   height: 1px;
-  margin: 4px 15px;
+  /* 13px margin + the 11px padding on the adjacent label/link = a 24px gap
+     on every side of every divider. */
+  margin: 13px 15px;
   background: rgba(255, 255, 255, 0.24);
 }
 
