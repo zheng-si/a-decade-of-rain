@@ -24,6 +24,7 @@ import MapKey from '../components/MapKey'
 import RainbowHerbicides, { type AgentSeries } from '../components/RainbowHerbicides'
 import EcosystemsFigure from '../components/EcosystemsFigure'
 import StoryNav from '../components/StoryNav'
+import heroSpray from '../assets/hero-spray.jpg'
 import { readLabelGroups, setGroupVisible, normalizePlaceLabels } from '../components/labelLayers'
 import './Story.css'
 
@@ -91,6 +92,7 @@ export default function Story() {
   const landmarksRef = useRef<FeatureCollection | null>(null)
   const landmarkMarkersRef = useRef<maplibregl.Marker[]>([])
   const veilRef = useRef<HTMLDivElement>(null)
+  const heroPhotoRef = useRef<HTMLDivElement>(null)
 
   const [active, setActive] = useState(0)
   const [started, setStarted] = useState(false)
@@ -490,7 +492,12 @@ export default function Story() {
   // a static backdrop, flicker-free.
   useEffect(() => {
     const onScroll = () => {
-      veilRef.current?.classList.toggle('is-off', window.scrollY > window.innerHeight * 0.35)
+      const past = window.scrollY > window.innerHeight * 0.35
+      veilRef.current?.classList.toggle('is-off', past)
+      // Fade the duotone hero photo out on the same beat, revealing the map
+      // for the scrollytelling. (Opacity on the PHOTO is fine — it isn't the
+      // backdrop-filter element; only the veil must never use opacity.)
+      heroPhotoRef.current?.classList.toggle('is-off', past)
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -567,6 +574,28 @@ export default function Story() {
 
       <div className="story-graphic">
         <div ref={containerRef} className="story-map" />
+        {/* Banner hero: the Ranch Hand spray photo, duotoned green→amber and
+            sitting BEHIND the frosted veil so the progressive blur applies to
+            it. Fades out on scroll to hand off to the live map. */}
+        <div
+          ref={heroPhotoRef}
+          className="story-hero-photo"
+          aria-hidden="true"
+          style={{ backgroundImage: `url(${heroSpray})` }}
+        />
+        <svg className="story-hero-defs" aria-hidden="true" focusable="false">
+          <filter id="hero-duotone" colorInterpolationFilters="sRGB">
+            <feColorMatrix
+              type="matrix"
+              values="0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0"
+            />
+            <feComponentTransfer>
+              <feFuncR type="table" tableValues="0.09 0.97" />
+              <feFuncG type="table" tableValues="0.20 0.63" />
+              <feFuncB type="table" tableValues="0.13 0.32" />
+            </feComponentTransfer>
+          </filter>
+        </svg>
         {/* Progressive frosted blur for the banner. It lives INSIDE the sticky
             container so it never moves relative to the map it blurs — the
             blurred result rasterizes once instead of every scroll frame (which
