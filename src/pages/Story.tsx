@@ -86,6 +86,7 @@ export default function Story() {
   const pulseRef = useRef<number | null>(null)
   const landmarksRef = useRef<FeatureCollection | null>(null)
   const landmarkMarkersRef = useRef<maplibregl.Marker[]>([])
+  const veilRef = useRef<HTMLDivElement>(null)
 
   const [active, setActive] = useState(0)
   const [started, setStarted] = useState(false)
@@ -450,6 +451,22 @@ export default function Story() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Fade the banner's frosted veil with scroll: full at the top, gone by
+  // ~80% of a viewport. Opacity on a static backdrop-filter layer is a pure
+  // compositor change — no re-blur, no flicker.
+  useEffect(() => {
+    const onScroll = () => {
+      const el = veilRef.current
+      if (!el) return
+      const o = Math.max(0, 1 - window.scrollY / (window.innerHeight * 0.8))
+      el.style.opacity = o.toFixed(3)
+      el.style.visibility = o === 0 ? 'hidden' : 'visible' // free the layer when gone
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   // Scrollama: each step drives the map.
   useEffect(() => {
     const scroller = scrollama()
@@ -519,6 +536,16 @@ export default function Story() {
 
       <div className="story-graphic">
         <div ref={containerRef} className="story-map" />
+        {/* Progressive frosted blur for the banner. It lives INSIDE the sticky
+            container so it never moves relative to the map it blurs — the
+            blurred result rasterizes once instead of every scroll frame (which
+            was the flicker). It fades out via opacity (compositor-only) as the
+            banner scrolls away; see the scroll effect below. */}
+        <div ref={veilRef} className="story-map-veil" aria-hidden="true">
+          <div />
+          <div />
+          <div />
+        </div>
       </div>
 
       <MapKey map={mapRef.current} ready={mapReady} started={started} />
