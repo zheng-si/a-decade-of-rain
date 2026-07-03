@@ -571,8 +571,6 @@
   line-height: var(--type-h1-lh);
   letter-spacing: 0.01em;
   color: #fff;
-  /* Legible over both the orange banner wash and the lighter paper tint. */
-  text-shadow: 0 1px 2px rgba(60, 20, 16, 0.35), 0 2px 14px rgba(60, 20, 16, 0.3);
   text-wrap: balance;
 }
 
@@ -583,7 +581,7 @@
   font-size: 21px;
   font-weight: 400;
   letter-spacing: 0.01em;
-  color: var(--ink);
+  color: #fff;
   text-wrap: balance;
 }
 
@@ -593,8 +591,7 @@
   font-weight: 300;
   font-size: var(--type-dek-size); /* one step down from lead per review */
   line-height: var(--type-lead-lh);
-  /* Full ink: --ink-soft lost too much contrast over the pink mid-wash. */
-  color: var(--ink);
+  color: #fff;
   /* No single-word orphan line ("by year."); falls back gracefully. */
   text-wrap: pretty;
 }
