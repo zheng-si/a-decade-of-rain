@@ -23,6 +23,8 @@ import TimelineRuler from '../components/TimelineRuler'
 import MapKey from '../components/MapKey'
 import RainbowHerbicides, { type AgentSeries } from '../components/RainbowHerbicides'
 import EcosystemsFigure from '../components/EcosystemsFigure'
+import ConsequencesInterlude from '../components/ConsequencesInterlude'
+import ActionsSection from '../components/ActionsSection'
 import StoryNav from '../components/StoryNav'
 import { readLabelGroups, setGroupVisible, normalizePlaceLabels } from '../components/labelLayers'
 import './Story.css'
@@ -658,6 +660,11 @@ export default function Story() {
         <div id="sec-ecosystems">
           <EcosystemsFigure />
         </div>
+
+        {/* Interlude + Act II. Skeleton editorial sections; details to be
+            refined. Each renders its own id'd .story-fullscreen. */}
+        <ConsequencesInterlude />
+        <ActionsSection />
       </div>
     </div>
   )
