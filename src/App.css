@@ -1,23 +1,62 @@
-/* Cartographic-editorial design system, matched to the Figma redesign:
-   warm near-white paper, muted ink, hairline rules, one restrained red accent. */
+/* ══════════════════════════════════════════════════════════════════════════
+   DESIGN TOKENS — the single sheet to edit for colours and type.
+   Full spec + contrast table: docs/design-system.md
+   (fonts are declared in src/fonts.css: --font-sans Switzer, --font-serif
+   Gambarino)
+   ══════════════════════════════════════════════════════════════════════════ */
 :root {
+  /* ── surfaces ─────────────────────────────────────────────────────────── */
   --paper: 250, 249, 244; /* warm near-white (rgb tuple for alpha use) */
   --paper-solid: #fdfdfd;
-  /* Forest-green ink scale (from the brand palette). */
-  --ink: #213528; /* deep forest — primary text & dark surfaces */
-  --ink-soft: #4e6355;
-  --ink-faint: #647468; /* darkened for WCAG AA small text on paper (4.7:1) */
-  --rule: #dfe3d9;
-  --accent: #ff5449; /* brand orange — graphics only (dots, rings, heat) */
-  --accent-bright: #ff7a70; /* accent TEXT on dark forest surfaces (5.2:1) */
-  --accent-deep: #cf3720; /* accent TEXT on paper; matches heat-ramp deep end (4.7:1) */
-  --accent-line: #e8443a; /* map linework on paper — non-text >=3:1 (3.5:1) */
-  /* Dark forest surfaces (story cards) + the light text that sits on them. */
-  --forest: #213528;
-  --forest-2: #2c3730;
-  --forest-text: #e8ece6;
-  --forest-text-soft: #b4ccba;
-  --mint: #92f7bc;
+  --forest: #213528; /* dark surface: story cards, stat pills */
+  --forest-2: #2c3730; /* raised dark surface (stat pill bg) */
+
+  /* ── ink (text on paper) ──────────────────────────────────────────────── */
+  --ink: #213528; /* headings & primary text · 12.4:1 on paper */
+  --ink-soft: #4e6355; /* secondary text, UI labels · 6.2:1 */
+  --ink-faint: #647468; /* captions, smallest text · 4.7:1 (AA floor for small) */
+  --rule: #dfe3d9; /* hairline dividers */
+
+  /* ── text on forest (dark cards) ──────────────────────────────────────── */
+  --forest-text: #e8ece6; /* primary · 11.0:1 */
+  --forest-text-soft: #b4ccba; /* secondary · 7.7:1 */
+  --mint: #92f7bc; /* decorative borders only (never text) */
+
+  /* ── accent family (brand orange) — one hue, four jobs ────────────────────
+     GRAPHICS get the vivid brand tone; TEXT gets a tuned tone per surface so
+     white/orange pairs pass WCAG AA. Change the hue here, re-check ratios. */
+  --accent: #ff5449; /* GEOMETRY: dots, pulse rings, heat, rain */
+  --accent-chip: #d63328; /* CHIP FILL behind white text · 4.8:1 */
+  --accent-bright: #ff7a70; /* accent TEXT on forest surfaces · 5.2:1 */
+  --accent-deep: #cf3720; /* accent TEXT on paper (= heat-ramp deep end) · 4.7:1 */
+  --accent-line: #e8443a; /* map linework on paper · 3.5:1 (non-text ≥3) */
+
+  /* ── type scale ────────────────────────────────────────────────────────
+     h1  hook banner title        serif
+     h2  story-card title         serif
+     h3  story-card period/eyebrow serif, accent
+     lead hook dek                sans light
+     dek  card dek                sans medium
+     body card body               sans light
+     quote pull quote             serif
+     caption UI small print       sans
+     chip map label chips         sans semibold */
+  --type-h1-size: clamp(44px, 8vw, 92px);
+  --type-h1-lh: 1.02;
+  --type-h2-size: 26px;
+  --type-h2-lh: 1.14;
+  --type-h3-size: 23px;
+  --type-lead-size: 16px;
+  --type-lead-lh: 1.68;
+  --type-dek-size: 15px;
+  --type-dek-lh: 1.4;
+  --type-body-size: 14px;
+  --type-body-lh: 1.65;
+  --type-quote-size: 17px;
+  --type-quote-lh: 1.35;
+  --type-caption-size: 12px;
+  --type-chip-size: 11px;
+  --type-chip-weight: 600;
 }
 
 .app {

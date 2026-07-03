@@ -122,11 +122,11 @@ export default function Story() {
     if (!crosses) return
     for (const c of crosses) {
       const el = document.createElement('div')
-      el.className = c.leader ? 'pilot-dot pilot-dot--leader' : c.below ? 'pilot-dot pilot-dot--below' : 'pilot-dot'
+      el.className = c.leader ? 'map-dot map-dot--leader' : c.below ? 'map-dot map-dot--below' : 'map-dot'
       if (c.leader) el.style.setProperty('--leader', `${c.leader}px`)
       el.innerHTML =
-        '<span class="pilot-dot-ring"></span><span class="pilot-dot-core"></span>' +
-        `<span class="pilot-dot-label">${c.label}</span>`
+        '<span class="map-dot-ring"></span><span class="map-dot-core"></span>' +
+        `<span class="map-dot-label">${c.label}</span>`
       crossMarkersRef.current.push(new maplibregl.Marker({ element: el }).setLngLat([c.lng, c.lat]).addTo(map))
     }
   }
@@ -205,16 +205,20 @@ export default function Story() {
     if (feats.length) startPulse()
     else stopPulse()
     // Labels/markers — HTML chips (map glyphs lack Vietnamese diacritics).
+    // Point landmarks use the same pulsing dot + pointer chip as test-spray
+    // sites; boundary landmarks float a pointer-less chip (the pulsing outline
+    // is the pointer).
     for (const l of landmarks) {
       if (!l.point) continue
       const el = document.createElement('div')
       if (l.boundaryId) {
-        // Boundary already outlines the area — just float its name chip.
-        el.className = 'landmark-pt landmark-pt--area'
-        el.innerHTML = `<span class="landmark-pt-label">${l.name}</span>`
+        el.className = 'map-area-label'
+        el.innerHTML = `<span class="map-dot-label">${l.name}</span>`
       } else {
-        el.className = 'landmark-pt'
-        el.innerHTML = '<span class="landmark-pt-ring"></span>' + `<span class="landmark-pt-label">${l.name}</span>`
+        el.className = 'map-dot'
+        el.innerHTML =
+          '<span class="map-dot-ring"></span><span class="map-dot-core"></span>' +
+          `<span class="map-dot-label">${l.name}</span>`
       }
       landmarkMarkersRef.current.push(new maplibregl.Marker({ element: el }).setLngLat(l.point).addTo(map))
     }
