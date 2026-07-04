@@ -1994,33 +1994,92 @@
   border-left: 0;
 }
 
-.act2-hotspots {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
+/* Base switcher tabs, in the Act I agent-chip language: paper pill, status
+   dot, active = filled with the status colour. */
+.act2-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+.act2-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: rgba(var(--paper), 0.5);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.act2-tab:hover {
+  border-color: #cfccc0;
+}
+.act2-tab.is-completed {
+  --tab: #3f8f5f;
+}
+.act2-tab.is-ongoing {
+  --tab: var(--accent-deep);
+}
+.act2-tab.is-contained {
+  --tab: #5a7ca8;
+}
+.act2-tab-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--tab);
+  flex: none;
+}
+.act2-tab.is-on {
+  background: var(--tab);
+  border-color: var(--tab);
+  color: #fff;
+}
+.act2-tab.is-on .act2-tab-dot {
+  background: #fff;
 }
 
+/* Volume bar under the contamination fact: orange on the shared 0–500k m³
+   scale, echoing the ecosystems figure's sprayed-area bars. */
+.act2-volbar {
+  margin-top: 6px;
+  height: 9px;
+  background: var(--rule);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.act2-volbar i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px 0 0 2px;
+}
+
+@keyframes act2-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 .act2-card {
   display: flex;
   flex-direction: column;
-  padding: 14px 16px 12px;
+  max-width: 560px;
+  padding: 16px 18px 14px;
+  animation: act2-card-in 0.28s ease;
   background: var(--paper-solid);
   border: 1px solid var(--rule);
   border-top: 3px solid var(--ink-faint);
   border-radius: 5px;
-  transition: box-shadow 0.2s, transform 0.2s;
-}
-.act2-card.is-active.is-completed {
-  box-shadow: 0 0 0 2px #3f8f5f, 0 6px 18px rgba(63, 143, 95, 0.18);
-}
-.act2-card.is-active.is-ongoing {
-  box-shadow: 0 0 0 2px var(--accent-deep), 0 6px 18px rgba(207, 55, 32, 0.16);
-}
-.act2-card.is-active.is-contained {
-  box-shadow: 0 0 0 2px #5a7ca8, 0 6px 18px rgba(90, 124, 168, 0.18);
 }
 .act2-card.is-completed {
   border-top-color: #3f8f5f;
@@ -2129,8 +2188,8 @@
 }
 
 .act2-closing {
-  margin: 0 0 18px;
-  max-width: 760px;
+  margin: 20px 0 12px;
+  max-width: 560px;
   font-family: var(--font-serif);
   font-size: clamp(18px, 2.2vw, 24px);
   line-height: 1.4;
