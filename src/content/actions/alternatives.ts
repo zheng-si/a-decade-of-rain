@@ -33,7 +33,7 @@ export const ALT_FAMILIES: Record<AltFamily, { title: string; blurb: string; met
   hybrid: {
     title: 'Hybrid',
     blurb: 'Split the soil by concentration: contain what sits below a dioxin threshold, treat the worst of it thermally.',
-    methodChips: ['Landfill + Ex Situ Tch · 2500 PPT', 'Landfill + Ex Situ Tch · 1200 PPT'],
+    methodChips: ['Landfill + Ex Situ Tch'],
   },
   treatment: {
     title: 'Treatment only',
