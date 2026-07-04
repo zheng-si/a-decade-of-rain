@@ -1788,7 +1788,7 @@
 .wall-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 12px; /* card-grid gap, matched site-wide (methods stage sets the reference) */
 }
 .wall-tile {
   position: relative;
@@ -2004,8 +2004,8 @@
   padding: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(240px, 300px));
-  gap: 20px;
-  align-items: start;
+  gap: 12px;
+  align-items: stretch;
 }
 
 /* Volume bar under the contamination fact: orange on the shared 0–500k m³
@@ -2027,6 +2027,9 @@
 .act2-card {
   display: flex;
   flex-direction: column;
+  /* One fixed floor for both faces, sized to the tallest data face, so a card
+     doesn't change height when it flips and open/rest cards always line up. */
+  min-height: 468px;
   padding: 22px 20px 16px;
   cursor: pointer;
   background: var(--paper-solid);
@@ -2054,8 +2057,9 @@
 .act2-photo-face {
   position: relative;
   width: 100%;
-  min-height: 430px;
-  height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 .act2-photo {
   position: absolute;
@@ -2081,8 +2085,7 @@
 }
 .act2-photo-copy {
   position: relative;
-  height: 100%;
-  min-height: 430px;
+  flex: 1;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -2126,7 +2129,7 @@
 .act2-data-face {
   display: flex;
   flex-direction: column;
-  height: 100%;
+  flex: 1;
 }
 .act2-card.is-completed {
   border-top-color: #3f8f5f;
@@ -2224,7 +2227,9 @@
 }
 
 .act2-card-note {
-  margin: 0;
+  /* Pinned to the card's bottom edge, so a stretched card leaves its slack
+     between the facts and the note rather than below it. */
+  margin: auto 0 0;
   padding-top: 10px;
   border-top: 1px solid var(--rule);
   font-size: 11.5px;
@@ -2258,7 +2263,7 @@
   padding: 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 12px; /* card-grid gap, matched site-wide */
 }
 .alt-family {
   position: relative;
