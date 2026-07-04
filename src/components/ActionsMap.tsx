@@ -12,16 +12,17 @@ const PIN_PX: Record<string, [number, number]> = {
   bienhoa: [395, 527],
 }
 
-// Label placement per pin: which side of the dot the text sits on.
-const LABEL_SIDE: Record<string, 'left' | 'right'> = {
+// Which side of the dot the label chip sits on (right chips would run off the
+// traced map's eastern edge for the two coastal bases).
+const CHIP_SIDE: Record<string, 'left' | 'right'> = {
   danang: 'left',
   phucat: 'left',
   bienhoa: 'left',
 }
 
-// Act II locator: the three dioxin hotspot air bases pinned on the same
-// redrawn wartime vegetation map used in Act I. Static by design; it orients
-// the reader, the interactive map already lives in Act I.
+// Act II locator, styled after the Figma design: the traced wartime vegetation
+// map washed to a light sage, with red dot-and-chip pins for the three bases.
+// Static by design; the interactive map is Act I's job.
 export default function ActionsMap() {
   return (
     <figure
@@ -31,37 +32,23 @@ export default function ActionsMap() {
     >
       <div className="act2-map-veg" aria-hidden="true" dangerouslySetInnerHTML={{ __html: vegRaw }} />
 
-      <svg className="act2-map-pins" viewBox="0 0 494 750" aria-hidden="true">
+      <div className="act2-pins" aria-hidden="true">
         {HOTSPOTS.map((h) => {
           const px = PIN_PX[h.key]
           if (!px) return null
           const [x, y] = px
-          const side = LABEL_SIDE[h.key]
-          const s = h.status.toLowerCase()
           return (
-            <g key={h.key} className={`act2-svgpin is-${s}`}>
-              <circle className="act2-svgpin-ring" cx={x} cy={y} r={11} />
-              <circle className="act2-svgpin-dot" cx={x} cy={y} r={5.5} />
-              <text
-                className="act2-svgpin-name"
-                x={side === 'left' ? x - 17 : x + 17}
-                y={y - 1}
-                textAnchor={side === 'left' ? 'end' : 'start'}
-              >
-                {h.name}
-              </text>
-              <text
-                className="act2-svgpin-status"
-                x={side === 'left' ? x - 17 : x + 17}
-                y={y + 13}
-                textAnchor={side === 'left' ? 'end' : 'start'}
-              >
-                {h.status} · {h.statusYear}
-              </text>
-            </g>
+            <div
+              key={h.key}
+              className="act2-pin"
+              style={{ left: `${(x / 494) * 100}%`, top: `${(y / 750) * 100}%` }}
+            >
+              <span className={`act2-chip is-${CHIP_SIDE[h.key]}`}>{h.name} Airbase</span>
+              <i className="act2-dot" />
+            </div>
           )
         })}
-      </svg>
+      </div>
     </figure>
   )
 }

@@ -1874,7 +1874,8 @@
   top: 74px;
 }
 
-/* SVG locator: the Act I vegetation tracing, muted, with pins drawn on top. */
+/* SVG locator, styled after the Figma design: the Act I vegetation tracing
+   washed to a light sage, with red dot-and-chip pins on top. */
 .act2-map-fig {
   position: relative;
   margin: 0;
@@ -1885,63 +1886,84 @@
   width: 100%;
   height: auto;
 }
-/* Mute the vegetation colours so the status pins carry the figure. */
-.act2-map-veg .vt {
-  opacity: 0.34;
+/* Wash the vegetation types to near-monochrome sage, per the design. */
+.act2-map-veg .vt-forest {
+  fill: #d3e2d8;
 }
-.act2-map-pins {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+.act2-map-veg .vt-slashburn {
+  fill: #dae7de;
+}
+.act2-map-veg .vt-grassland {
+  fill: #e0ebe4;
+}
+.act2-map-veg .vt-rice {
+  fill: #cfdfd5;
+}
+.act2-map-veg .vt-mangrove {
+  fill: #d7e5dc;
+}
+.act2-map-veg .vt-marsh {
+  fill: #dde9e1;
+}
+.act2-map-veg .vt-rubber {
+  fill: #e3ede7;
 }
 
-.act2-svgpin-ring {
-  fill: none;
-  stroke-width: 1.4;
-  opacity: 0.55;
+.act2-pins {
+  position: absolute;
+  inset: 0;
 }
-.act2-svgpin-dot {
-  stroke: #fff;
-  stroke-width: 2;
+.act2-pin {
+  position: absolute;
 }
-.act2-svgpin.is-completed .act2-svgpin-dot,
-.act2-svgpin.is-completed .act2-svgpin-ring {
-  fill: #3f8f5f;
-  stroke: #3f8f5f;
+.act2-dot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #ff5449;
+  border: 2.5px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.28), 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
-.act2-svgpin.is-ongoing .act2-svgpin-dot,
-.act2-svgpin.is-ongoing .act2-svgpin-ring {
-  fill: var(--accent-deep);
-  stroke: var(--accent-deep);
-}
-.act2-svgpin.is-contained .act2-svgpin-dot,
-.act2-svgpin.is-contained .act2-svgpin-ring {
-  fill: #5a7ca8;
-  stroke: #5a7ca8;
-}
-.act2-svgpin .act2-svgpin-dot {
-  stroke: #fff;
-}
-.act2-svgpin-name {
-  font-family: var(--font-sans);
-  font-size: 15px;
+.act2-chip {
+  position: absolute;
+  top: 0;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  padding: 5px 11px;
+  font-size: 12px;
   font-weight: 700;
-  fill: var(--ink);
-  paint-order: stroke;
-  stroke: #f4f2ea;
-  stroke-width: 4;
-  stroke-linejoin: round;
+  color: #fff;
+  background: #ff5449;
+  border-radius: 4px;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.2);
 }
-.act2-svgpin-status {
-  font-family: var(--font-sans);
-  font-size: 11.5px;
-  font-weight: 600;
-  fill: var(--ink-faint);
-  paint-order: stroke;
-  stroke: #f4f2ea;
-  stroke-width: 3.5;
-  stroke-linejoin: round;
+.act2-chip.is-left {
+  right: 15px;
+}
+.act2-chip.is-right {
+  left: 15px;
+}
+.act2-chip.is-left::after,
+.act2-chip.is-right::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+}
+.act2-chip.is-left::after {
+  left: 100%;
+  border-left: 6px solid #ff5449;
+  border-right: 0;
+}
+.act2-chip.is-right::after {
+  right: 100%;
+  border-right: 6px solid #ff5449;
+  border-left: 0;
 }
 
 .act2-hotspots {
@@ -2113,153 +2135,239 @@
   color: var(--ink-soft);
 }
 
-/* The comparison chart: two stacked panels over one shared column grid. */
+/* The comparison chart, reproducing the Figma design: one plot, a grey cost
+   bar + red CO2 bar per option, twin axes, sage family bands, reveal button. */
 .alt-chart {
+  --alt-gutter-l: 64px;
+  --alt-gutter-r: 88px;
   margin: 0 0 20px;
 }
 
+/* Header arrow: text above a grey-to-red gradient line with a red head. */
 .alt-arrow {
-  position: relative;
-  margin: 0 0 14px;
+  margin: 0 var(--alt-gutter-r) 16px var(--alt-gutter-l);
   text-align: center;
 }
 .alt-arrow span {
-  position: relative;
   display: inline-block;
-  padding: 0 12px;
-  font-size: 11.5px;
+  margin-bottom: 8px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--accent-deep);
-  background: rgb(var(--paper));
+  color: #ff564b;
 }
-.alt-arrow::before {
+.alt-arrow-line {
+  position: relative;
+  height: 2.5px;
+  background: linear-gradient(90deg, #b9beba 0%, #e2766b 55%, #ff5449 100%);
+}
+.alt-arrow-line::after {
   content: '';
   position: absolute;
-  left: 0;
-  right: 0;
+  right: -1px;
   top: 50%;
-  border-top: 1.5px solid var(--accent-deep);
-}
-.alt-arrow::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 50%;
-  width: 8px;
-  height: 8px;
-  border-top: 1.5px solid var(--accent-deep);
-  border-right: 1.5px solid var(--accent-deep);
-  transform: translateY(-50%) rotate(45deg);
-  transform-origin: center;
+  transform: translateY(-50%);
+  border: 7px solid transparent;
+  border-left: 11px solid #ff5449;
+  border-right: 0;
 }
 
-.alt-groups {
+/* Axis titles + family labels row, sharing the plot gutters. */
+.alt-gheads {
   display: flex;
-  gap: 10px;
-  margin: 0 0 10px;
+  align-items: flex-end;
+  gap: 0;
+  margin: 0 0 8px;
 }
-.alt-group {
-  padding: 4px 0 6px;
+.alt-axis-title {
+  flex: 0 0 var(--alt-gutter-l);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: #58615a;
+}
+.alt-axis-title.is-co2 {
+  flex: 0 0 var(--alt-gutter-r);
+  color: #ff5449;
+  text-align: right;
+}
+.alt-axis-title em {
+  display: block;
+  font-style: normal;
+  font-weight: 600;
   font-size: 10.5px;
+  opacity: 0.85;
+}
+.alt-ghead {
+  padding: 0 0 2px;
+  font-size: 12.5px;
   font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
   text-align: center;
-  color: var(--ink-faint);
-  border-bottom: 1px solid var(--rule);
+}
+.alt-ghead.is-containment {
+  color: #9dbda7;
+}
+.alt-ghead.is-hybrid {
+  color: #85a08d;
+}
+.alt-ghead.is-treatment {
+  color: #677c6d;
 }
 
-.alt-panel {
-  margin: 0 0 6px;
-}
-.alt-panel-name {
-  margin: 10px 0 6px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-.alt-bars {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-  align-items: end;
-  height: 150px;
-  border-bottom: 1.5px solid var(--ink-faint);
-}
-.alt-bar-cell {
+/* The plot: axes flank six family-tinted columns; bars overflow the top
+   line on purpose (incineration), as in the design. */
+.alt-chartgrid {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-end;
-  height: 100%;
-  transition: opacity 0.25s;
 }
-.alt-bar-cell.is-dim {
-  opacity: 0.32;
-}
-.alt-bar-value {
-  margin-bottom: 4px;
+.alt-axis {
+  position: relative;
+  flex: 0 0 var(--alt-gutter-l);
   font-size: 12px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--ink);
 }
-.alt-bar {
-  width: min(58px, 72%);
+.alt-axis.is-co2 {
+  flex: 0 0 var(--alt-gutter-r);
 }
-.alt-panel.is-cost .alt-bar {
-  background: #51625a;
+.alt-axis span {
+  position: absolute;
+  transform: translateY(50%);
+  color: #58615a;
 }
-.alt-panel.is-co2 .alt-bar {
-  background: var(--accent-deep);
+.alt-axis.is-cost span {
+  right: 12px;
+}
+.alt-axis.is-co2 span {
+  left: 12px;
+  color: #ff5449;
 }
 
+.alt-plot {
+  position: relative;
+  flex: 1;
+  display: flex;
+  height: 280px;
+  border-bottom: 1.5px solid #aebfb2;
+}
+.alt-glines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.alt-glines i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.75);
+}
+.alt-glines i.is-major {
+  background: #fff;
+}
+
+.alt-cell {
+  position: relative;
+  flex: 1;
+  border-right: 1.5px solid #fff;
+}
+.alt-cell:last-child {
+  border-right: none;
+}
+.alt-cell.is-containment {
+  background: #edf3ee;
+}
+.alt-cell.is-hybrid {
+  background: #e8f0ea;
+}
+.alt-cell.is-treatment {
+  background: #e2ece5;
+}
+
+.alt-pair {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 7px;
+  transition: opacity 0.25s;
+}
+.alt-pair i {
+  width: 15px;
+}
+.alt-pair i.is-cost {
+  background: #5d5f5c;
+}
+.alt-pair i.is-co2 {
+  background: #ff5449;
+}
+.alt-chart.is-revealed .alt-cell:not(.is-adopted) .alt-pair {
+  opacity: 0.3;
+}
+.alt-chart.is-revealed .alt-cell.is-adopted {
+  box-shadow: inset 0 0 0 2px #5abe88;
+}
+
+/* Column labels under the plot. */
 .alt-xlabels {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-  margin: 8px 0 0;
+  display: flex;
+  margin: 10px var(--alt-gutter-r) 0 var(--alt-gutter-l);
 }
 .alt-xlabel {
-  font-size: 11.5px;
-  line-height: 1.35;
+  flex: 1;
+  padding: 2px 6px 0;
+  font-size: 12px;
+  line-height: 1.4;
   text-align: center;
-  color: var(--ink-soft);
+  color: #444844;
+  border-right: 1px solid #e3eae4;
+}
+.alt-xlabel:last-child {
+  border-right: none;
+}
+.alt-xlabel span {
+  display: block;
+}
+.alt-xlabel strong {
+  font-weight: 700;
 }
 .alt-xlabel em {
   display: block;
   margin-top: 3px;
   font-style: normal;
   font-weight: 700;
-  color: var(--accent-deep);
+  color: #ff5449;
 }
 .alt-xlabel.is-adopted {
-  color: var(--ink);
   font-weight: 600;
+  color: var(--ink);
 }
 
+/* Full-width USAID reveal button, as drawn in the design. */
 .alt-reveal {
-  margin: 22px 0 0;
-  text-align: center;
+  margin: 18px var(--alt-gutter-r) 0 var(--alt-gutter-l);
 }
 .alt-reveal-btn {
-  padding: 9px 20px;
+  display: block;
+  width: 100%;
+  padding: 12px 20px;
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--accent-deep);
-  background: var(--paper-solid);
-  border: 1.5px solid var(--accent-deep);
-  border-radius: 999px;
+  text-transform: capitalize;
+  color: #3f9e6c;
+  background: #fff;
+  border: 1px solid #5abe88;
+  border-radius: 5px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 .alt-reveal-btn:hover {
-  background: var(--accent-deep);
+  background: #5abe88;
   color: #fff;
 }
 .alt-reveal-note {
@@ -2267,6 +2375,7 @@
   max-width: 560px;
   font-size: 13px;
   line-height: 1.55;
+  text-align: center;
   color: var(--ink-soft);
 }
 
