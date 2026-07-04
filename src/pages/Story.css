@@ -2485,7 +2485,11 @@
 /* Full-width USAID reveal button; once revealed it becomes the green
    screening banner with a verdict row aligned to the chart columns. */
 .alt-reveal {
-  margin: 18px var(--alt-gutter-r) 0 var(--alt-gutter-l);
+  margin: 12px var(--alt-gutter-r) 0 var(--alt-gutter-l);
+}
+.alt-note {
+  margin: 0 0 12px;
+  max-width: none;
 }
 /* Primary button at rest (green, white text); once revealed it flips to a
    white banner with green text. */

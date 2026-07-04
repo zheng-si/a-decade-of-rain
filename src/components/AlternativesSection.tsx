@@ -171,6 +171,14 @@ export default function AlternativesSection() {
           </div>
 
           <figcaption className="alt-reveal">
+            <p className="fs-note alt-note">
+              {ALTS.note}{' '}
+              {src && (
+                <a href={src.url} target="_blank" rel="noreferrer">
+                  {src.publisher}
+                </a>
+              )}
+            </p>
             <button
               type="button"
               className={`alt-reveal-btn${revealed ? ' is-banner' : ''}`}
@@ -196,15 +204,6 @@ export default function AlternativesSection() {
             </div>
           </figcaption>
         </figure>
-
-        <p className="fs-note">
-          {ALTS.note}{' '}
-          {src && (
-            <a href={src.url} target="_blank" rel="noreferrer">
-              {src.publisher}
-            </a>
-          )}
-        </p>
       </div>
     </section>
   )
