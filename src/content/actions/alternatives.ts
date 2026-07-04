@@ -18,22 +18,27 @@ export interface Alternative {
   family: AltFamily
   costM: number
   co2Kt: number
-  /** USAID's chosen approach at Biên Hòa. */
-  adopted?: boolean
+  /** Survived USAID's screening (with the two hybrids, the shortlist). */
+  retained: boolean
+  /** Why the alternative was screened out, for the reveal row. */
+  screenNote?: string
 }
 
-export const ALT_FAMILIES: Record<AltFamily, { title: string; blurb: string }> = {
+export const ALT_FAMILIES: Record<AltFamily, { title: string; blurb: string; methods: string }> = {
   containment: {
     title: 'Containment only',
     blurb: 'Seal everything in an engineered landfill. Cheapest and quickest, but the dioxin is isolated, not destroyed.',
+    methods: 'On the chart: Landfill',
   },
   hybrid: {
     title: 'Hybrid',
     blurb: 'Split the soil by concentration: contain what sits below a dioxin threshold, treat the worst of it thermally.',
+    methods: 'On the chart: Landfill + Ex Situ Tch, split at 2500 or 1200 PPT',
   },
   treatment: {
     title: 'Treatment only',
     blurb: 'Destroy the dioxin in every cubic metre, whatever its concentration. The most thorough and by far the most expensive.',
+    methods: 'On the chart: Incineration · Ex Situ Tch · MCD',
   },
 }
 
@@ -46,6 +51,7 @@ export const ALTERNATIVES: Alternative[] = [
     family: 'containment',
     costM: 135,
     co2Kt: 19,
+    retained: true,
   },
   {
     key: 'hybrid2500',
@@ -55,6 +61,7 @@ export const ALTERNATIVES: Alternative[] = [
     family: 'hybrid',
     costM: 240,
     co2Kt: 33,
+    retained: true,
   },
   {
     key: 'hybrid1200',
@@ -64,7 +71,7 @@ export const ALTERNATIVES: Alternative[] = [
     family: 'hybrid',
     costM: 335,
     co2Kt: 52,
-    adopted: true,
+    retained: true,
   },
   {
     key: 'incineration',
@@ -74,6 +81,8 @@ export const ALTERNATIVES: Alternative[] = [
     family: 'treatment',
     costM: 665,
     co2Kt: 79,
+    retained: false,
+    screenNote: 'Cost and energy waste are too high; the offgas emissions might raise public concern.',
   },
   {
     key: 'thermal',
@@ -83,6 +92,8 @@ export const ALTERNATIVES: Alternative[] = [
     family: 'treatment',
     costM: 535,
     co2Kt: 62,
+    retained: false,
+    screenNote: 'Building the facilities is time-consuming and hard to apply at whole-site scale.',
   },
   {
     key: 'mcd',
@@ -92,6 +103,8 @@ export const ALTERNATIVES: Alternative[] = [
     family: 'treatment',
     costM: 600,
     co2Kt: 31,
+    retained: false,
+    screenNote: 'The technology is immature.',
   },
 ]
 
@@ -101,9 +114,9 @@ export const ALTS = {
   dek: 'For Biên Hòa, USAID weighed six ways to deal with half a million cubic metres of contaminated soil. They fall into three families: contain it all, destroy it all, or split the difference.',
   chartTitle: 'What each alternative costs, and what it emits',
   arrow: 'Increasing cost and complexity',
-  revealLabel: 'Find out what alternatives USAID adopt',
-  revealNote:
-    'USAID chose the hybrid path: soil above the treatment threshold is heated to destroy the dioxin, the rest is sealed in an engineered landfill on site.',
+  revealLabel: 'Find out what alternatives USAID retained',
+  revealBanner: 'After screening, 3 alternatives are retained',
+  retainedLabel: 'Retained',
   note: 'Cost and CO2 figures are rounded, indicative values from the USAID environmental assessment for Biên Hòa, for comparing alternatives rather than quoting budgets.',
   sourceId: 'usembassy_bienhoa',
 }
