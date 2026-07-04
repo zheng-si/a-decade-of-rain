@@ -38,7 +38,7 @@ export const HOTSPOTS: Hotspot[] = [
     volume: '~90,000 m³ soil treated · ~50,000 m³ contained',
     cost: '≈ US$110 million',
     timeline: '2012 – 2018',
-    method: 'In-pile thermal desorption — the soil heated to ~335 °C to break the dioxin down',
+    method: 'In-pile thermal desorption: the soil was heated to ~335 °C to break the dioxin down',
     note: 'The first full-scale dioxin cleanup; the treated soil was reused as fill for the airport expansion.',
     sourceId: 'usaid_danang',
   },
@@ -49,7 +49,7 @@ export const HOTSPOTS: Hotspot[] = [
     lngLat: [106.818, 10.976],
     status: 'Ongoing',
     statusYear: 'since 2019',
-    volume: '~500,000 m³ — the largest hotspot, roughly 4× Đà Nẵng',
+    volume: '~500,000 m³, the largest hotspot, roughly 4× Đà Nẵng',
     cost: '≈ US$450 million (planned)',
     timeline: '2019 – ~2030 (est.)',
     method: 'Excavation with thermal treatment and secure, engineered containment',
@@ -66,7 +66,7 @@ export const HOTSPOTS: Hotspot[] = [
     volume: '~7,500 m³ isolated in an engineered landfill',
     cost: 'Vietnam · UNDP / GEF',
     timeline: '2011 – 2012',
-    method: 'Active containment — the dioxin sealed in a lined, capped landfill on site',
+    method: 'Active containment: the dioxin sealed in a lined, capped landfill on site',
     note: 'Contained rather than destroyed, and taken off the active hotspot list.',
     sourceId: 'undp_hotspots',
   },
@@ -75,8 +75,8 @@ export const HOTSPOTS: Hotspot[] = [
 export const ACTIONS = {
   eyebrow: 'Act II · The actions',
   title: 'Cleaning It Up',
-  dek: 'The herbicide fell across a quarter of the country, but the dioxin concentrated in a few small places — the former U.S. air bases where it was stored, mixed, spilled and burned. Half a century later, those few hectares are the front line: a slow, costly and still-unfinished cleanup run jointly by Vietnam and the United States.',
+  dek: 'The herbicide fell across a quarter of the country, but the dioxin concentrated in a few small places: the former U.S. air bases where it was stored, mixed, spilled and burned. Half a century later, those few hectares are the front line, a slow, costly and still-unfinished cleanup run jointly by Vietnam and the United States.',
   closing:
-    'Đà Nẵng is finished. Phú Cát is sealed. Biên Hòa — the largest by far — is the unfinished chapter, and the one whose future now turns on whether the money holds.',
+    'Đà Nẵng is finished. Phú Cát is sealed. Biên Hòa, the largest by far, is the unfinished chapter, and the one whose future now turns on whether the money holds.',
   note: 'Figures from USAID and U.S. Embassy Vietnam fact sheets and the UNDP three-hotspots report. Costs and volumes are widely cited public estimates; Biên Hòa’s timeline is uncertain.',
 }
