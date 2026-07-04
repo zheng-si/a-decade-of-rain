@@ -1,9 +1,9 @@
 import { ACTIONS, HOTSPOTS } from '../content/actions/hotspots'
 import { SOURCES } from '../content/sources'
+import ActionsMap from './ActionsMap'
 
-// Act II — "The Actions": the present-day cleanup, told through the three
-// dioxin hotspot air bases. Full-screen editorial cards for now; a map-based
-// treatment (zooming to each base) is a possible later pass.
+// Act II, "The Actions": the present-day cleanup, told through the three dioxin
+// hotspot air bases, with a locator map pinning where each one sits.
 export default function ActionsSection() {
   return (
     <section className="story-fullscreen actions" id="sec-actions" aria-label={ACTIONS.title}>
@@ -14,7 +14,12 @@ export default function ActionsSection() {
           <p className="fs-dek">{ACTIONS.dek}</p>
         </header>
 
-        <ul className="act2-hotspots">
+        <div className="act2-main">
+          <div className="act2-map">
+            <ActionsMap />
+          </div>
+
+          <ul className="act2-hotspots">
           {HOTSPOTS.map((h) => {
             const src = SOURCES[h.sourceId]
             const s = h.status.toLowerCase()
@@ -57,7 +62,8 @@ export default function ActionsSection() {
               </li>
             )
           })}
-        </ul>
+          </ul>
+        </div>
 
         <p className="act2-closing">{ACTIONS.closing}</p>
         <p className="fs-note">{ACTIONS.note}</p>

@@ -1860,13 +1860,65 @@
   max-width: 1120px;
 }
 
+/* Map on the left, the three base cards stacked on the right. */
+.act2-main {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.82fr) 1.18fr;
+  gap: 26px;
+  margin: 10px 0 30px;
+  align-items: start;
+}
+
+.act2-map {
+  position: sticky;
+  top: 74px;
+  height: min(76vh, 620px);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--paper-solid);
+}
+.act2-map-root {
+  width: 100%;
+  height: 100%;
+}
+
+/* Locator pins: a coloured dot under a small always-on label. */
+.act2-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: default;
+}
+.act2-pin-label {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
+}
+.act2-pin-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--pin);
+  border: 2.5px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18), 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
 .act2-hotspots {
   list-style: none;
-  margin: 6px 0 30px;
+  margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-columns: 1fr;
+  gap: 18px;
 }
 
 .act2-card {
@@ -1997,7 +2049,12 @@
   .wall-tile:first-child {
     aspect-ratio: 3 / 2;
   }
-  .act2-hotspots {
+  .act2-main {
     grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .act2-map {
+    position: static;
+    height: 320px;
   }
 }
