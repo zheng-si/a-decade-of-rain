@@ -2089,7 +2089,9 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  align-items: flex-start;
+  /* Children stretch full width (the default), so the badge in the head
+     reaches the card's right edge exactly as on the data face. */
+  align-items: stretch;
   /* Same padding as the data face (.act2-card), so the head sits in exactly
      the same spot on both faces and flipping doesn't shift it. */
   padding: 22px 20px 16px;
