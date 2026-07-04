@@ -2484,6 +2484,8 @@
 .alt-reveal {
   margin: 18px var(--alt-gutter-r) 0 var(--alt-gutter-l);
 }
+/* Primary button at rest (green, white text); once revealed it flips to a
+   white banner with green text. */
 .alt-reveal-btn {
   display: block;
   width: 100%;
@@ -2492,8 +2494,8 @@
   font-size: 14px;
   font-weight: 600;
   text-transform: capitalize;
-  color: #3f9e6c;
-  background: #fff;
+  color: #fff;
+  background: #5abe88;
   border: 1px solid #5abe88;
   border-radius: 5px;
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.05);
@@ -2501,13 +2503,16 @@
   transition: background 0.15s, color 0.15s;
 }
 .alt-reveal-btn:hover {
-  background: #5abe88;
-  color: #fff;
+  background: #4bae79;
+  border-color: #4bae79;
 }
 .alt-reveal-btn.is-banner {
-  background: #5abe88;
+  background: #fff;
   border-color: #5abe88;
-  color: #fff;
+  color: #3f9e6c;
+}
+.alt-reveal-btn.is-banner:hover {
+  background: #f3faf6;
 }
 
 .alt-verdicts {
@@ -2547,14 +2552,15 @@
   font-weight: 600;
   line-height: 1.45;
   text-align: center;
-  color: #fff;
+  background: #fff;
 }
 .alt-verdict.is-kept .alt-verdict-chip {
-  background: #5abe88;
+  color: #3f9e6c;
+  border: 1px solid #5abe88;
 }
 .alt-verdict.is-cut .alt-verdict-chip {
-  background: var(--accent);
-  font-weight: 600;
+  color: var(--accent-deep);
+  border: 1px solid var(--accent);
   text-align: left;
 }
 
