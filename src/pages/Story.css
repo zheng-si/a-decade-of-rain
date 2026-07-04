@@ -2675,7 +2675,7 @@
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  padding: 18px 20px;
+  padding: 0;
   background: var(--paper-solid);
   border: 1px solid var(--rule);
   border-radius: 6px;
@@ -2690,7 +2690,6 @@
 }
 .method-panel.is-shut {
   flex: 0.45;
-  padding: 14px 6px;
 }
 .method-panel.is-landfill.is-open {
   background: linear-gradient(180deg, #16301f 0%, #2c5a40 55%, #47795c 100%);
@@ -2725,39 +2724,62 @@
   transition: opacity 0.3s;
 }
 
-/* Resting panel: title, unannotated diagram, hint. */
+/* Resting panel: a colour-washed site photograph with left-aligned copy. */
 .method-rest {
+  position: relative;
+  height: 100%;
+}
+.method-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: grayscale(1) contrast(1.05);
+}
+.method-rest-veil {
+  position: absolute;
+  inset: 0;
+}
+.method-panel.is-landfill .method-rest-veil {
+  background: linear-gradient(180deg, rgba(18, 39, 26, 0.94) 0%, rgba(44, 90, 64, 0.78) 55%, rgba(63, 110, 82, 0.72) 100%);
+  mix-blend-mode: multiply;
+}
+.method-panel.is-thermal .method-rest-veil {
+  background: linear-gradient(180deg, rgba(160, 45, 30, 0.92) 0%, rgba(226, 96, 74, 0.76) 55%, rgba(240, 130, 95, 0.7) 100%);
+  mix-blend-mode: multiply;
+}
+.method-rest-copy {
+  position: relative;
   height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 24px 26px 20px;
+  color: #fff;
 }
-.method-rest h3 {
-  margin: 2px 0 0;
+.method-rest-copy h3 {
+  margin: 0 0 7px;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 21px;
-  color: var(--ink);
+  font-size: 23px;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
 }
-.method-rest .method-diagram {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-}
-.method-rest .method-diagram img {
-  max-height: 400px;
-  max-width: 88%;
-  width: auto;
+.method-tagline {
   margin: 0;
+  max-width: 340px;
+  font-size: 13px;
+  line-height: 1.5;
+  opacity: 0.92;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.3);
 }
 .method-hint {
-  margin: 0 0 4px;
+  margin: 0;
   font-size: 11.5px;
-  color: var(--ink-faint);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0.85;
 }
 
 /* Open panel: intro left, annotated diagram right. */
@@ -2765,8 +2787,9 @@
   height: 100%;
   display: grid;
   grid-template-columns: minmax(220px, 300px) 1fr;
-  gap: 30px;
+  gap: 26px;
   align-items: center;
+  padding: 26px 26px 22px 40px;
   animation: method-fade 0.35s ease 0.15s both;
 }
 @keyframes method-fade {
@@ -2799,8 +2822,8 @@
 /* The annotated diagram (open state): labels left, image right. */
 .method-open-grid .method-diagram {
   position: relative;
-  max-width: 600px;
-  margin: 0 auto;
+  max-width: 620px;
+  margin: 0 0 0 auto;
   width: 100%;
 }
 .method-open-grid .method-diagram img {
