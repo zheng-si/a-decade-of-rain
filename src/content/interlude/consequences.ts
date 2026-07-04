@@ -76,7 +76,7 @@ export const WALLS: ConsequenceWall[] = [
       { src: body1, alt: 'Portrait of a young man affected by dioxin exposure', caption: 'A young man living with the effects of dioxin exposure.', credit: '© Tobias Nicolai' },
       { src: body2, alt: 'A mother holding her child', caption: 'A mother and her child at home.', credit: '© Tobias Nicolai' },
       { src: body3, alt: 'An older woman in a wheelchair', caption: 'An older woman disabled by chronic, Agent Orange–linked illness.', credit: 'The New York Times Magazine, 2021' },
-      { src: body4, alt: 'A doctor with a group of affected children', caption: 'A doctor with children affected by Agent Orange.', credit: 'credit TBC' },
+      { src: body4, alt: 'A doctor with a group of affected children', caption: 'Prof. Nguyễn Thị Ngọc Phượng with children in her care, Hồ Chí Minh City, 2004.', credit: 'Wikimedia Commons' },
       { src: body5, alt: 'A man living with Agent Orange–linked disabilities', caption: 'A man living with Agent Orange–linked disabilities.', credit: 'Wikimedia Commons (CC BY)' },
       { src: body6, alt: 'Two children from families exposed to dioxin', caption: 'Two children from families exposed to dioxin.', credit: 'credit TBC' },
       { src: body7, alt: 'Severe skin damage associated with dioxin exposure', caption: 'Severe skin damage associated with dioxin exposure.', credit: 'credit TBC' },
