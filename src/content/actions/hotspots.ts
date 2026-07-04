@@ -8,6 +8,10 @@
 // report (see sourceIds). Costs/volumes are the widely cited public numbers;
 // Biên Hòa's schedule is genuinely uncertain after 2025 U.S. funding cuts.
 
+import danangPhoto from '../../assets/actions/base-danang.webp'
+import bienhoaPhoto from '../../assets/actions/base-bienhoa.webp'
+import phucatPhoto from '../../assets/actions/base-phucat.webp'
+
 export type HotspotKey = 'danang' | 'bienhoa' | 'phucat'
 export type HotspotStatus = 'Completed' | 'Ongoing' | 'Contained'
 
@@ -28,6 +32,8 @@ export interface Hotspot {
   method: string
   note: string
   sourceId: string
+  /** Site photograph for the card's resting face. */
+  photo: string
 }
 
 export const HOTSPOTS: Hotspot[] = [
@@ -45,6 +51,7 @@ export const HOTSPOTS: Hotspot[] = [
     method: 'Active containment: the dioxin sealed in a lined, capped landfill on site',
     note: 'Contained rather than destroyed, and taken off the active hotspot list.',
     sourceId: 'undp_hotspots',
+    photo: phucatPhoto,
   },
   {
     key: 'danang',
@@ -60,6 +67,7 @@ export const HOTSPOTS: Hotspot[] = [
     method: 'In-pile thermal desorption: the soil was heated to ~335 °C to break the dioxin down',
     note: 'The first full-scale dioxin cleanup; the treated soil was reused as fill for the airport expansion.',
     sourceId: 'usaid_danang',
+    photo: danangPhoto,
   },
   {
     key: 'bienhoa',
@@ -75,6 +83,7 @@ export const HOTSPOTS: Hotspot[] = [
     method: 'Excavation with thermal treatment and secure, engineered containment',
     note: 'The biggest remaining task by far; 2025 cuts to U.S. funding have thrown its schedule into doubt.',
     sourceId: 'usembassy_bienhoa',
+    photo: bienhoaPhoto,
   },
 ]
 
