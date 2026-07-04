@@ -2185,10 +2185,11 @@
   transition: background 0.3s, border-color 0.3s;
 }
 
-/* When the screening is revealed, the surviving families flip to green. */
+/* When the screening is revealed, each surviving family flips to its own
+   theme green. */
 .alt-family.is-kept {
-  background: #3f8f5f;
-  border-color: #3f8f5f;
+  background: var(--fam);
+  border-color: var(--fam);
 }
 .alt-family.is-kept h3,
 .alt-family.is-kept p,
@@ -2207,15 +2208,18 @@
 .alt-family.is-kept .alt-method-chip {
   /* outranks the per-family fills below */
   background: #fff !important;
-  color: #3f8f5f !important;
+  color: var(--fam) !important;
 }
 .alt-family.is-containment {
+  --fam: #6a9c81;
   border-top-color: #8fb4a0;
 }
 .alt-family.is-hybrid {
+  --fam: #4d7d63;
   border-top-color: #5a8a6f;
 }
 .alt-family.is-treatment {
+  --fam: #2f5c44;
   border-top-color: #2f5c44;
 }
 .alt-family-head {
@@ -2234,14 +2238,8 @@
   width: 100%;
   height: 100%;
 }
-.alt-family.is-containment .alt-family-icon {
-  color: #6a9c81;
-}
-.alt-family.is-hybrid .alt-family-icon {
-  color: #4d7d63;
-}
-.alt-family.is-treatment .alt-family-icon {
-  color: #2f5c44;
+.alt-family .alt-family-icon {
+  color: var(--fam);
 }
 .alt-family h3 {
   margin: 0;
@@ -2283,14 +2281,8 @@
   white-space: nowrap;
   transition: background 0.25s, color 0.25s;
 }
-.alt-family.is-containment .alt-method-chip {
-  background: #6a9c81;
-}
-.alt-family.is-hybrid .alt-method-chip {
-  background: #4d7d63;
-}
-.alt-family.is-treatment .alt-method-chip {
-  background: #2f5c44;
+.alt-family .alt-method-chip {
+  background: var(--fam);
 }
 
 /* The comparison chart, reproducing the Figma design: one plot, a grey cost
