@@ -2613,44 +2613,202 @@
   }
 }
 
-/* ── Act II · The Methods (exploded axonometrics) ─────────────────────────── */
+/* ── Act II · The Methods (expanding exploded-axon panels) ────────────────── */
 .methods-inner {
   max-width: 1120px;
 }
 
-.method-block {
-  display: grid;
-  grid-template-columns: minmax(240px, 320px) 1fr;
-  gap: 40px;
+/* Method switcher tabs, in the canonical chip language. */
+.method-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+.method-tab {
+  display: inline-flex;
   align-items: center;
-  margin: 0 0 26px;
+  gap: 7px;
+  padding: 6px 14px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.method-tab:hover {
+  border-color: #cfccc0;
+}
+.method-tab.is-landfill {
+  --mth: #2c5a40;
+}
+.method-tab.is-thermal {
+  --mth: #d64a37;
+}
+.method-tab-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mth);
+  flex: none;
+}
+.method-tab.is-on {
+  background: var(--mth);
+  border-color: var(--mth);
+  color: #fff;
+}
+.method-tab.is-on .method-tab-dot {
+  background: #fff;
+}
+
+/* The stage: two panels sharing one row; the open one takes ~90%. */
+.methods-stage {
+  display: flex;
+  gap: 12px;
+  min-height: 540px;
+}
+.method-panel {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  padding: 18px 20px;
+  background: var(--paper-solid);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: flex 0.55s cubic-bezier(0.4, 0, 0.2, 1), background 0.55s ease, border-color 0.55s;
+}
+.method-panel.is-open {
+  flex: 8;
+  cursor: default;
+  border-color: transparent;
+  color: #fff;
+}
+.method-panel.is-shut {
+  flex: 0.45;
+  padding: 14px 6px;
+}
+.method-panel.is-landfill.is-open {
+  background: linear-gradient(180deg, #16301f 0%, #2c5a40 55%, #47795c 100%);
+}
+.method-panel.is-thermal.is-open {
+  background: linear-gradient(180deg, #c93f2d 0%, #ec5844 50%, #f4926f 100%);
+}
+
+/* Vertical name on the collapsed sliver. */
+.method-side {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  writing-mode: vertical-rl;
+  font-family: var(--font-serif);
+  font-size: 17px;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.method-panel.is-shut .method-side {
+  display: flex;
+}
+.method-panel.is-shut .method-inner {
+  opacity: 0;
+  pointer-events: none;
+}
+.method-inner {
+  height: 100%;
+  transition: opacity 0.3s;
+}
+
+/* Resting panel: title, unannotated diagram, hint. */
+.method-rest {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.method-rest h3 {
+  margin: 2px 0 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 21px;
+  color: var(--ink);
+}
+.method-rest .method-diagram {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+.method-rest .method-diagram img {
+  max-height: 400px;
+  max-width: 88%;
+  width: auto;
+  margin: 0;
+}
+.method-hint {
+  margin: 0 0 4px;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+}
+
+/* Open panel: intro left, annotated diagram right. */
+.method-open-grid {
+  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) 1fr;
+  gap: 30px;
+  align-items: center;
+  animation: method-fade 0.35s ease 0.15s both;
+}
+@keyframes method-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 .method-copy h3 {
   margin: 0 0 10px;
   font-family: var(--font-serif);
   font-weight: 400;
   font-size: 24px;
-  color: var(--ink);
+  color: #fff;
 }
 .method-copy p {
   margin: 0;
   font-size: 13.5px;
   line-height: 1.65;
-  color: var(--ink-soft);
+  color: rgba(255, 255, 255, 0.92);
+}
+.method-cap {
+  margin: 14px 0 0 !important;
+  font-size: 11px !important;
+  color: rgba(255, 255, 255, 0.68) !important;
 }
 
-.method-fig {
-  margin: 0;
-}
-.method-diagram {
+/* The annotated diagram (open state): labels left, image right. */
+.method-open-grid .method-diagram {
   position: relative;
-  max-width: 620px;
+  max-width: 600px;
   margin: 0 auto;
+  width: 100%;
 }
-.method-diagram img {
+.method-open-grid .method-diagram img {
   display: block;
   width: 62%;
   margin-left: 38%;
+  max-height: 480px;
+  object-fit: contain;
   height: auto;
 }
 
@@ -2662,14 +2820,14 @@
   pointer-events: none;
 }
 .method-lines line {
-  stroke: #9aa89e;
+  stroke: rgba(255, 255, 255, 0.55);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
   transition: stroke 0.15s;
 }
 .method-lines line.is-hot {
-  stroke: var(--accent-deep);
-  stroke-width: 1.6;
+  stroke: #fff;
+  stroke-width: 1.8;
 }
 .method-dot {
   position: absolute;
@@ -2677,12 +2835,12 @@
   height: 5px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: #9aa89e;
+  background: rgba(255, 255, 255, 0.75);
   transition: background 0.15s, transform 0.15s;
 }
 .method-dot.is-hot {
-  background: var(--accent-deep);
-  transform: translate(-50%, -50%) scale(1.5);
+  background: #fff;
+  transform: translate(-50%, -50%) scale(1.6);
 }
 
 .method-labels {
@@ -2702,25 +2860,29 @@
   font-size: 11.5px;
   line-height: 1.25;
   text-align: right;
-  color: var(--ink-soft);
+  color: rgba(255, 255, 255, 0.85);
   pointer-events: auto;
   cursor: default;
   transition: color 0.15s;
 }
 .method-labels li.is-hot {
-  color: var(--accent-deep);
+  color: #fff;
   font-weight: 700;
 }
 
-.method-cap {
-  margin: 10px 0 0;
-  font-size: 11px;
-  text-align: center;
-  color: var(--ink-faint);
-}
-
 @media (max-width: 900px) {
-  .method-block {
+  .methods-stage {
+    flex-direction: column;
+    min-height: 0;
+  }
+  .method-panel.is-shut {
+    flex: none;
+    min-height: 52px;
+  }
+  .method-side {
+    writing-mode: horizontal-tb;
+  }
+  .method-open-grid {
     grid-template-columns: 1fr;
     gap: 16px;
   }
