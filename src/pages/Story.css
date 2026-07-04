@@ -1123,15 +1123,19 @@
 }
 
 .rainbow-chip.is-active {
-  color: var(--ink);
-  border-color: var(--ink-faint);
-  background: #fff;
+  color: #fff;
+  border-color: var(--ink);
+  background: var(--ink);
+}
+.rainbow-chip.is-active .rainbow-chip-dot {
+  background: #fff !important;
 }
 
 .rainbow-chip-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
+  flex: none;
 }
 
 .rainbow-chart-note {
@@ -1251,8 +1255,12 @@
 
 .rainbow-card-src {
   margin: 16px 0 0;
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--forest-text-soft);
+}
+.rainbow-card-src a {
+  color: inherit;
+  text-decoration: underline;
 }
 
 .rainbow-card-src a {
@@ -1679,6 +1687,11 @@
   line-height: 1.5;
   color: var(--ink-faint);
 }
+.fs-note a {
+  font-size: 11px;
+  color: var(--ink-faint);
+  text-decoration: underline;
+}
 
 /* ── Interlude · The Consequences — two full-page photo walls ──────────────── */
 .interlude-wall {
@@ -1736,10 +1749,9 @@
   opacity: 0.86;
 }
 .wall-src {
-  font-size: 12px;
-  color: #fff;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: underline;
-  opacity: 0.82;
 }
 
 /* Secondary figures beneath the headline number — each a large figure with
@@ -1994,54 +2006,16 @@
   border-left: 0;
 }
 
-/* Base switcher tabs, in the Act I agent-chip language: paper pill, status
-   dot, active = filled with the status colour. */
-.act2-tabs {
-  display: flex;
-  gap: 8px;
-  margin: 0 0 14px;
-}
-.act2-tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 6px 14px;
-  font-family: var(--font-sans);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ink-soft);
-  background: rgba(var(--paper), 0.5);
-  border: 1px solid var(--rule);
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.act2-tab:hover {
-  border-color: #cfccc0;
-}
-.act2-tab.is-completed {
-  --tab: #3f8f5f;
-}
-.act2-tab.is-ongoing {
-  --tab: var(--accent-deep);
-}
-.act2-tab.is-contained {
-  --tab: #5a7ca8;
-}
-.act2-tab-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--tab);
-  flex: none;
-}
-.act2-tab.is-on {
-  background: var(--tab);
-  border-color: var(--tab);
-  color: #fff;
-}
-.act2-tab.is-on .act2-tab-dot {
-  background: #fff;
+/* All three base cards side by side; their orange volume bars share a
+   scale, so the size gap between the bases reads at a glance. */
+.act2-hotspots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  align-items: start;
 }
 
 /* Volume bar under the contamination fact: orange on the shared 0–500k m³
@@ -2060,26 +2034,25 @@
   border-radius: 2px 0 0 2px;
 }
 
-@keyframes act2-card-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
 .act2-card {
   display: flex;
   flex-direction: column;
-  max-width: 560px;
-  padding: 16px 18px 14px;
-  animation: act2-card-in 0.28s ease;
+  padding: 13px 14px 11px;
   background: var(--paper-solid);
   border: 1px solid var(--rule);
   border-top: 3px solid var(--ink-faint);
   border-radius: 5px;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+.act2-card.is-active.is-completed {
+  box-shadow: 0 0 0 2px #3f8f5f, 0 6px 18px rgba(63, 143, 95, 0.18);
+}
+.act2-card.is-active.is-ongoing {
+  box-shadow: 0 0 0 2px var(--accent-deep), 0 6px 18px rgba(207, 55, 32, 0.16);
+}
+.act2-card.is-active.is-contained {
+  box-shadow: 0 0 0 2px #5a7ca8, 0 6px 18px rgba(90, 124, 168, 0.18);
 }
 .act2-card.is-completed {
   border-top-color: #3f8f5f;
@@ -2093,17 +2066,17 @@
 
 .act2-card-head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  margin: 0 0 2px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  margin: 0 0 4px;
 }
 
 .act2-card-name {
   margin: 0;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 21px;
+  font-size: 19px;
   color: var(--ink);
 }
 
@@ -2143,19 +2116,14 @@
   color: var(--ink-faint);
 }
 
-/* Compact fact grid: cost + timeline share a row; long facts span both. */
 .act2-facts {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 18px;
+  grid-template-columns: 1fr;
   margin: 0 0 8px;
 }
 .act2-facts > div {
   padding: 6px 0;
   border-top: 1px solid var(--rule);
-}
-.act2-facts > .is-wide {
-  grid-column: 1 / -1;
 }
 .act2-facts dt {
   margin: 0 0 2px;
@@ -2183,13 +2151,13 @@
 
 .act2-src {
   font-size: 11px;
-  color: var(--accent-deep);
+  color: var(--ink-faint);
   text-decoration: underline;
 }
 
 .act2-closing {
-  margin: 20px 0 12px;
-  max-width: 560px;
+  margin: 24px 0 12px;
+  max-width: 760px;
   font-family: var(--font-serif);
   font-size: clamp(18px, 2.2vw, 24px);
   line-height: 1.4;
@@ -2497,6 +2465,9 @@
   .act2-main {
     grid-template-columns: 1fr;
     gap: 18px;
+  }
+  .act2-hotspots {
+    grid-template-columns: 1fr;
   }
   .act2-map {
     position: static;
