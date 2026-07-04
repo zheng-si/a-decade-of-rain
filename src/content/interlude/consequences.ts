@@ -55,7 +55,7 @@ export const WALLS: ConsequenceWall[] = [
     photos: [
       { src: land1, alt: 'A C-123 aircraft spraying defoliant over dense forest', caption: 'A U.S. Air Force C-123 lays a swath of defoliant over triple-canopy forest.', credit: 'U.S. Air Force' },
       { src: land2, alt: 'A helicopter spraying herbicide over a river', caption: 'A UH-1 “Huey” sprays herbicide low over a waterway.', credit: 'U.S. Army' },
-      { src: land3, alt: 'Aerial view of sprayed mangrove forest, 1968', caption: 'Aerial view of mangrove sprayed in the Rừng Sác, III Corps, 1968.', credit: 'U.S. Army (via Stellman coll.)' },
+      { src: land3, alt: 'Aerial view of sprayed mangrove forest, 1968', caption: 'Aerial view of mangrove sprayed in the Rừng Sác, III Corps, 1968.', credit: 'RANCH HAND Collection, Vietnam Archive, Texas Tech University' },
       { src: land4, alt: 'A mangrove forest reduced to bare trunks', caption: 'A mangrove forest reduced to bare trunks by repeated spraying.', credit: 'archival — credit TBC' },
       { src: land5, alt: 'People standing amid a defoliated forest', caption: 'Villagers amid the skeletons of a defoliated forest.', credit: 'archival — credit TBC' },
       { src: land6, alt: 'Aerial contrast between sprayed and living mangrove', caption: 'From the air, the line between sprayed and living mangrove.', credit: 'LIFE — credit TBC' },
