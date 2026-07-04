@@ -2177,38 +2177,41 @@
   gap: 20px;
 }
 .alt-family {
+  position: relative;
   padding: 16px 18px;
   background: var(--paper-solid);
   border: 1px solid var(--rule);
   border-top: 3px solid var(--ink-faint);
   border-radius: 5px;
-  transition: background 0.3s, border-color 0.3s;
 }
 
-/* When the screening is revealed, each surviving family flips to its own
-   theme green. */
-.alt-family.is-kept {
-  background: var(--fam);
-  border-color: var(--fam);
+/* When the screening is revealed, surviving families get a checkmark per
+   retained alternative in their top-right corner (Carbon checkmark--filled). */
+@keyframes alt-check-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
-.alt-family.is-kept h3,
-.alt-family.is-kept p,
-.alt-family.is-kept .alt-family-icon {
-  color: #fff !important;
+.alt-family-checks {
+  position: absolute;
+  top: 12px;
+  right: 13px;
+  display: flex;
+  gap: 4px;
+  color: var(--fam);
 }
-.alt-family.is-kept p {
-  opacity: 0.94;
+.alt-family-checks svg {
+  width: 19px;
+  height: 19px;
+  animation: alt-check-pop 0.25s ease both;
 }
-.alt-family.is-kept .alt-family-methods {
-  border-top-color: rgba(255, 255, 255, 0.35);
-}
-.alt-family.is-kept .alt-family-methods-label {
-  color: rgba(255, 255, 255, 0.85);
-}
-.alt-family.is-kept .alt-method-chip {
-  /* outranks the per-family fills below */
-  background: #fff !important;
-  color: var(--fam) !important;
+.alt-family-checks svg:nth-child(2) {
+  animation-delay: 0.08s;
 }
 .alt-family.is-containment {
   --fam: #6a9c81;
@@ -2552,15 +2555,13 @@
   font-weight: 600;
   line-height: 1.45;
   text-align: center;
-  background: #fff;
+  color: #fff;
 }
 .alt-verdict.is-kept .alt-verdict-chip {
-  color: #3f9e6c;
-  border: 1px solid #5abe88;
+  background: #5abe88;
 }
 .alt-verdict.is-cut .alt-verdict-chip {
-  color: var(--accent-deep);
-  border: 1px solid var(--accent);
+  background: var(--accent);
   text-align: left;
 }
 

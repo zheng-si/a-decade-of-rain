@@ -67,8 +67,20 @@ export default function AlternativesSection() {
         </header>
 
         <ul className="alt-families">
-          {FAMILY_ORDER.map((f) => (
-            <li key={f} className={`alt-family is-${f}${revealed && f !== 'treatment' ? ' is-kept' : ''}`}>
+          {FAMILY_ORDER.map((f) => {
+            const kept = ALTERNATIVES.filter((a) => a.family === f && a.retained).length
+            return (
+            <li key={f} className={`alt-family is-${f}`}>
+              {revealed && kept > 0 && (
+                <span className="alt-family-checks" role="img" aria-label={`${kept} alternative${kept > 1 ? 's' : ''} retained`}>
+                  {Array.from({ length: kept }).map((_, i) => (
+                    // Carbon "checkmark--filled"
+                    <svg key={i} viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+                      <path d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2ZM14,21.5908l-5-5L10.5906,15,14,18.4092,21.41,11l1.5957,1.5859Z" />
+                    </svg>
+                  ))}
+                </span>
+              )}
               <div className="alt-family-head">
                 <span className="alt-family-icon">{FAMILY_ICONS[f]}</span>
                 <h3>{ALT_FAMILIES[f].title}</h3>
@@ -83,7 +95,8 @@ export default function AlternativesSection() {
                 ))}
               </div>
             </li>
-          ))}
+            )
+          })}
         </ul>
 
         <figure className={`alt-chart${revealed ? ' is-revealed' : ''}`} aria-label={ALTS.chartTitle}>
