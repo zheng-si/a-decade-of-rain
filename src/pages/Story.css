@@ -2090,7 +2090,9 @@
   flex-direction: column;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 18px 18px 14px;
+  /* Same padding as the data face (.act2-card), so the head sits in exactly
+     the same spot on both faces and flipping doesn't shift it. */
+  padding: 22px 20px 16px;
   color: #fff;
 }
 .act2-photo-copy .act2-card-name {
@@ -2101,7 +2103,7 @@
   width: 100%;
 }
 .act2-photo-place {
-  margin: 6px 0 0;
+  margin: 0; /* .act2-card-head's 6px bottom margin sets the gap, as on the data face */
   font-size: 11.5px;
   color: rgba(255, 255, 255, 0.88);
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
