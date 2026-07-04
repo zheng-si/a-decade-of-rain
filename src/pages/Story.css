@@ -1742,18 +1742,45 @@
   opacity: 0.82;
 }
 
+/* Secondary figures beneath the headline number. */
+.wall-stats {
+  list-style: none;
+  margin: 0 0 22px;
+  padding: 16px 0 0;
+  max-width: 330px;
+  display: grid;
+  gap: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.24);
+}
+.wall-stats li {
+  display: flex;
+  align-items: baseline;
+  gap: 13px;
+}
+.wall-stat-v {
+  flex: 0 0 78px;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 23px;
+  line-height: 1;
+}
+.wall-stat-l {
+  font-size: 12.5px;
+  line-height: 1.35;
+  opacity: 0.86;
+}
+
 /* Right: masonry photo mosaic (varied tile aspect ratios). */
 .wall-grid {
-  columns: 3;
+  columns: 2;
   column-gap: 12px;
 }
 .wall-tile {
   position: relative;
   break-inside: avoid;
   margin: 0 0 12px;
-  border-radius: 3px;
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
   aspect-ratio: 4 / 3;
 }
 .wall-tile:nth-child(3n + 1) {

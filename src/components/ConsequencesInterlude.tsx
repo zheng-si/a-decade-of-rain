@@ -16,6 +16,16 @@ function Wall({ w }: { w: ConsequenceWall }) {
           <p className="wall-eyebrow">{w.eyebrow}</p>
           <p className="wall-value">{w.value}</p>
           <p className="wall-label">{w.label}</p>
+          {w.stats && (
+            <ul className="wall-stats">
+              {w.stats.map((s, i) => (
+                <li key={i}>
+                  <span className="wall-stat-v">{s.value}</span>
+                  <span className="wall-stat-l">{s.label}</span>
+                </li>
+              ))}
+            </ul>
+          )}
           <p className="wall-lede">{w.lede}</p>
           {src && (
             <a className="wall-src" href={src.url} target="_blank" rel="noreferrer">
