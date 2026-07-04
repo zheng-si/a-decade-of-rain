@@ -1,4 +1,4 @@
-import vegRaw from '../figures/vegetation-map.svg?raw'
+import outlineRaw from '../figures/vietnam-outline.svg?raw'
 import { HOTSPOTS, type HotspotKey } from '../content/actions/hotspots'
 
 // Pixel positions of the three air bases on the 494x750 traced vegetation map.
@@ -25,16 +25,17 @@ interface Props {
   onSelect: (key: HotspotKey) => void
 }
 
-// Act II locator, styled after the Figma design: the traced wartime vegetation
-// map washed to sage, with dot-and-chip pins coloured by cleanup status.
-// Clicking a pin highlights (and scrolls to) the matching base card.
+// Act II locator: a plain dark-grey outline of South Vietnam (projected from
+// the country geojson with the same transform that places the pins), with
+// dot-and-chip pins coloured by cleanup status. Clicking a pin highlights the
+// matching base card.
 export default function ActionsMap({ active, onSelect }: Props) {
   return (
     <figure
       className="act2-map-fig"
       aria-label="Locator map of the three dioxin hotspot air bases, Đà Nẵng, Phú Cát and Biên Hòa, down the central and southern coast of Vietnam"
     >
-      <div className="act2-map-veg" aria-hidden="true" dangerouslySetInnerHTML={{ __html: vegRaw }} />
+      <div className="act2-map-veg" aria-hidden="true" dangerouslySetInnerHTML={{ __html: outlineRaw }} />
 
       <div className="act2-pins">
         {HOTSPOTS.map((h) => {
