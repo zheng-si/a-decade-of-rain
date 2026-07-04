@@ -26,6 +26,7 @@ import EcosystemsFigure from '../components/EcosystemsFigure'
 import ConsequencesInterlude from '../components/ConsequencesInterlude'
 import ActionsSection from '../components/ActionsSection'
 import AlternativesSection from '../components/AlternativesSection'
+import MethodsSection from '../components/MethodsSection'
 import StoryNav from '../components/StoryNav'
 import { readLabelGroups, setGroupVisible, normalizePlaceLabels } from '../components/labelLayers'
 import './Story.css'
@@ -667,6 +668,7 @@ export default function Story() {
         <ConsequencesInterlude />
         <ActionsSection />
         <AlternativesSection />
+        <MethodsSection />
       </div>
     </div>
   )
