@@ -7,13 +7,12 @@ import ActionsMap from './ActionsMap'
 const VOLUME_MAX = 500_000
 
 // Act II, "The Actions": the present-day cleanup at the three dioxin hotspot
-// air bases. One compact card at a time — switched by the tabs above it or by
-// clicking a pin on the locator map to its right.
+// air bases. All three compact cards sit side by side — their volume bars
+// share a scale, so the size gap reads at a glance — and clicking a map pin
+// (or a card) highlights the pair.
 export default function ActionsSection() {
-  const [active, setActive] = useState<HotspotKey>('danang')
-  const h = HOTSPOTS.find((x) => x.key === active)!
-  const src = SOURCES[h.sourceId]
-  const s = h.status.toLowerCase()
+  const [active, setActive] = useState<HotspotKey | null>(null)
+  const toggle = (key: HotspotKey) => setActive((a) => (a === key ? null : key))
 
   return (
     <section className="story-fullscreen actions" id="sec-actions" aria-label={ACTIONS.title}>
@@ -25,80 +24,80 @@ export default function ActionsSection() {
         </header>
 
         <div className="act2-main">
-          <div className="act2-panel">
-            <div className="act2-tabs" role="tablist" aria-label="Hotspot air bases">
-              {HOTSPOTS.map((t) => (
-                <button
-                  key={t.key}
-                  type="button"
-                  role="tab"
-                  aria-selected={active === t.key}
-                  className={`act2-tab is-${t.status.toLowerCase()}${active === t.key ? ' is-on' : ''}`}
-                  onClick={() => setActive(t.key)}
+          <ul className="act2-hotspots">
+            {HOTSPOTS.map((h) => {
+              const src = SOURCES[h.sourceId]
+              const s = h.status.toLowerCase()
+              return (
+                <li
+                  key={h.key}
+                  className={`act2-card is-${s}${active === h.key ? ' is-active' : ''}`}
+                  onClick={() => toggle(h.key)}
                 >
-                  <i className="act2-tab-dot" aria-hidden="true" />
-                  {t.name}
-                </button>
-              ))}
-            </div>
-
-            <div key={h.key} className={`act2-card is-${s}`} role="tabpanel">
-              <div className="act2-card-head">
-                <h3 className="act2-card-name">{h.name}</h3>
-                <span className={`act2-badge is-${s}`}>
-                  {h.status}
-                  <em>{h.statusYear}</em>
-                </span>
-              </div>
-              <p className="act2-place">{h.place}</p>
-
-              <dl className="act2-facts">
-                <div className="is-wide">
-                  <dt>Contamination</dt>
-                  <dd>{h.volume}</dd>
-                  <div
-                    className="act2-volbar"
-                    role="img"
-                    aria-label={`Roughly ${Math.round((h.volumeM3 / VOLUME_MAX) * 100)}% of the largest hotspot's volume`}
-                  >
-                    <i style={{ width: `${Math.max((h.volumeM3 / VOLUME_MAX) * 100, 1.2)}%` }} />
+                  <div className="act2-card-head">
+                    <h3 className="act2-card-name">{h.name}</h3>
+                    <span className={`act2-badge is-${s}`}>
+                      {h.status}
+                      <em>{h.statusYear}</em>
+                    </span>
                   </div>
-                </div>
-                <div>
-                  <dt>Cost</dt>
-                  <dd>{h.cost}</dd>
-                </div>
-                <div>
-                  <dt>Timeline</dt>
-                  <dd>{h.timeline}</dd>
-                </div>
-                <div className="is-wide">
-                  <dt>Method</dt>
-                  <dd>{h.method}</dd>
-                </div>
-              </dl>
+                  <p className="act2-place">{h.place}</p>
 
-              <p className="act2-card-note">
-                {h.note}
-                {src && (
-                  <>
-                    {' '}
-                    <a className="act2-src" href={src.url} target="_blank" rel="noreferrer">
-                      {src.publisher}
-                    </a>
-                  </>
-                )}
-              </p>
-            </div>
+                  <dl className="act2-facts">
+                    <div>
+                      <dt>Contamination</dt>
+                      <dd>{h.volume}</dd>
+                      <div
+                        className="act2-volbar"
+                        role="img"
+                        aria-label={`Roughly ${Math.round((h.volumeM3 / VOLUME_MAX) * 100)}% of the largest hotspot's volume`}
+                      >
+                        <i style={{ width: `${Math.max((h.volumeM3 / VOLUME_MAX) * 100, 1.2)}%` }} />
+                      </div>
+                    </div>
+                    <div>
+                      <dt>Cost</dt>
+                      <dd>{h.cost}</dd>
+                    </div>
+                    <div>
+                      <dt>Timeline</dt>
+                      <dd>{h.timeline}</dd>
+                    </div>
+                    <div>
+                      <dt>Method</dt>
+                      <dd>{h.method}</dd>
+                    </div>
+                  </dl>
 
-            <p className="act2-closing">{ACTIONS.closing}</p>
-            <p className="fs-note">{ACTIONS.note}</p>
-          </div>
+                  <p className="act2-card-note">
+                    {h.note}
+                    {src && (
+                      <>
+                        {' '}
+                        <a
+                          className="act2-src"
+                          href={src.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {src.publisher}
+                        </a>
+                      </>
+                    )}
+                  </p>
+                </li>
+              )
+            })}
+          </ul>
 
           <div className="act2-map">
-            <ActionsMap active={active} onSelect={setActive} />
+            <ActionsMap active={active} onSelect={toggle} />
           </div>
         </div>
+
+        <p className="act2-closing">{ACTIONS.closing}</p>
+        <p className="fs-note">{ACTIONS.note}</p>
       </div>
     </section>
   )
