@@ -1,86 +1,67 @@
-import { useEffect, useRef } from 'react'
-import maplibregl from 'maplibre-gl'
-import 'maplibre-gl/dist/maplibre-gl.css'
-import { mapConfig } from '../config/mapConfig'
+import vegRaw from '../figures/vegetation-map.svg?raw'
 import { HOTSPOTS } from '../content/actions/hotspots'
 
-// Marker colour per cleanup status, matching each card's top border.
-const STATUS_COLOR: Record<string, string> = {
-  Completed: '#3f8f5f',
-  Ongoing: '#cf3720',
-  Contained: '#5a7ca8',
+// Pixel positions of the three air bases on the 494x750 traced vegetation map.
+// Derived from the overlay control points (scripts/overlay/cp.json): a global
+// affine fit corrected against the nearest coastline anchors, then verified by
+// eye against the rendered coastline. The tracing is non-uniform, so these are
+// good to roughly 15 px (~20 km), which is plenty for a country-scale locator.
+const PIN_PX: Record<string, [number, number]> = {
+  danang: [366, 87],
+  phucat: [443, 282],
+  bienhoa: [395, 527],
 }
 
-// A static locator map for Act II: the three dioxin hotspot air bases pinned
-// down the central-southern coast. Non-interactive — it orients, it doesn't
-// invite exploration (the Act I map already does that).
+// Label placement per pin: which side of the dot the text sits on.
+const LABEL_SIDE: Record<string, 'left' | 'right'> = {
+  danang: 'left',
+  phucat: 'left',
+  bienhoa: 'left',
+}
+
+// Act II locator: the three dioxin hotspot air bases pinned on the same
+// redrawn wartime vegetation map used in Act I. Static by design; it orients
+// the reader, the interactive map already lives in Act I.
 export default function ActionsMap() {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<maplibregl.Map | null>(null)
-
-  useEffect(() => {
-    if (!containerRef.current || mapRef.current) return
-    let cancelled = false
-
-    // Reuse the site basemap; swap in the self-hosted glyphs like MapView does.
-    async function resolveStyle(): Promise<string | maplibregl.StyleSpecification> {
-      if (!mapConfig.glyphsUrl) return mapConfig.baseStyleUrl
-      const resp = await fetch(mapConfig.baseStyleUrl)
-      const style = (await resp.json()) as maplibregl.StyleSpecification
-      style.glyphs = mapConfig.glyphsUrl
-      return style
-    }
-
-    resolveStyle()
-      .then((style) => {
-        if (cancelled || !containerRef.current) return
-
-        const map = new maplibregl.Map({
-          container: containerRef.current,
-          style,
-          center: [107.8, 13.5],
-          zoom: 5.3,
-          interactive: false,
-          attributionControl: { compact: true },
-        })
-        mapRef.current = map
-
-        map.once('load', () => {
-          const b = new maplibregl.LngLatBounds()
-          HOTSPOTS.forEach((h) => b.extend(h.lngLat))
-          map.fitBounds(b, {
-            padding: { top: 54, bottom: 54, left: 64, right: 64 },
-            maxZoom: 7,
-            duration: 0,
-          })
-        })
-
-        HOTSPOTS.forEach((h) => {
-          const el = document.createElement('div')
-          el.className = `act2-pin is-${h.status.toLowerCase()}`
-          el.style.setProperty('--pin', STATUS_COLOR[h.status] ?? '#647468')
-          el.innerHTML =
-            `<span class="act2-pin-label">${h.name}</span>` + `<span class="act2-pin-dot"></span>`
-          new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat(h.lngLat).addTo(map)
-        })
-      })
-      .catch(() => {
-        /* basemap tiles unreachable (e.g. offline preview) — pins still render */
-      })
-
-    return () => {
-      cancelled = true
-      mapRef.current?.remove()
-      mapRef.current = null
-    }
-  }, [])
-
   return (
-    <div
-      ref={containerRef}
-      className="act2-map-root"
+    <figure
+      className="act2-map-fig"
       role="img"
-      aria-label="Locator map of the three dioxin hotspot air bases: Đà Nẵng, Phú Cát and Biên Hòa, down Vietnam’s central and southern coast"
-    />
+      aria-label="Locator map of the three dioxin hotspot air bases, Đà Nẵng, Phú Cát and Biên Hòa, down the central and southern coast of Vietnam"
+    >
+      <div className="act2-map-veg" aria-hidden="true" dangerouslySetInnerHTML={{ __html: vegRaw }} />
+
+      <svg className="act2-map-pins" viewBox="0 0 494 750" aria-hidden="true">
+        {HOTSPOTS.map((h) => {
+          const px = PIN_PX[h.key]
+          if (!px) return null
+          const [x, y] = px
+          const side = LABEL_SIDE[h.key]
+          const s = h.status.toLowerCase()
+          return (
+            <g key={h.key} className={`act2-svgpin is-${s}`}>
+              <circle className="act2-svgpin-ring" cx={x} cy={y} r={11} />
+              <circle className="act2-svgpin-dot" cx={x} cy={y} r={5.5} />
+              <text
+                className="act2-svgpin-name"
+                x={side === 'left' ? x - 17 : x + 17}
+                y={y - 1}
+                textAnchor={side === 'left' ? 'end' : 'start'}
+              >
+                {h.name}
+              </text>
+              <text
+                className="act2-svgpin-status"
+                x={side === 'left' ? x - 17 : x + 17}
+                y={y + 13}
+                textAnchor={side === 'left' ? 'end' : 'start'}
+              >
+                {h.status} · {h.statusYear}
+              </text>
+            </g>
+          )
+        })}
+      </svg>
+    </figure>
   )
 }
