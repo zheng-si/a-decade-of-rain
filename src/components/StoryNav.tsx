@@ -36,6 +36,7 @@ const NAV: NavGroup[] = [
     items: [
       { id: 'sec-actions', label: 'The Actions' },
       { id: 'sec-alternatives', label: 'The Alternatives' },
+      { id: 'sec-methods', label: 'The Methods' },
     ],
   },
 ]

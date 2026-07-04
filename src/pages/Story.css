@@ -2612,3 +2612,119 @@
     min-width: 640px;
   }
 }
+
+/* ── Act II · The Methods (exploded axonometrics) ─────────────────────────── */
+.methods-inner {
+  max-width: 1120px;
+}
+
+.method-block {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) 1fr;
+  gap: 40px;
+  align-items: center;
+  margin: 0 0 26px;
+}
+.method-copy h3 {
+  margin: 0 0 10px;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 24px;
+  color: var(--ink);
+}
+.method-copy p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.method-fig {
+  margin: 0;
+}
+.method-diagram {
+  position: relative;
+  max-width: 620px;
+  margin: 0 auto;
+}
+.method-diagram img {
+  display: block;
+  width: 62%;
+  margin-left: 38%;
+  height: auto;
+}
+
+.method-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.method-lines line {
+  stroke: #9aa89e;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  transition: stroke 0.15s;
+}
+.method-lines line.is-hot {
+  stroke: var(--accent-deep);
+  stroke-width: 1.6;
+}
+.method-dot {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: #9aa89e;
+  transition: background 0.15s, transform 0.15s;
+}
+.method-dot.is-hot {
+  background: var(--accent-deep);
+  transform: translate(-50%, -50%) scale(1.5);
+}
+
+.method-labels {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.method-labels li {
+  position: absolute;
+  left: 0;
+  width: 32%;
+  transform: translateY(-50%);
+  padding: 2px 0;
+  font-size: 11.5px;
+  line-height: 1.25;
+  text-align: right;
+  color: var(--ink-soft);
+  pointer-events: auto;
+  cursor: default;
+  transition: color 0.15s;
+}
+.method-labels li.is-hot {
+  color: var(--accent-deep);
+  font-weight: 700;
+}
+
+.method-cap {
+  margin: 10px 0 0;
+  font-size: 11px;
+  text-align: center;
+  color: var(--ink-faint);
+}
+
+@media (max-width: 900px) {
+  .method-block {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .method-labels li {
+    font-size: 10px;
+  }
+}
