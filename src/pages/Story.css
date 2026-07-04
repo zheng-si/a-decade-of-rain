@@ -1892,7 +1892,7 @@
 .act2-map-fig {
   position: relative;
   margin: 0;
-  width: 250px;
+  width: 275px;
 }
 .act2-map-veg svg {
   display: block;
@@ -1900,30 +1900,13 @@
   height: auto;
 }
 /* Wash the vegetation types to near-monochrome sage, per the design. */
-/* The eco figure dims .vt to 20% by default; restore full opacity here. */
-.act2-map-veg .vt {
-  opacity: 1;
-}
-.act2-map-veg .vt-forest {
-  fill: #a8c4b1;
-}
-.act2-map-veg .vt-slashburn {
-  fill: #b3ccbb;
-}
-.act2-map-veg .vt-grassland {
-  fill: #bdd3c4;
-}
-.act2-map-veg .vt-rice {
-  fill: #a0bfaa;
-}
-.act2-map-veg .vt-mangrove {
-  fill: #adc8b5;
-}
-.act2-map-veg .vt-marsh {
-  fill: #b8cfc0;
-}
-.act2-map-veg .vt-rubber {
-  fill: #c2d7c9;
+/* Country outline only: dark-grey stroke, no fill. */
+.act2-map-veg .vn-outline {
+  stroke: #55605a;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  fill: none;
 }
 
 .act2-pins {
@@ -2030,7 +2013,7 @@
    scale, echoing the ecosystems figure's sprayed-area bars. */
 .act2-volbar {
   margin-top: 6px;
-  height: 9px;
+  height: 6px;
   background: var(--rule);
   border-radius: 2px;
   overflow: hidden;
@@ -2482,7 +2465,7 @@
     order: -1;
   }
   .act2-map-fig {
-    width: 260px;
+    width: 275px;
     margin: 0 auto;
   }
   .act2-hotspots {
