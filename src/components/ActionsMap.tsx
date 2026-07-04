@@ -1,5 +1,5 @@
 import vegRaw from '../figures/vegetation-map.svg?raw'
-import { HOTSPOTS } from '../content/actions/hotspots'
+import { HOTSPOTS, type HotspotKey } from '../content/actions/hotspots'
 
 // Pixel positions of the three air bases on the 494x750 traced vegetation map.
 // Derived from the overlay control points (scripts/overlay/cp.json): a global
@@ -20,32 +20,40 @@ const CHIP_SIDE: Record<string, 'left' | 'right'> = {
   bienhoa: 'left',
 }
 
+interface Props {
+  active: HotspotKey | null
+  onSelect: (key: HotspotKey) => void
+}
+
 // Act II locator, styled after the Figma design: the traced wartime vegetation
-// map washed to a light sage, with red dot-and-chip pins for the three bases.
-// Static by design; the interactive map is Act I's job.
-export default function ActionsMap() {
+// map washed to sage, with dot-and-chip pins coloured by cleanup status.
+// Clicking a pin highlights (and scrolls to) the matching base card.
+export default function ActionsMap({ active, onSelect }: Props) {
   return (
     <figure
       className="act2-map-fig"
-      role="img"
       aria-label="Locator map of the three dioxin hotspot air bases, Đà Nẵng, Phú Cát and Biên Hòa, down the central and southern coast of Vietnam"
     >
       <div className="act2-map-veg" aria-hidden="true" dangerouslySetInnerHTML={{ __html: vegRaw }} />
 
-      <div className="act2-pins" aria-hidden="true">
+      <div className="act2-pins">
         {HOTSPOTS.map((h) => {
           const px = PIN_PX[h.key]
           if (!px) return null
           const [x, y] = px
           return (
-            <div
+            <button
               key={h.key}
-              className="act2-pin"
+              type="button"
+              className={`act2-pin is-${h.status.toLowerCase()}${active === h.key ? ' is-active' : ''}`}
               style={{ left: `${(x / 494) * 100}%`, top: `${(y / 750) * 100}%` }}
+              aria-pressed={active === h.key}
+              aria-label={`${h.name}: highlight its card`}
+              onClick={() => onSelect(h.key)}
             >
               <span className={`act2-chip is-${CHIP_SIDE[h.key]}`}>{h.name} Airbase</span>
               <i className="act2-dot" />
-            </div>
+            </button>
           )
         })}
       </div>
