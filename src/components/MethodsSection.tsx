@@ -124,7 +124,7 @@ export default function MethodsSection() {
                       </div>
                       <Diagram m={m} open />
                     </div>
-                  ) : (
+                  ) : active === null ? (
                     <div className="method-rest">
                       <img className="method-photo" src={m.photo} alt="" loading="lazy" />
                       <div className="method-rest-veil" aria-hidden="true" />
@@ -136,7 +136,7 @@ export default function MethodsSection() {
                         <p className="method-hint">Click to explore the layers →</p>
                       </div>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
             )
