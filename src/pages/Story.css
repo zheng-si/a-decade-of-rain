@@ -1773,6 +1773,26 @@
   transition: filter 0.45s ease, transform 0.45s ease;
 }
 
+/* The health wall carries fewer but larger frames: a full-width hero over two
+   side-by-side tiles. Drop the masonry so the three portraits read big. */
+.interlude-wall.is-health .wall-grid {
+  columns: auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.interlude-wall.is-health .wall-tile,
+.interlude-wall.is-health .wall-tile:nth-child(3n + 1),
+.interlude-wall.is-health .wall-tile:nth-child(5n),
+.interlude-wall.is-health .wall-tile:nth-child(7n) {
+  margin: 0;
+  aspect-ratio: 3 / 2;
+}
+.interlude-wall.is-health .wall-tile:first-child {
+  grid-column: 1 / -1;
+  aspect-ratio: 16 / 9;
+}
+
 /* Sensitive wall: blur every photo until the reader consents. The slight
    scale hides the transparent fringe a blur leaves at the edges. */
 .wall-grid.is-blurred .wall-tile img {
@@ -1969,6 +1989,12 @@
   }
   .wall-grid {
     columns: 2;
+  }
+  .interlude-wall.is-health .wall-grid {
+    grid-template-columns: 1fr;
+  }
+  .interlude-wall.is-health .wall-tile:first-child {
+    aspect-ratio: 3 / 2;
   }
   .act2-hotspots {
     grid-template-columns: 1fr;
