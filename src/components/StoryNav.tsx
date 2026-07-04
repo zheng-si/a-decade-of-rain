@@ -24,7 +24,13 @@ const NAV: NavGroup[] = [
       { id: 'sec-ecosystems', label: 'The War-disrupted Ecosystems' },
     ],
   },
-  { act: 'Interlude', items: [{ id: 'sec-consequences', label: 'The Consequences' }] },
+  {
+    act: 'Interlude',
+    items: [
+      { id: 'sec-land', label: 'The Land' },
+      { id: 'sec-body', label: 'The Body' },
+    ],
+  },
   { act: 'Act 2', items: [{ id: 'sec-actions', label: 'The Actions' }] },
 ]
 

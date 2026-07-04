@@ -1,34 +1,44 @@
-import { CONSEQUENCES, CONSEQUENCE_STATS } from '../content/interlude/consequences'
+import { WALLS } from '../content/interlude/consequences'
+import { SOURCES } from '../content/sources'
 
-// Interlude between Act I and Act II: the human/health legacy of the dioxin.
-// Full-screen, stat-forward, deliberately sober.
+// Interlude — "The Consequences": two full-page photo walls (the land, in
+// green; the body, in orange). Left third = a big number; right = a photo
+// mosaic. Built for impact. (Tile images are placeholders for now.)
 export default function ConsequencesInterlude() {
   return (
-    <section className="story-fullscreen consequences" id="sec-consequences" aria-label={CONSEQUENCES.title}>
-      <div className="fs-inner cons-inner">
-        <header className="fs-head">
-          <p className="fs-eyebrow">{CONSEQUENCES.eyebrow}</p>
-          <h2 className="fs-title">{CONSEQUENCES.title}</h2>
-          <p className="fs-dek">{CONSEQUENCES.dek}</p>
-        </header>
+    <>
+      {WALLS.map((w) => {
+        const src = w.sourceId ? SOURCES[w.sourceId] : undefined
+        return (
+          <section key={w.key} id={`sec-${w.key}`} className={`story-fullscreen interlude-wall is-${w.theme}`} aria-label={w.label}>
+            <div className="wall-inner">
+              <div className="wall-lead">
+                <p className="wall-eyebrow">{w.eyebrow}</p>
+                <p className="wall-value">{w.value}</p>
+                <p className="wall-label">{w.label}</p>
+                <p className="wall-lede">{w.lede}</p>
+                {src && (
+                  <a className="wall-src" href={src.url} target="_blank" rel="noreferrer">
+                    {src.publisher}
+                  </a>
+                )}
+              </div>
 
-        <ul className="cons-stats">
-          {CONSEQUENCE_STATS.map((s) => (
-            <li key={s.label} className="cons-stat">
-              <span className="cons-stat-value">{s.value}</span>
-              <span className="cons-stat-label">{s.label}</span>
-            </li>
-          ))}
-        </ul>
-
-        <div className="cons-body">
-          {CONSEQUENCES.body.map((p) => (
-            <p key={p.slice(0, 24)}>{p}</p>
-          ))}
-        </div>
-
-        <p className="fs-note">{CONSEQUENCES.note}</p>
-      </div>
-    </section>
+              <div className="wall-grid">
+                {w.photos.map((p, i) => (
+                  <figure key={i} className="wall-tile">
+                    <img src={p.src} alt={p.alt} loading="lazy" />
+                    <figcaption className="wall-cap">
+                      <span>{p.caption}</span>
+                      {p.credit && <em>{p.credit}</em>}
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+            </div>
+          </section>
+        )
+      })}
+    </>
   )
 }
