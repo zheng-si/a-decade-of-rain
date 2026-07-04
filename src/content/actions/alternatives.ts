@@ -11,6 +11,8 @@ export interface Alternative {
   key: string
   /** Short label under the chart columns. */
   label: string
+  /** Column label lines as drawn in the design (numbers get bolded). */
+  chartLines: string[]
   /** Longer name used in the family cards / tooltips. */
   name: string
   family: AltFamily
@@ -39,6 +41,7 @@ export const ALTERNATIVES: Alternative[] = [
   {
     key: 'landfill',
     label: 'Passive landfill',
+    chartLines: ['Landfill'],
     name: 'Passive landfill (containment)',
     family: 'containment',
     costM: 135,
@@ -47,6 +50,7 @@ export const ALTERNATIVES: Alternative[] = [
   {
     key: 'hybrid2500',
     label: 'Landfill + thermal, 2,500 ppt split',
+    chartLines: ['Landfill < 2500 PPT +', 'Ex Situ Tch > 2500 PPT'],
     name: 'Hybrid: contain below 2,500 ppt, treat above',
     family: 'hybrid',
     costM: 240,
@@ -55,6 +59,7 @@ export const ALTERNATIVES: Alternative[] = [
   {
     key: 'hybrid1200',
     label: 'Landfill + thermal, 1,200 ppt split',
+    chartLines: ['Landfill < 1200 PPT +', 'Ex Situ Tch > 1200 PPT'],
     name: 'Hybrid: contain below 1,200 ppt, treat above',
     family: 'hybrid',
     costM: 335,
@@ -64,6 +69,7 @@ export const ALTERNATIVES: Alternative[] = [
   {
     key: 'incineration',
     label: 'Incineration',
+    chartLines: ['Incineration'],
     name: 'Incineration (off-site burn)',
     family: 'treatment',
     costM: 665,
@@ -72,6 +78,7 @@ export const ALTERNATIVES: Alternative[] = [
   {
     key: 'thermal',
     label: 'Ex-situ thermal',
+    chartLines: ['Ex Situ Tch (Thermal', 'Conducting Heating)'],
     name: 'Ex-situ thermal treatment (conductive heating)',
     family: 'treatment',
     costM: 535,
@@ -80,6 +87,7 @@ export const ALTERNATIVES: Alternative[] = [
   {
     key: 'mcd',
     label: 'MCD',
+    chartLines: ['MCD (Mechano-', 'Chemical Destruction)'],
     name: 'Mechanochemical destruction',
     family: 'treatment',
     costM: 600,
@@ -93,7 +101,7 @@ export const ALTS = {
   dek: 'For Biên Hòa, USAID weighed six ways to deal with half a million cubic metres of contaminated soil. They fall into three families: contain it all, destroy it all, or split the difference.',
   chartTitle: 'What each alternative costs, and what it emits',
   arrow: 'Increasing cost and complexity',
-  revealLabel: 'Which one did USAID choose?',
+  revealLabel: 'Find out what alternatives USAID adopt',
   revealNote:
     'USAID chose the hybrid path: soil above the treatment threshold is heated to destroy the dioxin, the rest is sealed in an engineered landfill on site.',
   note: 'Cost and CO2 figures are rounded, indicative values from the USAID environmental assessment for Biên Hòa, for comparing alternatives rather than quoting budgets.',
