@@ -12,33 +12,26 @@ const CO2_TICKS = [0, 20, 40, 60]
 
 const FAMILY_ORDER: AltFamily[] = ['containment', 'hybrid', 'treatment']
 
-// Small explanatory icons for the three families. Containment and treatment
-// use Lucide's archive and flame (MIT licence, path data inlined); no stock
-// icon says "half contained, half treated", so hybrid stays custom, drawn in
-// the same stroke style.
+// Family icons from the IBM Carbon icon library (Apache 2.0, path data
+// inlined): box = contained, fire = treated, thumbs-up-double = both.
 const FAMILY_ICONS: Record<AltFamily, ReactNode> = {
   containment: (
-    // Lucide "archive" — a sealed storage box
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect width="20" height="5" x="2" y="3" rx="1" />
-      <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
-      <path d="M10 12h4" />
+    // Carbon "box"
+    <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+      <path d="M20,21H12a2,2,0,0,1-2-2V17a2,2,0,0,1,2-2h8a2,2,0,0,1,2,2v2A2,2,0,0,1,20,21Zm-8-4v2h8V17Z" />
+      <path d="M28,4H4A2,2,0,0,0,2,6v4a2,2,0,0,0,2,2V28a2,2,0,0,0,2,2H26a2,2,0,0,0,2-2V12a2,2,0,0,0,2-2V6A2,2,0,0,0,28,4ZM26,28H6V12H26Zm2-18H4V6H28v4Z" />
     </svg>
   ),
   treatment: (
-    // Lucide "flame" — heat destroys the dioxin
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
+    // Carbon "fire"
+    <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+      <path d="M24.832,16.9688c-.2724-.6465-.5815-1.38-.8833-2.2852-.79-2.3682,1.7344-4.9522,1.7583-4.9766L24.293,8.293c-.1407.1406-3.4234,3.4775-2.2417,7.0234.3261.978.6513,1.749.938,2.43A9.3812,9.3812,0,0,1,24,22a6.24,6.24,0,0,1-4.1892,5.293,8.52,8.52,0,0,0-2.1038-8l-1.0444-1.0445-.5815,1.3575C14.2449,23.89,12.06,25.76,10.7747,26.54A5.8437,5.8437,0,0,1,8,22a9.6239,9.6239,0,0,1,.9287-3.6289A11.3329,11.3329,0,0,0,10,14V12.2217c.8735.36,2,1.3037,2,3.7783v2.6035l1.7432-1.9341c3.1118-3.4546,2.4624-7.5678,1.206-10.3081A4.4859,4.4859,0,0,1,18,11h2c0-5.5371-4.5786-7-7-7H11l1.1992,1.5986c.1377.1856,2.8628,3.9278,1.3535,7.688A4.9426,4.9426,0,0,0,9,10H8v4a9.6239,9.6239,0,0,1-.9287,3.6289A11.3329,11.3329,0,0,0,6,22c0,3.8477,3.8232,8,10,8s10-4.1523,10-8A11.3771,11.3771,0,0,0,24.832,16.9688ZM12.8352,27.5264a16.4987,16.4987,0,0,0,4.3665-5.5987,6.1053,6.1053,0,0,1,.2573,5.9717A11.3213,11.3213,0,0,1,16,28,10.3278,10.3278,0,0,1,12.8352,27.5264Z" />
     </svg>
   ),
   hybrid: (
-    // custom: half contained (soil dots), half treated (flame)
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="3" y="6.5" width="18" height="14" rx="1.5" />
-      <path d="M12 6.5v14" />
-      <circle cx="7.4" cy="12" r="1" fill="currentColor" stroke="none" />
-      <circle cx="8.2" cy="16" r="1" fill="currentColor" stroke="none" />
-      <path d="M16.3 17.5c-1.5-.8-1.9-2.3-.9-3.5.2.6.7.9 1.1 1-.3-1.2.2-2.3 1.3-2.8-.1 1 .4 1.6.9 2.3.8 1.3.1 2.5-1.2 3" />
+    // Carbon "thumbs-up-double" — both approaches together
+    <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
+      <path d="M20.7637,13.9999h-5.7637l-.0024-4.4316c0-2.1011-1.2324-3.5684-2.9976-3.5684h-1c-1.5273,0-1.7539,1.5273-1.8755,2.3477-.0225.1509-.6826,4.8052-.6826,4.8052l-2.0431,3.8472H2v13h16.3325c3.6763,0,6.6675-2.9912,6.6675-6.6675v-5.103c0-2.3369-1.8989-4.2295-4.2363-4.2295h0ZM4,27.9999v-9h1.9998l-.0017,9h-1.9981ZM23,23.3324c0,2.5737-2.0938,4.6675-4.6675,4.6675h-10.3325v-9.751l2.3735-4.4692s.7983-5.6035.8433-5.7798h.7832c.9697,0,.9976,1.4077.9976,1.5684l.0024,6.4316h7.7637c1.2344,0,2.2363.9951,2.2363,2.2295v5.103ZM31,13.2295v5.103c0,2.321-1.194,4.3667-2.9983,5.5613l-1.0042-1.7393c1.2073-.8446,2.0024-2.2402,2.0024-3.8221v-5.103c0-1.2344-1.0019-2.2295-2.2363-2.2295h-7.7637l-.0024-6.4315c0-.1608-.0279-1.5685-.9976-1.5685h-.7832c-.0174.0681-.1475.948-.3002,2.0001h-2.0273c.1234-.8691.2266-1.5944.2352-1.6523.1216-.8206.3482-2.3478,1.8755-2.3478h1c1.7652,0,2.9976,1.4673,2.9976,3.5685l.0024,4.4315h5.7637c2.3374.0001,4.2363,1.8927,4.2363,4.2296Z" />
     </svg>
   ),
 }
@@ -75,7 +68,7 @@ export default function AlternativesSection() {
 
         <ul className="alt-families">
           {FAMILY_ORDER.map((f) => (
-            <li key={f} className={`alt-family is-${f}`}>
+            <li key={f} className={`alt-family is-${f}${revealed && f !== 'treatment' ? ' is-kept' : ''}`}>
               <div className="alt-family-head">
                 <span className="alt-family-icon">{FAMILY_ICONS[f]}</span>
                 <h3>{ALT_FAMILIES[f].title}</h3>
