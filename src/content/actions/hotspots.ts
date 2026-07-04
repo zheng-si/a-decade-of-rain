@@ -1,7 +1,8 @@
 // Act II — "The Actions": the present-day cleanup. The herbicide fell across a
 // quarter of the country, but the dioxin concentrated at a handful of former
 // U.S. air bases where it was stored, mixed, spilled and burned. Those are the
-// three "hotspots" — Đà Nẵng, Biên Hòa, Phú Cát.
+// three "hotspots", ordered chronologically: Phú Cát (contained 2011-12),
+// Đà Nẵng (cleaned 2012-18), Biên Hòa (ongoing since 2019).
 //
 // Figures from USAID / U.S. Embassy fact sheets and the UNDP three-hotspots
 // report (see sourceIds). Costs/volumes are the widely cited public numbers;
@@ -30,6 +31,21 @@ export interface Hotspot {
 }
 
 export const HOTSPOTS: Hotspot[] = [
+  {
+    key: 'phucat',
+    name: 'Phú Cát',
+    place: 'Phú Cát Airport · Bình Định province',
+    lngLat: [109.052, 13.966],
+    status: 'Contained',
+    statusYear: '2012',
+    volume: '~7,500 m³ isolated in an engineered landfill',
+    volumeM3: 7500,
+    cost: 'Vietnam · UNDP / GEF',
+    timeline: '2011 – 2012',
+    method: 'Active containment: the dioxin sealed in a lined, capped landfill on site',
+    note: 'Contained rather than destroyed, and taken off the active hotspot list.',
+    sourceId: 'undp_hotspots',
+  },
   {
     key: 'danang',
     name: 'Đà Nẵng',
@@ -60,21 +76,6 @@ export const HOTSPOTS: Hotspot[] = [
     note: 'The biggest remaining task by far; 2025 cuts to U.S. funding have thrown its schedule into doubt.',
     sourceId: 'usembassy_bienhoa',
   },
-  {
-    key: 'phucat',
-    name: 'Phú Cát',
-    place: 'Phú Cát Airport · Bình Định province',
-    lngLat: [109.052, 13.966],
-    status: 'Contained',
-    statusYear: '2012',
-    volume: '~7,500 m³ isolated in an engineered landfill',
-    volumeM3: 7500,
-    cost: 'Vietnam · UNDP / GEF',
-    timeline: '2011 – 2012',
-    method: 'Active containment: the dioxin sealed in a lined, capped landfill on site',
-    note: 'Contained rather than destroyed, and taken off the active hotspot list.',
-    sourceId: 'undp_hotspots',
-  },
 ]
 
 export const ACTIONS = {
@@ -82,6 +83,6 @@ export const ACTIONS = {
   title: 'Cleaning It Up',
   dek: 'The herbicide fell across a quarter of the country, but the dioxin concentrated in a few small places: the former U.S. air bases where it was stored, mixed, spilled and burned. Half a century later, those few hectares are the front line, a slow, costly and still-unfinished cleanup run jointly by Vietnam and the United States.',
   closing:
-    'Đà Nẵng is finished. Phú Cát is sealed. Biên Hòa, the largest by far, is the unfinished chapter, and the one whose future now turns on whether the money holds.',
+    'Phú Cát is sealed. Đà Nẵng is finished. Biên Hòa, the largest by far, is the unfinished chapter, and the one whose future now turns on whether the money holds.',
   note: 'Figures from USAID and U.S. Embassy Vietnam fact sheets and the UNDP three-hotspots report. Costs and volumes are widely cited public estimates; Biên Hòa’s timeline is uncertain.',
 }
