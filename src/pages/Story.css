@@ -2230,13 +2230,41 @@
   line-height: 1.5;
   color: var(--ink-soft);
 }
-/* Which chart columns this family covers — keys the cards to the x labels. */
+/* Which chart columns this family covers — chips keyed to the x labels. */
 .alt-family-methods {
-  margin: 8px 0 0 !important;
-  padding-top: 7px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin: 10px 0 0;
+  padding-top: 9px;
   border-top: 1px solid var(--rule);
-  font-size: 11px !important;
-  color: var(--ink-faint) !important;
+}
+.alt-family-methods-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-right: 2px;
+}
+.alt-method-chip {
+  padding: 2.5px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: #fff;
+  white-space: nowrap;
+}
+.alt-family.is-containment .alt-method-chip {
+  color: #4d7d63;
+}
+.alt-family.is-hybrid .alt-method-chip {
+  color: #3f6a52;
+}
+.alt-family.is-treatment .alt-method-chip {
+  color: #2f5c44;
 }
 
 /* The comparison chart, reproducing the Figma design: one plot, a grey cost
@@ -2466,7 +2494,14 @@
 
 .alt-verdicts {
   display: flex;
+  gap: 10px;
   margin: 14px 0 0;
+  /* reserve the tallest verdict's height so the reveal never re-centres the section */
+  min-height: 118px;
+  align-items: flex-start;
+}
+.alt-verdicts.is-hidden {
+  visibility: hidden;
 }
 .alt-verdict {
   flex: 1;
@@ -2474,7 +2509,6 @@
   flex-direction: column;
   align-items: center;
   gap: 9px;
-  padding: 0 5px;
 }
 .alt-verdict-mark {
   font-size: 17px;
@@ -2485,7 +2519,7 @@
   color: #3f9e6c;
 }
 .alt-verdict.is-cut .alt-verdict-mark {
-  color: var(--accent-deep);
+  color: var(--accent);
 }
 .alt-verdict-chip {
   width: 100%;
@@ -2501,8 +2535,8 @@
   background: #5abe88;
 }
 .alt-verdict.is-cut .alt-verdict-chip {
-  background: var(--accent-deep);
-  font-weight: 500;
+  background: var(--accent);
+  font-weight: 600;
   text-align: left;
 }
 

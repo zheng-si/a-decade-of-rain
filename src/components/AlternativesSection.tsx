@@ -12,36 +12,33 @@ const CO2_TICKS = [0, 20, 40, 60]
 
 const FAMILY_ORDER: AltFamily[] = ['containment', 'hybrid', 'treatment']
 
-// Small explanatory icons for the three families — the site is otherwise
-// restrained with icons, but these carry real meaning: a lined container
-// around the soil; a heated chamber with its offgas collected; both at once.
+// Small explanatory icons for the three families. Containment and treatment
+// use Lucide's archive and flame (MIT licence, path data inlined); no stock
+// icon says "half contained, half treated", so hybrid stays custom, drawn in
+// the same stroke style.
 const FAMILY_ICONS: Record<AltFamily, ReactNode> = {
   containment: (
-    // a sealed vault: lid seam + latched soil inside
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="4" y="6" width="16" height="14" rx="1.8" />
-      <path d="M4 10.5h16" />
-      <circle cx="9.5" cy="15.2" r="1.05" fill="currentColor" stroke="none" />
-      <circle cx="14.5" cy="16.4" r="1.05" fill="currentColor" stroke="none" />
+    // Lucide "archive" — a sealed storage box
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect width="20" height="5" x="2" y="3" rx="1" />
+      <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
+      <path d="M10 12h4" />
     </svg>
   ),
   treatment: (
-    // a heated chamber with its offgas piped away
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="4" y="9.5" width="13" height="10.5" rx="1.8" />
-      <path d="M10.5 9.5V4.5h8" />
-      <path d="M16.7 2.7l1.8 1.8-1.8 1.8" />
-      <path d="M10.5 17.6c-1.7-.9-2.2-2.7-1-4.1.3.7.8 1 1.3 1.1-.4-1.4.3-2.7 1.6-3.3-.2 1.2.5 2 1 2.8 1 1.5.1 2.9-1.3 3.5" />
+    // Lucide "flame" — heat destroys the dioxin
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
     </svg>
   ),
   hybrid: (
-    // half contained, half treated
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="3.5" y="7" width="17" height="13" rx="1.8" />
-      <path d="M12 7v13" />
-      <circle cx="7.7" cy="12.5" r="1.05" fill="currentColor" stroke="none" />
-      <circle cx="8.4" cy="16.2" r="1.05" fill="currentColor" stroke="none" />
-      <path d="M16.2 17.4c-1.4-.8-1.8-2.2-.8-3.4.2.6.7.8 1 .9-.3-1.1.2-2.2 1.3-2.7-.1 1 .4 1.6.8 2.3.8 1.2.1 2.4-1.1 2.9" />
+    // custom: half contained (soil dots), half treated (flame)
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="6.5" width="18" height="14" rx="1.5" />
+      <path d="M12 6.5v14" />
+      <circle cx="7.4" cy="12" r="1" fill="currentColor" stroke="none" />
+      <circle cx="8.2" cy="16" r="1" fill="currentColor" stroke="none" />
+      <path d="M16.3 17.5c-1.5-.8-1.9-2.3-.9-3.5.2.6.7.9 1.1 1-.3-1.2.2-2.3 1.3-2.8-.1 1 .4 1.6.9 2.3.8 1.3.1 2.5-1.2 3" />
     </svg>
   ),
 }
@@ -84,7 +81,14 @@ export default function AlternativesSection() {
                 <h3>{ALT_FAMILIES[f].title}</h3>
               </div>
               <p>{ALT_FAMILIES[f].blurb}</p>
-              <p className="alt-family-methods">{ALT_FAMILIES[f].methods}</p>
+              <div className="alt-family-methods">
+                <span className="alt-family-methods-label">On the chart</span>
+                {ALT_FAMILIES[f].methodChips.map((c) => (
+                  <span key={c} className="alt-method-chip">
+                    {c}
+                  </span>
+                ))}
+              </div>
             </li>
           ))}
         </ul>
@@ -170,20 +174,20 @@ export default function AlternativesSection() {
               {revealed ? ALTS.revealBanner : ALTS.revealLabel}
             </button>
 
-            {revealed && (
-              <div className="alt-verdicts">
-                {ALTERNATIVES.map((a) => (
-                  <div key={a.key} className={`alt-verdict${a.retained ? ' is-kept' : ' is-cut'}`}>
-                    <span className="alt-verdict-mark" aria-hidden="true">
-                      {a.retained ? '✓' : '✕'}
-                    </span>
-                    <span className="alt-verdict-chip">
-                      {a.retained ? ALTS.retainedLabel : a.screenNote}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )}
+            {/* Always in the layout so toggling doesn't re-centre the section;
+                hidden (not removed) until revealed. */}
+            <div className={`alt-verdicts${revealed ? '' : ' is-hidden'}`} aria-hidden={!revealed}>
+              {ALTERNATIVES.map((a) => (
+                <div key={a.key} className={`alt-verdict${a.retained ? ' is-kept' : ' is-cut'}`}>
+                  <span className="alt-verdict-mark" aria-hidden="true">
+                    {a.retained ? '✓' : '✕'}
+                  </span>
+                  <span className="alt-verdict-chip">
+                    {a.retained ? ALTS.retainedLabel : a.screenNote}
+                  </span>
+                </div>
+              ))}
+            </div>
           </figcaption>
         </figure>
 
