@@ -2070,6 +2070,206 @@
   color: var(--ink);
 }
 
+/* ── Act II · The Alternatives ────────────────────────────────────────────── */
+.alt-inner {
+  max-width: 1120px;
+}
+
+.alt-families {
+  list-style: none;
+  margin: 6px 0 34px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.alt-family {
+  padding: 16px 18px;
+  background: var(--paper-solid);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--ink-faint);
+  border-radius: 5px;
+}
+.alt-family.is-containment {
+  border-top-color: #8fb4a0;
+}
+.alt-family.is-hybrid {
+  border-top-color: #5a8a6f;
+}
+.alt-family.is-treatment {
+  border-top-color: #2f5c44;
+}
+.alt-family h3 {
+  margin: 0 0 6px;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 19px;
+  color: var(--ink);
+}
+.alt-family p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* The comparison chart: two stacked panels over one shared column grid. */
+.alt-chart {
+  margin: 0 0 20px;
+}
+
+.alt-arrow {
+  position: relative;
+  margin: 0 0 14px;
+  text-align: center;
+}
+.alt-arrow span {
+  position: relative;
+  display: inline-block;
+  padding: 0 12px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
+  background: rgb(var(--paper));
+}
+.alt-arrow::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  border-top: 1.5px solid var(--accent-deep);
+}
+.alt-arrow::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  border-top: 1.5px solid var(--accent-deep);
+  border-right: 1.5px solid var(--accent-deep);
+  transform: translateY(-50%) rotate(45deg);
+  transform-origin: center;
+}
+
+.alt-groups {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 10px;
+}
+.alt-group {
+  padding: 4px 0 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--ink-faint);
+  border-bottom: 1px solid var(--rule);
+}
+
+.alt-panel {
+  margin: 0 0 6px;
+}
+.alt-panel-name {
+  margin: 10px 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.alt-bars {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  align-items: end;
+  height: 150px;
+  border-bottom: 1.5px solid var(--ink-faint);
+}
+.alt-bar-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  transition: opacity 0.25s;
+}
+.alt-bar-cell.is-dim {
+  opacity: 0.32;
+}
+.alt-bar-value {
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.alt-bar {
+  width: min(58px, 72%);
+}
+.alt-panel.is-cost .alt-bar {
+  background: #51625a;
+}
+.alt-panel.is-co2 .alt-bar {
+  background: var(--accent-deep);
+}
+
+.alt-xlabels {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  margin: 8px 0 0;
+}
+.alt-xlabel {
+  font-size: 11.5px;
+  line-height: 1.35;
+  text-align: center;
+  color: var(--ink-soft);
+}
+.alt-xlabel em {
+  display: block;
+  margin-top: 3px;
+  font-style: normal;
+  font-weight: 700;
+  color: var(--accent-deep);
+}
+.alt-xlabel.is-adopted {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.alt-reveal {
+  margin: 22px 0 0;
+  text-align: center;
+}
+.alt-reveal-btn {
+  padding: 9px 20px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-deep);
+  background: var(--paper-solid);
+  border: 1.5px solid var(--accent-deep);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.alt-reveal-btn:hover {
+  background: var(--accent-deep);
+  color: #fff;
+}
+.alt-reveal-note {
+  margin: 12px auto 0;
+  max-width: 560px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
 @media (max-width: 900px) {
   .wall-inner {
     grid-template-columns: 1fr;
@@ -2091,5 +2291,18 @@
   .act2-map-fig {
     max-width: 320px;
     margin: 0 auto;
+  }
+  .alt-families {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .alt-chart {
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+  .alt-groups,
+  .alt-bars,
+  .alt-xlabels {
+    min-width: 640px;
   }
 }
