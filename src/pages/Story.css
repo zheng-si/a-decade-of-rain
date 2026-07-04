@@ -2183,10 +2183,38 @@
   border: 1px solid var(--rule);
   border-top: 3px solid var(--ink-faint);
   border-radius: 5px;
+  transition: background 0.3s, border-color 0.3s;
 }
 
-/* When the screening is revealed, surviving families get a checkmark per
-   retained alternative in their top-right corner (Carbon checkmark--filled). */
+/* When the screening is revealed, each surviving family flips to its own
+   theme green, and gets a checkmark per retained alternative in its top-right
+   corner (Carbon checkmark--filled). */
+.alt-family.is-kept {
+  background: var(--fam);
+  border-color: var(--fam);
+}
+.alt-family.is-kept h3,
+.alt-family.is-kept p,
+.alt-family.is-kept .alt-family-icon {
+  color: #fff !important;
+}
+.alt-family.is-kept p {
+  opacity: 0.94;
+}
+.alt-family.is-kept .alt-family-methods {
+  border-top-color: rgba(255, 255, 255, 0.35);
+}
+.alt-family.is-kept .alt-family-methods-label {
+  color: rgba(255, 255, 255, 0.85);
+}
+.alt-family.is-kept .alt-method-chip {
+  background: #fff !important;
+  color: var(--fam) !important;
+}
+.alt-family.is-kept .alt-family-checks {
+  color: #fff;
+}
+
 @keyframes alt-check-pop {
   from {
     opacity: 0;
