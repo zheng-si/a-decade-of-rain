@@ -20,6 +20,8 @@ export interface Hotspot {
   statusYear: string
   /** Contamination volume / what was done to it. */
   volume: string
+  /** Numeric volume in m3, for the shared-scale bar under the fact. */
+  volumeM3: number
   cost: string
   timeline: string
   method: string
@@ -36,6 +38,7 @@ export const HOTSPOTS: Hotspot[] = [
     status: 'Completed',
     statusYear: '2018',
     volume: '~90,000 m³ soil treated · ~50,000 m³ contained',
+    volumeM3: 140000,
     cost: '≈ US$110 million',
     timeline: '2012 – 2018',
     method: 'In-pile thermal desorption: the soil was heated to ~335 °C to break the dioxin down',
@@ -50,6 +53,7 @@ export const HOTSPOTS: Hotspot[] = [
     status: 'Ongoing',
     statusYear: 'since 2019',
     volume: '~500,000 m³, the largest hotspot, roughly 4× Đà Nẵng',
+    volumeM3: 500000,
     cost: '≈ US$450 million (planned)',
     timeline: '2019 – ~2030 (est.)',
     method: 'Excavation with thermal treatment and secure, engineered containment',
@@ -64,6 +68,7 @@ export const HOTSPOTS: Hotspot[] = [
     status: 'Contained',
     statusYear: '2012',
     volume: '~7,500 m³ isolated in an engineered landfill',
+    volumeM3: 7500,
     cost: 'Vietnam · UNDP / GEF',
     timeline: '2011 – 2012',
     method: 'Active containment: the dioxin sealed in a lined, capped landfill on site',
