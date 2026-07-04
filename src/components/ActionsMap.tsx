@@ -21,7 +21,8 @@ const CHIP_SIDE: Record<string, 'left' | 'right'> = {
 }
 
 interface Props {
-  active: HotspotKey | null
+  /** Keys whose cards are flipped open; their pins light up. */
+  active: HotspotKey[]
   onSelect: (key: HotspotKey) => void
 }
 
@@ -46,9 +47,9 @@ export default function ActionsMap({ active, onSelect }: Props) {
             <button
               key={h.key}
               type="button"
-              className={`act2-pin is-${h.status.toLowerCase()}${active === h.key ? ' is-active' : ''}`}
+              className={`act2-pin is-${h.status.toLowerCase()}${active.includes(h.key) ? ' is-active' : ''}`}
               style={{ left: `${(x / 494) * 100}%`, top: `${(y / 750) * 100}%` }}
-              aria-pressed={active === h.key}
+              aria-pressed={active.includes(h.key)}
               aria-label={`${h.name}: highlight its card`}
               onClick={() => onSelect(h.key)}
             >
