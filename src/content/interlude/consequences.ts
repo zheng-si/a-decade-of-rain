@@ -9,10 +9,8 @@
 // Verify each file's exact license line on Commons before launch.
 
 import land1 from '../../assets/consequences/land-1.jpg'
-import land2 from '../../assets/consequences/land-2.jpg'
 import land3 from '../../assets/consequences/land-3.webp'
 import land4 from '../../assets/consequences/land-4.jpg'
-import land5 from '../../assets/consequences/land-5.jpg'
 import body1 from '../../assets/consequences/body-1.jpg'
 import body2 from '../../assets/consequences/body-2.jpg'
 import body3 from '../../assets/consequences/body-3.jpg'
@@ -61,10 +59,8 @@ export const WALLS: ConsequenceWall[] = [
     sourceId: 'stellman_2003',
     photos: [
       { src: land1, alt: 'A C-123 aircraft spraying defoliant over dense forest', caption: 'A U.S. Air Force C-123 lays a swath of defoliant over triple-canopy forest.', credit: 'U.S. Air Force' },
-      { src: land2, alt: 'A UH-1D helicopter spraying defoliant over the Mekong Delta', caption: 'A UH-1D of the 336th Aviation Company sprays defoliant over the Mekong Delta.', credit: 'U.S. Army · NARA' },
-      { src: land3, alt: 'Aerial view of sprayed mangrove forest, 1968', caption: 'Aerial view of mangrove sprayed in the Rừng Sác, III Corps, 1968.', credit: 'RANCH HAND Collection, Vietnam Archive, Texas Tech University' },
       { src: land4, alt: 'Three aircraft spraying herbicide in formation', caption: 'Three UC-123s lay parallel swaths of herbicide in a single pass.', credit: 'U.S. Air Force' },
-      { src: land5, alt: 'An aircraft stripping vegetation along a roadside, 1966', caption: 'A UC-123 strips the vegetation along a roadside in central South Vietnam, 1966.', credit: 'U.S. Air Force' },
+      { src: land3, alt: 'Aerial view of sprayed mangrove forest, 1968', caption: 'Aerial view of mangrove sprayed in the Rừng Sác, III Corps, 1968.', credit: 'RANCH HAND Collection, Vietnam Archive, Texas Tech University' },
     ],
   },
   {
