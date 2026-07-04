@@ -126,9 +126,15 @@ export default function MethodsSection() {
                     </div>
                   ) : (
                     <div className="method-rest">
-                      <h3>{m.title}</h3>
-                      <Diagram m={m} open={false} />
-                      <p className="method-hint">Click to explore the layers</p>
+                      <img className="method-photo" src={m.photo} alt="" loading="lazy" />
+                      <div className="method-rest-veil" aria-hidden="true" />
+                      <div className="method-rest-copy">
+                        <div>
+                          <h3>{m.title}</h3>
+                          <p className="method-tagline">{m.tagline}</p>
+                        </div>
+                        <p className="method-hint">Click to explore the layers →</p>
+                      </div>
                     </div>
                   )}
                 </div>
