@@ -70,7 +70,7 @@ export default function AlternativesSection() {
           {FAMILY_ORDER.map((f) => {
             const kept = ALTERNATIVES.filter((a) => a.family === f && a.retained).length
             return (
-            <li key={f} className={`alt-family is-${f}`}>
+            <li key={f} className={`alt-family is-${f}${revealed && f !== 'treatment' ? ' is-kept' : ''}`}>
               {revealed && kept > 0 && (
                 <span className="alt-family-checks" role="img" aria-label={`${kept} alternative${kept > 1 ? 's' : ''} retained`}>
                   {Array.from({ length: kept }).map((_, i) => (
