@@ -54,6 +54,9 @@ const LIVE = NAV.flatMap((g) => g.items).filter((i) => !i.upcoming)
 
 export default function StoryNav() {
   const [active, setActive] = useState(LIVE[0].id)
+  // The rail stays hidden over the banner (the big centred title carries the
+  // name there) and slides in once the reader scrolls into the story.
+  const [shown, setShown] = useState(false)
 
   useEffect(() => {
     // Active = the last section whose top has crossed the viewport's 40% line.
@@ -65,6 +68,7 @@ export default function StoryNav() {
         if (el && el.getBoundingClientRect().top <= line) cur = it.id
       }
       setActive(cur)
+      setShown(window.scrollY > window.innerHeight * 0.55)
     }
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
@@ -81,7 +85,7 @@ export default function StoryNav() {
   }
 
   return (
-    <nav className="story-rail" aria-label="Story sections">
+    <nav className={`story-rail${shown ? ' is-shown' : ''}`} aria-label="Story sections">
       <a
         className="story-rail-mark"
         href="#top"
