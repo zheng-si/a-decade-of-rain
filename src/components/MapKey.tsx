@@ -5,6 +5,8 @@ interface Props {
   map: maplibregl.Map | null
   ready: boolean
   started: boolean
+  is3D: boolean
+  onToggle3D: () => void
 }
 
 // Round down to a 1/2/3/5 × 10ⁿ value for a clean scale-bar label.
@@ -29,8 +31,9 @@ function computeScale(map: maplibregl.Map): { label: string; w: number } {
   return { label: fmtDist(nice), w: Math.round((nice / meters) * target) }
 }
 
-// A scale bar + curated legend, docked under the top-right nav pill.
-export default function MapKey({ map, ready, started }: Props) {
+// One top-right panel: the Flat/3D view switch, scale bar and curated legend
+// together (they were two stacked panels before).
+export default function MapKey({ map, ready, started, is3D, onToggle3D }: Props) {
   const [scale, setScale] = useState<{ label: string; w: number }>({ label: '', w: 0 })
 
   useEffect(() => {
@@ -46,8 +49,25 @@ export default function MapKey({ map, ready, started }: Props) {
   }, [ready, map])
 
   return (
-    <div className={`map-key${started ? ' is-visible' : ''}`} aria-hidden="true">
-      <div className="map-key-top">
+    <div className={`map-key${started ? ' is-visible' : ''}`}>
+      <div className="map-key-view" role="group" aria-label="Map view">
+        <button
+          type="button"
+          className={`map-key-view-btn${is3D ? '' : ' is-active'}`}
+          onClick={() => is3D && onToggle3D()}
+        >
+          Flat
+        </button>
+        <button
+          type="button"
+          className={`map-key-view-btn${is3D ? ' is-active' : ''}`}
+          onClick={() => !is3D && onToggle3D()}
+        >
+          3D
+        </button>
+      </div>
+
+      <div className="map-key-top" aria-hidden="true">
         <div className="map-key-scale">
           <div className="map-key-scale-bar" style={{ width: `${scale.w}px` }} />
           <span className="map-key-scale-label">{scale.label}</span>
@@ -60,7 +80,7 @@ export default function MapKey({ map, ready, started }: Props) {
         </div>
       </div>
 
-      <div className="map-key-heat">
+      <div className="map-key-heat" aria-hidden="true">
         <span className="map-key-heat-bar" />
         <div className="map-key-heat-labels">
           <span>Less</span>
@@ -68,7 +88,7 @@ export default function MapKey({ map, ready, started }: Props) {
         </div>
       </div>
 
-      <ul className="map-key-list">
+      <ul className="map-key-list" aria-hidden="true">
         <li>
           <span className="key-swatch key-mr" />
           Military region

@@ -92,4 +92,5 @@ export const COLOPHON = {
     'Built with React, MapLibre GL and Scrollama.',
   ],
   credit: 'Designed & built by Si Zheng',
+  email: 'zhengsi0709@gmail.com',
 }

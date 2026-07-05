@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BIOHAZARD } from './biohazard'
+import usaidWhite from '../assets/brand/usaid-white.png'
 
 // Persistent left rail: a table of contents for the (now long) story. Each
 // live item scrolls to its section anchor; the active item tracks the scroll.
@@ -21,7 +22,7 @@ const NAV: NavGroup[] = [
       { id: 'sec-facts', label: 'The Facts' },
       { id: 'sec-missions', label: 'The Spraying Missions' },
       { id: 'sec-rainbow', label: 'The Rainbow Herbicides' },
-      { id: 'sec-ecosystems', label: 'The War-disrupted Ecosystems' },
+      { id: 'sec-ecosystems', label: 'The Broken Ecosystems' },
     ],
   },
   {
@@ -34,9 +35,9 @@ const NAV: NavGroup[] = [
   {
     act: 'Act 2',
     items: [
-      { id: 'sec-actions', label: 'The Actions' },
-      { id: 'sec-alternatives', label: 'The Alternatives' },
-      { id: 'sec-methods', label: 'The Methods' },
+      { id: 'sec-actions', label: 'The Three Hotspots' },
+      { id: 'sec-alternatives', label: 'The Six Alternatives' },
+      { id: 'sec-methods', label: 'The Two Methods' },
       { id: 'sec-timeline', label: 'The Timeline' },
     ],
   },
@@ -44,7 +45,7 @@ const NAV: NavGroup[] = [
     act: 'Epilogue',
     items: [
       { id: 'sec-close', label: 'Take Action' },
-      { id: 'sec-sources', label: 'Sources' },
+      { id: 'sec-sources', label: 'Notes & Sources' },
     ],
   },
 ]
@@ -115,9 +116,6 @@ export default function StoryNav() {
                     disabled={it.upcoming}
                     onClick={() => go(it)}
                   >
-                    <span className="story-rail-caret" aria-hidden="true">
-                      ▸
-                    </span>
                     <span className="story-rail-label">{it.label}</span>
                   </button>
                 </li>
@@ -125,6 +123,12 @@ export default function StoryNav() {
             </ul>
           </div>
         ))}
+      </div>
+
+      <div className="story-rail-foot">
+        <p>Data &amp; reporting</p>
+        <img src={usaidWhite} alt="USAID" />
+        <p className="story-rail-foot-more">UNDP · U.S. National Archives</p>
       </div>
     </nav>
   )

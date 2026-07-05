@@ -19,6 +19,7 @@ import { FACTS_EVENTS, type StoryEvent } from '../content/facts/events'
 import { HOOK } from '../content/facts/hook'
 import { SOURCES } from '../content/sources'
 import RainCanvas from '../components/RainCanvas'
+import usaidInk from '../assets/brand/usaid-ink.png'
 import TimelineRuler from '../components/TimelineRuler'
 import MapKey from '../components/MapKey'
 import RainbowHerbicides, { type AgentSeries } from '../components/RainbowHerbicides'
@@ -552,24 +553,6 @@ export default function Story() {
   return (
     <div className="story" ref={storyRef}>
       <StoryNav />
-      {/* One constant-width panel, always mounted — during the banner it just
-          sits underneath the orange wash (z-order), so there's no show/hide or
-          narrow→wide animation to flicker. Just the Flat/3D view switch for
-          now (the Explore tab is parked). */}
-      <nav className="site-nav">
-        <button
-          className={`site-nav-link site-nav-btn${is3D ? '' : ' is-active'}`}
-          onClick={() => is3D && toggle3D()}
-        >
-          Flat
-        </button>
-        <button
-          className={`site-nav-link site-nav-btn${is3D ? ' is-active' : ''}`}
-          onClick={() => !is3D && toggle3D()}
-        >
-          3D
-        </button>
-      </nav>
 
       <div className="story-graphic">
         <div ref={containerRef} className="story-map" />
@@ -585,7 +568,7 @@ export default function Story() {
         </div>
       </div>
 
-      <MapKey map={mapRef.current} ready={mapReady} started={started} />
+      <MapKey map={mapRef.current} ready={mapReady} started={started} is3D={is3D} onToggle3D={toggle3D} />
 
       <TimelineRuler
         monthlyCum={monthlyCum}
@@ -615,6 +598,11 @@ export default function Story() {
               </span>
             </button>
           </div>
+          <p className="story-hook-credit">
+            <span>Built on data &amp; reporting from</span>
+            <img src={usaidInk} alt="USAID" />
+            <span>UNDP · U.S. National Archives</span>
+          </p>
         </section>
 
         {FACTS_EVENTS.map((ev, i) => {

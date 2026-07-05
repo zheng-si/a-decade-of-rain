@@ -162,6 +162,9 @@ export default function CloseSection() {
               <p key={i}>{l}</p>
             ))}
             <p className="close-credit">{COLOPHON.credit}</p>
+            <p className="close-email">
+              <a href={`mailto:${COLOPHON.email}`}>{COLOPHON.email}</a>
+            </p>
             <div className="close-mark" aria-hidden="true">
               <svg viewBox="0 0 38 35" fill="currentColor">
                 {BIOHAZARD.map((d, i) => (
