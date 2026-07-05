@@ -1,12 +1,14 @@
 // Act II — "The Timeline": the remediation programme as one readable arc,
-// 2009 to the present. No interaction: an overview bar shows the three
-// projects' spans, then a colour-coded spine walks the key moments. Facts
-// follow USAID / U.S. Embassy Vietnam / UNDP public reporting (see sourceId).
+// 2009 to today. No interaction: an overview bar shows the three projects'
+// spans, then a colour-coded card grid walks the key moments in reading
+// order. 2009 copy follows the project's Figma; the rest is drawn from
+// USAID / U.S. Embassy Vietnam / UNDP reporting, and the 2023-2026 entries
+// from 2024-25 news coverage (AP, PBS, ProPublica) of the Biên Hòa project.
 
 export type TlProject = 'programme' | 'phucat' | 'danang' | 'bienhoa'
 
 export interface TlMoment {
-  /** Display year: '2009', '2012', '2020s'. */
+  /** Display year: '2009', '2012', '2026'. */
   year: string
   project: TlProject
   /** Short editorial kicker above the body. */
@@ -40,70 +42,82 @@ export const TL_MOMENTS: TlMoment[] = [
     year: '2009',
     project: 'programme',
     tag: 'The handshake',
-    body: 'USAID and Vietnam’s Office 33 sign the Memorandum of Understanding that frames the Đà Nẵng Airport Remediation Project, and the environmental assessment of the contamination begins.',
+    body: 'USAID and Vietnam’s Office 33 sign the MOU framing the Đà Nẵng project; assessment of the contamination begins.',
   },
   {
     year: '2011',
     project: 'danang',
     tag: 'A method is chosen',
-    body: 'The assessment is complete. In-pile thermal desorption, heating the soil until the dioxin molecule breaks apart, is selected as the treatment technology.',
+    body: 'The assessment is complete. In-pile thermal desorption is selected: heat the soil until the dioxin molecule itself breaks apart.',
   },
   {
     year: '2012',
     project: 'phucat',
     tag: 'Phú Cát sealed',
-    body: 'The smallest hotspot is dealt with first: about 7,500 m³ of contaminated soil is isolated in an engineered landfill on site, a Vietnam and UNDP project finished within the year.',
+    body: 'The smallest hotspot is dealt with first: ~7,500 m³ isolated in an engineered landfill on site, with UNDP, finished within the year.',
   },
   {
     year: '2012',
     project: 'danang',
-    tag: 'Ground broken at Đà Nẵng',
-    body: 'In August, shovels hit the ground: the first full-scale dioxin cleanup in Vietnam officially begins.',
+    tag: 'Ground broken',
+    body: 'In August, shovels hit the ground at Đà Nẵng: the first full-scale dioxin cleanup in Vietnam officially begins.',
   },
   {
     year: '2013',
     project: 'danang',
     tag: 'The pile rises',
-    body: 'A sealed above-ground treatment structure the size of a football field is built, and the first ~45,000 m³ of soil and sediment are loaded in.',
+    body: 'A sealed treatment structure the size of a football field is built, and the first ~45,000 m³ of soil and sediment are loaded in.',
   },
   {
     year: '2014',
     project: 'danang',
     tag: 'Heat on',
-    body: 'Phase 1 heating switches on in April: electrodes warm the pile to about 335 °C and hold it there for months, breaking the dioxin down inside the soil.',
+    body: 'Electrodes warm the pile to about 335 °C and hold it there for months, breaking the dioxin down inside the soil.',
   },
   {
     year: '2016',
     project: 'danang',
     tag: 'The scope grows',
-    body: 'Phase 2 loading brings the treated total towards 90,000 m³, half as much again as first planned; roughly 50,000 m³ of lightly contaminated soil is sealed under an engineered cover instead.',
+    body: 'Phase 2 brings the treated total towards 90,000 m³, half as much again as planned; ~50,000 m³ of lighter soil is sealed under cover.',
   },
   {
     year: '2018',
     project: 'danang',
     tag: 'Đà Nẵng finished',
-    stat: { value: '90,000 m³', label: 'treated · 50,000 m³ contained · ≈ US$110 million' },
-    body: 'In November the project is declared complete, and the land is handed back to expand the airport.',
+    stat: { value: '90,000 m³', label: 'treated · ≈ US$110 million' },
+    body: 'November: declared complete; the land goes back to expand the airport.',
   },
   {
     year: '2019',
     project: 'bienhoa',
     tag: 'The big one begins',
     stat: { value: '500,000 m³', label: 'roughly four times Đà Nẵng' },
-    body: 'In April the United States and Vietnam launch the Biên Hòa cleanup, planned to take at least a decade.',
+    body: 'The United States and Vietnam launch the cleanup at Biên Hòa.',
   },
   {
-    year: '2020s',
+    year: '2023',
     project: 'bienhoa',
-    tag: 'Still digging',
-    body: 'Excavation and the first treatment cells advance year by year. Cuts to U.S. funding in 2025 have thrown the schedule into doubt; the work, and the story, are not finished.',
+    tag: 'First land back',
+    body: 'The first remediated area at Biên Hòa is handed over for reuse; excavation passes 100,000 m³ in the years that follow.',
+  },
+  {
+    year: '2025',
+    project: 'bienhoa',
+    tag: 'The money wobbles',
+    body: 'A U.S. foreign-aid freeze halts the work; it restarts, with the grant raised to US$430 million and thermal treatment breaking ground.',
+  },
+  {
+    year: '2026',
+    project: 'bienhoa',
+    tag: 'Unfinished',
+    body: 'Most of the soil still waits its turn. The end date, once ~2030, now rides on whether the money keeps coming.',
   },
 ]
 
 export const TIMELINE_HEAD = {
   eyebrow: 'Act II · The timeline',
   title: 'Remediation Project Timeline',
-  dek: 'From a signature to a finished cleanup, and into a bigger, unfinished one. Two decades of work, read top to bottom.',
-  note: 'Milestones from USAID and U.S. Embassy Vietnam fact sheets and the UNDP three-hotspots report.',
+  dek: 'From a signature to a finished cleanup, and into a bigger, unfinished one. Two decades of work at a glance.',
+  note: 'Milestones from USAID and U.S. Embassy Vietnam fact sheets, the UNDP three-hotspots report, and 2024-25 news coverage of the Biên Hòa project.',
   sourceId: 'usaid_danang',
 }
