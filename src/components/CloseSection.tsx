@@ -173,6 +173,14 @@ export default function CloseSection() {
               </svg>
               <span>A Decade of Rain</span>
             </div>
+
+            <button
+              type="button"
+              className="close-top"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            >
+              <span aria-hidden="true">↑</span> Back to top
+            </button>
           </footer>
         </div>
       </section>

@@ -9,7 +9,6 @@ interface Props {
   fmt: (v: number) => string
   /** The scrolling story container, used to derive continuous progress. */
   storyRef: { current: HTMLElement | null }
-  started: boolean
 }
 
 const H = 1000
@@ -61,9 +60,12 @@ const RulerYears = memo(function RulerYears({ n, yearStart }: { n: number; yearS
 // A full-height ruler: the whole 1961–1971 span at a uniform monthly scale, with
 // cumulative spray volume as a stacked area that widens downward. The scan line's
 // length tracks the bar under it, and the running-total chip rides its right end.
-export default function TimelineRuler({ monthlyCum, yearStart, nodeFracs, fmt, storyRef, started }: Props) {
+export default function TimelineRuler({ monthlyCum, yearStart, nodeFracs, fmt, storyRef }: Props) {
   const [pos, setPos] = useState(0)
   const [vh, setVh] = useState(0)
+  // Same threshold as the nav rail (StoryNav), so the two overlays reveal in
+  // lockstep as the banner scrolls away — no lag between them.
+  const [shown, setShown] = useState(false)
   const rafRef = useRef(0)
 
   useEffect(() => {
@@ -74,6 +76,7 @@ export default function TimelineRuler({ monthlyCum, yearStart, nodeFracs, fmt, s
       if (!el) return
       const vhv = window.innerHeight
       setVh(vhv)
+      setShown(window.scrollY > vhv * 0.55)
       const steps = Array.from(document.querySelectorAll<HTMLElement>('.story-step'))
       if (!steps.length) {
         setPos(0)
@@ -147,7 +150,7 @@ export default function TimelineRuler({ monthlyCum, yearStart, nodeFracs, fmt, s
   const scanTopCss = vh ? `${scanTop}px` : `${pos * 100}%`
   const barTip = Math.max(2, (vol / maxCum) * BARS_W) // px, right end of the scan line
   const reveal = `inset(0 0 ${((1 - pos) * 100).toFixed(2)}% 0)`
-  const vis = started ? ' is-visible' : ''
+  const vis = shown ? ' is-visible' : ''
 
   return (
     <aside className={`timeline-ruler${vis}`} aria-hidden="true">

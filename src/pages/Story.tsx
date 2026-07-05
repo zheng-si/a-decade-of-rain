@@ -576,7 +576,6 @@ export default function Story() {
         nodeFracs={nodeFracs}
         fmt={fmtGallons}
         storyRef={storyRef}
-        started={started}
       />
 
       <div className="story-scroll">
