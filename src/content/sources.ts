@@ -9,17 +9,11 @@ export interface Source {
 }
 
 export const SOURCES: Record<string, Source> = {
-  ranchHand_wiki: {
-    id: 'ranchHand_wiki',
-    title: 'Operation Ranch Hand',
-    publisher: 'Wikipedia',
-    url: 'https://en.wikipedia.org/wiki/Operation_Ranch_Hand',
-  },
-  impact_wiki: {
-    id: 'impact_wiki',
-    title: 'Impact of Agent Orange in Vietnam',
-    publisher: 'Wikipedia',
-    url: 'https://en.wikipedia.org/wiki/Impact_of_Agent_Orange_in_Vietnam',
+  usaf_ranchhand: {
+    id: 'usaf_ranchhand',
+    title: 'Operation Ranch Hand: The Air Force and Herbicides in Southeast Asia, 1961–1971',
+    publisher: 'W. A. Buckingham · U.S. Air Force Office of History',
+    url: 'https://www.govinfo.gov/app/details/GOVPUB-D301-PURL-LPS48689',
   },
   va_news: {
     id: 'va_news',
@@ -75,12 +69,6 @@ export const SOURCES: Record<string, Source> = {
     title: 'Ecological Effects of Military Defoliation on the Forests of South Vietnam',
     publisher: 'Westing, BioScience 21 (1971)',
     url: 'https://academic.oup.com/bioscience/article-abstract/21/17/893/226033',
-  },
-  env_issues_wiki: {
-    id: 'env_issues_wiki',
-    title: 'Environmental issues in Vietnam',
-    publisher: 'Wikipedia',
-    url: 'https://en.wikipedia.org/wiki/Environmental_issues_in_Vietnam',
   },
   usaid_danang: {
     id: 'usaid_danang',
