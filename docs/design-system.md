@@ -143,9 +143,11 @@ one system.
 
 ### Contrast notes added in the final audit
 
-- Rail resting links are 11px white on the gradient top: the top stop is
-  `#c24232` so `rgba(255,255,255,0.92)` clears ≈4.6:1. Don't lighten the top
-  stop past this without re-checking.
+- Rail resting links are 11px white on the gradient top (`#e0644f`). This is
+  a **recorded AA exception**: the lighter orange-red top was chosen for the
+  look (white text there measures ≈3.2:1). Links use
+  `rgba(255,255,255,0.92)`; the active item (white on the highlight fill,
+  bold) passes.
 - Micro text (<12px) on paper keeps to `--ink-soft`; `--ink-faint` only at
   11.5px+ (the 4.7:1 floor).
 - Inverted timeline cards use `rgba(255,255,255,0.92)` for their smallest

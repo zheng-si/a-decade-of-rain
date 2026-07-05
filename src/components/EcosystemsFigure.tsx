@@ -89,6 +89,7 @@ export default function EcosystemsFigure() {
 
             {/* Sort toggle + the affordance hint that these rows are clickable. */}
             <div className="eco-controls">
+              <span className="eco-sort-label">Ranked by</span>
               <div className="eco-sort" role="group" aria-label="Rank vegetation types by">
                 <button
                   className={`eco-sort-btn${sortMode === 'pct' ? ' is-active' : ''}`}
@@ -105,9 +106,6 @@ export default function EcosystemsFigure() {
                   Area sprayed
                 </button>
               </div>
-              <p className="eco-hint" aria-hidden="true">
-                Select a type <span className="eco-hint-arrow">→</span>
-              </p>
             </div>
 
             <ul className="eco-types" role="tablist" aria-label="Vegetation types">
