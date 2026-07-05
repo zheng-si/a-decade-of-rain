@@ -24,7 +24,7 @@ type Sel = 'all' | AgentInfo['key']
 const TEXT_SAFE: Record<AgentInfo['key'], string> = { O: '#ef7d1a', W: '#a9adb3', B: '#5aa6e0', other: '#b28cd6' }
 // Darkened agent colours that stay visible on the white card (the icon). The
 // "White" herbicide has no vivid hue, so it takes a neutral slate.
-const PAPER_SAFE: Record<AgentInfo['key'], string> = { O: '#d0670f', W: '#6b6f68', B: '#2f7bc0', other: '#7d52b0' }
+const PAPER_SAFE: Record<AgentInfo['key'], string> = { O: '#b8560b', W: '#6b6f68', B: '#2872b3', other: '#7d52b0' }
 
 function Biohazard() {
   return (

@@ -425,11 +425,17 @@
   z-index: 0;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.5s;
+  /* Slides in by exactly the rail's width with the rail's easing/duration, so
+     the two overlays travel together as one unit (no slide-vs-fade mismatch).
+     The bars emerge from behind the incoming rail. */
+  transform: translateX(calc(-1 * var(--nav-w)));
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .timeline-ruler.is-visible {
   opacity: 1;
+  transform: none;
 }
 
 /* Light paper backdrop (100%→0% left-to-right) behind the ruler column, so the
@@ -1345,7 +1351,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--agent-ink);
 }
 
 .rainbow-defs dt:first-child {
@@ -3634,8 +3640,9 @@
 
 /* Back-to-top, closing the sources ledger. Ghost button on the forest ground. */
 .close-top {
-  margin-top: 26px;
-  display: inline-flex;
+  margin: 30px auto 0;
+  display: flex;
+  width: fit-content;
   align-items: center;
   gap: 8px;
   padding: 9px 18px;
