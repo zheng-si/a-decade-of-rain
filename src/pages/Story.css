@@ -1254,7 +1254,8 @@
   color: var(--ink-faint);
 }
 
-/* Agent detail card: agent-colour header band + forest body (AA-safe text). */
+/* Agent detail card: white/paper body, agent colour on the top border, the
+   header icon and the definition labels (Act II card language). */
 .rainbow-card {
   border-radius: 8px;
   overflow: hidden;
@@ -1781,9 +1782,9 @@
   align-items: center;
   gap: 10px;
   padding: 9px 0;
-  border-bottom: 1px solid rgba(146, 247, 188, 0.12);
+  border-bottom: 1px solid var(--rule);
   font-size: 13.5px;
-  color: var(--forest-text);
+  color: var(--ink);
 }
 
 .rainbow-breakdown li:last-child {
