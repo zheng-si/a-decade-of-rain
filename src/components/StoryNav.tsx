@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BIOHAZARD } from './biohazard'
-import usaidInk from '../assets/brand/usaid-ink.png'
+import usaidWhite from '../assets/brand/usaid-white.png'
 
 // Persistent left rail: a table of contents for the (now long) story. Each
 // live item scrolls to its section anchor; the active item tracks the scroll.
@@ -127,7 +127,7 @@ export default function StoryNav() {
 
       <div className="story-rail-foot">
         <p>Data &amp; reporting</p>
-        <img src={usaidInk} alt="USAID" />
+        <img src={usaidWhite} alt="USAID" />
         <p className="story-rail-foot-more">UNDP · U.S. National Archives</p>
       </div>
     </nav>

@@ -238,7 +238,7 @@
   display: flex;
   flex-direction: column;
   color: #fff;
-  background: linear-gradient(180deg, #d1483c 0%, #df554a 34%, #e97a70 70%, #f2a69d 100%);
+  background: linear-gradient(180deg, #e0644f 0%, #d8523f 36%, #c93f2f 70%, #ad2f21 100%);
   /* Crisp divider between the rail and the year/volume ruler to its right:
      a white hairline (reads on the crimson) plus a soft shadow (reads on the
      pale ruler). */
@@ -385,25 +385,25 @@
 }
 .story-rail-foot p {
   margin: 0 0 7px;
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(80, 24, 16, 0.78);
+  color: rgba(255, 255, 255, 0.72);
 }
 .story-rail-foot img {
   display: block;
   width: 62px;
   margin: 0 auto 6px;
-  opacity: 0.82;
+  opacity: 0.95;
 }
 .story-rail-foot .story-rail-foot-more {
   margin: 0;
-  font-size: 8.5px;
+  font-size: 8px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: none;
-  color: rgba(80, 24, 16, 0.72);
+  color: rgba(255, 255, 255, 0.68);
   line-height: 1.5;
 }
 
