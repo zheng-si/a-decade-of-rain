@@ -70,11 +70,11 @@ export const REF_GROUPS: RefGroup[] = [
   },
   {
     title: 'Reports & fact sheets',
-    sourceIds: ['usaid_danang', 'usembassy_bienhoa', 'undp_hotspots', 'va_basics', 'aspen_whatis', 'aspen_bienhoa'],
+    sourceIds: ['usaf_ranchhand', 'usaid_danang', 'usembassy_bienhoa', 'undp_hotspots', 'va_basics', 'aspen_whatis', 'aspen_bienhoa'],
   },
   {
     title: 'News & features',
-    sourceIds: ['yale_e360', 'pulitzer_forest', 'va_news', 'aorecord_hotspots', 'ranchHand_wiki', 'impact_wiki'],
+    sourceIds: ['yale_e360', 'pulitzer_forest', 'va_news', 'aorecord_hotspots'],
   },
   {
     title: 'Photographs',

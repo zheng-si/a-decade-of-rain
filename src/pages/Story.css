@@ -203,6 +203,13 @@
   .map-dot--leader .map-dot-label {
     left: calc(100% + 90px);
   }
+  /* The attribution strip is too wide for a phone on one line: let it wrap. */
+  .story-hook-credit {
+    flex-wrap: wrap;
+    white-space: normal;
+    row-gap: 6px;
+    font-size: 10px;
+  }
 }
 
 /* Area name chip — for boundary landmarks (Cà Mau, A Lưới). Same chip, no
@@ -1513,7 +1520,7 @@
 }
 
 .eco-sort-btn {
-  padding: 4px 11px;
+  padding: 7px 13px;
   font-family: var(--font-sans);
   font-size: 11px;
   font-weight: 600;
@@ -2878,12 +2885,15 @@
   }
   .alt-chart {
     overflow-x: auto;
+    max-width: 100%;
     padding-bottom: 6px;
   }
-  .alt-groups,
-  .alt-bars,
+  /* The whole chart keeps a usable width and scrolls inside itself; all three
+     full-width rows share the min-width so bars and labels stay aligned. */
+  .alt-gheads,
+  .alt-chartgrid,
   .alt-xlabels {
-    min-width: 640px;
+    min-width: 560px;
   }
 }
 

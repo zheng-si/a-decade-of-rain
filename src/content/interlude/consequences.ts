@@ -75,7 +75,7 @@ export const WALLS: ConsequenceWall[] = [
       { value: '7–11 yrs', label: 'dioxin’s half-life in the human body' },
     ],
     lede: 'Dioxin lingers in the body for years and crosses into the next generation. The toll is now counted across a second, third and fourth generation.',
-    sourceId: 'impact_wiki',
+    sourceId: 'aspen_whatis',
     sensitive: true,
     warning: 'These photographs show people living with dioxin-linked injury and disability. They are blurred by default; reveal them only if you wish.',
     photos: [

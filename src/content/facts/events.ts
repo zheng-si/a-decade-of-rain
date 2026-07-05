@@ -88,7 +88,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
     quote: {
       text: 'Only we can prevent forests.',
       speaker: 'Operation Ranch Hand squadron motto',
-      sourceId: 'ranchHand_wiki',
+      sourceId: 'usaf_ranchhand',
     },
     stat: { value: '107', label: 'missions in 1962' },
   },
@@ -135,7 +135,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
     quote: {
       text: '1.7 million acres … were sprayed in 1967, 85% for defoliation.',
       speaker: 'Operation Ranch Hand (record)',
-      sourceId: 'ranchHand_wiki',
+      sourceId: 'usaf_ranchhand',
     },
     stat: { value: '5.1M', label: 'gallons in 1967' },
   },
@@ -157,7 +157,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
     quote: {
       text: 'total annihilation of the vegetative cover.',
       speaker: 'Scientific assessment of repeated spraying',
-      sourceId: 'impact_wiki',
+      sourceId: 'westing_bioscience',
       pending: true,
     },
     stat: { value: '3.1M ha', label: 'forest & mangrove defoliated' },
