@@ -3109,8 +3109,10 @@
   margin-left: 84px;
 }
 .tl-band-name {
-  right: 100%;
-  margin-right: 12px;
+  right: auto;
+  left: -84px;
+  width: 84px;
+  text-align: left;
 }
 
 
@@ -3190,6 +3192,36 @@
   font-size: 12px;
   line-height: 1.55;
   color: var(--ink-soft);
+}
+
+/* Landmark moments invert to their project's gradient, so the grid gets a
+   rhythm: one blue, one green, one red card along the diagonal. */
+.tl-card.is-invert {
+  border-color: transparent;
+}
+.tl-card.is-invert.is-phucat {
+  background: linear-gradient(180deg, #46688f 0%, #6488b0 100%);
+}
+.tl-card.is-invert.is-danang {
+  background: linear-gradient(180deg, #2f7049 0%, #4d9a6b 100%);
+}
+.tl-card.is-invert.is-bienhoa {
+  background: linear-gradient(180deg, #bd4127 0%, #dd6f4d 100%);
+}
+.tl-card.is-invert .tl-card-year {
+  color: #fff;
+}
+.tl-card.is-invert .tl-card-tag {
+  color: rgba(255, 255, 255, 0.88);
+}
+.tl-card.is-invert .tl-card-stat strong {
+  color: #fff;
+}
+.tl-card.is-invert .tl-card-stat span {
+  color: rgba(255, 255, 255, 0.78);
+}
+.tl-card.is-invert .tl-card-text {
+  color: rgba(255, 255, 255, 0.92);
 }
 
 /* Dense section: trim the fullscreen padding so the whole arc sits
