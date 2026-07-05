@@ -50,6 +50,7 @@ export default function MapKey({ map, ready, started, is3D, onToggle3D }: Props)
 
   return (
     <div className={`map-key${started ? ' is-visible' : ''}`}>
+      <p className="map-key-view-label">Map view</p>
       <div className="map-key-view" role="group" aria-label="Map view">
         <button
           type="button"

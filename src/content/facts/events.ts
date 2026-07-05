@@ -68,7 +68,7 @@ export interface StoryEvent {
 export const FACTS_EVENTS: StoryEvent[] = [
   {
     id: 'begins',
-    name: 'Only We Can Prevent Forests',
+    name: 'The Spraying Begins',
     period: '1961–62',
     date: '1962-06-01',
     camera: { center: [107.6, 12.6], zoom: 6.6 },
@@ -83,8 +83,8 @@ export const FACTS_EVENTS: StoryEvent[] = [
       { lng: 107.83, lat: 14.65, label: 'Đắk Tô — test spray, Aug 1961', leader: 300 },
       { lng: 106.82, lat: 10.97, label: 'Biên Hòa — first mission, Jan 1962', leader: 250 },
     ],
-    dek: 'Operation Ranch Hand begins.',
-    body: 'The first test spray runs on 10 August 1961 near Đắk Tô in the central highlands; the first official mission follows in January 1962 along Route 15 toward Biên Hòa. Just 107 missions fly in 1962, the quiet start of a decade-long campaign.',
+    dek: 'Operation Ranch Hand, the decade of defoliation, starts small.',
+    body: 'The first test spray runs on 10 August 1961 near Đắk Tô in the central highlands; the first official mission follows in January 1962 along Route 15 toward Biên Hòa. The aim: strip away the jungle canopy that hid supply lines and ambushes. Just 107 missions fly in 1962, the quiet start of a decade-long campaign.',
     quote: {
       text: 'Only we can prevent forests.',
       speaker: 'Operation Ranch Hand squadron motto',

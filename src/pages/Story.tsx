@@ -19,7 +19,7 @@ import { FACTS_EVENTS, type StoryEvent } from '../content/facts/events'
 import { HOOK } from '../content/facts/hook'
 import { SOURCES } from '../content/sources'
 import RainCanvas from '../components/RainCanvas'
-import usaidInk from '../assets/brand/usaid-ink.png'
+import usaidWhite from '../assets/brand/usaid-white.png'
 import TimelineRuler from '../components/TimelineRuler'
 import MapKey from '../components/MapKey'
 import RainbowHerbicides, { type AgentSeries } from '../components/RainbowHerbicides'
@@ -585,6 +585,11 @@ export default function Story() {
           <div className="story-hook-wash" aria-hidden="true" />
           <RainCanvas />
           <div className="story-hook-inner">
+            <p className="story-hook-credit">
+              <span>Built on data &amp; reporting from</span>
+              <img src={usaidWhite} alt="USAID" />
+              <span>UNDP · U.S. National Archives</span>
+            </p>
             <h1 className="story-hook-title">{HOOK.title}</h1>
             <p className="story-hook-sub">{HOOK.subtitle}</p>
             <p className="story-hook-dek">{HOOK.dek}</p>
@@ -598,11 +603,6 @@ export default function Story() {
               </span>
             </button>
           </div>
-          <p className="story-hook-credit">
-            <span>Built on data &amp; reporting from</span>
-            <img src={usaidInk} alt="USAID" />
-            <span>UNDP · U.S. National Archives</span>
-          </p>
         </section>
 
         {FACTS_EVENTS.map((ev, i) => {
