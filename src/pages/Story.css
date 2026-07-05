@@ -2104,6 +2104,20 @@
 .act2-photo-copy .act2-card-head {
   width: 100%;
 }
+/* On the resting photo the badge inverts to a white chip with the status
+   colour, matching the map pins' rest state. */
+.act2-photo-copy .act2-badge.is-completed {
+  background: #fff;
+  color: #3f8f5f;
+}
+.act2-photo-copy .act2-badge.is-ongoing {
+  background: #fff;
+  color: var(--accent-deep);
+}
+.act2-photo-copy .act2-badge.is-contained {
+  background: #fff;
+  color: #5a7ca8;
+}
 .act2-photo-place {
   margin: 0; /* .act2-card-head's 6px bottom margin sets the gap, as on the data face */
   font-size: 11.5px;
@@ -2147,7 +2161,7 @@
 
 .act2-card-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
   margin: 0 0 6px;
@@ -2294,12 +2308,6 @@
 .alt-family.is-kept p {
   opacity: 0.94;
 }
-.alt-family.is-kept .alt-family-methods {
-  border-top-color: rgba(255, 255, 255, 0.35);
-}
-.alt-family.is-kept .alt-family-methods-label {
-  color: rgba(255, 255, 255, 0.85);
-}
 .alt-family.is-kept .alt-method-chip {
   background: #fff !important;
   color: var(--fam) !important;
@@ -2385,16 +2393,6 @@
   align-items: center;
   gap: 5px;
   margin: 10px 0 0;
-  padding-top: 9px;
-  border-top: 1px solid var(--rule);
-}
-.alt-family-methods-label {
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-  margin-right: 2px;
 }
 .alt-method-chip {
   padding: 3px 9px;

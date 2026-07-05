@@ -87,7 +87,6 @@ export default function AlternativesSection() {
               </div>
               <p>{ALT_FAMILIES[f].blurb}</p>
               <div className="alt-family-methods">
-                <span className="alt-family-methods-label">On the chart</span>
                 {ALT_FAMILIES[f].methodChips.map((c) => (
                   <span key={c} className="alt-method-chip">
                     {c}
