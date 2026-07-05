@@ -3042,7 +3042,7 @@
 
 /* Overview bar: the three projects' spans on one 2009–2030 axis. */
 .tl-bands {
-  margin: 14px 0 30px;
+  margin: 10px 0 22px;
 }
 .tl-bands-grid {
   position: relative;
@@ -3067,8 +3067,8 @@
 }
 .tl-band-row {
   position: relative;
-  height: 26px;
-  margin: 6px 0;
+  height: 24px;
+  margin: 5px 0;
 }
 .tl-band-name {
   position: absolute;
@@ -3113,106 +3113,6 @@
   margin-right: 12px;
 }
 
-/* The spine: a vertical line through colour-coded moments. */
-.tl-spine {
-  list-style: none;
-  margin: 0;
-  padding: 4px 0 2px;
-  position: relative;
-}
-.tl-spine::before {
-  content: '';
-  position: absolute;
-  left: 84px;
-  top: 6px;
-  bottom: 6px;
-  width: 1.5px;
-  background: var(--rule);
-}
-.tl-moment {
-  position: relative;
-  display: grid;
-  grid-template-columns: 64px 1fr;
-  gap: 0 40px;
-  padding: 9px 0;
-  opacity: 0;
-  transform: translateY(10px);
-  transition: opacity 0.45s ease, transform 0.45s ease;
-}
-.tl-moment.is-seen {
-  opacity: 1;
-  transform: none;
-}
-.tl-moment-year {
-  font-family: var(--font-serif);
-  font-size: 21px;
-  line-height: 1.25;
-  color: var(--ink);
-  text-align: right;
-}
-.tl-moment-dot {
-  position: absolute;
-  left: 84px;
-  top: 19px;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: var(--tlc);
-  border: 2.5px solid rgb(var(--paper));
-  transform: translateX(-50%);
-}
-.tl-moment-tag {
-  margin: 6px 0 3px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: var(--tlc);
-}
-.tl-moment-stat {
-  margin: 2px 0 4px;
-  font-size: 11.5px;
-  color: var(--ink-faint);
-}
-.tl-moment-stat strong {
-  font-family: var(--font-serif);
-  font-weight: 500;
-  font-size: 22px;
-  color: var(--ink);
-  margin-right: 8px;
-}
-.tl-moment-text {
-  margin: 0;
-  max-width: 640px;
-  font-size: 13.5px;
-  line-height: 1.6;
-  color: var(--ink-soft);
-}
-
-.timeline-sec .fs-note {
-  margin-top: 26px;
-}
-
-@media (max-width: 720px) {
-  .tl-bands-grid {
-    margin-left: 64px;
-  }
-  .tl-band-name {
-    font-size: 10px;
-    margin-right: 8px;
-  }
-  .tl-spine::before,
-  .tl-moment-dot {
-    left: 56px;
-  }
-  .tl-moment {
-    grid-template-columns: 40px 1fr;
-    gap: 0 30px;
-  }
-  .tl-moment-year {
-    font-size: 16px;
-  }
-}
 
 /* Too-short spans can't hold their label: it sits to the right instead,
    in the project colour. */
@@ -3221,4 +3121,101 @@
   left: 100%;
   margin-left: 8px;
   color: var(--tlc);
+}
+
+/* The moments: a colour-coded card grid, read left to right like text.
+   12px gap = the site's card-grid standard; the coloured top border and
+   paper card body follow the airbase cards' language. */
+.tl-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.tl-card {
+  padding: 12px 14px 13px;
+  background: var(--paper-solid);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--tlc);
+  border-radius: 5px;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.4s ease var(--tl-delay, 0ms), transform 0.4s ease var(--tl-delay, 0ms);
+}
+.tl-card.is-seen {
+  opacity: 1;
+  transform: none;
+}
+.tl-card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 5px;
+}
+.tl-card-year {
+  font-family: var(--font-serif);
+  font-size: 19px;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.tl-card-tag {
+  margin: 0;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tlc);
+}
+.tl-card-stat {
+  margin: 2px 0 5px;
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+.tl-card-stat strong {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  font-size: 20px;
+  color: var(--ink);
+}
+.tl-card-stat span {
+  font-size: 10.5px;
+  color: var(--ink-faint);
+}
+.tl-card-text {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* Dense section: trim the fullscreen padding so the whole arc sits
+   within one viewport. */
+.timeline-sec {
+  padding-top: 4vh;
+  padding-bottom: 5vh;
+}
+.timeline-sec .fs-note {
+  margin-top: 22px;
+}
+
+@media (max-width: 900px) {
+  .tl-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 720px) {
+  .tl-bands-grid {
+    margin-left: 64px;
+  }
+  .tl-band-name {
+    font-size: 10px;
+    margin-right: 8px;
+  }
+  .tl-cards {
+    grid-template-columns: 1fr;
+  }
 }

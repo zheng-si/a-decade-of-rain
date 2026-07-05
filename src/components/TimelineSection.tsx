@@ -7,20 +7,22 @@ const pct = (year: number) => ((year - TL_AXIS.min) / (TL_AXIS.max - TL_AXIS.min
 
 // Act II — "The Timeline": the programme as one readable arc, no interaction.
 // An overview bar shows the three projects' spans on a shared 2009–2030 axis
-// (colours matching their base cards), then a colour-coded spine walks the
-// key moments top to bottom. Entries fade in as they enter the viewport.
+// (colours matching their base cards), then a colour-coded card grid walks
+// the key moments in reading order. Cards fade in as they enter the viewport.
 export default function TimelineSection() {
-  const listRef = useRef<HTMLOListElement>(null)
+  const gridRef = useRef<HTMLOListElement>(null)
   const src = SOURCES[TIMELINE_HEAD.sourceId]
 
   useEffect(() => {
-    const list = listRef.current
-    if (!list) return
-    const items = Array.from(list.children)
+    const grid = gridRef.current
+    if (!grid) return
+    const items = Array.from(grid.children) as HTMLElement[]
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       items.forEach((el) => el.classList.add('is-seen'))
       return
     }
+    // Stagger within a row: delay follows the card's index.
+    items.forEach((el, i) => el.style.setProperty('--tl-delay', `${(i % 4) * 70}ms`))
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -30,7 +32,7 @@ export default function TimelineSection() {
           }
         }
       },
-      { rootMargin: '0px 0px -12% 0px' },
+      { rootMargin: '0px 0px -10% 0px' },
     )
     items.forEach((el) => io.observe(el))
     return () => io.disconnect()
@@ -68,21 +70,21 @@ export default function TimelineSection() {
           </div>
         </figure>
 
-        {/* The spine: every moment visible, colour-coded by project. */}
-        <ol className="tl-spine" ref={listRef}>
+        {/* The moments: a colour-coded card grid, read like text. */}
+        <ol className="tl-cards" ref={gridRef}>
           {TL_MOMENTS.map((m, i) => (
-            <li key={i} className={`tl-moment is-${m.project}`}>
-              <span className="tl-moment-year">{m.year}</span>
-              <i className="tl-moment-dot" aria-hidden="true" />
-              <div className="tl-moment-body">
-                <p className="tl-moment-tag">{m.tag}</p>
-                {m.stat && (
-                  <p className="tl-moment-stat">
-                    <strong>{m.stat.value}</strong> {m.stat.label}
-                  </p>
-                )}
-                <p className="tl-moment-text">{m.body}</p>
+            <li key={i} className={`tl-card is-${m.project}`}>
+              <div className="tl-card-head">
+                <span className="tl-card-year">{m.year}</span>
+                <p className="tl-card-tag">{m.tag}</p>
               </div>
+              {m.stat && (
+                <p className="tl-card-stat">
+                  <strong>{m.stat.value}</strong>
+                  <span>{m.stat.label}</span>
+                </p>
+              )}
+              <p className="tl-card-text">{m.body}</p>
             </li>
           ))}
         </ol>
