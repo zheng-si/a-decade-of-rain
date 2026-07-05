@@ -28,6 +28,7 @@ import ActionsSection from '../components/ActionsSection'
 import AlternativesSection from '../components/AlternativesSection'
 import MethodsSection from '../components/MethodsSection'
 import TimelineSection from '../components/TimelineSection'
+import CloseSection from '../components/CloseSection'
 import StoryNav from '../components/StoryNav'
 import { readLabelGroups, setGroupVisible, normalizePlaceLabels } from '../components/labelLayers'
 import './Story.css'
@@ -671,6 +672,7 @@ export default function Story() {
         <AlternativesSection />
         <MethodsSection />
         <TimelineSection />
+        <CloseSection />
       </div>
     </div>
   )

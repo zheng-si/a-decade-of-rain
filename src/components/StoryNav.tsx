@@ -40,6 +40,13 @@ const NAV: NavGroup[] = [
       { id: 'sec-timeline', label: 'The Timeline' },
     ],
   },
+  {
+    act: 'Epilogue',
+    items: [
+      { id: 'sec-close', label: 'Take Action' },
+      { id: 'sec-sources', label: 'Sources' },
+    ],
+  },
 ]
 
 const LIVE = NAV.flatMap((g) => g.items).filter((i) => !i.upcoming)
