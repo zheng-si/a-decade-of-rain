@@ -238,7 +238,7 @@
   display: flex;
   flex-direction: column;
   color: #fff;
-  background: linear-gradient(180deg, #c24232 0%, #b93a2a 40%, #ad2f21 72%, #992718 100%);
+  background: linear-gradient(180deg, #e0644f 0%, #d8523f 36%, #c93f2f 70%, #ad2f21 100%);
   /* Crisp divider between the rail and the year/volume ruler to its right:
      a white hairline (reads on the crimson) plus a soft shadow (reads on the
      pale ruler). */
@@ -1380,6 +1380,9 @@
   .eco-type-go,
   .act2-data-face,
   .act2-photo-face,
+  .act2-data-face .act2-facts > div,
+  .act2-data-face .act2-card-note,
+  .act2-data-face .act2-volbar i,
   .alt-family-checks svg,
   .method-open-grid,
   .tl-card {
@@ -1515,6 +1518,14 @@
   background: var(--forest);
 }
 
+.eco-sort-label {
+  margin: 0 9px 0 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
 .eco-hint {
   margin: 0;
   font-size: 11px;
@@ -1808,7 +1819,7 @@
   background: linear-gradient(158deg, #12271a 0%, #1c3d2a 32%, #2c5a40 70%, #3a6a4d 100%);
 }
 .interlude-wall.is-health {
-  background: linear-gradient(158deg, #ec5844 0%, #f0705a 45%, #f4926f 78%, #f6ab8f 100%);
+  background: linear-gradient(158deg, #b03222 0%, #c73e2b 38%, #de5c42 72%, #ef8663 100%);
 }
 
 .wall-inner {
@@ -1847,7 +1858,7 @@
   opacity: 0.96;
 }
 .wall-lede {
-  margin: 0 0 18px;
+  margin: 0 0 8px;
   max-width: 340px;
   font-size: 13.5px;
   line-height: 1.6;
@@ -1930,26 +1941,27 @@
   max-width: 320px;
 }
 .wall-consent p {
-  margin: 0 0 12px;
-  font-size: 12.5px;
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 500;
   line-height: 1.5;
-  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.96);
 }
 .wall-consent-btn {
   padding: 8px 17px;
   font-family: var(--font-sans);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.02em;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  color: #b03222;
+  background: #fff;
+  border: none;
   border-radius: 999px;
   cursor: pointer;
   transition: background 0.15s;
 }
 .wall-consent-btn:hover {
-  background: rgba(255, 255, 255, 0.26);
+  background: rgba(255, 255, 255, 0.88);
 }
 .wall-cap {
   position: absolute;
@@ -2226,6 +2238,47 @@
 .act2-data-face,
 .act2-photo-face {
   animation: act2-face-in 0.3s ease;
+}
+/* Opening the numbers: facts stagger in and the volume bar draws itself. */
+.act2-data-face .act2-facts > div {
+  animation: act2-fact-in 0.38s ease both;
+}
+.act2-data-face .act2-facts > div:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.act2-data-face .act2-facts > div:nth-child(2) {
+  animation-delay: 0.11s;
+}
+.act2-data-face .act2-facts > div:nth-child(3) {
+  animation-delay: 0.17s;
+}
+.act2-data-face .act2-facts > div:nth-child(4) {
+  animation-delay: 0.23s;
+}
+.act2-data-face .act2-card-note {
+  animation: act2-fact-in 0.38s ease 0.3s both;
+}
+@keyframes act2-fact-in {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.act2-data-face .act2-volbar i {
+  transform-origin: left;
+  animation: act2-bar-grow 0.7s cubic-bezier(0.25, 0.8, 0.3, 1) 0.28s both;
+}
+@keyframes act2-bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
 @keyframes act2-face-in {
   from {
