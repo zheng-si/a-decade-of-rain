@@ -633,9 +633,8 @@
   position: relative;
   z-index: 2;
   max-width: 720px;
-  /* Forest type on the warm banner (AA everywhere — see design-system.md);
-     a faint paper glow lifts it off the noisier orange top. */
-  text-shadow: 0 1px 6px rgba(250, 249, 244, 0.5);
+  /* Forest type on the warm banner passes AA everywhere on its own
+     (see design-system.md), so no shadow is needed. */
 }
 
 .story-hook-title {
