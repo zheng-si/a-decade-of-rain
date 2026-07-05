@@ -1,23 +1,40 @@
-import { useState } from 'react'
-import { TIMELINE, TIMELINE_HEAD } from '../content/actions/timeline'
+import { useEffect, useRef } from 'react'
+import { TL_AXIS, TL_MOMENTS, TL_SPANS, TIMELINE_HEAD } from '../content/actions/timeline'
 import { SOURCES } from '../content/sources'
 
-// Serpentine track geometry, matching the Figma component: six stops per row,
-// top row runs 2009→2014 left to right, a semicircular bend on the right
-// carries the line down, and the bottom row runs 2015→2020 right to left.
-const COLS = 6
-const X0 = 3.5 // % centre of the first column
-const X_STEP = 18.46 // % between column centres
-const TOP_Y = 40 // px, top row's line/dots
-const BOT_Y = 114 // px, bottom row's line/dots
-const xPct = (col: number) => X0 + col * X_STEP
+// Position on the overview bar's axis, in %.
+const pct = (year: number) => ((year - TL_AXIS.min) / (TL_AXIS.max - TL_AXIS.min)) * 100
 
-// Act II — "The Timeline": the remediation programme year by year. One year
-// active at a time; clicking a stop swaps the milestone list below the track.
+// Act II — "The Timeline": the programme as one readable arc, no interaction.
+// An overview bar shows the three projects' spans on a shared 2009–2030 axis
+// (colours matching their base cards), then a colour-coded spine walks the
+// key moments top to bottom. Entries fade in as they enter the viewport.
 export default function TimelineSection() {
-  const [year, setYear] = useState(TIMELINE[0].year)
-  const current = TIMELINE.find((t) => t.year === year) ?? TIMELINE[0]
+  const listRef = useRef<HTMLOListElement>(null)
   const src = SOURCES[TIMELINE_HEAD.sourceId]
+
+  useEffect(() => {
+    const list = listRef.current
+    if (!list) return
+    const items = Array.from(list.children)
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      items.forEach((el) => el.classList.add('is-seen'))
+      return
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add('is-seen')
+            io.unobserve(e.target)
+          }
+        }
+      },
+      { rootMargin: '0px 0px -12% 0px' },
+    )
+    items.forEach((el) => io.observe(el))
+    return () => io.disconnect()
+  }, [])
 
   return (
     <section className="story-fullscreen timeline-sec" id="sec-timeline" aria-label={TIMELINE_HEAD.title}>
@@ -28,51 +45,47 @@ export default function TimelineSection() {
           <p className="fs-dek">{TIMELINE_HEAD.dek}</p>
         </header>
 
-        <div className="tl-track" role="tablist" aria-label="Project years">
-          {/* The serpentine line: two horizontal rules joined by a right bend. */}
-          <i className="tl-line" style={{ top: TOP_Y }} aria-hidden="true" />
-          <i className="tl-line" style={{ top: BOT_Y }} aria-hidden="true" />
-          <svg
-            className="tl-bend"
-            style={{ left: `${xPct(COLS - 1)}%`, top: TOP_Y, height: BOT_Y - TOP_Y }}
-            viewBox={`0 0 ${(BOT_Y - TOP_Y) / 2 + 2} ${BOT_Y - TOP_Y}`}
-            aria-hidden="true"
-          >
-            <path
-              d={`M 0 1 A ${(BOT_Y - TOP_Y) / 2 - 1} ${(BOT_Y - TOP_Y) / 2 - 1} 0 0 1 0 ${BOT_Y - TOP_Y - 1}`}
-              fill="none"
-            />
-          </svg>
+        {/* Overview: the three projects' spans on one axis. The ongoing bar
+            fades out to the right instead of ending. */}
+        <figure className="tl-bands" aria-label="The three projects on one axis">
+          <div className="tl-bands-grid">
+            {TL_AXIS.ticks.map((t) => (
+              <i key={t} className="tl-tick" style={{ left: `${pct(t)}%` }} aria-hidden="true">
+                <em>{t}</em>
+              </i>
+            ))}
+            {TL_SPANS.map((s) => (
+              <div key={s.key} className="tl-band-row">
+                <span className="tl-band-name">{s.name}</span>
+                <div
+                  className={`tl-band is-${s.key}${s.ongoing ? ' is-open' : ''}${s.end - s.start <= 2 ? ' is-slim' : ''}`}
+                  style={{ left: `${pct(s.start)}%`, width: `${pct(s.ongoing ? s.end + 1 : s.end) - pct(s.start)}%` }}
+                >
+                  <span className="tl-band-status">{s.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </figure>
 
-          {TIMELINE.map((t, i) => {
-            const topRow = i < COLS
-            // Bottom row runs right→left: 2015 sits under 2014.
-            const col = topRow ? i : COLS - 1 - (i - COLS)
-            const on = t.year === year
-            return (
-              <button
-                key={t.year}
-                type="button"
-                role="tab"
-                aria-selected={on}
-                className={`tl-stop${on ? ' is-on' : ''}`}
-                style={{ left: `${xPct(col)}%`, top: topRow ? TOP_Y : BOT_Y }}
-                onClick={() => setYear(t.year)}
-              >
-                <span className="tl-year">{t.year}</span>
-                <i className="tl-dot" aria-hidden="true" />
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Milestones for the active year. Height is reserved so switching
-            years never re-centres the full-screen section. */}
-        <ul className="tl-events" key={current.year}>
-          {current.events.map((e, i) => (
-            <li key={i}>{e}</li>
+        {/* The spine: every moment visible, colour-coded by project. */}
+        <ol className="tl-spine" ref={listRef}>
+          {TL_MOMENTS.map((m, i) => (
+            <li key={i} className={`tl-moment is-${m.project}`}>
+              <span className="tl-moment-year">{m.year}</span>
+              <i className="tl-moment-dot" aria-hidden="true" />
+              <div className="tl-moment-body">
+                <p className="tl-moment-tag">{m.tag}</p>
+                {m.stat && (
+                  <p className="tl-moment-stat">
+                    <strong>{m.stat.value}</strong> {m.stat.label}
+                  </p>
+                )}
+                <p className="tl-moment-text">{m.body}</p>
+              </div>
+            </li>
           ))}
-        </ul>
+        </ol>
 
         <p className="fs-note">
           {TIMELINE_HEAD.note}{' '}
