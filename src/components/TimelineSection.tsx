@@ -73,7 +73,7 @@ export default function TimelineSection() {
         {/* The moments: a colour-coded card grid, read like text. */}
         <ol className="tl-cards" ref={gridRef}>
           {TL_MOMENTS.map((m, i) => (
-            <li key={i} className={`tl-card is-${m.project}`}>
+            <li key={i} className={`tl-card is-${m.project}${m.milestone ? ' is-invert' : ''}`}>
               <div className="tl-card-head">
                 <span className="tl-card-year">{m.year}</span>
                 <p className="tl-card-tag">{m.tag}</p>

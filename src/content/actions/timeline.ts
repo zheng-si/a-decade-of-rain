@@ -16,6 +16,8 @@ export interface TlMoment {
   body: string
   /** Optional big-number callout for the landmark moments. */
   stat?: { value: string; label: string }
+  /** Landmark moment: the card inverts to its project's gradient. */
+  milestone?: boolean
 }
 
 /** The three projects' spans for the overview bar. */
@@ -54,6 +56,7 @@ export const TL_MOMENTS: TlMoment[] = [
     year: '2012',
     project: 'phucat',
     tag: 'Phú Cát sealed',
+    milestone: true,
     body: 'The smallest hotspot is dealt with first: ~7,500 m³ isolated in an engineered landfill on site, with UNDP, finished within the year.',
   },
   {
@@ -84,6 +87,7 @@ export const TL_MOMENTS: TlMoment[] = [
     year: '2018',
     project: 'danang',
     tag: 'Đà Nẵng finished',
+    milestone: true,
     stat: { value: '90,000 m³', label: 'treated · ≈ US$110 million' },
     body: 'November: declared complete; the land goes back to expand the airport.',
   },
@@ -91,6 +95,7 @@ export const TL_MOMENTS: TlMoment[] = [
     year: '2019',
     project: 'bienhoa',
     tag: 'The big one begins',
+    milestone: true,
     stat: { value: '500,000 m³', label: 'roughly four times Đà Nẵng' },
     body: 'The United States and Vietnam launch the cleanup at Biên Hòa.',
   },
