@@ -27,6 +27,7 @@ import ConsequencesInterlude from '../components/ConsequencesInterlude'
 import ActionsSection from '../components/ActionsSection'
 import AlternativesSection from '../components/AlternativesSection'
 import MethodsSection from '../components/MethodsSection'
+import TimelineSection from '../components/TimelineSection'
 import StoryNav from '../components/StoryNav'
 import { readLabelGroups, setGroupVisible, normalizePlaceLabels } from '../components/labelLayers'
 import './Story.css'
@@ -669,6 +670,7 @@ export default function Story() {
         <ActionsSection />
         <AlternativesSection />
         <MethodsSection />
+        <TimelineSection />
       </div>
     </div>
   )
