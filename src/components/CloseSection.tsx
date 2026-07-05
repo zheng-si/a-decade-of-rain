@@ -145,7 +145,7 @@ export default function CloseSection() {
                         <a href={s.url} target="_blank" rel="noreferrer">
                           {s.title}
                         </a>
-                        <span className="close-ref-pub"> — {s.publisher}</span>
+                        <span className="close-ref-pub"> · {s.publisher}</span>
                       </li>
                     )
                   })}

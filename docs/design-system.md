@@ -116,3 +116,44 @@ Iron Triangle / Biên Hòa airbase (point), real-boundary landmarks (area).
 
 See `docs/map-labels.md` for the tier system, and `normalizePlaceLabels()`
 (casing + " Ward"-suffix normalisation).
+
+## 7 · Act II extensions (added with the cleanup chapters)
+
+Introduced after the original token set; recorded here so the palette stays
+one system.
+
+### Status colours (the three hotspots; used site-wide for project identity)
+
+| Colour | Value | Meaning | Where |
+|---|---|---|---|
+| completed green | `#3f8f5f` | Đà Nẵng, done | card border/badge, map pin, timeline band & cards |
+| ongoing red | `--accent-deep` `#cf3720` | Biên Hòa, running | same set |
+| contained blue | `#5a7ca8` | Phú Cát, sealed | same set |
+
+### Greens (Act II families & actions)
+
+| Colour | Value | Where |
+|---|---|---|
+| family containment | `#6a9c81` (`--fam`) | alternatives family card accents |
+| family hybrid | `#4d7d63` | " |
+| family treatment | `#2f5c44` | " |
+| USAID green | `#5abe88` | reveal button (Figma-mandated) |
+| timeline green | `#14ae5c` | (retired with the serpentine axis; kept in Figma only) |
+| epilogue sage | `#9fd4b4` | source-group heads / CTA text on the forest ground |
+
+### Contrast notes added in the final audit
+
+- Rail resting links are 11px white on the gradient top: the top stop is
+  `#c24232` so `rgba(255,255,255,0.92)` clears ≈4.6:1. Don't lighten the top
+  stop past this without re-checking.
+- Micro text (<12px) on paper keeps to `--ink-soft`; `--ink-faint` only at
+  11.5px+ (the 4.7:1 floor).
+- Inverted timeline cards use `rgba(255,255,255,0.92)` for their smallest
+  labels.
+
+### Motion (additions to §5)
+
+Every animation below is disabled under `prefers-reduced-motion: reduce`
+(one shared media block in `Story.css` + per-component JS guards):
+act2 card face cross-fade · alternatives check pop · methods open-grid fade ·
+timeline card fade-in (JS: revealed instantly) · closing rain (JS: skipped).
