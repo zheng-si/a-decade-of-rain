@@ -150,6 +150,10 @@ one system.
   bold) passes.
 - Micro text (<12px) on paper keeps to `--ink-soft`; `--ink-faint` only at
   11.5px+ (the 4.7:1 floor).
+- **Banner text is `--ink` (forest), not white.** Measured on the orange→pink
+  wash: white fails everywhere (1.5–2.8:1), forest passes everywhere
+  (4.7:1 at the salmon top → 8.8:1 near the bottom). A faint paper glow
+  (`text-shadow`) lifts it off the noisier top.
 - Inverted timeline cards use `rgba(255,255,255,0.92)` for their smallest
   labels.
 

@@ -577,12 +577,12 @@
   margin: 0 0 34px;
   font-size: 10.5px;
   letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--ink);
   white-space: nowrap;
 }
 .story-hook-credit img {
   height: 20px;
-  opacity: 0.95;
+  opacity: 0.9;
 }
 
 /* Paper veil over the banner map (gradient only — the old progressive
@@ -633,8 +633,9 @@
   position: relative;
   z-index: 2;
   max-width: 720px;
-  /* Faint warm (orange-red) shadow, just enough to lift the white type. */
-  text-shadow: 0 1px 5px rgba(150, 34, 22, 0.28);
+  /* Forest type on the warm banner (AA everywhere — see design-system.md);
+     a faint paper glow lifts it off the noisier orange top. */
+  text-shadow: 0 1px 6px rgba(250, 249, 244, 0.5);
 }
 
 .story-hook-title {
@@ -644,7 +645,7 @@
   font-size: var(--type-h1-size);
   line-height: var(--type-h1-lh);
   letter-spacing: 0.01em;
-  color: #fff;
+  color: var(--ink);
   text-wrap: balance;
 }
 
@@ -655,7 +656,7 @@
   font-size: 21px;
   font-weight: 400;
   letter-spacing: 0.01em;
-  color: #fff;
+  color: var(--ink);
   text-wrap: balance;
 }
 
@@ -665,7 +666,7 @@
   font-weight: 300;
   font-size: var(--type-dek-size); /* one step down from lead per review */
   line-height: var(--type-lead-lh);
-  color: #fff;
+  color: var(--ink);
   /* No single-word orphan line ("by year."); falls back gracefully. */
   text-wrap: pretty;
 }
@@ -681,7 +682,7 @@
   font-size: 19px;
   font-weight: 400;
   letter-spacing: 0.02em;
-  color: #fff;
+  color: var(--ink);
   background: none;
   border: none;
   cursor: pointer;
@@ -689,7 +690,7 @@
 }
 
 .story-hook-cta:hover {
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--accent-deep);
   transform: translateY(2px);
 }
 

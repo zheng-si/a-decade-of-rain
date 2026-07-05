@@ -19,7 +19,7 @@ import { FACTS_EVENTS, type StoryEvent } from '../content/facts/events'
 import { HOOK } from '../content/facts/hook'
 import { SOURCES } from '../content/sources'
 import RainCanvas from '../components/RainCanvas'
-import usaidWhite from '../assets/brand/usaid-white.png'
+import usaidInk from '../assets/brand/usaid-ink.png'
 import TimelineRuler from '../components/TimelineRuler'
 import MapKey from '../components/MapKey'
 import RainbowHerbicides, { type AgentSeries } from '../components/RainbowHerbicides'
@@ -586,7 +586,7 @@ export default function Story() {
           <div className="story-hook-inner">
             <p className="story-hook-credit">
               <span>Built on data &amp; reporting from</span>
-              <img src={usaidWhite} alt="USAID" />
+              <img src={usaidInk} alt="USAID" />
               <span>UNDP · U.S. National Archives</span>
             </p>
             <h1 className="story-hook-title">{HOOK.title}</h1>
