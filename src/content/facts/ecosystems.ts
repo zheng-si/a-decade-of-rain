@@ -56,5 +56,5 @@ export const ECOSYSTEMS = {
   scaleSprayed: 'Area sprayed once or more',
   scaleTotal: 'Area of type',
   note: 'Vegetation map redrawn from the war-era U.S. land-use survey (after Westing / SIPRI). Well-documented shares: dense forest ~35% and mangrove ~36% sprayed one or more times (Westing 1971; Stellman et al. 2003, ~105,000 of 291,000 ha), plus ~200,000 ha of crop spraying, chiefly rice (NAS 1974). Types marked “est.” are not separately tabulated in the literature and await a spray-track overlay.',
-  mapAlt: 'Map of South Vietnam shaded by vegetation type — forest, mangrove, rice, grassland, rubber and marsh.',
+  mapAlt: 'Map of South Vietnam shaded by vegetation type: forest, mangrove, rice, grassland, rubber and marsh.',
 }

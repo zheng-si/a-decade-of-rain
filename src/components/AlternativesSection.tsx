@@ -140,7 +140,7 @@ export default function AlternativesSection() {
                 <div
                   key={a.key}
                   className={`alt-cell is-${a.family}`}
-                  title={`${a.name} — $${a.costM}M · ${a.co2Kt} kt CO₂`}
+                  title={`${a.name}: $${a.costM}M · ${a.co2Kt} kt CO₂`}
                 >
                   <div className="alt-pair">
                     <i className="is-cost" style={{ height: `${(a.costM / COST_MAX) * 100}%` }} />

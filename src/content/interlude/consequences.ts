@@ -8,12 +8,12 @@
 // land wall is all U.S. Gov PD; the body wall is CC/Commons documentary work.
 // Verify each file's exact license line on Commons before launch.
 
-import land1 from '../../assets/consequences/land-1.jpg'
+import land1 from '../../assets/consequences/land-1.webp'
 import land3 from '../../assets/consequences/land-3.webp'
-import land4 from '../../assets/consequences/land-4.jpg'
-import body1 from '../../assets/consequences/body-1.jpg'
-import body2 from '../../assets/consequences/body-2.jpg'
-import body3 from '../../assets/consequences/body-3.jpg'
+import land4 from '../../assets/consequences/land-4.webp'
+import body1 from '../../assets/consequences/body-1.webp'
+import body2 from '../../assets/consequences/body-2.webp'
+import body3 from '../../assets/consequences/body-3.webp'
 
 export interface WallPhoto {
   src: string
@@ -77,7 +77,7 @@ export const WALLS: ConsequenceWall[] = [
     lede: 'Dioxin lingers in the body for years and crosses into the next generation. The toll is now counted across a second, third and fourth generation.',
     sourceId: 'impact_wiki',
     sensitive: true,
-    warning: 'These photographs show people living with dioxin-linked injury and disability. They are blurred by default — reveal them only if you wish.',
+    warning: 'These photographs show people living with dioxin-linked injury and disability. They are blurred by default; reveal them only if you wish.',
     photos: [
       { src: body1, alt: 'A mother holding her disabled son beside a sign about the spraying', caption: 'Kan Lay holds her son, born with severe disabilities, by a sign marking the spraying of the A Lưới valley.', credit: 'Alexis Duclos · Wikimedia Commons' },
       { src: body2, alt: 'Portrait of a man living with the effects of dioxin exposure', caption: 'A man living with the lifelong effects of dioxin exposure, Hồ Chí Minh City.', credit: 'Wikimedia Commons (CC BY)' },

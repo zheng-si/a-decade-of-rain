@@ -238,7 +238,7 @@
   display: flex;
   flex-direction: column;
   color: #fff;
-  background: linear-gradient(180deg, #e0644f 0%, #d8523f 36%, #c93f2f 70%, #ad2f21 100%);
+  background: linear-gradient(180deg, #c24232 0%, #b93a2a 40%, #ad2f21 72%, #992718 100%);
   /* Crisp divider between the rail and the year/volume ruler to its right:
      a white hairline (reads on the crimson) plus a soft shadow (reads on the
      pale ruler). */
@@ -328,7 +328,7 @@
   font-family: var(--font-sans);
   font-size: 11px;
   line-height: 1.32;
-  color: rgba(255, 255, 255, 0.76);
+  color: rgba(255, 255, 255, 0.92);
   overflow-wrap: break-word;
   transition: color 0.15s, background 0.15s;
 }
@@ -1377,9 +1377,18 @@
   .vt,
   .eco-headline,
   .eco-hint-arrow,
-  .eco-type-go {
+  .eco-type-go,
+  .act2-data-face,
+  .act2-photo-face,
+  .alt-family-checks svg,
+  .method-open-grid,
+  .tl-card {
     animation: none;
     transition: none;
+  }
+  .tl-card {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -3158,7 +3167,7 @@
   margin-top: 5px;
   font-style: normal;
   font-size: 10.5px;
-  color: var(--ink-faint);
+  color: var(--ink-soft);
 }
 .tl-band-row {
   position: relative;
@@ -3313,7 +3322,7 @@
   color: #fff;
 }
 .tl-card.is-invert .tl-card-stat span {
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.92);
 }
 .tl-card.is-invert .tl-card-text {
   color: rgba(255, 255, 255, 0.92);
