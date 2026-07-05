@@ -37,7 +37,7 @@ export const ALT_FAMILIES: Record<AltFamily, { title: string; blurb: string; met
   },
   treatment: {
     title: 'Treatment only',
-    blurb: 'Destroy the dioxin in every cubic metre, whatever its concentration. The most thorough and by far the most expensive.',
+    blurb: 'Destroy the dioxin in every cubic metre. The most thorough option, and by far the most expensive.',
     methodChips: ['Incineration', 'Ex Situ Tch', 'MCD'],
   },
 }
