@@ -3397,14 +3397,16 @@
 .close-ref-group li:first-child {
   border-top: none;
 }
+/* No resting underline: it collided with the rows' divider lines. The
+   white-vs-muted contrast marks the link; hover brings the underline back. */
 .close-ref-group a {
   color: #fff;
-  text-decoration: underline;
-  text-decoration-color: rgba(255, 255, 255, 0.32);
-  text-underline-offset: 2px;
+  text-decoration: none;
 }
 .close-ref-group a:hover {
+  text-decoration: underline;
   text-decoration-color: var(--accent);
+  text-underline-offset: 2px;
 }
 .close-ref-pub {
   color: rgba(255, 255, 255, 0.52);
