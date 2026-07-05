@@ -89,7 +89,7 @@ export const REF_GROUPS: RefGroup[] = [
 export const COLOPHON = {
   lines: [
     'A story about what fell, what it broke, and what it takes to clean it up.',
-    'Built with React, MapLibre GL and Scrollama. Type: Gambarino and Public Sans.',
+    'Built with React, MapLibre GL and Scrollama.',
   ],
   credit: 'Designed & built by Si Zheng',
 }
