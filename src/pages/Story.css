@@ -2104,20 +2104,6 @@
 .act2-photo-copy .act2-card-head {
   width: 100%;
 }
-/* On the resting photo the badge inverts to a white chip with the status
-   colour, matching the map pins' rest state. */
-.act2-photo-copy .act2-badge.is-completed {
-  background: #fff;
-  color: #3f8f5f;
-}
-.act2-photo-copy .act2-badge.is-ongoing {
-  background: #fff;
-  color: var(--accent-deep);
-}
-.act2-photo-copy .act2-badge.is-contained {
-  background: #fff;
-  color: #5a7ca8;
-}
 .act2-photo-place {
   margin: 0; /* .act2-card-head's 6px bottom margin sets the gap, as on the data face */
   font-size: 11.5px;
@@ -3032,5 +3018,133 @@
   }
   .method-labels li {
     font-size: 10px;
+  }
+}
+
+/* ── Act II · The Timeline ─────────────────────────────────────────────────── */
+.tl-inner {
+  max-width: 1000px;
+}
+
+/* Serpentine year track, per the Figma: two rows of six stops joined by a
+   semicircular bend on the right. Row Y positions come inline from the
+   component so the lines, bend and stops share one set of constants. */
+.tl-track {
+  position: relative;
+  height: 152px;
+  margin: 12px 0 6px;
+}
+.tl-line {
+  position: absolute;
+  left: 3.5%;
+  width: 92.3%;
+  height: 1.5px;
+  background: #a9aca7;
+  transform: translateY(-50%);
+}
+.tl-bend {
+  position: absolute;
+  width: 39px;
+  transform: translateY(-1px);
+  overflow: visible;
+}
+.tl-bend path {
+  stroke: #a9aca7;
+  stroke-width: 1.5;
+}
+
+/* A stop: year label above a dot that sits exactly on the line. The button
+   is a fixed-size box centred on the line (absolute-only children would give
+   it no hit area). */
+.tl-stop {
+  position: absolute;
+  width: 64px;
+  height: 58px;
+  transform: translate(-50%, -50%);
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+.tl-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #a9aca7;
+  transform: translate(-50%, -50%);
+  transition: background 0.15s, box-shadow 0.15s, width 0.15s, height 0.15s;
+}
+.tl-year {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+.tl-stop:hover .tl-year {
+  color: var(--ink);
+}
+.tl-stop.is-on .tl-year {
+  top: -12px;
+  font-size: 19px;
+  font-weight: 600;
+  color: #14ae5c;
+}
+.tl-stop.is-on .tl-dot {
+  width: 11px;
+  height: 11px;
+  background: #14ae5c;
+  box-shadow: 0 0 0 4.5px rgba(20, 174, 92, 0.22);
+}
+
+/* Milestones for the active year. min-height reserves room for the longest
+   year so switching never re-centres the full-screen section. */
+.tl-events {
+  list-style: disc;
+  margin: 14px 0 0;
+  padding-left: 22px;
+  max-width: 860px;
+  min-height: 168px;
+  color: #4e6355;
+}
+.tl-events li {
+  font-size: 15.5px;
+  line-height: 1.8;
+  margin-bottom: 10px;
+  animation: tl-fade 0.25s ease;
+}
+.tl-events li::marker {
+  color: #4e6355;
+}
+@keyframes tl-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .tl-track {
+    height: 132px;
+  }
+  .tl-year {
+    font-size: 10.5px;
+  }
+  .tl-stop.is-on .tl-year {
+    font-size: 15px;
+    top: -8px;
+  }
+  .tl-events li {
+    font-size: 14px;
   }
 }

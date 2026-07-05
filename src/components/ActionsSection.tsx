@@ -111,10 +111,6 @@ export default function ActionsSection() {
                         <div>
                           <div className="act2-card-head">
                             <h3 className="act2-card-name">{h.name}</h3>
-                            <span className={`act2-badge is-${s}`}>
-                              {h.status}
-                              <em>{h.statusYear}</em>
-                            </span>
                           </div>
                           <p className="act2-photo-place">{h.place}</p>
                         </div>
