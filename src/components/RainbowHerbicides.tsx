@@ -22,6 +22,9 @@ type Sel = 'all' | AgentInfo['key']
 // Agent colours nudged where needed to pass AA as small text on the forest card
 // (the chart colours themselves are fine as large fills / big numbers).
 const TEXT_SAFE: Record<AgentInfo['key'], string> = { O: '#ef7d1a', W: '#a9adb3', B: '#5aa6e0', other: '#b28cd6' }
+// Darkened agent colours that stay visible on the white card (the icon). The
+// "White" herbicide has no vivid hue, so it takes a neutral slate.
+const PAPER_SAFE: Record<AgentInfo['key'], string> = { O: '#d0670f', W: '#6b6f68', B: '#2f7bc0', other: '#7d52b0' }
 
 function Biohazard() {
   return (
@@ -124,6 +127,7 @@ export default function RainbowHerbicides({ years, series }: Props) {
   const activeSeries = sel === 'all' ? null : series.find((s) => s.key === sel)
   const cardColor = activeSeries?.color ?? 'var(--accent)'
   const cardText = active ? TEXT_SAFE[active.key] : 'var(--accent-bright)'
+  const cardInk = active ? PAPER_SAFE[active.key] : 'var(--accent-deep)'
 
   return (
     <section className="story-fullscreen rainbow" aria-label={RAINBOW.title}>
@@ -223,7 +227,7 @@ export default function RainbowHerbicides({ years, series }: Props) {
           </div>
 
           {/* Card: outer stays mounted (colours tween); inner crossfades on change. */}
-          <aside className="rainbow-card" style={{ ['--agent' as string]: cardColor, ['--agent-text' as string]: cardText }}>
+          <aside className="rainbow-card" style={{ ['--agent' as string]: cardColor, ['--agent-text' as string]: cardText, ['--agent-ink' as string]: cardInk }}>
             <div className="rainbow-card-inner" key={sel}>
               <div className="rainbow-card-head">
                 <Biohazard />
