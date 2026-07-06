@@ -271,7 +271,10 @@ export default function Story() {
   function framePadding(): maplibregl.PaddingOptions {
     const w = window.innerWidth
     if (w <= 640) return { left: 24, right: 24, top: 48, bottom: 340 }
-    if (w <= 1800) return { left: 760, top: 70, right: 70, bottom: 70 }
+    // A modest left bias nudges the focus (and its westmost label chips) clear
+    // of the card's right edge; too much and Vietnam is shoved to the far edge
+    // and bbox nodes zoom out. 280 ≈ a ~105px rightward shift vs symmetric.
+    if (w <= 1800) return { left: 280, top: 70, right: 70, bottom: 70 }
     return { left: 70, top: 70, right: 70, bottom: 70 }
   }
 
