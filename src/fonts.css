@@ -2,9 +2,10 @@
    coverage, so UI text and map glyphs share ONE face with no fallback
    mixing) — UI, body, and map labels.
 
-   Editorial headlines use Playfair Display (SIL OFL). To ROLL BACK to
-   Gambarino, change the single `--font-serif` line at the bottom — both
-   faces are kept declared below. */
+   Editorial headlines use Gambarino. Playfair Display (SIL OFL) is kept
+   declared below too, so the headline face can be switched in ONE line —
+   change the single `--font-serif` line at the bottom. Only the family
+   named there is actually fetched by the browser. */
 
 @font-face {
   font-family: 'Public Sans';
@@ -28,7 +29,7 @@
   src: url('/fonts/ui/PublicSans-Medium.woff2') format('woff2');
 }
 
-/* Gambarino — kept for one-line rollback (see --font-serif). */
+/* Gambarino — the active headline face (see --font-serif). */
 @font-face {
   font-family: 'Gambarino';
   font-style: normal;
@@ -39,8 +40,9 @@
     url('/fonts/ui/Gambarino-Regular.woff') format('woff');
 }
 
-/* Playfair Display — editorial headlines. Three subsets (latin, latin-ext,
-   vietnamese) at the two weights the serif uses (400, and 500 for one stat). */
+/* Playfair Display — kept declared for a one-line switch back (see
+   --font-serif). Three subsets (latin, latin-ext, vietnamese) at the two
+   weights the serif uses (400, and 500 for one stat). */
 @font-face {
   font-family: 'Playfair Display';
   font-style: normal;
@@ -92,6 +94,6 @@
 
 :root {
   --font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  /* ROLLBACK: swap 'Playfair Display' → 'Gambarino' to restore the old face. */
-  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  /* SWITCH: use 'Playfair Display' here to swap in the Didone headline face. */
+  --font-serif: 'Gambarino', Georgia, 'Times New Roman', serif;
 }
