@@ -263,10 +263,16 @@ export default function Story() {
   }
 
   // Keep framed content clear of the card (left on desktop, bottom on mobile).
+  // The story card floats over the map's left (its right edge sits ~740px in).
+  // On big screens the auto-framed focus clears it, but on laptop widths the
+  // centred focus falls behind the card, so we pad the map's left by roughly
+  // the card's reach — the map re-centres its focus into the clear area to the
+  // right (industry-standard for scrollytelling maps with a side panel).
   function framePadding(): maplibregl.PaddingOptions {
-    return window.innerWidth > 640
-      ? { left: 70, top: 70, right: 70, bottom: 70 }
-      : { left: 24, right: 24, top: 48, bottom: 340 }
+    const w = window.innerWidth
+    if (w <= 640) return { left: 24, right: 24, top: 48, bottom: 340 }
+    if (w <= 1800) return { left: 760, top: 70, right: 70, bottom: 70 }
+    return { left: 70, top: 70, right: 70, bottom: 70 }
   }
 
   // Opening state: NO spray drawn yet (so nothing vanishes on the first scroll);
