@@ -55,7 +55,10 @@ raw `--accent`.
 
 ## 2 · Type scale
 
-Serif = Gambarino (`--font-serif`), sans = Public Sans (`--font-sans`, native Vietnamese coverage).
+Serif = Playfair Display (`--font-serif`; SIL OFL, self-hosted, Vietnamese
+subset), sans = Public Sans (`--font-sans`, native Vietnamese coverage).
+Rollback: both faces stay declared in `src/fonts.css`; swap the one
+`--font-serif` line back to `'Gambarino'` to restore the previous headline face.
 Sizes/line-heights live as `--type-*` tokens in `src/App.css`.
 
 | Level | Token pair | Face & weight | Used for |
