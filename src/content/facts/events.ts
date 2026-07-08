@@ -176,7 +176,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
       { name: 'A Lưới', lng: 107.28, lat: 16.22 },
     ],
     dek: 'A corridor to the Ho Chi Minh Trail, drenched again and again.',
-    body: 'Some 224 missions crossed the A Sầu / A Lưới valley between 1965 and 1970, parts of it sprayed as many as eleven times. Decades later the soil around the former A So base still measured up to 897.85 ppt of dioxin, one of the country’s enduring hotspots.',
+    body: 'Some 224 missions crossed the A Sầu / A Lưới valley between 1965 and 1970, parts of it sprayed as many as eleven times. Decades later the soil around the former A So airbase still measured up to 897.85 ppt of dioxin, one of the country’s enduring hotspots.',
     quote: {
       text: 'We had no rice for nine years.',
       speaker: 'A Sầu valley resident',
