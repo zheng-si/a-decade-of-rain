@@ -93,8 +93,14 @@ export default function Story() {
   const readyRef = useRef(false)
   const crossMarkersRef = useRef<maplibregl.Marker[]>([])
   const is3DRef = useRef(false)
-  const dayRef = useRef(0)
+  const dayRef = useRef(0) // the day currently SHOWN by the heat filter (animated)
+  const heatAnimRef = useRef<number | null>(null)
+  const pendingSweepRef = useRef<(() => void) | null>(null) // cancels a bloom armed on camera arrival
   const pulseRef = useRef<number | null>(null)
+  // Mirror active/started for the load handler, whose closure would otherwise
+  // read stale state if the reader scrolled while the map was still loading.
+  const startedRef = useRef(false)
+  const activeRef = useRef(0)
   const landmarksRef = useRef<FeatureCollection | null>(null)
   const landmarkMarkersRef = useRef<maplibregl.Marker[]>([])
   const veilRef = useRef<HTMLDivElement>(null)
@@ -278,11 +284,109 @@ export default function Story() {
     return { left: 70, top: 70, right: 70, bottom: 70 }
   }
 
+  // Cancel any in-flight heat-sweep animation.
+  function cancelHeatAnim() {
+    if (heatAnimRef.current != null) {
+      cancelAnimationFrame(heatAnimRef.current)
+      heatAnimRef.current = null
+    }
+  }
+
+  // Cancel a bloom that's been armed but hasn't started yet (waiting for the
+  // camera to arrive).
+  function cancelPendingSweep() {
+    if (pendingSweepRef.current) {
+      pendingSweepRef.current()
+      pendingSweepRef.current = null
+    }
+  }
+
+  // Arm the bloom to start once the camera has FINISHED flying to the node.
+  // The camera fly and the bloom used to run together, so on long flights the
+  // bloom finished mid-flight and was over by the time the reader arrived. Now
+  // the old extent stays put during the flight and the new area grows in only
+  // after the camera lands, so the reveal is always seen. A fallback timer
+  // covers the rare case where 'moveend' doesn't fire (e.g. a no-op move).
+  function armSweepOnArrival(map: maplibregl.Map, toDay: number) {
+    cancelHeatAnim()
+    cancelPendingSweep()
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce) {
+      dayRef.current = toDay
+      setStoryHeatTime(map, toDay)
+      return
+    }
+    let done = false
+    const fire = () => {
+      if (done) return
+      done = true
+      window.clearTimeout(fallback)
+      map.off('moveend', fire)
+      pendingSweepRef.current = null
+      sweepHeatTo(map, toDay)
+    }
+    const fallback = window.setTimeout(fire, 1900)
+    pendingSweepRef.current = () => {
+      done = true
+      window.clearTimeout(fallback)
+      map.off('moveend', fire)
+    }
+    map.once('moveend', fire)
+  }
+
+  // Advance the cumulative heat window from wherever it is now (dayRef) to the
+  // target day by ANIMATING the time filter, so the newly sprayed area blooms
+  // outward in real chronological order — the reader sees how much the spray
+  // grew between one event and the next, instead of it popping in at once. The
+  // reverse (scrolling up) recedes symmetrically. Reduced motion → jump.
+  function sweepHeatTo(map: maplibregl.Map, toDay: number) {
+    cancelHeatAnim()
+    const fromDay = dayRef.current
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce || fromDay === toDay) {
+      dayRef.current = toDay
+      setStoryHeatTime(map, toDay)
+      return
+    }
+    const data = dataRef.current
+    const span = data ? data.dayMax - data.dayMin : 3650
+    const jump = Math.abs(toDay - fromDay)
+    // Slow enough that the growth reads as growth: ~1.5s for a typical
+    // event-to-event gap, up to ~2.8s for the biggest jumps. One gesture.
+    const duration = Math.min(2800, Math.max(1500, (jump / span) * 5600))
+    // Throttle setFilter so a full reveal re-tessellates the heatmap ~60×, not
+    // once per frame (60fps × 24k points is what lagged the free-play map).
+    const step = Math.max(2, Math.round(jump / 60))
+    const ease = (t: number) => 1 - Math.pow(1 - t, 3) // easeOutCubic: quick bloom, soft settle
+    const start = performance.now()
+    let lastBucket = Number.NaN
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration)
+      const d = fromDay + (toDay - fromDay) * ease(t)
+      dayRef.current = d
+      const bucket = Math.round(d / step)
+      if (bucket !== lastBucket) {
+        lastBucket = bucket
+        setStoryHeatTime(map, d)
+      }
+      if (t < 1) {
+        heatAnimRef.current = requestAnimationFrame(tick)
+      } else {
+        dayRef.current = toDay
+        setStoryHeatTime(map, toDay) // land exactly on the event date
+        heatAnimRef.current = null
+      }
+    }
+    heatAnimRef.current = requestAnimationFrame(tick)
+  }
+
   // Opening state: NO spray drawn yet (so nothing vanishes on the first scroll);
   // spray then builds from 1962.
   function setHookState() {
     const map = mapRef.current
     if (!map || !readyRef.current) return
+    cancelHeatAnim()
+    cancelPendingSweep()
     const pitch = is3DRef.current ? mapConfig.view.pitch3d : 0
     map.flyTo({ ...HOOK.camera, pitch, bearing: 0, padding: { top: 40, right: 40, bottom: 40, left: 40 }, duration: 1200, essential: true })
     dayRef.current = 0
@@ -322,11 +426,22 @@ export default function Story() {
     // Pilot nodes show crosses instead of a (near-invisible) heatmap.
     const isPilot = !!ev.crosses
     const day = dateToDay(ev.date)
-    dayRef.current = day
-    setStoryHeatTime(map, day)
-    setStoryHeatVisible(map, !isPilot)
-    if (isPilot) showCrosses(ev.crosses)
-    else clearCrosses()
+    if (isPilot) {
+      // No heat here; keep the filter in sync (invisibly) so the next heat node
+      // blooms from the right starting point, and show the pulsing crosses.
+      cancelHeatAnim()
+      cancelPendingSweep()
+      dayRef.current = day
+      setStoryHeatTime(map, day)
+      setStoryHeatVisible(map, false)
+      showCrosses(ev.crosses)
+    } else {
+      // Bloom the newly sprayed area into view — but only AFTER the camera has
+      // flown to the node, so it's never missed on a long flight.
+      setStoryHeatVisible(map, true)
+      clearCrosses()
+      armSweepOnArrival(map, day)
+    }
     applyLandmarks(ev)
     setSVVisible(false)
   }
@@ -482,13 +597,18 @@ export default function Story() {
 
         readyRef.current = true
         setMapReady(true)
-        setHookState()
+        // If the reader already scrolled into the story while we were loading,
+        // catch the map up to that node instead of resetting to the hook.
+        if (startedRef.current) applyStep(activeRef.current)
+        else setHookState()
       })
     })
 
     return () => {
       cancelled = true
       stopPulse()
+      cancelHeatAnim()
+      cancelPendingSweep()
       clearCrosses()
       clearLandmarkPoints()
       mapRef.current?.remove()
@@ -520,12 +640,15 @@ export default function Story() {
       .setup({ step: '.story-step', offset: 0.6 })
       .onStepEnter(({ index }: { index: number }) => {
         setStarted(true)
+        startedRef.current = true
         setActive(index)
+        activeRef.current = index
         applyStep(index)
       })
       .onStepExit(({ index, direction }: { index: number; direction: string }) => {
         if (index === 0 && direction === 'up') {
           setStarted(false)
+          startedRef.current = false
           setHookState()
         }
       })
@@ -564,7 +687,7 @@ export default function Story() {
       <StoryNav />
 
       <div className="story-graphic">
-        <div ref={containerRef} className="story-map" />
+        <div ref={containerRef} className={`story-map${mapReady ? ' is-ready' : ''}`} />
         {/* Progressive frosted blur for the banner. It lives INSIDE the sticky
             container so it never moves relative to the map it blurs — the
             blurred result rasterizes once instead of every scroll frame (which

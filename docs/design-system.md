@@ -109,11 +109,25 @@ Iron Triangle / Biên Hòa airbase (point), real-boundary landmarks (area).
 
 ## 5 · Motion
 
+- Map first paint: `.story-map` holds at opacity 0 behind the hook banner and
+  fades in (~0.35s) once tiles + data are ready, so the basemap never hard-pops
+  (instant under reduced motion). If the reader scrolls into the story before
+  the map is ready, it catches up to the current node on load rather than
+  resetting to the hook.
 - Hook rain: plays at the top, fades out (~1.4s) after half a viewport of
   scroll, parks (rAF stopped), fades back in (~0.8s) at the very top.
 - Pulses: dot ring (CSS, 2.2s), landmark outline (rAF sine).
-- **`prefers-reduced-motion: reduce` disables all three** (rain, ring, outline
-  pulse) — keep this invariant when adding any new animation.
+- Spray bloom: on each Act I step the heat filter's day threshold is *animated*
+  (rAF, easeOutCubic, ~1.5–2.8s) from the previous event's date to the new one,
+  so the newly sprayed area grows outward in chronological order rather than
+  popping in — the reader sees how much the spray spread between events. The
+  bloom is armed to start on the camera's `moveend` (with a fallback timer), so
+  on long flights it isn't over before the reader arrives. Scrolling up recedes
+  symmetrically. Throttled to ~60 filter re-applies per reveal so the heatmap
+  doesn't re-tessellate every frame.
+- **`prefers-reduced-motion: reduce` disables all of these** (rain, ring,
+  outline pulse, spray bloom → jumps straight to the target day) — keep this
+  invariant when adding any new animation.
 
 ## 6 · Basemap labels
 
