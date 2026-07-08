@@ -12,21 +12,21 @@ export interface Hotspot {
 export const HOTSPOTS: Hotspot[] = [
   {
     id: 'danang',
-    name: 'Da Nang Airbase',
+    name: 'Đà Nẵng Airbase',
     lng: 108.199,
     lat: 16.044,
     note: 'Remediation completed 2012–2018 (USAID). Reference project in the original design.',
   },
   {
     id: 'bienhoa',
-    name: 'Bien Hoa Airbase',
+    name: 'Biên Hòa Airbase',
     lng: 106.818,
     lat: 10.972,
     note: 'Largest remaining dioxin hotspot; remediation began 2019.',
   },
   {
     id: 'phucat',
-    name: 'Phu Cat Airbase',
+    name: 'Phú Cát Airbase',
     lng: 109.043,
     lat: 13.952,
     note: 'Contaminated soil contained on-site in a secure landfill.',
