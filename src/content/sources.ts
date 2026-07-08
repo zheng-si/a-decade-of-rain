@@ -52,6 +52,12 @@ export const SOURCES: Record<string, Source> = {
     publisher: 'U.S. Dept. of Veterans Affairs',
     url: 'https://www.publichealth.va.gov/exposures/agentorange/basics.asp',
   },
+  aso_stoten: {
+    id: 'aso_stoten',
+    title: 'Characteristics of PCDD/Fs in soil and sediment samples collected from A-So former airbase in Central Vietnam',
+    publisher: 'Science of the Total Environment (2019)',
+    url: 'https://www.sciencedirect.com/science/article/abs/pii/S0048969719301792',
+  },
   aspen_whatis: {
     id: 'aspen_whatis',
     title: 'What is Agent Orange?',
