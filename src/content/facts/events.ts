@@ -105,7 +105,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
       { name: 'Sài Gòn', lng: 106.7, lat: 10.78 },
       { name: 'Biên Hòa', lng: 106.82, lat: 10.97 },
     ],
-    dek: 'Defoliation becomes routine northeast of Saigon.',
+    dek: 'Defoliation becomes routine northeast of Sài Gòn.',
     body: 'As US ground forces surge, spraying escalates across the guerrilla base areas known as War Zone D. In 1966 the campaign jumps to 2.6 million gallons: Agent Orange soaking the forest that hid the trails and camps.',
     quote: {
       text: 'We saw this awful poison being sprayed almost every day but were told it was just bug spray and not to worry.',
@@ -131,7 +131,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
       { name: 'Củ Chi', lng: 106.49, lat: 11.03 },
     ],
     dek: 'The heaviest year of the war.',
-    body: 'Spraying peaks in 1967 at over 5 million gallons: the densest concentration anywhere in the dataset sits here, over War Zone C and the Iron Triangle northwest of Saigon, where Operation Cedar Falls had bulldozed the jungle months earlier.',
+    body: 'Spraying peaks in 1967 at over 5 million gallons: the densest concentration anywhere in the dataset sits here, over War Zone C and the Iron Triangle northwest of Sài Gòn, where Operation Cedar Falls had bulldozed the jungle months earlier.',
     quote: {
       text: '1.7 million acres … were sprayed in 1967, 85% for defoliation.',
       speaker: 'Operation Ranch Hand (record)',
