@@ -93,7 +93,8 @@ export default function Story() {
   const readyRef = useRef(false)
   const crossMarkersRef = useRef<maplibregl.Marker[]>([])
   const is3DRef = useRef(false)
-  const dayRef = useRef(0)
+  const dayRef = useRef(0) // the day currently SHOWN by the heat filter (animated)
+  const heatAnimRef = useRef<number | null>(null)
   const pulseRef = useRef<number | null>(null)
   const landmarksRef = useRef<FeatureCollection | null>(null)
   const landmarkMarkersRef = useRef<maplibregl.Marker[]>([])
@@ -278,11 +279,65 @@ export default function Story() {
     return { left: 70, top: 70, right: 70, bottom: 70 }
   }
 
+  // Cancel any in-flight heat-sweep animation.
+  function cancelHeatAnim() {
+    if (heatAnimRef.current != null) {
+      cancelAnimationFrame(heatAnimRef.current)
+      heatAnimRef.current = null
+    }
+  }
+
+  // Advance the cumulative heat window from wherever it is now (dayRef) to the
+  // target day by ANIMATING the time filter, so the newly sprayed area blooms
+  // outward in real chronological order — the reader sees how much the spray
+  // grew between one event and the next, instead of it popping in at once. The
+  // reverse (scrolling up) recedes symmetrically. Reduced motion → jump.
+  function sweepHeatTo(map: maplibregl.Map, toDay: number) {
+    cancelHeatAnim()
+    const fromDay = dayRef.current
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce || fromDay === toDay) {
+      dayRef.current = toDay
+      setStoryHeatTime(map, toDay)
+      return
+    }
+    const data = dataRef.current
+    const span = data ? data.dayMax - data.dayMin : 3650
+    const jump = Math.abs(toDay - fromDay)
+    // Bigger jumps take a little longer, but always feel like one gesture.
+    const duration = Math.min(1400, Math.max(650, (jump / span) * 3200))
+    // Throttle setFilter so a full reveal re-tessellates the heatmap ~40×, not
+    // once per frame (60fps × 24k points is what lagged the free-play map).
+    const step = Math.max(3, Math.round(jump / 40))
+    const ease = (t: number) => 1 - Math.pow(1 - t, 3) // easeOutCubic: quick bloom, soft settle
+    const start = performance.now()
+    let lastBucket = Number.NaN
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration)
+      const d = fromDay + (toDay - fromDay) * ease(t)
+      dayRef.current = d
+      const bucket = Math.round(d / step)
+      if (bucket !== lastBucket) {
+        lastBucket = bucket
+        setStoryHeatTime(map, d)
+      }
+      if (t < 1) {
+        heatAnimRef.current = requestAnimationFrame(tick)
+      } else {
+        dayRef.current = toDay
+        setStoryHeatTime(map, toDay) // land exactly on the event date
+        heatAnimRef.current = null
+      }
+    }
+    heatAnimRef.current = requestAnimationFrame(tick)
+  }
+
   // Opening state: NO spray drawn yet (so nothing vanishes on the first scroll);
   // spray then builds from 1962.
   function setHookState() {
     const map = mapRef.current
     if (!map || !readyRef.current) return
+    cancelHeatAnim()
     const pitch = is3DRef.current ? mapConfig.view.pitch3d : 0
     map.flyTo({ ...HOOK.camera, pitch, bearing: 0, padding: { top: 40, right: 40, bottom: 40, left: 40 }, duration: 1200, essential: true })
     dayRef.current = 0
@@ -322,11 +377,20 @@ export default function Story() {
     // Pilot nodes show crosses instead of a (near-invisible) heatmap.
     const isPilot = !!ev.crosses
     const day = dateToDay(ev.date)
-    dayRef.current = day
-    setStoryHeatTime(map, day)
-    setStoryHeatVisible(map, !isPilot)
-    if (isPilot) showCrosses(ev.crosses)
-    else clearCrosses()
+    if (isPilot) {
+      // No heat here; keep the filter in sync (invisibly) so the next heat node
+      // blooms from the right starting point, and show the pulsing crosses.
+      cancelHeatAnim()
+      dayRef.current = day
+      setStoryHeatTime(map, day)
+      setStoryHeatVisible(map, false)
+      showCrosses(ev.crosses)
+    } else {
+      // Bloom the newly sprayed area into view as the camera settles.
+      setStoryHeatVisible(map, true)
+      clearCrosses()
+      sweepHeatTo(map, day)
+    }
     applyLandmarks(ev)
     setSVVisible(false)
   }
@@ -489,6 +553,7 @@ export default function Story() {
     return () => {
       cancelled = true
       stopPulse()
+      cancelHeatAnim()
       clearCrosses()
       clearLandmarkPoints()
       mapRef.current?.remove()
