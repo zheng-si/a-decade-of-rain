@@ -95,6 +95,8 @@ export default function Story() {
   const is3DRef = useRef(false)
   const dayRef = useRef(0) // the day currently SHOWN by the heat filter (animated)
   const heatAnimRef = useRef<number | null>(null)
+  const dropMarkersRef = useRef<maplibregl.Marker[]>([])
+  const dropTimersRef = useRef<number[]>([])
   const pulseRef = useRef<number | null>(null)
   const landmarksRef = useRef<FeatureCollection | null>(null)
   const landmarkMarkersRef = useRef<maplibregl.Marker[]>([])
@@ -287,6 +289,73 @@ export default function Story() {
     }
   }
 
+  // Remove any in-flight raindrop markers + pending spawn timers.
+  function clearDrops() {
+    dropTimersRef.current.forEach((id) => window.clearTimeout(id))
+    dropTimersRef.current = []
+    dropMarkersRef.current.forEach((m) => m.remove())
+    dropMarkersRef.current = []
+  }
+
+  // Representative points of the spray ADDED between two dates: coarse grid
+  // bins ranked by cumulative weight. A few anchors for the raindrop flourish.
+  function newSprayCentroids(fromDay: number, toDay: number, maxN: number): [number, number][] {
+    const data = dataRef.current
+    if (!data) return []
+    const CELL = 0.28 // ~30 km bins
+    const bins = new Map<string, { lng: number; lat: number; w: number; n: number }>()
+    for (const f of data.features.features) {
+      const d = f.properties.day
+      if (d <= fromDay || d > toDay) continue
+      const [lng, lat] = f.geometry.coordinates
+      const key = `${Math.round(lng / CELL)}_${Math.round(lat / CELL)}`
+      let b = bins.get(key)
+      if (!b) {
+        b = { lng: 0, lat: 0, w: 0, n: 0 }
+        bins.set(key, b)
+      }
+      b.lng += lng
+      b.lat += lat
+      b.w += f.properties.w || 1
+      b.n++
+    }
+    return [...bins.values()]
+      .sort((a, b) => b.w - a.w)
+      .slice(0, maxN)
+      .map((b) => [b.lng / b.n, b.lat / b.n] as [number, number])
+  }
+
+  // Scatter a handful of "raindrop on paper" ripples across the newly sprayed
+  // area, staggered over the bloom so they land like scattered drops. Each
+  // marker plays its CSS animation once and is then removed.
+  function spawnRainDrops(fromDay: number, toDay: number, duration: number) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    if (toDay <= fromDay) return // only on growth
+    const pts = newSprayCentroids(fromDay, toDay, 5)
+    if (!pts.length) return
+    const spread = Math.min(duration * 0.7, 1500)
+    const gap = pts.length > 1 ? spread / (pts.length - 1) : 0
+    pts.forEach(([lng, lat], i) => {
+      const id = window.setTimeout(() => {
+        const m = mapRef.current
+        if (!m) return
+        const el = document.createElement('div')
+        el.className = 'rain-drop'
+        el.innerHTML =
+          '<span class="rd-ink"></span><span class="rd-ring"></span><span class="rd-ring rd-2"></span>'
+        const marker = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(m)
+        dropMarkersRef.current.push(marker)
+        // Retire the marker once its ripple has fully faded (~1.5s + delay).
+        const rid = window.setTimeout(() => {
+          marker.remove()
+          dropMarkersRef.current = dropMarkersRef.current.filter((x) => x !== marker)
+        }, 1750)
+        dropTimersRef.current.push(rid)
+      }, i * gap)
+      dropTimersRef.current.push(id)
+    })
+  }
+
   // Advance the cumulative heat window from wherever it is now (dayRef) to the
   // target day by ANIMATING the time filter, so the newly sprayed area blooms
   // outward in real chronological order — the reader sees how much the spray
@@ -304,11 +373,12 @@ export default function Story() {
     const data = dataRef.current
     const span = data ? data.dayMax - data.dayMin : 3650
     const jump = Math.abs(toDay - fromDay)
-    // Bigger jumps take a little longer, but always feel like one gesture.
-    const duration = Math.min(1400, Math.max(650, (jump / span) * 3200))
-    // Throttle setFilter so a full reveal re-tessellates the heatmap ~40×, not
+    // Slow enough that the growth reads as growth: ~1.5s for a typical
+    // event-to-event gap, up to ~2.8s for the biggest jumps. One gesture.
+    const duration = Math.min(2800, Math.max(1500, (jump / span) * 5600))
+    // Throttle setFilter so a full reveal re-tessellates the heatmap ~60×, not
     // once per frame (60fps × 24k points is what lagged the free-play map).
-    const step = Math.max(3, Math.round(jump / 40))
+    const step = Math.max(2, Math.round(jump / 60))
     const ease = (t: number) => 1 - Math.pow(1 - t, 3) // easeOutCubic: quick bloom, soft settle
     const start = performance.now()
     let lastBucket = Number.NaN
@@ -330,6 +400,8 @@ export default function Story() {
       }
     }
     heatAnimRef.current = requestAnimationFrame(tick)
+    // Raindrops fall across the new area as it blooms.
+    spawnRainDrops(fromDay, toDay, duration)
   }
 
   // Opening state: NO spray drawn yet (so nothing vanishes on the first scroll);
@@ -338,6 +410,7 @@ export default function Story() {
     const map = mapRef.current
     if (!map || !readyRef.current) return
     cancelHeatAnim()
+    clearDrops()
     const pitch = is3DRef.current ? mapConfig.view.pitch3d : 0
     map.flyTo({ ...HOOK.camera, pitch, bearing: 0, padding: { top: 40, right: 40, bottom: 40, left: 40 }, duration: 1200, essential: true })
     dayRef.current = 0
@@ -353,6 +426,7 @@ export default function Story() {
     if (!map || !readyRef.current) return
     const ev = FACTS_EVENTS[i]
     if (!ev) return
+    clearDrops() // retire any raindrops from the previous step
     const pad = framePadding()
     const pitch = is3DRef.current ? mapConfig.view.pitch3d : ev.camera.pitch ?? 0
     if (ev.bbox) {
@@ -554,6 +628,7 @@ export default function Story() {
       cancelled = true
       stopPulse()
       cancelHeatAnim()
+      clearDrops()
       clearCrosses()
       clearLandmarkPoints()
       mapRef.current?.remove()
