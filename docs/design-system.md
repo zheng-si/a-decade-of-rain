@@ -109,6 +109,11 @@ Iron Triangle / Biên Hòa airbase (point), real-boundary landmarks (area).
 
 ## 5 · Motion
 
+- Map first paint: `.story-map` holds at opacity 0 behind the hook banner and
+  fades in (~0.35s) once tiles + data are ready, so the basemap never hard-pops
+  (instant under reduced motion). If the reader scrolls into the story before
+  the map is ready, it catches up to the current node on load rather than
+  resetting to the hook.
 - Hook rain: plays at the top, fades out (~1.4s) after half a viewport of
   scroll, parks (rAF stopped), fades back in (~0.8s) at the very top.
 - Pulses: dot ring (CSS, 2.2s), landmark outline (rAF sine).

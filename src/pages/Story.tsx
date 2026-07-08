@@ -97,6 +97,10 @@ export default function Story() {
   const heatAnimRef = useRef<number | null>(null)
   const pendingSweepRef = useRef<(() => void) | null>(null) // cancels a bloom armed on camera arrival
   const pulseRef = useRef<number | null>(null)
+  // Mirror active/started for the load handler, whose closure would otherwise
+  // read stale state if the reader scrolled while the map was still loading.
+  const startedRef = useRef(false)
+  const activeRef = useRef(0)
   const landmarksRef = useRef<FeatureCollection | null>(null)
   const landmarkMarkersRef = useRef<maplibregl.Marker[]>([])
   const veilRef = useRef<HTMLDivElement>(null)
@@ -593,7 +597,10 @@ export default function Story() {
 
         readyRef.current = true
         setMapReady(true)
-        setHookState()
+        // If the reader already scrolled into the story while we were loading,
+        // catch the map up to that node instead of resetting to the hook.
+        if (startedRef.current) applyStep(activeRef.current)
+        else setHookState()
       })
     })
 
@@ -633,12 +640,15 @@ export default function Story() {
       .setup({ step: '.story-step', offset: 0.6 })
       .onStepEnter(({ index }: { index: number }) => {
         setStarted(true)
+        startedRef.current = true
         setActive(index)
+        activeRef.current = index
         applyStep(index)
       })
       .onStepExit(({ index, direction }: { index: number; direction: string }) => {
         if (index === 0 && direction === 'up') {
           setStarted(false)
+          startedRef.current = false
           setHookState()
         }
       })
@@ -677,7 +687,7 @@ export default function Story() {
       <StoryNav />
 
       <div className="story-graphic">
-        <div ref={containerRef} className="story-map" />
+        <div ref={containerRef} className={`story-map${mapReady ? ' is-ready' : ''}`} />
         {/* Progressive frosted blur for the banner. It lives INSIDE the sticky
             container so it never moves relative to the map it blurs — the
             blurred result rasterizes once instead of every scroll frame (which

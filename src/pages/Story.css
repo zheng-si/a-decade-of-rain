@@ -18,6 +18,18 @@
 .story-map {
   position: absolute;
   inset: 0;
+  /* Soft first paint: the map holds at 0 behind the hook banner and fades in
+     once tiles + data are ready, so the basemap never hard-pops. */
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.story-map.is-ready {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-map {
+    transition: none;
+  }
 }
 
 /* ── banner frosted veil (inside the STICKY container) ─────────────────────
