@@ -95,8 +95,7 @@ export default function Story() {
   const is3DRef = useRef(false)
   const dayRef = useRef(0) // the day currently SHOWN by the heat filter (animated)
   const heatAnimRef = useRef<number | null>(null)
-  const dropMarkersRef = useRef<maplibregl.Marker[]>([])
-  const dropTimersRef = useRef<number[]>([])
+  const pendingSweepRef = useRef<(() => void) | null>(null) // cancels a bloom armed on camera arrival
   const pulseRef = useRef<number | null>(null)
   const landmarksRef = useRef<FeatureCollection | null>(null)
   const landmarkMarkersRef = useRef<maplibregl.Marker[]>([])
@@ -289,71 +288,46 @@ export default function Story() {
     }
   }
 
-  // Remove any in-flight raindrop markers + pending spawn timers.
-  function clearDrops() {
-    dropTimersRef.current.forEach((id) => window.clearTimeout(id))
-    dropTimersRef.current = []
-    dropMarkersRef.current.forEach((m) => m.remove())
-    dropMarkersRef.current = []
-  }
-
-  // Representative points of the spray ADDED between two dates: coarse grid
-  // bins ranked by cumulative weight. A few anchors for the raindrop flourish.
-  function newSprayCentroids(fromDay: number, toDay: number, maxN: number): [number, number][] {
-    const data = dataRef.current
-    if (!data) return []
-    const CELL = 0.28 // ~30 km bins
-    const bins = new Map<string, { lng: number; lat: number; w: number; n: number }>()
-    for (const f of data.features.features) {
-      const d = f.properties.day
-      if (d <= fromDay || d > toDay) continue
-      const [lng, lat] = f.geometry.coordinates
-      const key = `${Math.round(lng / CELL)}_${Math.round(lat / CELL)}`
-      let b = bins.get(key)
-      if (!b) {
-        b = { lng: 0, lat: 0, w: 0, n: 0 }
-        bins.set(key, b)
-      }
-      b.lng += lng
-      b.lat += lat
-      b.w += f.properties.w || 1
-      b.n++
+  // Cancel a bloom that's been armed but hasn't started yet (waiting for the
+  // camera to arrive).
+  function cancelPendingSweep() {
+    if (pendingSweepRef.current) {
+      pendingSweepRef.current()
+      pendingSweepRef.current = null
     }
-    return [...bins.values()]
-      .sort((a, b) => b.w - a.w)
-      .slice(0, maxN)
-      .map((b) => [b.lng / b.n, b.lat / b.n] as [number, number])
   }
 
-  // Scatter a handful of "raindrop on paper" ripples across the newly sprayed
-  // area, staggered over the bloom so they land like scattered drops. Each
-  // marker plays its CSS animation once and is then removed.
-  function spawnRainDrops(fromDay: number, toDay: number, duration: number) {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    if (toDay <= fromDay) return // only on growth
-    const pts = newSprayCentroids(fromDay, toDay, 5)
-    if (!pts.length) return
-    const spread = Math.min(duration * 0.7, 1500)
-    const gap = pts.length > 1 ? spread / (pts.length - 1) : 0
-    pts.forEach(([lng, lat], i) => {
-      const id = window.setTimeout(() => {
-        const m = mapRef.current
-        if (!m) return
-        const el = document.createElement('div')
-        el.className = 'rain-drop'
-        el.innerHTML =
-          '<span class="rd-ink"></span><span class="rd-ring"></span><span class="rd-ring rd-2"></span>'
-        const marker = new maplibregl.Marker({ element: el }).setLngLat([lng, lat]).addTo(m)
-        dropMarkersRef.current.push(marker)
-        // Retire the marker once its ripple has fully faded (~1.5s + delay).
-        const rid = window.setTimeout(() => {
-          marker.remove()
-          dropMarkersRef.current = dropMarkersRef.current.filter((x) => x !== marker)
-        }, 1750)
-        dropTimersRef.current.push(rid)
-      }, i * gap)
-      dropTimersRef.current.push(id)
-    })
+  // Arm the bloom to start once the camera has FINISHED flying to the node.
+  // The camera fly and the bloom used to run together, so on long flights the
+  // bloom finished mid-flight and was over by the time the reader arrived. Now
+  // the old extent stays put during the flight and the new area grows in only
+  // after the camera lands, so the reveal is always seen. A fallback timer
+  // covers the rare case where 'moveend' doesn't fire (e.g. a no-op move).
+  function armSweepOnArrival(map: maplibregl.Map, toDay: number) {
+    cancelHeatAnim()
+    cancelPendingSweep()
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (reduce) {
+      dayRef.current = toDay
+      setStoryHeatTime(map, toDay)
+      return
+    }
+    let done = false
+    const fire = () => {
+      if (done) return
+      done = true
+      window.clearTimeout(fallback)
+      map.off('moveend', fire)
+      pendingSweepRef.current = null
+      sweepHeatTo(map, toDay)
+    }
+    const fallback = window.setTimeout(fire, 1900)
+    pendingSweepRef.current = () => {
+      done = true
+      window.clearTimeout(fallback)
+      map.off('moveend', fire)
+    }
+    map.once('moveend', fire)
   }
 
   // Advance the cumulative heat window from wherever it is now (dayRef) to the
@@ -400,8 +374,6 @@ export default function Story() {
       }
     }
     heatAnimRef.current = requestAnimationFrame(tick)
-    // Raindrops fall across the new area as it blooms.
-    spawnRainDrops(fromDay, toDay, duration)
   }
 
   // Opening state: NO spray drawn yet (so nothing vanishes on the first scroll);
@@ -410,7 +382,7 @@ export default function Story() {
     const map = mapRef.current
     if (!map || !readyRef.current) return
     cancelHeatAnim()
-    clearDrops()
+    cancelPendingSweep()
     const pitch = is3DRef.current ? mapConfig.view.pitch3d : 0
     map.flyTo({ ...HOOK.camera, pitch, bearing: 0, padding: { top: 40, right: 40, bottom: 40, left: 40 }, duration: 1200, essential: true })
     dayRef.current = 0
@@ -426,7 +398,6 @@ export default function Story() {
     if (!map || !readyRef.current) return
     const ev = FACTS_EVENTS[i]
     if (!ev) return
-    clearDrops() // retire any raindrops from the previous step
     const pad = framePadding()
     const pitch = is3DRef.current ? mapConfig.view.pitch3d : ev.camera.pitch ?? 0
     if (ev.bbox) {
@@ -455,15 +426,17 @@ export default function Story() {
       // No heat here; keep the filter in sync (invisibly) so the next heat node
       // blooms from the right starting point, and show the pulsing crosses.
       cancelHeatAnim()
+      cancelPendingSweep()
       dayRef.current = day
       setStoryHeatTime(map, day)
       setStoryHeatVisible(map, false)
       showCrosses(ev.crosses)
     } else {
-      // Bloom the newly sprayed area into view as the camera settles.
+      // Bloom the newly sprayed area into view — but only AFTER the camera has
+      // flown to the node, so it's never missed on a long flight.
       setStoryHeatVisible(map, true)
       clearCrosses()
-      sweepHeatTo(map, day)
+      armSweepOnArrival(map, day)
     }
     applyLandmarks(ev)
     setSVVisible(false)
@@ -628,7 +601,7 @@ export default function Story() {
       cancelled = true
       stopPulse()
       cancelHeatAnim()
-      clearDrops()
+      cancelPendingSweep()
       clearCrosses()
       clearLandmarkPoints()
       mapRef.current?.remove()

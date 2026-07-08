@@ -130,66 +130,6 @@
   }
 }
 
-/* Raindrop-on-paper: as the newly sprayed area blooms in, a few soft droplets
-   land on the map and spread — a widening ring plus an ink stain that soaks
-   out and fades. Each plays ONCE then the marker is removed (see Story.tsx).
-   The marker root is a zero-size anchor; children are centred on it. */
-.rain-drop {
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-.rain-drop span {
-  position: absolute;
-  left: 0;
-  top: 0;
-  border-radius: 50%;
-  transform: translate(-50%, -50%) scale(0.2);
-  will-change: transform, opacity;
-}
-.rain-drop .rd-ink {
-  width: 18px;
-  height: 18px;
-  background: radial-gradient(circle, rgba(255, 84, 73, 0.55), rgba(255, 84, 73, 0) 70%);
-  opacity: 0;
-  animation: rd-ink 1.5s ease-out forwards;
-}
-.rain-drop .rd-ring {
-  width: 16px;
-  height: 16px;
-  border: 1.5px solid var(--accent);
-  opacity: 0;
-  animation: rd-ring 1.5s ease-out forwards;
-}
-.rain-drop .rd-ring.rd-2 {
-  animation-delay: 0.16s;
-}
-@keyframes rd-ring {
-  0% {
-    transform: translate(-50%, -50%) scale(0.2);
-    opacity: 0.85;
-  }
-  70% {
-    opacity: 0.3;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(3.4);
-    opacity: 0;
-  }
-}
-@keyframes rd-ink {
-  0% {
-    transform: translate(-50%, -50%) scale(0.3);
-    opacity: 0;
-  }
-  22% {
-    opacity: 0.6;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(2.7);
-    opacity: 0;
-  }
-}
 
 /* Chip: deep orange (one step darker than the brand accent) so white text
    passes AA (4.8:1) and the chip separates from the lighter heat below. */
@@ -1111,9 +1051,7 @@
    reader asks for reduced motion (the JS rain + pulse loops check this too). */
 @media (prefers-reduced-motion: reduce) {
   .map-dot-ring,
-  .story-hook-cta-arrow,
-  .rain-drop .rd-ring,
-  .rain-drop .rd-ink {
+  .story-hook-cta-arrow {
     animation: none;
   }
 }
