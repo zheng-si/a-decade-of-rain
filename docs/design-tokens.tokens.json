@@ -1,0 +1,110 @@
+{
+  "$description": "A Decade of Rain — design tokens. Import with the free Tokens Studio for Figma plugin (Import > paste this JSON), then push to Figma variables / styles. Legacy value/type format for broad compatibility.",
+  "color": {
+    "surface": {
+      "paper":       { "value": "#faf9f4", "type": "color", "description": "Page background; glass panels with alpha (rgb 250,249,244)" },
+      "paperSolid":  { "value": "#fdfdfd", "type": "color", "description": "Solid paper" },
+      "forest":      { "value": "#213528", "type": "color", "description": "Dark surface: story cards, stat pills" },
+      "forest2":     { "value": "#2c3730", "type": "color", "description": "Raised dark surface (stat pill bg)" }
+    },
+    "ink": {
+      "ink":      { "value": "#213528", "type": "color", "description": "Headings & primary text on paper · 12.4:1" },
+      "inkSoft":  { "value": "#4e6355", "type": "color", "description": "Secondary text, UI labels · 6.2:1" },
+      "inkFaint": { "value": "#647468", "type": "color", "description": "Captions, smallest print · 4.7:1 (AA floor)" },
+      "rule":     { "value": "#dfe3d9", "type": "color", "description": "Hairline dividers (non-text)" }
+    },
+    "onForest": {
+      "forestText":     { "value": "#e8ece6", "type": "color", "description": "Primary text on forest · 11.0:1" },
+      "forestTextSoft": { "value": "#b4ccba", "type": "color", "description": "Secondary text on forest · 7.7:1" },
+      "mint":           { "value": "#92f7bc", "type": "color", "description": "Decorative borders only · never text" }
+    },
+    "accent": {
+      "accent":       { "value": "#ff5449", "type": "color", "description": "GEOMETRY: dots, pulse rings, heatmap, rain, scan line" },
+      "accentChip":   { "value": "#d63328", "type": "color", "description": "CHIP FILL behind white text · 4.8:1 vs #fff" },
+      "accentBright": { "value": "#ff7a70", "type": "color", "description": "Accent TEXT on forest · 5.2:1" },
+      "accentDeep":   { "value": "#cf3720", "type": "color", "description": "Accent TEXT on paper · 4.7:1 (= heat-ramp deep end)" },
+      "accentLine":   { "value": "#e8443a", "type": "color", "description": "Map linework on paper · 3.5:1 (non-text >=3)" }
+    },
+    "status": {
+      "completed": { "value": "#3f8f5f", "type": "color", "description": "Da Nang · done (card border/badge, map pin, timeline band)" },
+      "ongoing":   { "value": "#cf3720", "type": "color", "description": "Bien Hoa · running (= accentDeep)" },
+      "contained": { "value": "#5a7ca8", "type": "color", "description": "Phu Cat · sealed" }
+    },
+    "green": {
+      "famContainment": { "value": "#6a9c81", "type": "color", "description": "Alternatives family accent (--fam)" },
+      "famHybrid":      { "value": "#4d7d63", "type": "color", "description": "Alternatives family accent" },
+      "famTreatment":   { "value": "#2f5c44", "type": "color", "description": "Alternatives family accent" },
+      "usaid":          { "value": "#5abe88", "type": "color", "description": "Reveal button (Figma-mandated)" },
+      "epilogueSage":   { "value": "#9fd4b4", "type": "color", "description": "Source-group heads / CTA text on forest" }
+    }
+  },
+  "fontFamilies": {
+    "serif": { "value": "Gambarino", "type": "fontFamilies", "description": "Display & editorial headlines" },
+    "sans":  { "value": "Public Sans", "type": "fontFamilies", "description": "Body, UI, map labels (native Vietnamese coverage)" }
+  },
+  "fontWeights": {
+    "light":    { "value": "300", "type": "fontWeights" },
+    "regular":  { "value": "400", "type": "fontWeights" },
+    "medium":   { "value": "500", "type": "fontWeights" },
+    "semibold": { "value": "600", "type": "fontWeights" }
+  },
+  "lineHeights": {
+    "h1": { "value": "102%", "type": "lineHeights" },
+    "h2": { "value": "114%", "type": "lineHeights" },
+    "lead": { "value": "168%", "type": "lineHeights" },
+    "dek": { "value": "140%", "type": "lineHeights" },
+    "body": { "value": "165%", "type": "lineHeights" },
+    "quote": { "value": "135%", "type": "lineHeights" }
+  },
+  "radius": {
+    "base": { "value": "4", "type": "borderRadius", "description": "Standard corner radius (cards, chips, nav)" },
+    "sm":   { "value": "2", "type": "borderRadius" }
+  },
+  "typography": {
+    "h1": {
+      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "92", "lineHeight": "102%", "letterSpacing": "0.5%" },
+      "type": "typography",
+      "description": "Hook banner title · responsive clamp(44px,8vw,92px) in code; 92 = the max"
+    },
+    "h2": {
+      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "26", "lineHeight": "114%" },
+      "type": "typography",
+      "description": "Story-card title"
+    },
+    "h3": {
+      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "23" },
+      "type": "typography",
+      "description": "Card period / eyebrow (accentDeep on paper)"
+    },
+    "lead": {
+      "value": { "fontFamily": "Public Sans", "fontWeight": "300", "fontSize": "16", "lineHeight": "168%" },
+      "type": "typography",
+      "description": "Hook dek"
+    },
+    "dek": {
+      "value": { "fontFamily": "Public Sans", "fontWeight": "500", "fontSize": "15", "lineHeight": "140%" },
+      "type": "typography",
+      "description": "Card dek"
+    },
+    "body": {
+      "value": { "fontFamily": "Public Sans", "fontWeight": "300", "fontSize": "14", "lineHeight": "165%" },
+      "type": "typography",
+      "description": "Card body copy"
+    },
+    "quote": {
+      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "17", "lineHeight": "135%" },
+      "type": "typography",
+      "description": "Pull quotes"
+    },
+    "caption": {
+      "value": { "fontFamily": "Public Sans", "fontWeight": "400", "fontSize": "12" },
+      "type": "typography",
+      "description": "Cite lines, UI small print (400-600)"
+    },
+    "chip": {
+      "value": { "fontFamily": "Public Sans", "fontWeight": "600", "fontSize": "11", "letterSpacing": "2%" },
+      "type": "typography",
+      "description": "Map label chips (white on accentChip)"
+    }
+  }
+}
