@@ -2481,7 +2481,7 @@
 }
 .alt-family {
   position: relative;
-  padding: 16px 18px;
+  padding: 11px 18px 12px;
   background: var(--paper-solid);
   border: 1px solid var(--rule);
   border-top: 3px solid var(--ink-faint);
@@ -2554,7 +2554,7 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  margin: 0 0 7px;
+  margin: 0 0 5px;
 }
 .alt-family-icon {
   flex: none;
@@ -2588,7 +2588,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 5px;
-  margin: 10px 0 0;
+  margin: 7px 0 0;
 }
 .alt-method-chip {
   padding: 3px 9px;
@@ -2985,7 +2985,7 @@
 .methods-stage {
   display: flex;
   gap: 12px;
-  min-height: 540px;
+  min-height: 580px;
 }
 .method-panel {
   position: relative;
@@ -3105,10 +3105,10 @@
 .method-open-grid {
   height: 100%;
   display: grid;
-  grid-template-columns: minmax(220px, 300px) 1fr;
-  gap: 26px;
+  grid-template-columns: minmax(250px, 350px) 1fr;
+  gap: 24px;
   align-items: center;
-  padding: 26px 26px 22px 40px;
+  padding: 30px 36px 28px 44px;
   animation: method-fade 0.35s ease 0.15s both;
 }
 @keyframes method-fade {
@@ -3139,50 +3139,20 @@
 }
 
 /* The annotated diagram (open state): labels left, image right. */
+/* Bare artwork floating on the theme gradient; HTML labels + SVG leaders sit
+   at coordinates measured off the designer's labelled export. The wrapper
+   matches the artwork canvas 1:1 (inline aspect-ratio + width), so the image
+   fills it exactly and % coordinates can't drift. */
 .method-open-grid .method-diagram {
   position: relative;
-  max-width: 620px;
   margin: 0 0 0 auto;
-  width: 100%;
 }
-.method-open-grid .method-diagram img {
-  display: block;
-  width: 62%;
-  margin-left: 38%;
-  max-height: 480px;
-  object-fit: contain;
-  height: auto;
-}
-
-.method-lines {
+.method-open-grid .method-diagram > img {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  pointer-events: none;
-}
-.method-lines line {
-  stroke: rgba(255, 255, 255, 0.55);
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
-  transition: stroke 0.15s;
-}
-.method-lines line.is-hot {
-  stroke: #fff;
-  stroke-width: 1.8;
-}
-.method-dot {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.75);
-  transition: background 0.15s, transform 0.15s;
-}
-.method-dot.is-hot {
-  background: #fff;
-  transform: translate(-50%, -50%) scale(1.6);
+  filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.22));
 }
 
 .method-labels {
@@ -3195,21 +3165,19 @@
 }
 .method-labels li {
   position: absolute;
-  left: 0;
-  width: 32%;
+  white-space: nowrap;
   transform: translateY(-50%);
-  padding: 2px 0;
   font-size: 11.5px;
+  font-weight: 500;
   line-height: 1.25;
   text-align: right;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.9);
   pointer-events: auto;
   cursor: default;
   transition: color 0.15s;
 }
 .method-labels li.is-hot {
   color: #fff;
-  font-weight: 700;
 }
 
 @media (max-width: 900px) {

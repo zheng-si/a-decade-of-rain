@@ -1,18 +1,20 @@
 // Act II — the two retained methods, explained layer by layer with the
-// project's Rhino-modelled exploded axonometrics (rendered white, styled in
-// Illustrator). Label text and vertical anchors follow the Figma design.
+// project's Rhino-modelled exploded axonometrics. The image is the designer's
+// own white-label export (transparent ground) with the leader LINES AND DOTS
+// KEPT BAKED — endpoints are exact by construction and cannot drift — while
+// the label text was erased at asset-build time and re-set as crisp,
+// hoverable HTML at each leader's measured row. Coordinates are % of the
+// image canvas, which the diagram wrapper reproduces exactly.
 
-import landfillImg from '../../assets/actions/method-landfill.webp'
-import thermalImg from '../../assets/actions/method-thermal.webp'
+import landfillImg from '../../assets/actions/diagram-landfill.webp'
+import thermalImg from '../../assets/actions/diagram-thermal.webp'
 import landfillPhoto from '../../assets/actions/photo-landfill.webp'
 import thermalPhoto from '../../assets/actions/photo-thermal.webp'
 
 export interface MethodLayer {
   text: string
-  /** Vertical anchor, % of diagram height. */
+  /** Leader row, % of canvas height (measured off the baked line). */
   y: number
-  /** Where the leader line ends, % of figure width (into the image). */
-  endX?: number
 }
 
 export interface Method {
@@ -26,6 +28,10 @@ export interface Method {
   /** Real-site photograph for the resting panel. */
   photo: string
   imgAlt: string
+  /** Canvas aspect ratio (w/h) — the diagram wrapper reproduces it. */
+  aspect: number
+  /** Where the baked leader lines start; labels right-align just left of it. */
+  labelX: number
   layers: MethodLayer[]
 }
 
@@ -44,19 +50,22 @@ export const METHODS: Method[] = [
     caption: 'Passive landfill, layered structure',
     img: landfillImg,
     photo: landfillPhoto,
-    imgAlt: 'Exploded axonometric of the passive landfill: contaminated soil sealed between layers of clay, plastic geomembrane and geocomposite, under a grass cap',
+    imgAlt:
+      'Exploded axonometric of the passive landfill, top to bottom: grass cap, soil, geocomposite layer, plastic (LLDPE) geomembrane, clay, the contaminant, plastic geomembrane, geocomposite layer, plastic geomembrane, clay, and the compacted soil subgrade.',
+    aspect: 1.0192,
+    labelX: 25.6,
     layers: [
-      { text: 'Grass cap', y: 19, endX: 50 },
-      { text: 'Soil', y: 29, endX: 49 },
-      { text: 'Geocomposite layer', y: 35, endX: 50 },
-      { text: 'Plastic (LLDPE) geomembrane', y: 41, endX: 50 },
-      { text: 'Clay', y: 47, endX: 51 },
-      { text: 'Contaminant', y: 53, endX: 60 },
-      { text: 'Plastic (LLDPE) geomembrane', y: 60, endX: 50 },
-      { text: 'Geocomposite layer', y: 65, endX: 51 },
-      { text: 'Plastic (LLDPE) geomembrane', y: 71, endX: 50 },
-      { text: 'Clay', y: 77, endX: 51 },
-      { text: 'Compacted soil subgrade', y: 84, endX: 50 },
+      { text: 'Grass cap', y: 13.86 },
+      { text: 'Soil', y: 29.75 },
+      { text: 'Geocomposite layer', y: 36.92 },
+      { text: 'Plastic (LLDPE) geomembrane', y: 42.99 },
+      { text: 'Clay', y: 50.62 },
+      { text: 'Contaminant', y: 55.61 },
+      { text: 'Plastic (LLDPE) geomembrane', y: 62.77 },
+      { text: 'Geocomposite layer', y: 69.63 },
+      { text: 'Plastic (LLDPE) geomembrane', y: 73.68 },
+      { text: 'Clay', y: 80.06 },
+      { text: 'Compacted soil subgrade', y: 87.38 },
     ],
   },
   {
@@ -67,19 +76,22 @@ export const METHODS: Method[] = [
     caption: 'Ex-situ thermal treatment pile, layered structure',
     img: thermalImg,
     photo: thermalPhoto,
-    imgAlt: 'Exploded axonometric of the thermal treatment pile: contaminated soil between metal sheets and heater wells, over crushed stone, a plastic liner and a brick pile base',
+    imgAlt:
+      'Exploded axonometric of the thermal treatment pile, top to bottom: sand, offgas collecting pipe, heater well, metal sheet, the contaminant, metal sheet, sand, crushed stone, plastic liner, soil, and the brick pile base.',
+    aspect: 1.0187,
+    labelX: 25.7,
     layers: [
-      { text: 'Sand', y: 17, endX: 52 },
-      { text: 'Offgas collecting pipe', y: 23, endX: 57 },
-      { text: 'Heater well', y: 29, endX: 60 },
-      { text: 'Metal sheet', y: 34, endX: 51 },
-      { text: 'Contaminant', y: 42, endX: 59 },
-      { text: 'Metal sheet', y: 50, endX: 51 },
-      { text: 'Sand', y: 56, endX: 51 },
-      { text: 'Crushed stone', y: 61, endX: 50 },
-      { text: 'Plastic liner', y: 67, endX: 50 },
-      { text: 'Soil', y: 76, endX: 55 },
-      { text: 'Brick pile', y: 81, endX: 47 },
+      { text: 'Sand', y: 15.48 },
+      { text: 'Offgas collecting pipe', y: 22.65 },
+      { text: 'Heater well', y: 30.13 },
+      { text: 'Metal sheet', y: 35.9 },
+      { text: 'Contaminant', y: 42.75 },
+      { text: 'Metal sheet', y: 52.42 },
+      { text: 'Sand', y: 57.87 },
+      { text: 'Crushed stone', y: 65.04 },
+      { text: 'Plastic liner', y: 70.65 },
+      { text: 'Soil', y: 75.95 },
+      { text: 'Brick pile', y: 83.58 },
     ],
   },
 ]

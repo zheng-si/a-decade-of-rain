@@ -1,58 +1,33 @@
 import { useState } from 'react'
 import { METHODS, METHODS_HEAD, type Method } from '../content/actions/methods'
 
-// Leader-line geometry, % of the diagram box. Labels live in the left column;
-// each line runs from the label's edge to a point inside the diagram.
-const LABEL_COL = 34 // % width reserved for labels
-const LINE_END = 58 // % where the leader line ends, inside the image
-
 type Key = Method['key']
 
-function Diagram({ m, open }: { m: Method; open: boolean }) {
+// The designer's own artwork with leader lines and dots baked in (endpoints
+// exact by construction); only the label text is HTML, anchored at each baked
+// leader's measured row. The wrapper reproduces the image canvas exactly
+// (same aspect ratio, image fills it), so % coordinates are 1:1.
+function Diagram({ m }: { m: Method }) {
   const [hot, setHot] = useState<number | null>(null)
-
   return (
-    <div className="method-diagram">
+    <div
+      className="method-diagram"
+      style={{ aspectRatio: String(m.aspect), width: `min(100%, ${Math.round(515 * m.aspect)}px)` }}
+    >
       <img src={m.img} alt={m.imgAlt} loading="lazy" />
-
-      <svg className="method-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        {open &&
-          m.layers.map((l, i) => (
-            <line
-              key={i}
-              className={hot === i ? 'is-hot' : undefined}
-              x1={LABEL_COL}
-              y1={l.y}
-              x2={l.endX ?? LINE_END}
-              y2={l.y}
-            />
-          ))}
-      </svg>
-      {open &&
-        m.layers.map((l, i) => (
-          <i
+      <ul className="method-labels">
+        {m.layers.map((l, i) => (
+          <li
             key={i}
-            className={`method-dot${hot === i ? ' is-hot' : ''}`}
-            style={{ left: `${l.endX ?? LINE_END}%`, top: `${l.y}%` }}
-            aria-hidden="true"
-          />
+            className={hot === i ? 'is-hot' : undefined}
+            style={{ top: `${l.y}%`, right: `${100 - m.labelX + 0.8}%` }}
+            onMouseEnter={() => setHot(i)}
+            onMouseLeave={() => setHot(null)}
+          >
+            {l.text}
+          </li>
         ))}
-
-      {open && (
-        <ul className="method-labels">
-          {m.layers.map((l, i) => (
-            <li
-              key={i}
-              className={hot === i ? 'is-hot' : undefined}
-              style={{ top: `${l.y}%` }}
-              onMouseEnter={() => setHot(i)}
-              onMouseLeave={() => setHot(null)}
-            >
-              {l.text}
-            </li>
-          ))}
-        </ul>
-      )}
+      </ul>
     </div>
   )
 }
@@ -122,7 +97,7 @@ export default function MethodsSection() {
                         <p>{m.body}</p>
                         <p className="method-cap">{m.caption}</p>
                       </div>
-                      <Diagram m={m} open />
+                      <Diagram m={m} />
                     </div>
                   ) : active === null ? (
                     <div className="method-rest">
