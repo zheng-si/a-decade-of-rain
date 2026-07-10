@@ -1,11 +1,12 @@
 // Act II — the two retained methods, explained layer by layer with the
-// project's Rhino-modelled exploded axonometrics. The bare artwork is derived
-// from the designer's labelled Figma export (white ground knocked out; baked
-// text, leaders and paper grain removed at asset-build time), and every
-// leader's y / endpoint below was MEASURED off that same export, so the lines
-// land exactly where the designer put them while the labels stay crisp,
-// hoverable HTML text. Coordinates are % of the artwork canvas, which the
-// diagram wrapper reproduces exactly (same aspect ratio, image fills it).
+// project's Rhino-modelled exploded axonometrics (the original transparent
+// exports, warm-toned). Every leader's y / endpoint below was MEASURED off
+// the designer's labelled Figma export, then mapped onto this artwork via
+// the two exports' solid-pixel bounding boxes (aspect ratios agree to ~0.1%,
+// alignment verified by overlay), so the lines land exactly where the
+// designer put them while the labels stay crisp, hoverable HTML text.
+// Coordinates are % of the image canvas (artwork + transparent left gutter
+// for the labels), which the diagram wrapper reproduces exactly.
 
 import landfillImg from '../../assets/actions/diagram-landfill.webp'
 import thermalImg from '../../assets/actions/diagram-thermal.webp'
@@ -55,20 +56,20 @@ export const METHODS: Method[] = [
     photo: landfillPhoto,
     imgAlt:
       'Exploded axonometric of the passive landfill, top to bottom: grass, soil, geocomposite layer, plastic (LLDPE) geomembrane, clay, the contaminant, plastic geomembrane, geocomposite layer, plastic geomembrane, clay, and the compacted soil subgrade.',
-    aspect: 1.1542,
-    labelX: 33.7,
+    aspect: 1.1223,
+    labelX: 33.5,
     layers: [
-      { text: 'Grass', y: 13.8, endX: 53.2 },
-      { text: 'Soil', y: 29.7, endX: 46.9 },
-      { text: 'Geocomposite layer', y: 36.9, endX: 48.1 },
-      { text: 'Plastic (LLDPE) geomembrane', y: 43.0, endX: 47.9 },
-      { text: 'Clay', y: 50.6, endX: 56.5 },
-      { text: 'Contaminant', y: 55.6, endX: 47.1 },
-      { text: 'Plastic (LLDPE) geomembrane', y: 62.8, endX: 49.2 },
-      { text: 'Geocomposite layer', y: 69.6, endX: 47.3 },
-      { text: 'Plastic (LLDPE) geomembrane', y: 73.7, endX: 41.7 },
-      { text: 'Clay', y: 80.0, endX: 43.7 },
-      { text: 'Compacted soil subgrade', y: 87.4, endX: 51.5 },
+      { text: 'Grass cap', y: 13.76, endX: 51.94 },
+      { text: 'Soil', y: 29.68, endX: 45.41 },
+      { text: 'Geocomposite layer', y: 36.86, endX: 46.67 },
+      { text: 'Plastic (LLDPE) geomembrane', y: 42.95, endX: 46.4 },
+      { text: 'Clay', y: 50.6, endX: 55.26 },
+      { text: 'Contaminant', y: 55.62, endX: 45.57 },
+      { text: 'Plastic (LLDPE) geomembrane', y: 62.78, endX: 47.73 },
+      { text: 'Geocomposite layer', y: 69.64, endX: 45.8 },
+      { text: 'Plastic (LLDPE) geomembrane', y: 73.7, endX: 40.08 },
+      { text: 'Clay', y: 80.1, endX: 42.15 },
+      { text: 'Compacted soil subgrade', y: 87.44, endX: 50.15 },
     ],
   },
   {
@@ -81,20 +82,20 @@ export const METHODS: Method[] = [
     photo: thermalPhoto,
     imgAlt:
       'Exploded axonometric of the thermal treatment pile, top to bottom: sand, offgas collecting pipe, heater well, metal sheet, the contaminant, metal sheet, sand, crushed stone, plastic liner, soil, and the brick pile base.',
-    aspect: 1.1101,
-    labelX: 34.0,
+    aspect: 1.1026,
+    labelX: 33.5,
     layers: [
-      { text: 'Sand', y: 15.5, endX: 51.1 },
-      { text: 'Offgas collecting pipe', y: 22.5, endX: 51.2 },
-      { text: 'Heater well', y: 29.7, endX: 48.2 },
-      { text: 'Metal sheet', y: 35.3, endX: 47.2 },
-      { text: 'Contaminant', y: 41.9, endX: 49.0 },
-      { text: 'Metal sheet', y: 51.3, endX: 49.5 },
-      { text: 'Sand', y: 56.5, endX: 48.9 },
-      { text: 'Crushed stone', y: 63.5, endX: 48.9 },
-      { text: 'Plastic liner', y: 68.9, endX: 42.1 },
-      { text: 'Soil', y: 74.1, endX: 59.2 },
-      { text: 'Brick pile', y: 81.4, endX: 43.1 },
+      { text: 'Sand', y: 15.56, endX: 50.83 },
+      { text: 'Offgas collecting pipe', y: 22.49, endX: 50.95 },
+      { text: 'Heater well', y: 29.72, endX: 47.93 },
+      { text: 'Metal sheet', y: 35.3, endX: 46.89 },
+      { text: 'Contaminant', y: 41.93, endX: 48.74 },
+      { text: 'Metal sheet', y: 51.27, endX: 49.25 },
+      { text: 'Sand', y: 56.55, endX: 48.61 },
+      { text: 'Crushed stone', y: 63.47, endX: 48.62 },
+      { text: 'Plastic liner', y: 68.9, endX: 41.81 },
+      { text: 'Soil', y: 74.06, endX: 59.0 },
+      { text: 'Brick pile', y: 81.41, endX: 42.75 },
     ],
   },
 ]
