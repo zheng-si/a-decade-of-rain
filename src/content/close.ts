@@ -6,7 +6,9 @@
 
 export const CLOSE_HEAD = {
   eyebrow: 'Epilogue',
-  statement: 'The rain stopped in 1971. The work has not.',
+  // The \u00A0 keeps the year glued to its preposition, so the line breaks
+  // after "stopped" instead of stranding "1971." at the start of line two.
+  statement: 'The rain stopped in\u00A01971. The work has not.',
   body: 'Half a century on, the largest hotspot is mid-excavation and its funding is no longer certain. The cleanup continues either way, in cubic metres, year by year. Attention is a contribution too: know the story, follow the work, and if you can, support the people still living with it.',
 }
 
