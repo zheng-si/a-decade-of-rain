@@ -77,9 +77,9 @@ export const METHODS: Method[] = [
       { text: 'Metal sheet', y: 50, endX: 51 },
       { text: 'Sand', y: 56, endX: 51 },
       { text: 'Crushed stone', y: 61, endX: 50 },
-      { text: 'Plastic liner', y: 67, endX: 50 },
-      { text: 'Soil', y: 76, endX: 55 },
-      { text: 'Brick pile', y: 81, endX: 47 },
+      { text: 'Plastic liner', y: 68, endX: 53 },
+      { text: 'Soil', y: 75, endX: 58 },
+      { text: 'Brick pile', y: 82, endX: 47 },
     ],
   },
 ]

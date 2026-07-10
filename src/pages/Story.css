@@ -2481,7 +2481,7 @@
 }
 .alt-family {
   position: relative;
-  padding: 16px 18px;
+  padding: 11px 18px 12px;
   background: var(--paper-solid);
   border: 1px solid var(--rule);
   border-top: 3px solid var(--ink-faint);
@@ -2554,7 +2554,7 @@
   display: flex;
   align-items: center;
   gap: 9px;
-  margin: 0 0 7px;
+  margin: 0 0 5px;
 }
 .alt-family-icon {
   flex: none;
@@ -2588,7 +2588,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 5px;
-  margin: 10px 0 0;
+  margin: 7px 0 0;
 }
 .alt-method-chip {
   padding: 3px 9px;
