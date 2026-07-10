@@ -3139,77 +3139,28 @@
 }
 
 /* The annotated diagram (open state): labels left, image right. */
+/* The labelled figure is the designer's own artwork (diagram + leaders +
+   labels baked in) on a white ground, floated as a card over the panel's
+   theme gradient so its dark labels stay legible. */
 .method-open-grid .method-diagram {
-  position: relative;
-  max-width: 620px;
-  margin: 0 0 0 auto;
+  margin: 0;
+  max-width: 640px;
   width: 100%;
+  justify-self: end;
+  background: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.method-open-grid .method-diagram img {
+.method-figure {
   display: block;
-  width: 62%;
-  margin-left: 38%;
-  max-height: 480px;
+  width: 100%;
+  max-height: 468px;
   object-fit: contain;
   height: auto;
-}
-
-.method-lines {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-.method-lines line {
-  stroke: rgba(255, 255, 255, 0.55);
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
-  transition: stroke 0.15s;
-}
-.method-lines line.is-hot {
-  stroke: #fff;
-  stroke-width: 1.8;
-}
-.method-dot {
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.75);
-  transition: background 0.15s, transform 0.15s;
-}
-.method-dot.is-hot {
-  background: #fff;
-  transform: translate(-50%, -50%) scale(1.6);
-}
-
-.method-labels {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-.method-labels li {
-  position: absolute;
-  left: 0;
-  width: 32%;
-  transform: translateY(-50%);
-  padding: 2px 0;
-  font-size: 11.5px;
-  line-height: 1.25;
-  text-align: right;
-  color: rgba(255, 255, 255, 0.85);
-  pointer-events: auto;
-  cursor: default;
-  transition: color 0.15s;
-}
-.method-labels li.is-hot {
-  color: #fff;
-  font-weight: 700;
 }
 
 @media (max-width: 900px) {
@@ -3227,9 +3178,6 @@
   .method-open-grid {
     grid-template-columns: 1fr;
     gap: 16px;
-  }
-  .method-labels li {
-    font-size: 10px;
   }
 }
 

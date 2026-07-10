@@ -1,59 +1,15 @@
 import { useState } from 'react'
 import { METHODS, METHODS_HEAD, type Method } from '../content/actions/methods'
 
-// Leader-line geometry, % of the diagram box. Labels live in the left column;
-// each line runs from the label's edge to a point inside the diagram.
-const LABEL_COL = 34 // % width reserved for labels
-const LINE_END = 58 // % where the leader line ends, inside the image
-
 type Key = Method['key']
 
-function Diagram({ m, open }: { m: Method; open: boolean }) {
-  const [hot, setHot] = useState<number | null>(null)
-
+// The labelled exploded figure is the designer's own artwork (diagram +
+// leaders + labels baked in), shown on a paper card so its dark labels read.
+function Diagram({ m }: { m: Method }) {
   return (
-    <div className="method-diagram">
-      <img src={m.img} alt={m.imgAlt} loading="lazy" />
-
-      <svg className="method-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        {open &&
-          m.layers.map((l, i) => (
-            <line
-              key={i}
-              className={hot === i ? 'is-hot' : undefined}
-              x1={LABEL_COL}
-              y1={l.y}
-              x2={l.endX ?? LINE_END}
-              y2={l.y}
-            />
-          ))}
-      </svg>
-      {open &&
-        m.layers.map((l, i) => (
-          <i
-            key={i}
-            className={`method-dot${hot === i ? ' is-hot' : ''}`}
-            style={{ left: `${l.endX ?? LINE_END}%`, top: `${l.y}%` }}
-            aria-hidden="true"
-          />
-        ))}
-
-      {open && (
-        <ul className="method-labels">
-          {m.layers.map((l, i) => (
-            <li
-              key={i}
-              className={hot === i ? 'is-hot' : undefined}
-              style={{ top: `${l.y}%` }}
-              onMouseEnter={() => setHot(i)}
-              onMouseLeave={() => setHot(null)}
-            >
-              {l.text}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <figure className="method-diagram">
+      <img className="method-figure" src={m.figure} alt={m.figureAlt} loading="lazy" />
+    </figure>
   )
 }
 
@@ -122,7 +78,7 @@ export default function MethodsSection() {
                         <p>{m.body}</p>
                         <p className="method-cap">{m.caption}</p>
                       </div>
-                      <Diagram m={m} open />
+                      <Diagram m={m} />
                     </div>
                   ) : active === null ? (
                     <div className="method-rest">
