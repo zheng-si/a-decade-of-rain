@@ -12,7 +12,7 @@ function Diagram({ m }: { m: Method }) {
   return (
     <div
       className="method-diagram"
-      style={{ aspectRatio: String(m.aspect), width: `min(100%, ${Math.round(540 * m.aspect)}px)` }}
+      style={{ aspectRatio: String(m.aspect), width: `min(100%, ${Math.round(515 * m.aspect)}px)` }}
     >
       <img src={m.img} alt={m.imgAlt} loading="lazy" />
       <ul className="method-labels">
