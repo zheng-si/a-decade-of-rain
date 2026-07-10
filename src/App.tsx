@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
+import { Analytics } from '@vercel/analytics/react'
 import Story from './pages/Story'
 import Explore from './pages/Explore'
 import './App.css'
@@ -30,6 +31,7 @@ export default function App() {
         <Route path="/" element={<Story />} />
         <Route path="/explore" element={<Explore />} />
       </Routes>
+      <Analytics />
     </BrowserRouter>
   )
 }
