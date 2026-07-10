@@ -2,6 +2,9 @@
 // project's Rhino-modelled exploded axonometrics. The full labelled figure
 // (diagram + leader lines + labels) is the designer's own artwork, exported
 // straight from Figma, so the leaders are pixel-accurate by construction.
+// The exported white ground is knocked out (border flood fill) and the label
+// ink repainted white at asset-build time, so the figure floats directly on
+// the panel's theme gradient.
 
 import landfillFig from '../../assets/actions/figure-landfill.webp'
 import thermalFig from '../../assets/actions/figure-thermal.webp'
