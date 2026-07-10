@@ -3,9 +3,10 @@ import { METHODS, METHODS_HEAD, type Method } from '../content/actions/methods'
 
 type Key = Method['key']
 
-// Bare artwork + HTML labels and SVG leaders at coordinates measured off the
-// designer's own labelled export. The wrapper reproduces the artwork canvas
-// exactly (same aspect ratio, image fills it), so % coordinates are 1:1.
+// The designer's own artwork with leader lines and dots baked in (endpoints
+// exact by construction); only the label text is HTML, anchored at each baked
+// leader's measured row. The wrapper reproduces the image canvas exactly
+// (same aspect ratio, image fills it), so % coordinates are 1:1.
 function Diagram({ m }: { m: Method }) {
   const [hot, setHot] = useState<number | null>(null)
   return (
@@ -14,26 +15,6 @@ function Diagram({ m }: { m: Method }) {
       style={{ aspectRatio: String(m.aspect), width: `min(100%, ${Math.round(540 * m.aspect)}px)` }}
     >
       <img src={m.img} alt={m.imgAlt} loading="lazy" />
-      <svg className="method-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-        {m.layers.map((l, i) => (
-          <line
-            key={i}
-            className={hot === i ? 'is-hot' : undefined}
-            x1={m.labelX}
-            y1={l.y}
-            x2={l.endX}
-            y2={l.y}
-          />
-        ))}
-      </svg>
-      {m.layers.map((l, i) => (
-        <i
-          key={i}
-          className={`method-dot${hot === i ? ' is-hot' : ''}`}
-          style={{ left: `${l.endX}%`, top: `${l.y}%` }}
-          aria-hidden="true"
-        />
-      ))}
       <ul className="method-labels">
         {m.layers.map((l, i) => (
           <li
