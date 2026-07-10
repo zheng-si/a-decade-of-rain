@@ -3,13 +3,51 @@ import { METHODS, METHODS_HEAD, type Method } from '../content/actions/methods'
 
 type Key = Method['key']
 
-// The labelled exploded figure is the designer's own artwork (diagram +
-// leaders + labels baked in), shown on a paper card so its dark labels read.
+// Bare artwork + HTML labels and SVG leaders at coordinates measured off the
+// designer's own labelled export. The wrapper reproduces the artwork canvas
+// exactly (same aspect ratio, image fills it), so % coordinates are 1:1.
 function Diagram({ m }: { m: Method }) {
+  const [hot, setHot] = useState<number | null>(null)
   return (
-    <figure className="method-diagram">
-      <img className="method-figure" src={m.figure} alt={m.figureAlt} loading="lazy" />
-    </figure>
+    <div
+      className="method-diagram"
+      style={{ aspectRatio: String(m.aspect), width: `min(100%, ${Math.round(540 * m.aspect)}px)` }}
+    >
+      <img src={m.img} alt={m.imgAlt} loading="lazy" />
+      <svg className="method-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+        {m.layers.map((l, i) => (
+          <line
+            key={i}
+            className={hot === i ? 'is-hot' : undefined}
+            x1={m.labelX}
+            y1={l.y}
+            x2={l.endX}
+            y2={l.y}
+          />
+        ))}
+      </svg>
+      {m.layers.map((l, i) => (
+        <i
+          key={i}
+          className={`method-dot${hot === i ? ' is-hot' : ''}`}
+          style={{ left: `${l.endX}%`, top: `${l.y}%` }}
+          aria-hidden="true"
+        />
+      ))}
+      <ul className="method-labels">
+        {m.layers.map((l, i) => (
+          <li
+            key={i}
+            className={hot === i ? 'is-hot' : undefined}
+            style={{ top: `${l.y}%`, right: `${100 - m.labelX + 0.8}%` }}
+            onMouseEnter={() => setHot(i)}
+            onMouseLeave={() => setHot(null)}
+          >
+            {l.text}
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }
 
