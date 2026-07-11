@@ -57,6 +57,31 @@
   --type-caption-size: 12px;
   --type-chip-size: 11px;
   --type-chip-weight: 600;
+
+  color-scheme: light;
+}
+
+/* ── DARK THEME TOKENS ──────────────────────────────────────────────────────
+   Set from the rail's Dark/Light switch (src/theme.ts) onto <html data-theme>.
+   Mapping: paper flips to a deep forest-dark ground; the ink scale flips to a
+   light scale tuned to it (contrast ratios re-checked per --paper-solid).
+   DELIBERATELY UNCHANGED: --forest/--forest-2 (story cards keep their identity
+   surface), the whole accent family (the brand orange + the ongoing-red status
+   language), and the MapLibre basemap — the map keeps its paper style in both
+   themes, so everything floating on it re-pins the light tokens (see the dark
+   block at the end of Story.css). */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* surfaces */
+  --paper: 21, 28, 24; /* deep forest-dark ground (rgb tuple for alpha use) */
+  --paper-solid: #232e27; /* raised card surface */
+
+  /* ink (text on the dark ground) */
+  --ink: #e8ece6; /* headings & primary text · 12.5:1 on the ground */
+  --ink-soft: #b2c2b6; /* secondary text, UI labels · 7.6:1 */
+  --ink-faint: #9aab9f; /* captions, smallest text · 5.6:1 */
+  --rule: #38453d; /* hairline dividers */
 }
 
 .app {

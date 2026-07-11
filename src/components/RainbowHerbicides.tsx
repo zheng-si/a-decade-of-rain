@@ -214,7 +214,7 @@ export default function RainbowHerbicides({ years, series }: Props) {
                     role="tab"
                     aria-selected={sel === s.key}
                     className={`rainbow-chip${sel === s.key ? ' is-active' : ''}`}
-                    style={sel === s.key ? { background: s.color, borderColor: s.color } : undefined}
+                    style={sel === s.key ? { background: s.color, borderColor: s.color, color: '#fff' } : undefined}
                     onClick={() => setSel(s.key)}
                   >
                     <span className="rainbow-chip-dot" style={{ background: s.color }} />

@@ -52,7 +52,10 @@ export default function EcosystemsFigure() {
   const sumSpr = VEG_TYPES.reduce((a, v) => a + v.sprayed, 0)
   const sumTot = VEG_TYPES.reduce((a, v) => a + v.total, 0)
   const headPct = active ? pct(active.sprayed, active.total) : pct(sumSpr, sumTot)
-  const headColor = active ? active.ink : '#51625a'
+  // Both tones ride along as custom properties so the theme picks per mode:
+  // light uses the type's deep ink, dark uses its (lighter) map colour.
+  const headInk = active ? active.ink : '#51625a'
+  const headBright = active ? active.color : '#93a398'
   const displayPct = useCountUp(headPct)
 
   return (
@@ -147,7 +150,10 @@ export default function EcosystemsFigure() {
 
           <figure className="eco-map" data-sel={sel ?? undefined}>
             <div className="eco-map-svg" aria-label={ECOSYSTEMS.mapAlt} role="img" dangerouslySetInnerHTML={{ __html: vegRaw }} />
-            <figcaption className="eco-headline" style={{ color: headColor }}>
+            <figcaption
+              className="eco-headline"
+              style={{ ['--eco-head-ink' as string]: headInk, ['--eco-head-bright' as string]: headBright }}
+            >
               <strong>{displayPct}%</strong>
               <span>{active ? `of ${active.name.toLowerCase()} sprayed` : 'of vegetation sprayed'}</span>
               {active?.sourceId && SOURCES[active.sourceId] && (

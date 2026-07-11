@@ -13,3 +13,9 @@ body,
   padding: 0;
   height: 100%;
 }
+
+/* Tokened ground behind everything, so overscroll and first paint never
+   flash white in dark mode (tokens: App.css). */
+body {
+  background: rgb(var(--paper));
+}

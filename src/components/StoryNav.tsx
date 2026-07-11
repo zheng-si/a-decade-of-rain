@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { BIOHAZARD } from './biohazard'
+import { getTheme, toggleTheme, type Theme } from '../theme'
 import usaidWhite from '../assets/brand/usaid-white.png'
 
 // Persistent left rail: a table of contents for the (now long) story. Each
@@ -54,6 +55,7 @@ const LIVE = NAV.flatMap((g) => g.items).filter((i) => !i.upcoming)
 
 export default function StoryNav() {
   const [active, setActive] = useState(LIVE[0].id)
+  const [theme, setThemeState] = useState<Theme>(() => getTheme())
   // The rail stays hidden over the banner (the big centred title carries the
   // name there) and slides in once the reader scrolls into the story.
   const [shown, setShown] = useState(false)
@@ -127,6 +129,29 @@ export default function StoryNav() {
             </ul>
           </div>
         ))}
+      </div>
+
+      {/* Theme switch: its own cell between the contents and the credits.
+          Icon + label name the mode the button switches TO. */}
+      <div className="story-rail-theme-wrap">
+        <button
+          type="button"
+          className="story-rail-theme"
+          aria-pressed={theme === 'dark'}
+          onClick={() => setThemeState(toggleTheme())}
+        >
+          {theme === 'dark' ? (
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <circle cx="12" cy="12" r="4.4" />
+              <path d="M12 2.5v2.4M12 19.1v2.4M2.5 12h2.4M19.1 12h2.4M5.3 5.3l1.7 1.7M17 17l1.7 1.7M18.7 5.3L17 7M7 17l-1.7 1.7" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+              <path d="M20.6 14.2A8.6 8.6 0 0 1 9.8 3.4a8.6 8.6 0 1 0 10.8 10.8Z" />
+            </svg>
+          )}
+          <span>{theme === 'dark' ? 'Light mode' : 'Dark mode'}</span>
+        </button>
       </div>
 
       <div className="story-rail-foot">

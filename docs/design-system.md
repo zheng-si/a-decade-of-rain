@@ -53,6 +53,35 @@ Rule of thumb: if it's a shape → `--accent`; a line → `--accent-line`; a chi
 light. The 23px card eyebrow is large text (AA needs only 3:1) so it may use
 raw `--accent`.
 
+### Dark theme
+
+Switched from the rail's Dark/Light button (`src/theme.ts` →
+`<html data-theme="dark">`; first paint set by an inline script in
+`index.html`, defaulting to `prefers-color-scheme`). Only the paper/ink axis
+remaps — everything already carrying an identity surface (orange rail and hook
+wash, forest story cards, method-panel gradients, the three status colours,
+consequences/close greens, the whole accent family) is the same in both themes.
+
+| Token | Dark value | Role | Contrast |
+|---|---|---|---|
+| `--paper` | `21,28,24` (rgb tuple) | deep forest-dark ground | — |
+| `--paper-solid` | `#232e27` | raised card surface | — |
+| `--ink` | `#e8ece6` | headings, primary text | 12.5:1 on ground |
+| `--ink-soft` | `#b2c2b6` | secondary text, UI labels | 7.6:1 |
+| `--ink-faint` | `#9aab9f` | captions, smallest print | 5.6:1 |
+| `--rule` | `#38453d` | hairline dividers | — |
+
+Two governing rules (full mapping: dark block at the end of `src/pages/Story.css`):
+
+1. **The map stays paper.** The basemap keeps its light cartographic style in
+   both themes — a paper artifact on a dark desk. Everything floating on it
+   (hook banner, intro card, timeline, view toggle, map key, year ruler,
+   site-nav pill) re-pins the light tokens and never changes.
+2. Accent as *text on the dark ground* uses `--accent-bright` (section
+   eyebrows, ongoing-status labels); chart furniture flips from ink-tints to
+   white-tints (`rgba(255,255,255,.06–.13)`), and the alternatives chart's
+   sage bands translate to `#2b382f / #27332c / #222e28`.
+
 ## 2 · Type scale
 
 Serif = Gambarino (`--font-serif`; self-hosted), sans = Public Sans

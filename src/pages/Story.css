@@ -409,6 +409,41 @@
   cursor: default;
 }
 
+/* Theme switch: its own hairline cell above the attribution foot, in the
+   rail's ghost-button language (white on the crimson). */
+.story-rail-theme-wrap {
+  flex: none;
+  padding: 12px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.24);
+}
+.story-rail-theme {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 4px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.story-rail-theme:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.62);
+}
+.story-rail-theme svg {
+  flex: none;
+  width: 12px;
+  height: 12px;
+}
+
 /* Rail foot: source attribution (nominative use — data & reporting credits,
    not an endorsement). */
 .story-rail-foot {
@@ -1703,8 +1738,8 @@
     90deg,
     transparent 0,
     transparent calc(var(--seg) - 1px),
-    rgba(250, 249, 244, 0.9) calc(var(--seg) - 1px),
-    rgba(250, 249, 244, 0.9) var(--seg)
+    rgba(var(--paper), 0.9) calc(var(--seg) - 1px),
+    rgba(var(--paper), 0.9) var(--seg)
   );
   overflow: hidden;
 }
@@ -1771,7 +1806,8 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
-  text-shadow: 0 1px 2px rgba(250, 249, 244, 0.95), 0 0 10px rgba(250, 249, 244, 0.9);
+  color: var(--eco-head-ink);
+  text-shadow: 0 1px 2px rgba(var(--paper), 0.95), 0 0 10px rgba(var(--paper), 0.9);
   transition: color 0.35s;
 }
 
@@ -3676,4 +3712,179 @@
 .close-top:hover {
   background: rgba(255, 255, 255, 0.16);
   border-color: rgba(255, 255, 255, 0.55);
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DARK THEME (tokens: App.css :root[data-theme='dark'])
+   Two ideas govern this block:
+   1. THE MAP STAYS PAPER. The basemap keeps its light cartographic style in
+      both themes — a paper artifact on a dark desk — so everything that
+      floats ON the map (and the hook banner over it) re-pins the light
+      tokens below and needs no other change.
+   2. Everything else already runs on tokens; what follows remaps only the
+      literal light values (chart furniture, chips, tracks) to the dark
+      ground. Identity surfaces — the orange rail and hook wash, the forest
+      story cards, the method-panel gradients, the three status colours, the
+      consequences/close greens — are the same in both themes.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* 1 ── paper-light islands over the basemap ──────────────────────────────── */
+[data-theme='dark'] .story-hook,
+[data-theme='dark'] .site-nav,
+[data-theme='dark'] .intro-card,
+[data-theme='dark'] .timeline,
+[data-theme='dark'] .view-toggle,
+[data-theme='dark'] .map-key,
+[data-theme='dark'] .timeline-ruler {
+  --paper: 250, 249, 244;
+  --paper-solid: #fdfdfd;
+  --ink: #213528;
+  --ink-soft: #4e6355;
+  --ink-faint: #647468;
+  --rule: #dfe3d9;
+}
+
+/* 2 ── shared section furniture ──────────────────────────────────────────── */
+/* Accent-as-text needs the bright tone on the dark ground (AA). */
+[data-theme='dark'] .fs-eyebrow {
+  color: var(--accent-bright);
+}
+
+/* Paper-glass chips flip to white-glass; hover hairline lightens. */
+[data-theme='dark'] .rainbow-chip,
+[data-theme='dark'] .method-tab {
+  background: rgba(255, 255, 255, 0.07);
+}
+[data-theme='dark'] .method-tab:hover {
+  border-color: #4d5b53;
+}
+
+/* Segmented-control tracks (ink-tint in light, white-tint in dark). */
+[data-theme='dark'] .rainbow-mode,
+[data-theme='dark'] .eco-sort {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* 3 ── Act I · The Herbicides ────────────────────────────────────────────── */
+/* The neutral "All agents" chip fills with the (now light) ink — flip its
+   text/dot dark. Agent-coloured chips carry their colours inline. */
+[data-theme='dark'] .rainbow-chip.is-active {
+  color: #16211b;
+}
+[data-theme='dark'] .rainbow-chip.is-active .rainbow-chip-dot {
+  background: #16211b !important;
+}
+/* The agent card sits on a dark surface now, so the per-agent accent uses the
+   forest-safe tone the component already provides. */
+[data-theme='dark'] .rainbow-card {
+  --agent-ink: var(--agent-text);
+}
+
+/* 4 ── Act I · The Ecosystems ────────────────────────────────────────────── */
+[data-theme='dark'] .eco-type:hover,
+[data-theme='dark'] .eco-type.is-on {
+  background: rgba(255, 255, 255, 0.06);
+}
+[data-theme='dark'] .eco-swatch {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.28) inset;
+}
+[data-theme='dark'] .eco-bar-track {
+  background: #39443d;
+}
+/* The resting 20% washes vanish on the dark ground; lift them a step. */
+[data-theme='dark'] .vt {
+  opacity: 0.3;
+}
+/* Big callout: the type's map colour (light) instead of its deep ink. */
+[data-theme='dark'] .eco-headline {
+  color: var(--eco-head-bright);
+}
+
+/* 5 ── Act II · The Hotspots (locator map) ───────────────────────────────── */
+[data-theme='dark'] .act2-map-veg .vn-shape {
+  fill: #29342d;
+  stroke: #8fa094;
+}
+/* Status colours as small text on the dark cards: one brighter step. */
+[data-theme='dark'] .act2-card.is-ongoing .act2-facts dt {
+  color: var(--accent-bright);
+}
+[data-theme='dark'] .act2-card.is-completed .act2-facts dt {
+  color: #5cab7d;
+}
+[data-theme='dark'] .act2-card.is-contained .act2-facts dt {
+  color: #7fa1cb;
+}
+
+/* 6 ── Act II · The Alternatives (comparison chart) ──────────────────────── */
+[data-theme='dark'] .alt-axis-title,
+[data-theme='dark'] .alt-axis span {
+  color: var(--ink-soft);
+}
+[data-theme='dark'] .alt-axis-title.is-co2,
+[data-theme='dark'] .alt-axis.is-co2 span {
+  color: #ff5449;
+}
+[data-theme='dark'] .alt-ghead.is-treatment {
+  color: #8aa695;
+}
+[data-theme='dark'] .alt-plot {
+  border-bottom-color: #55645b;
+}
+[data-theme='dark'] .alt-glines i {
+  background: rgba(255, 255, 255, 0.13);
+}
+[data-theme='dark'] .alt-glines i.is-major {
+  background: rgba(255, 255, 255, 0.26);
+}
+[data-theme='dark'] .alt-cell {
+  border-right-color: rgb(var(--paper));
+}
+/* Family bands: the sage tints, translated to the dark ground. */
+[data-theme='dark'] .alt-cell.is-containment {
+  background: #2b382f;
+}
+[data-theme='dark'] .alt-cell.is-hybrid {
+  background: #27332c;
+}
+[data-theme='dark'] .alt-cell.is-treatment {
+  background: #222e28;
+}
+/* Cost bars: charcoal flips to a light grey against the dark bands. */
+[data-theme='dark'] .alt-pair i.is-cost {
+  background: #b6bdb4;
+}
+[data-theme='dark'] .alt-xlabel {
+  color: var(--ink-soft);
+  border-right-color: #38453d;
+}
+/* Revealed screening banner: dark surface, the green moves into the text. */
+[data-theme='dark'] .alt-reveal-btn.is-banner {
+  background: #1f2b24;
+  color: #6fcf97;
+}
+[data-theme='dark'] .alt-reveal-btn.is-banner:hover {
+  background: #263329;
+}
+
+/* 7 ── Act II · The Timeline ─────────────────────────────────────────────── */
+/* Project colours as text on the dark ground: one brighter step (the deep
+   ongoing-red especially). Band fills and invert cards stay identity. */
+[data-theme='dark'] .tl-band.is-slim .tl-band-status {
+  filter: brightness(1.35);
+}
+[data-theme='dark'] .tl-card:not(.is-invert).is-bienhoa .tl-card-tag {
+  color: var(--accent-bright);
+}
+
+/* 8 ── Epilogue ──────────────────────────────────────────────────────────── */
+/* The hero's paper-to-forest dissolve starts from the dark ground instead. */
+[data-theme='dark'] .close-hero {
+  background: linear-gradient(
+    180deg,
+    rgb(var(--paper)) 0%,
+    #14211a 30%,
+    #13291d 65%,
+    #12271a 100%
+  );
 }
