@@ -75,7 +75,7 @@
   inset: 0;
 }
 
-/* ── site nav (Story ⇄ Explore) ───────────────────────────────────────── */
+/* ── site nav (Story ⇄ Archive) ───────────────────────────────────────── */
 .site-nav {
   position: fixed;
   top: 1.5rem;
@@ -164,6 +164,23 @@
 
 .view-toggle:hover {
   background: rgba(255, 255, 255, 0.72);
+}
+
+/* Stacked map actions (3D + share) share the view-toggle skin; the stack owns
+   the top-right position so the buttons flow under each other. */
+.map-actions {
+  position: absolute;
+  top: 96px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.map-actions .view-toggle {
+  position: static;
 }
 
 /* ── timeline ─────────────────────────────────────────────────────────── */
@@ -355,6 +372,57 @@
   font-size: 0.8125rem;
   line-height: 1.62;
   color: var(--ink-soft);
+}
+
+/* Cross-link row under the lede (Archive ⇄ Story). */
+.intro-links {
+  margin: 13px 0 0;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.intro-links a {
+  color: var(--accent-deep);
+  text-decoration: none;
+}
+
+.intro-links a:hover {
+  text-decoration: underline;
+}
+
+/* ── MapLibre popups, restyled to the card language ───────────────────── */
+.adr-popup .maplibregl-popup-content {
+  padding: 10px 13px 11px;
+  font-family: var(--font-sans);
+  background: var(--paper-solid);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(33, 53, 40, 0.16);
+}
+
+.adr-popup strong {
+  display: block;
+  margin: 0 0 3px;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 15px;
+  color: var(--ink);
+}
+
+.adr-popup span {
+  display: block;
+  max-width: 210px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.adr-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  border-top-color: var(--paper-solid);
+}
+
+.adr-popup.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+  border-bottom-color: var(--paper-solid);
 }
 
 /* ── dioxin hotspot markers (cartographic ring symbol) ────────────────── */

@@ -15,20 +15,20 @@ export const HOTSPOTS: Hotspot[] = [
     name: 'Đà Nẵng Air Base',
     lng: 108.199,
     lat: 16.044,
-    note: 'Remediation completed 2012–2018 (USAID). Reference project in the original design.',
+    note: 'Thermal cleanup completed 2018 — 90,000 m³ of soil and sediment treated (USAID).',
   },
   {
     id: 'bienhoa',
     name: 'Biên Hòa Air Base',
     lng: 106.818,
     lat: 10.972,
-    note: 'Largest remaining dioxin hotspot; remediation began 2019.',
+    note: 'The largest hotspot — ~500,000 m³ of soil; excavation under way since 2019.',
   },
   {
     id: 'phucat',
     name: 'Phú Cát Air Base',
     lng: 109.043,
     lat: 13.952,
-    note: 'Contaminated soil contained on-site in a secure landfill.',
+    note: '~7,500 m³ sealed on-site in an engineered landfill in 2012, with UNDP.',
   },
 ]

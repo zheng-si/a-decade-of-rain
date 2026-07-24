@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { HOTSPOTS } from '../data/hotspots'
-import { loadSpray, dayToDate, type SprayDataset } from '../data/spray'
+import { loadSpray, dayToDate, dateToDay, type SprayDataset } from '../data/spray'
 import { mapConfig } from '../config/mapConfig'
 import Timeline from './Timeline'
 import { buildAgentChoices, type AgentChoice } from './agentChoices'
@@ -28,6 +28,74 @@ const FILTER_STEP_DAYS = 12
 
 const monthLabel = (day: number) =>
   dayToDate(day).toLocaleDateString('en-US', { year: 'numeric', month: 'short', timeZone: 'UTC' })
+
+// ── F1 · URL as state ─────────────────────────────────────────────────────
+// /archive?t=1968-06-15&agent=O&cam=106.5,16.2,5.8&view=3d — every control's
+// position mirrors into the query string (debounced replaceState), so any view
+// can be bookmarked, shared, or deep-linked from the story.
+interface UrlState {
+  day?: number
+  agent?: string
+  cam?: { center: [number, number]; zoom: number }
+  is3D?: boolean
+}
+
+function readUrlState(): UrlState {
+  const q = new URLSearchParams(window.location.search)
+  const out: UrlState = {}
+  const t = q.get('t')
+  if (t && /^\d{4}-\d{2}-\d{2}$/.test(t)) out.day = dateToDay(t)
+  const agent = q.get('agent')
+  if (agent) out.agent = agent
+  const cam = (q.get('cam') ?? '').split(',').map(Number)
+  if (cam.length === 3 && cam.every(Number.isFinite))
+    out.cam = { center: [cam[0], cam[1]], zoom: cam[2] }
+  if (q.get('view') === '3d') out.is3D = true
+  return out
+}
+
+/** Serialise the current view; defaults (full record, all agents, home camera,
+ *  flat) are omitted so the canonical URL stays clean. */
+function buildSearch(
+  map: maplibregl.Map | null,
+  day: number,
+  dayMax: number,
+  agentKey: string,
+  is3D: boolean,
+): string {
+  const q = new URLSearchParams()
+  if (Math.round(day) < dayMax) q.set('t', dayToDate(day).toISOString().slice(0, 10))
+  if (agentKey !== 'all') q.set('agent', agentKey)
+  if (map) {
+    const c = map.getCenter()
+    const v = mapConfig.view
+    const moved =
+      Math.abs(c.lng - v.center[0]) > 0.02 ||
+      Math.abs(c.lat - v.center[1]) > 0.02 ||
+      Math.abs(map.getZoom() - v.zoom) > 0.05
+    if (moved) q.set('cam', `${c.lng.toFixed(3)},${c.lat.toFixed(3)},${map.getZoom().toFixed(2)}`)
+  }
+  if (is3D) q.set('view', '3d')
+  return q.toString()
+}
+
+/** Enter/leave the tilted 3D terrain view (shared by the toggle button and the
+ *  URL restore, which applies it without the fly-in). */
+function applyView(map: maplibregl.Map, next: boolean, animate = true) {
+  if (mapConfig.terrain && map.getSource(DEM_SOURCE)) {
+    map.setTerrain(
+      next ? { source: DEM_SOURCE, exaggeration: mapConfig.terrain.exaggeration } : null,
+    )
+    setHillshade(map, next) // shaded relief makes the elevation visible
+  }
+  // Tilt; when entering 3D also zoom in a touch — terrain reads as 3D far
+  // better up close than at the full-country overview.
+  map.easeTo({
+    pitch: next ? mapConfig.view.pitch3d : 0,
+    ...(next && map.getZoom() < 6.6 ? { zoom: 6.6 } : {}),
+    duration: animate ? 1000 : 0,
+  })
+}
 
 /** Cumulative run count + gallons up to `day`, restricted to `indices`. */
 function cumulative(data: SprayDataset, day: number, indices: number[] | null) {
@@ -57,6 +125,10 @@ export default function MapView() {
   const [agentKey, setAgentKey] = useState('all')
   const [is3D, setIs3D] = useState(false)
   const [stats, setStats] = useState({ runs: 0, gallons: 0 })
+  // Bumped on moveend so the URL mirror below sees camera changes.
+  const [camTick, setCamTick] = useState(0)
+  const [shared, setShared] = useState(false)
+  const shareTimerRef = useRef(0)
 
   // Throttle key for the map filter: only re-apply when the day-bucket or the
   // agent selection actually changes.
@@ -100,6 +172,7 @@ export default function MapView() {
       mapRef.current = map
       // bottom-right keeps the top-right clear for the site nav.
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
+      map.on('moveend', () => setCamTick((t) => t + 1))
 
       Promise.all([
         loadSpray(),
@@ -128,14 +201,30 @@ export default function MapView() {
 
         setChoices(agentChoices)
         setBounds({ min: spray.dayMin, max: spray.dayMax })
-        setDay(spray.dayMax) // start showing the full record
+
+        // Restore a deep-linked view, else start showing the full record.
+        const urlState = readUrlState()
+        if (urlState.cam) map.jumpTo({ center: urlState.cam.center, zoom: urlState.cam.zoom })
+        if (urlState.agent && agentChoices.some((c) => c.key === urlState.agent))
+          setAgentKey(urlState.agent)
+        setDay(
+          urlState.day != null
+            ? Math.min(Math.max(urlState.day, spray.dayMin), spray.dayMax)
+            : spray.dayMax,
+        )
+        if (urlState.is3D) {
+          setIs3D(true)
+          applyView(map, true, false)
+        }
         setReady(true)
       })
 
       HOTSPOTS.forEach((h) => {
-        const popup = new maplibregl.Popup({ offset: 14, closeButton: false }).setHTML(
-          `<strong>${h.name}</strong><br/><span style="font-size:12px;color:#555">${h.note}</span>`,
-        )
+        const popup = new maplibregl.Popup({
+          offset: 14,
+          closeButton: false,
+          className: 'adr-popup',
+        }).setHTML(`<strong>${h.name}</strong><span>${h.note}</span>`)
         const el = document.createElement('div')
         el.className = 'hotspot-marker'
         new maplibregl.Marker({ element: el })
@@ -174,24 +263,29 @@ export default function MapView() {
     setAgentVisibility(map, choices, agentKey)
   }, [ready, agentKey, choices])
 
-  // Animation loop: advance the playhead in real time while playing.
+  // Animation loop: advance the playhead in real time while playing. The loop
+  // tracks the playhead in a local — the first frame can fire before React
+  // re-renders, so an end-of-record restart read via dayRef would still see
+  // the old end value and stop the playback dead on its first tick.
   useEffect(() => {
     if (!playing) return
     let frame = 0
     let prev = performance.now()
     const span = bounds.max - bounds.min
     // If we're at (or past) the end, restart from the beginning.
-    if (dayRef.current >= bounds.max) setDay(bounds.min)
+    let cur = dayRef.current >= bounds.max ? bounds.min : dayRef.current
+    if (cur !== dayRef.current) setDay(cur)
 
     const tick = (now: number) => {
       const dt = now - prev
       prev = now
-      const next = dayRef.current + (span * dt) / PLAY_DURATION_MS
+      const next = cur + (span * dt) / PLAY_DURATION_MS
       if (next >= bounds.max) {
         setDay(bounds.max)
         setPlaying(false)
         return
       }
+      cur = next
       setDay(next)
       frame = requestAnimationFrame(tick)
     }
@@ -205,28 +299,46 @@ export default function MapView() {
     if (!map) return
     const next = !is3D
     setIs3D(next)
-    if (mapConfig.terrain && map.getSource(DEM_SOURCE)) {
-      map.setTerrain(
-        next ? { source: DEM_SOURCE, exaggeration: mapConfig.terrain.exaggeration } : null,
-      )
-      setHillshade(map, next) // shaded relief makes the elevation visible
-    }
-    // Tilt; when entering 3D also zoom in a touch — terrain reads as 3D far
-    // better up close than at the full-country overview.
-    map.easeTo({
-      pitch: next ? mapConfig.view.pitch3d : 0,
-      ...(next && map.getZoom() < 6.6 ? { zoom: 6.6 } : {}),
-      duration: 1000,
-    })
+    applyView(map, next)
+  }
+
+  // Mirror the current view into the query string, debounced. During playback
+  // the timer keeps postponing, so the URL settles when the playhead does.
+  useEffect(() => {
+    if (!ready) return
+    const id = window.setTimeout(() => {
+      const search = buildSearch(mapRef.current, day, bounds.max, agentKey, is3D)
+      window.history.replaceState(null, '', `${window.location.pathname}${search ? `?${search}` : ''}`)
+    }, 300)
+    return () => window.clearTimeout(id)
+  }, [ready, day, agentKey, is3D, camTick, bounds.max])
+
+  // Copy the canonical URL for the current view.
+  function shareView() {
+    const search = buildSearch(mapRef.current, dayRef.current, bounds.max, agentKey, is3D)
+    const url = `${window.location.origin}${window.location.pathname}${search ? `?${search}` : ''}`
+    navigator.clipboard
+      ?.writeText(url)
+      .then(() => {
+        setShared(true)
+        window.clearTimeout(shareTimerRef.current)
+        shareTimerRef.current = window.setTimeout(() => setShared(false), 1800)
+      })
+      .catch(() => window.prompt('Copy this link:', url))
   }
 
   return (
     <div className="map-wrap">
       <div ref={containerRef} className="map-root" />
       {ready && (
-        <button className="view-toggle" onClick={toggleView}>
-          {is3D ? '▦ Flat view' : '⛰ 3D view'}
-        </button>
+        <div className="map-actions">
+          <button className="view-toggle" onClick={toggleView} aria-pressed={is3D}>
+            {is3D ? '▦ Flat view' : '⛰ 3D view'}
+          </button>
+          <button className="view-toggle" onClick={shareView} aria-live="polite">
+            {shared ? '✓ Link copied' : '⧉ Share view'}
+          </button>
+        </div>
       )}
       {ready && (
         <Timeline
