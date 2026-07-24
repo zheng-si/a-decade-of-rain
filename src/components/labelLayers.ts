@@ -59,6 +59,26 @@ export function setGroupVisible(map: maplibregl.Map, layerIds: string[], on: boo
   }
 }
 
+/** The curated label spec, shared by the Story and the Archive so the two maps
+ *  read identically: hide the noisy tiers, normalise casing/" Ward" suffixes,
+ *  and let province labels anchor the reader from a low zoom.
+ *  (Full tier spec: docs/map-labels.md.) */
+export function applyLabelCuration(map: maplibregl.Map) {
+  normalizePlaceLabels(map)
+  for (const g of readLabelGroups(map)) {
+    if (!g.visible) setGroupVisible(map, g.layerIds, false)
+    if (g.key === 'state') {
+      for (const id of g.layerIds) {
+        try {
+          map.setLayerZoomRange(id, 4, 22)
+        } catch {
+          /* layer may not accept a zoom-range override */
+        }
+      }
+    }
+  }
+}
+
 // ── casing + name normalisation ───────────────────────────────────────────
 // The basemap uppercases its state/other tiers (ATTAPEU, CHAMPASAK) while city
 // and town labels are title-case; and since Vietnam's 2025 admin reform some

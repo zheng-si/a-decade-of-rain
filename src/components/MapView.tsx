@@ -7,13 +7,18 @@ import { mapConfig } from '../config/mapConfig'
 import Timeline, { buildVolume, type VolumeChart } from './Timeline'
 import { buildAgentChoices, type AgentChoice } from './agentChoices'
 import {
+  resolveMapStyle,
   applyMapTheme,
   addSprayLayers,
   setSprayTime,
   setAgentVisibility,
   addHillshade,
   setHillshade,
+  addMilitaryRegions,
+  addIslandMarks,
+  agentLayerId,
 } from './mapTheme'
+import { applyLabelCuration } from './labelLayers'
 
 const SPRAY_SOURCE = 'spray'
 const DEM_SOURCE = 'terrain-dem'
@@ -146,17 +151,7 @@ export default function MapView() {
     if (!containerRef.current || mapRef.current) return
     let cancelled = false
 
-    // Resolve the style: a plain URL, or — when a custom glyph endpoint is
-    // configured — the style JSON with its `glyphs` swapped to it.
-    async function resolveStyle(): Promise<string | maplibregl.StyleSpecification> {
-      if (!mapConfig.glyphsUrl) return mapConfig.baseStyleUrl
-      const resp = await fetch(mapConfig.baseStyleUrl)
-      const style = (await resp.json()) as maplibregl.StyleSpecification
-      style.glyphs = mapConfig.glyphsUrl
-      return style
-    }
-
-    resolveStyle().then((style) => {
+    resolveMapStyle().then((style) => {
       if (cancelled || !containerRef.current) return
 
       const map = new maplibregl.Map({
@@ -175,14 +170,19 @@ export default function MapView() {
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
       map.on('moveend', () => setCamTick((t) => t + 1))
 
+      const asset = (f: string) => fetch(`${import.meta.env.BASE_URL}${f}`).then((r) => r.json())
       Promise.all([
         loadSpray(),
+        asset('data/military-region-dividers.geojson'),
+        asset('data/military-region-labels.geojson'),
         new Promise<void>((resolve) => map.once('load', () => resolve())),
-      ]).then(([spray]) => {
+      ]).then(([spray, mrGeo, mrLabelsGeo]) => {
         if (!mapRef.current) return
         dataRef.current = spray
 
+        // Same cartography as the story: theme recolour + curated labels.
         applyMapTheme(map)
+        applyLabelCuration(map)
 
         // DEM source + hillshade for the 3D terrain (enabled on toggle).
         if (mapConfig.terrain && !map.getSource(DEM_SOURCE)) {
@@ -199,6 +199,12 @@ export default function MapView() {
         const agentChoices = buildAgentChoices(spray.agents)
         map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
         addSprayLayers(map, SPRAY_SOURCE, agentChoices, spray.dayMax)
+
+        // Same reference overlays as the story: military-region dividers +
+        // tags (under the spray heat) and the disputed-island marks.
+        const firstHeat = agentChoices.find((c) => c.indices && c.color)
+        addMilitaryRegions(map, mrGeo, mrLabelsGeo, firstHeat && agentLayerId(firstHeat.key))
+        addIslandMarks(map)
 
         setChoices(agentChoices)
         setBounds({ min: spray.dayMin, max: spray.dayMax })

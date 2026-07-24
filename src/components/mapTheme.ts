@@ -178,6 +178,91 @@ export function addSprayLayers(map: maplibregl.Map, sourceId: string, choices: A
   }
 }
 
+// ── shared reference overlays (Story + Archive) ───────────────────────────
+// Both maps carry the same cartographic furniture so they read as one system.
+
+/** The four Corps Tactical Zones / Military Regions — only the three INTERNAL
+ *  dividers are drawn (bold orange dashed; the outer edges trace the national
+ *  border / coast and would clash with the basemap's own lines), plus the
+ *  uppercase orange region tags, overview only. Pass `beforeId` to keep the
+ *  dividers under the spray heat. */
+export function addMilitaryRegions(
+  map: maplibregl.Map,
+  mrGeo: GeoJSON.GeoJSON,
+  mrLabelsGeo: GeoJSON.GeoJSON,
+  beforeId?: string,
+) {
+  if (map.getLayer('mr-borders')) return
+  map.addSource('military-regions', { type: 'geojson', data: mrGeo })
+  map.addLayer(
+    {
+      id: 'mr-borders',
+      type: 'line',
+      source: 'military-regions',
+      layout: { 'line-join': 'round' },
+      paint: { 'line-color': '#e8443a', 'line-width': 2.2, 'line-opacity': 0.9, 'line-dasharray': [2.4, 1.8] },
+    },
+    beforeId,
+  )
+  map.addSource('military-region-labels', { type: 'geojson', data: mrLabelsGeo })
+  map.addLayer({
+    id: 'mr-label',
+    type: 'symbol',
+    source: 'military-region-labels',
+    maxzoom: 8.5,
+    layout: {
+      'text-field': ['get', 'name'],
+      'text-font': ['Public Sans Medium'],
+      'text-size': 12.5,
+      'text-transform': 'uppercase',
+      'text-letter-spacing': 0.1,
+    },
+    paint: { 'text-color': '#cf3720', 'text-halo-color': 'rgba(250,249,244,0.95)', 'text-halo-width': 2 },
+  })
+}
+
+/** Disputed-island reference marks (the basemap already draws the grey
+ *  borders). These sit outside the spray record (occupied by China, Taiwan
+ *  et al.) and were never sprayed; shown as reference, no sovereignty
+ *  assigned. Names use the common English forms + Vietnamese in parentheses. */
+const ISLANDS_FC = {
+  type: 'FeatureCollection',
+  features: [
+    { type: 'Feature', properties: { name: 'Paracel Is. (Hoàng Sa) · disputed' }, geometry: { type: 'Point', coordinates: [112.0, 16.5] } },
+    { type: 'Feature', properties: { name: 'Spratly Is. (Trường Sa) · disputed' }, geometry: { type: 'Point', coordinates: [114.0, 9.8] } },
+  ],
+} as GeoJSON.FeatureCollection
+
+export function addIslandMarks(map: maplibregl.Map) {
+  if (map.getLayer('island-dot')) return
+  map.addSource('islands', { type: 'geojson', data: ISLANDS_FC })
+  map.addLayer({
+    id: 'island-dot',
+    type: 'circle',
+    source: 'islands',
+    paint: {
+      'circle-radius': 4,
+      'circle-color': 'rgba(0,0,0,0)',
+      'circle-stroke-color': '#8a8d85',
+      'circle-stroke-width': 1.2,
+    },
+  })
+  map.addLayer({
+    id: 'island-label',
+    type: 'symbol',
+    source: 'islands',
+    layout: {
+      'text-field': ['get', 'name'],
+      'text-font': ['Public Sans Medium'],
+      'text-size': 10,
+      'text-offset': [0, 1.1],
+      'text-anchor': 'top',
+      'text-max-width': 9,
+    },
+    paint: { 'text-color': '#8a8d85', 'text-halo-color': '#ffffff', 'text-halo-width': 1 },
+  })
+}
+
 // ── story mode: one combined heatmap in the brand orange ──────────────────
 // The scrollytelling uses a single, all-agents heatmap (no per-agent layers
 // stacking into a muddy overlap). A warm ramp keeps dense cores orange rather

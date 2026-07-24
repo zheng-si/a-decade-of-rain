@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
-import type { FeatureCollection, Point } from 'geojson'
+import type { FeatureCollection } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import scrollama from 'scrollama'
 import { loadSpray, dateToDay, dayToDate, fmtGallons, type SprayDataset } from '../data/spray'
@@ -13,6 +13,8 @@ import {
   setStoryHeatVisible,
   addHillshade,
   setHillshade,
+  addMilitaryRegions,
+  addIslandMarks,
   STORY_HEAT_LAYER,
 } from '../components/mapTheme'
 import { FACTS_EVENTS, type StoryEvent } from '../content/facts/events'
@@ -31,13 +33,10 @@ import MethodsSection from '../components/MethodsSection'
 import TimelineSection from '../components/TimelineSection'
 import CloseSection from '../components/CloseSection'
 import StoryNav from '../components/StoryNav'
-import { readLabelGroups, setGroupVisible, normalizePlaceLabels } from '../components/labelLayers'
+import { applyLabelCuration } from '../components/labelLayers'
 import './Story.css'
 
 const SPRAY_SOURCE = 'spray'
-const ISLAND_SOURCE = 'islands'
-const MR_SOURCE = 'military-regions'
-const MRLABEL_SOURCE = 'military-region-labels'
 const LANDMARK_SOURCE = 'landmark-boundary'
 const DEM_SOURCE = 'terrain-dem'
 
@@ -50,16 +49,6 @@ const NAV_ANCHOR: Record<string, string | undefined> = {
 // Empty polygon collection — the landmark-boundary source when no boundary is shown.
 const EMPTY_FC: FeatureCollection = { type: 'FeatureCollection', features: [] }
 
-// Neutral treatment: the offshore archipelagos are disputed (China, Vietnam,
-// Taiwan et al.) and were never sprayed; shown as reference, no sovereignty
-// assigned. Names use the common English forms + Vietnamese in parentheses.
-const ISLANDS_FC: FeatureCollection<Point, { name: string }> = {
-  type: 'FeatureCollection',
-  features: [
-    { type: 'Feature', properties: { name: 'Paracel Is. (Hoàng Sa) · disputed' }, geometry: { type: 'Point', coordinates: [112.0, 16.5] } },
-    { type: 'Feature', properties: { name: 'Spratly Is. (Trường Sa) · disputed' }, geometry: { type: 'Point', coordinates: [114.0, 9.8] } },
-  ],
-}
 
 // Cumulative gallons at the end of each month from January of the first data
 // year — drives the timeline ruler's stacked bars and its scan-line readout.
@@ -483,24 +472,8 @@ export default function Story() {
         setYearStart(mc.yearStart)
         applyMapTheme(map)
 
-        // Curated labels: hide the noisy tiers (wards/hamlets, POIs, road names,
-        // uncategorised) and, so provinces anchor the reader at the zoomed-out
-        // overview, let the province labels appear from a low zoom. Casing and
-        // " Ward" suffixes are normalised so every place reads the same
-        // (see docs/map-labels.md for the full tier spec).
-        normalizePlaceLabels(map)
-        for (const g of readLabelGroups(map)) {
-          if (!g.visible) setGroupVisible(map, g.layerIds, false)
-          if (g.key === 'state') {
-            for (const id of g.layerIds) {
-              try {
-                map.setLayerZoomRange(id, 4, 22)
-              } catch {
-                /* layer may not accept a zoom-range override */
-              }
-            }
-          }
-        }
+        // Curated labels — shared with the Archive (see labelLayers.ts).
+        applyLabelCuration(map)
 
 
         // 3D view: real terrain relief (hidden until the 3D toggle). The DEM is
@@ -522,37 +495,8 @@ export default function Story() {
         map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
         addStoryHeat(map, SPRAY_SOURCE, spray.dayMax)
 
-        // The four Corps Tactical Zones / Military Regions — only the three
-        // INTERNAL dividers are drawn (bold orange dashed, kept under the spray
-        // heat); the outer edges trace the national border / coast and would
-        // clash with the basemap's own lines. Uppercase orange tags per region.
-        map.addSource(MR_SOURCE, { type: 'geojson', data: mrGeo })
-        map.addLayer(
-          {
-            id: 'mr-borders',
-            type: 'line',
-            source: MR_SOURCE,
-            layout: { 'line-join': 'round' },
-            paint: { 'line-color': '#e8443a', 'line-width': 2.2, 'line-opacity': 0.9, 'line-dasharray': [2.4, 1.8] },
-          },
-          STORY_HEAT_LAYER,
-        )
-        // Military-region tags — overview only (off once you zoom into a node).
-        map.addSource(MRLABEL_SOURCE, { type: 'geojson', data: mrLabelsGeo })
-        map.addLayer({
-          id: 'mr-label',
-          type: 'symbol',
-          source: MRLABEL_SOURCE,
-          maxzoom: 8.5,
-          layout: {
-            'text-field': ['get', 'name'],
-            'text-font': ['Public Sans Medium'],
-            'text-size': 12.5,
-            'text-transform': 'uppercase',
-            'text-letter-spacing': 0.1,
-          },
-          paint: { 'text-color': '#cf3720', 'text-halo-color': 'rgba(250,249,244,0.95)', 'text-halo-width': 2 },
-        })
+        // Military-region dividers + tags — shared with the Archive.
+        addMilitaryRegions(map, mrGeo, mrLabelsGeo, STORY_HEAT_LAYER)
 
         // Per-node landmark boundary: the active node's representative area
         // (Cà Mau, A Lưới) outlined in pulsing orange. Labels are HTML chips
@@ -567,33 +511,8 @@ export default function Story() {
           paint: { 'line-color': '#e8443a', 'line-width': 3, 'line-opacity': 0.95 },
         })
 
-        // Disputed-island labels (the basemap already draws the grey borders).
-        map.addSource(ISLAND_SOURCE, { type: 'geojson', data: ISLANDS_FC })
-        map.addLayer({
-          id: 'island-dot',
-          type: 'circle',
-          source: ISLAND_SOURCE,
-          paint: {
-            'circle-radius': 4,
-            'circle-color': 'rgba(0,0,0,0)',
-            'circle-stroke-color': '#8a8d85',
-            'circle-stroke-width': 1.2,
-          },
-        })
-        map.addLayer({
-          id: 'island-label',
-          type: 'symbol',
-          source: ISLAND_SOURCE,
-          layout: {
-            'text-field': ['get', 'name'],
-            'text-font': ['Public Sans Medium'],
-            'text-size': 10,
-            'text-offset': [0, 1.1],
-            'text-anchor': 'top',
-            'text-max-width': 9,
-          },
-          paint: { 'text-color': '#8a8d85', 'text-halo-color': '#ffffff', 'text-halo-width': 1 },
-        })
+        // Disputed-island labels — shared with the Archive.
+        addIslandMarks(map)
 
         readyRef.current = true
         setMapReady(true)
