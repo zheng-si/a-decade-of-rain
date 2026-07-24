@@ -4,7 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { HOTSPOTS } from '../data/hotspots'
 import { loadSpray, dayToDate, dateToDay, type SprayDataset } from '../data/spray'
 import { mapConfig } from '../config/mapConfig'
-import Timeline from './Timeline'
+import Timeline, { buildVolume, type VolumeChart } from './Timeline'
 import { buildAgentChoices, type AgentChoice } from './agentChoices'
 import {
   applyMapTheme,
@@ -125,6 +125,7 @@ export default function MapView() {
   const [agentKey, setAgentKey] = useState('all')
   const [is3D, setIs3D] = useState(false)
   const [stats, setStats] = useState({ runs: 0, gallons: 0 })
+  const [volume, setVolume] = useState<VolumeChart | null>(null)
   // Bumped on moveend so the URL mirror below sees camera changes.
   const [camTick, setCamTick] = useState(0)
   const [shared, setShared] = useState(false)
@@ -201,6 +202,7 @@ export default function MapView() {
 
         setChoices(agentChoices)
         setBounds({ min: spray.dayMin, max: spray.dayMax })
+        setVolume(buildVolume(spray, agentChoices))
 
         // Restore a deep-linked view, else start showing the full record.
         const urlState = readUrlState()
@@ -351,6 +353,7 @@ export default function MapView() {
           gallons={stats.gallons}
           agentChoices={choices}
           activeAgentKey={agentKey}
+          volume={volume}
           onScrub={(d) => {
             setPlaying(false)
             setDay(d)
