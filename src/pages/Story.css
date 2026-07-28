@@ -427,14 +427,13 @@
   display: block;
   width: 62px;
   margin: 0 auto 6px;
-  opacity: 0.95;
+  opacity: 0.9;
 }
 .story-rail-foot .story-rail-foot-more {
   margin: 0;
   font-size: 10px;
-  font-weight: 600;
-  letter-spacing: var(--track-caps);
-  text-transform: none;
+  font-weight: 500;
+  letter-spacing: var(--track-tight);
   color: rgba(255, 255, 255, 0.68);
   line-height: 1.5;
 }
@@ -2077,7 +2076,7 @@
   --pin: var(--accent-deep);
 }
 .act2-pin.is-contained {
-  --pin: #5a7ca8;
+  --pin: #2c5a40;
 }
 .act2-dot {
   position: absolute;
@@ -2195,7 +2194,7 @@
   box-shadow: 0 0 0 2px var(--accent-deep), 0 6px 18px rgba(207, 55, 32, 0.16);
 }
 .act2-card.is-active.is-contained {
-  box-shadow: 0 0 0 2px #5a7ca8, 0 6px 18px rgba(90, 124, 168, 0.18);
+  box-shadow: 0 0 0 2px #2c5a40, 0 6px 18px rgba(44, 90, 64, 0.18);
 }
 
 /* Resting face: a status-washed site photograph. */
@@ -2230,7 +2229,7 @@
   background: linear-gradient(180deg, rgba(198, 68, 48, 0.84) 0%, rgba(232, 108, 82, 0.66) 55%, rgba(243, 142, 108, 0.58) 100%);
 }
 .act2-card.is-contained .act2-photo-veil {
-  background: linear-gradient(180deg, rgba(50, 74, 106, 0.86) 0%, rgba(80, 108, 146, 0.68) 55%, rgba(104, 132, 168, 0.6) 100%);
+  background: linear-gradient(180deg, rgba(30, 62, 44, 0.86) 0%, rgba(50, 88, 66, 0.68) 55%, rgba(70, 110, 86, 0.6) 100%);
 }
 .act2-photo-copy {
   position: relative;
@@ -2332,7 +2331,7 @@
   border-top-color: var(--accent);
 }
 .act2-card.is-contained {
-  border-top-color: #5a7ca8;
+  border-top-color: #2c5a40;
 }
 
 .act2-card-head {
@@ -2375,7 +2374,7 @@
   background: var(--accent-deep);
 }
 .act2-badge.is-contained {
-  background: #5a7ca8;
+  background: #2c5a40;
 }
 
 .act2-place {
@@ -2405,7 +2404,7 @@
   color: var(--accent-deep);
 }
 .act2-card.is-contained .act2-facts dt {
-  color: #5a7ca8;
+  color: #2c5a40;
 }
 .act2-facts dd {
   /* Proportional figures on purpose: these are read as prose, and Public
@@ -3169,7 +3168,7 @@
 
 /* Project colours, matching the three base cards. */
 .is-phucat {
-  --tlc: #5a7ca8;
+  --tlc: #2c5a40;
 }
 .is-danang {
   --tlc: #3f8f5f;
@@ -3332,12 +3331,12 @@
 }
 
 /* Landmark moments invert to their project's gradient, so the grid gets a
-   rhythm: one blue, one green, one red card along the diagonal. */
+   rhythm: one deep green, one green, one red card along the diagonal. */
 .tl-card.is-invert {
   border-color: transparent;
 }
 .tl-card.is-invert.is-phucat {
-  background: linear-gradient(180deg, #46688f 0%, #6488b0 100%);
+  background: linear-gradient(180deg, #24523a 0%, #40704f 100%);
 }
 .tl-card.is-invert.is-danang {
   background: linear-gradient(180deg, #2f7049 0%, #4d9a6b 100%);
