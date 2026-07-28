@@ -1105,8 +1105,11 @@
 }
 
 .fs-head {
-  max-width: 620px;
   margin: 0 0 34px;
+}
+
+.fs-title {
+  max-width: 620px; /* title measure only — the dek has its own rule below */
 }
 
 .fs-title {
@@ -1120,10 +1123,26 @@
 
 .fs-dek {
   margin: 0;
+  /* MEASURE RULE: section deks run to half the content width minus half the
+     card gap (12px grid gap), so the dek's right edge lines up with the first
+     column of any 50/50 card row beneath it (~70 characters at 14px). */
+  max-width: calc(50% - 6px);
   font-size: 14px;
   line-height: 1.6;
   color: var(--ink-soft);
   text-wrap: pretty;
+}
+
+/* Deks living inside their own grid column keep the column's width. */
+.eco-legend .fs-dek,
+.rainbow-main .fs-dek {
+  max-width: none;
+}
+
+@media (max-width: 640px) {
+  .fs-dek {
+    max-width: none;
+  }
 }
 
 /* Dek + chart (left) and agent card (right); card top aligns with the dek. */
@@ -1851,7 +1870,7 @@
 .wall-lede {
   margin: 0 0 8px;
   max-width: 340px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
   opacity: 0.86;
 }
@@ -1865,7 +1884,7 @@
    its caption on the line below, so nothing crowds. */
 .wall-stats {
   list-style: none;
-  margin: 0 0 24px;
+  margin: 0 0 32px;
   padding: 18px 0 0;
   max-width: 340px;
   display: grid;
@@ -1934,7 +1953,7 @@
 }
 .wall-consent p {
   margin: 0 0 8px;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.88);
 }
