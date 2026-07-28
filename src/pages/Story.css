@@ -697,38 +697,40 @@
   text-wrap: pretty;
 }
 
-/* Scroll cue: serif, sentence case, deep orange — quiet but legible. */
+/* Scroll cue: the same pill as the footer's "Back to top" (.close-top),
+   inked for the paper surface so the two scroll buttons read as one part. */
 .story-hook-cta {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   margin: 42px 0 0;
-  padding: 6px 4px;
-  font-family: var(--font-serif);
-  font-size: 19px;
-  font-weight: 400;
+  padding: 9px 18px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
   letter-spacing: var(--track-tight);
   color: var(--ink);
-  background: none;
-  border: none;
+  background: rgba(33, 53, 40, 0.05);
+  border: 1px solid rgba(33, 53, 40, 0.32);
+  border-radius: 999px;
   cursor: pointer;
-  transition: color 0.2s, transform 0.2s;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .story-hook-cta:hover {
-  color: var(--accent-deep);
-  transform: translateY(2px);
+  background: rgba(33, 53, 40, 0.11);
+  border-color: rgba(33, 53, 40, 0.55);
 }
 
 .story-hook-cta:focus-visible {
   outline: 2px solid var(--accent-deep);
   outline-offset: 4px;
-  border-radius: 3px;
 }
 
 .story-hook-cta-arrow {
   display: inline-block;
-  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1;
   animation: hook-cue 2s ease-in-out infinite;
 }
 
@@ -1365,6 +1367,7 @@
 
 .rainbow-stat strong {
   font-family: var(--font-serif);
+  font-weight: 400; /* big serif figures set regular site-wide, never bold */
   font-size: 28px;
   line-height: 1;
   font-variant-numeric: lining-nums tabular-nums;
@@ -1423,7 +1426,6 @@
   .vt,
   .eco-headline,
   .eco-hint-arrow,
-  .eco-type-go,
   .act2-data-face,
   .act2-photo-face,
   .act2-data-face .act2-facts > div,
@@ -1624,23 +1626,6 @@
   outline-offset: 1px;
 }
 
-/* Arrow that surfaces on hover / selection, pointing to the map. */
-.eco-type-go {
-  flex: none;
-  width: 12px;
-  text-align: center;
-  color: var(--ink-faint);
-  opacity: 0;
-  transform: translateX(-4px);
-  transition: opacity 0.15s, transform 0.15s;
-}
-
-.eco-type:hover .eco-type-go,
-.eco-type.is-on .eco-type-go {
-  opacity: 1;
-  transform: none;
-}
-
 .eco-swatch {
   flex: none;
   width: 15px;
@@ -1781,6 +1766,9 @@
   line-height: 1.35;
   color: var(--ink-soft);
   text-shadow: none;
+  /* Even out the two-to-three-line rag ("of tree crops, chiefly rubber /
+     sprayed" → balanced lines), whatever the selected type's name length. */
+  text-wrap: balance;
 }
 
 .eco-headline-src {
@@ -1935,9 +1923,10 @@
 .wall-stat-l {
   display: block;
   font-family: var(--font-serif);
-  font-size: 12px;
+  /* Playfair runs small on the body — 14px is its floor for readable captions. */
+  font-size: 14px;
   line-height: 1.4;
-  opacity: 0.82;
+  opacity: 0.88;
 }
 
 /* Right: three frames — a full-width hero over two side-by-side tiles.
@@ -2723,9 +2712,6 @@
 }
 .alt-xlabel span {
   display: block;
-}
-.alt-xlabel strong {
-  font-weight: 700;
 }
 
 /* Family extent brackets under the column labels: an upward-opening

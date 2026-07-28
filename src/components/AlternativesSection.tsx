@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { ALTERNATIVES, ALT_FAMILIES, ALTS, type AltFamily } from '../content/actions/alternatives'
 import { SOURCES } from '../content/sources'
 
@@ -11,13 +11,6 @@ const COST_TICKS = [0, 200, 400, 600]
 const CO2_TICKS = [0, 20, 40, 60]
 
 const FAMILY_ORDER: AltFamily[] = ['containment', 'hybrid', 'treatment']
-
-// Bold the numeric thresholds inside a column label line, as in the design.
-function boldNumbers(line: string): ReactNode[] {
-  return line
-    .split(/(\d[\d,]*)/)
-    .map((part, i) => (/^\d/.test(part) ? <strong key={i}>{part}</strong> : part))
-}
 
 // Act II — "The Alternatives": the six remediation options USAID weighed for
 // Biên Hòa. The comparison chart reproduces the project's Figma design: one
@@ -123,7 +116,7 @@ export default function AlternativesSection() {
             {ALTERNATIVES.map((a) => (
               <div key={a.key} className="alt-xlabel">
                 {a.chartLines.map((line, i) => (
-                  <span key={i}>{boldNumbers(line)}</span>
+                  <span key={i}>{line}</span>
                 ))}
               </div>
             ))}

@@ -127,7 +127,6 @@ export default function EcosystemsFigure() {
                       <span className="eco-type-pct">
                         {sortMode === 'pct' ? `${pct(v.sprayed, v.total)}%` : v.sprayed.toLocaleString()}
                       </span>
-                      <span className="eco-type-go" aria-hidden="true">→</span>
                     </button>
                     <div className="eco-bar">
                       <div
