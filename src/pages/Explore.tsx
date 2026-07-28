@@ -7,7 +7,6 @@ export default function Explore() {
       <TopBar />
       <MapView />
       <div className="intro-card">
-        <p className="eyebrow">Remedial Vietnam · Explore</p>
         <h1>Agent Orange &amp; Dioxin Remediation</h1>
         <p className="lede">
           The heat map is real Operation Ranch Hand spraying (1961–1971, Stellman

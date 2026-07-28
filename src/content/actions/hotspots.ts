@@ -88,7 +88,6 @@ export const HOTSPOTS: Hotspot[] = [
 ]
 
 export const ACTIONS = {
-  eyebrow: 'Act II · The actions',
   title: 'Cleaning It Up',
   dek: 'The herbicide fell across a quarter of the country, but the dioxin concentrated in a few small places: the former U.S. air bases where it was stored, mixed, spilled and burned. Half a century later, those few hectares are the front line, a slow, costly and still-unfinished cleanup run jointly by Vietnam and the United States.',
   closing:

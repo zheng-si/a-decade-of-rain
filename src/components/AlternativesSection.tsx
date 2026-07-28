@@ -61,7 +61,6 @@ export default function AlternativesSection() {
     <section className="story-fullscreen alternatives" id="sec-alternatives" aria-label={ALTS.title}>
       <div className="fs-inner alt-inner">
         <header className="fs-head">
-          <p className="fs-eyebrow">{ALTS.eyebrow}</p>
           <h2 className="fs-title">{ALTS.title}</h2>
           <p className="fs-dek">{ALTS.dek}</p>
         </header>

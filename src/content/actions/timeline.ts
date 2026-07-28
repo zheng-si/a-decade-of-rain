@@ -120,7 +120,6 @@ export const TL_MOMENTS: TlMoment[] = [
 ]
 
 export const TIMELINE_HEAD = {
-  eyebrow: 'Act II · The timeline',
   title: 'Remediation Project Timeline',
   dek: 'From a signature to a finished cleanup, and into a bigger, unfinished one. Two decades of work at a glance.',
   note: 'Milestones from USAID and U.S. Embassy Vietnam fact sheets, the UNDP three-hotspots report, and 2024–25 news coverage of the Biên Hòa project.',

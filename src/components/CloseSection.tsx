@@ -104,7 +104,6 @@ export default function CloseSection() {
       <section className="story-fullscreen close-hero" id="sec-close" aria-label="Epilogue">
         <ClosingRain />
         <div className="fs-inner close-hero-inner">
-          <p className="fs-eyebrow close-eyebrow">{CLOSE_HEAD.eyebrow}</p>
           <h2 className="close-statement">{CLOSE_HEAD.statement}</h2>
           <p className="close-body">{CLOSE_HEAD.body}</p>
 
@@ -128,7 +127,6 @@ export default function CloseSection() {
       <section className="story-fullscreen close-sources" id="sec-sources" aria-label="Notes and sources">
         <div className="fs-inner close-sources-inner">
           <header className="fs-head">
-            <p className="fs-eyebrow">Notes &amp; sources</p>
             <h2 className="fs-title">Where This Story Comes From</h2>
           </header>
 

@@ -36,7 +36,6 @@ export interface Method {
 }
 
 export const METHODS_HEAD = {
-  eyebrow: 'Act II · The engineering',
   title: 'The Methods, Layer by Layer',
   dek: 'The two retained approaches are exercises in layering. One wraps the contaminated soil in engineered barriers; the other cooks it inside a sealed pile. Exploded, layer by layer, this is what each one is made of.',
 }

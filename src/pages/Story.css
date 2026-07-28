@@ -1126,15 +1126,6 @@
   margin: 0 0 34px;
 }
 
-.fs-eyebrow {
-  margin: 0 0 12px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent-deep);
-}
-
 .fs-title {
   margin: 0 0 14px;
   font-family: var(--font-serif);
@@ -1886,14 +1877,6 @@
 /* Left: the big number. */
 .wall-lead {
   align-self: center;
-}
-.wall-eyebrow {
-  margin: 0 0 18px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  opacity: 0.82;
 }
 .wall-value {
   margin: 0 0 12px;
@@ -3460,9 +3443,6 @@
   position: relative;
   max-width: 1120px;
 }
-.close-eyebrow {
-  color: rgba(255, 255, 255, 0.62);
-}
 .close-statement {
   margin: 0 0 18px;
   max-width: 720px;
@@ -3541,9 +3521,6 @@
 /* Sources ledger stays in the forest green, continuing the hero. */
 .close-sources {
   background: linear-gradient(180deg, #12271a 0%, #16311f 48%, #21432f 100%);
-}
-.close-sources .fs-eyebrow {
-  color: rgba(255, 255, 255, 0.62);
 }
 .close-sources .fs-title {
   color: #fff;

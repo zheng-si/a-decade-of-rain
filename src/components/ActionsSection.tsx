@@ -22,7 +22,6 @@ export default function ActionsSection() {
     <section className="story-fullscreen actions" id="sec-actions" aria-label={ACTIONS.title}>
       <div className="fs-inner act2-inner">
         <header className="fs-head">
-          <p className="fs-eyebrow">{ACTIONS.eyebrow}</p>
           <h2 className="fs-title">{ACTIONS.title}</h2>
           <p className="fs-dek">{ACTIONS.dek}</p>
         </header>

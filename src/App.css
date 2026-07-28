@@ -317,15 +317,6 @@
   z-index: 1;
 }
 
-.intro-card .eyebrow {
-  margin: 0 0 10px;
-  font-size: 10.5px;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--accent);
-  font-weight: 600;
-}
-
 .intro-card h1 {
   margin: 0 0 14px;
   font-family: var(--font-serif);

@@ -109,7 +109,6 @@ export const ALTERNATIVES: Alternative[] = [
 ]
 
 export const ALTS = {
-  eyebrow: 'Act II · The alternatives',
   title: 'The Remediation Alternatives',
   dek: 'For Biên Hòa, USAID weighed six ways to deal with half a million cubic metres of contaminated soil. They fall into three families: contain it all, destroy it all, or split the difference.',
   chartTitle: 'What each alternative costs, and what it emits',

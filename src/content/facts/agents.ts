@@ -64,7 +64,6 @@ export const AGENTS: AgentInfo[] = [
 ]
 
 export const RAINBOW = {
-  eyebrow: 'What fell',
   title: 'The Rainbow Herbicides',
   dek: 'Ranch Hand sprayed a family of defoliants, each known by the colour banded on its drum. Together they came to nearly 20 million gallons, yet they were far from equal, in volume and in what they left behind.',
   chartTitle: 'Herbicide sprayed per year, by agent',

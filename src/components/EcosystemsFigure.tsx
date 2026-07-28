@@ -59,7 +59,6 @@ export default function EcosystemsFigure() {
     <section className="story-fullscreen ecosystems" aria-label={ECOSYSTEMS.title}>
       <div className="fs-inner">
         <header className="fs-head">
-          <p className="fs-eyebrow">{ECOSYSTEMS.eyebrow}</p>
           <h2 className="fs-title">{ECOSYSTEMS.title}</h2>
         </header>
 

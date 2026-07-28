@@ -5,7 +5,6 @@
 // and the row visually consistent.
 
 export const CLOSE_HEAD = {
-  eyebrow: 'Epilogue',
   // The \u00A0 keeps the year glued to its preposition, so the line breaks
   // after "stopped" instead of stranding "1971." at the start of line two.
   statement: 'The rain stopped in\u00A01971. The work has not.',

@@ -133,7 +133,6 @@ export default function RainbowHerbicides({ years, series }: Props) {
     <section className="story-fullscreen rainbow" aria-label={RAINBOW.title}>
       <div className="fs-inner">
         <header className="fs-head">
-          <p className="fs-eyebrow">{RAINBOW.eyebrow}</p>
           <h2 className="fs-title">{RAINBOW.title}</h2>
         </header>
         <div className="rainbow-grid">

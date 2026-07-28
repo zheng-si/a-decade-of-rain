@@ -30,7 +30,6 @@ export interface WallStat {
 export interface ConsequenceWall {
   key: 'land' | 'body'
   theme: 'eco' | 'health'
-  eyebrow: string
   value: string
   label: string
   /** A few secondary figures shown beneath the headline number. */
@@ -47,7 +46,6 @@ export const WALLS: ConsequenceWall[] = [
   {
     key: 'land',
     theme: 'eco',
-    eyebrow: 'The consequences · the land',
     value: '3.1M ha',
     label: 'of forest and mangrove stripped bare',
     stats: [
@@ -66,7 +64,6 @@ export const WALLS: ConsequenceWall[] = [
   {
     key: 'body',
     theme: 'health',
-    eyebrow: 'The consequences · the body',
     value: '≥150,000',
     label: 'children born with serious birth defects',
     stats: [

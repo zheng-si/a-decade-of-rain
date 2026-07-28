@@ -49,7 +49,6 @@ export const VEG_AXIS_MAX = 6000
 export const VEG_AXIS_STEP = 2000
 
 export const ECOSYSTEMS = {
-  eyebrow: 'What it fell on',
   title: 'The War-disrupted Ecosystems',
   dek: 'The spraying did not fall on empty ground. It settled onto a living map of triple-canopy forest, coastal mangrove, rice and rubber. The damage to the soils, and thereby to the ecosystems, has proven far harder to quantify than the gallons themselves.',
   scaleUnit: '×10³ ha',
