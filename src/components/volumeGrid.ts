@@ -101,11 +101,15 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
   map.addSource(VOL_COARSE_SOURCE, { type: 'geojson', data: empty })
   map.addSource(VOL_FINE_SOURCE, { type: 'geojson', data: empty })
 
+  // No strokes; overlap darkens by alpha stacking — the closest WebGL gets
+  // to a multiply blend (MapLibre layers have no CSS-style blend modes).
+  // pitch-alignment 'map' lays each disc flat on the map plane, so in the
+  // 3D view the dots foreshorten into ellipses instead of billboarding.
   const shared = {
     'circle-color': ['get', 'c'] as unknown as maplibregl.ExpressionSpecification,
-    'circle-opacity': 0.72,
-    'circle-stroke-color': 'rgba(255,255,255,0.7)',
-    'circle-stroke-width': 1,
+    'circle-opacity': 0.6,
+    'circle-pitch-alignment': 'map' as const,
+    'circle-pitch-scale': 'map' as const,
   }
 
   map.addLayer({
@@ -117,10 +121,10 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
       ...shared,
       'circle-radius': gridRadius(
         [
-          [5.6, 0.02],
-          [7.0, 0.045],
+          [5.6, 0.013],
+          [7.0, 0.03],
         ],
-        30,
+        22,
       ),
     },
   })
@@ -135,10 +139,10 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
       ...shared,
       'circle-radius': gridRadius(
         [
-          [7.0, 0.018],
-          [9.2, 0.05],
+          [7.0, 0.012],
+          [9.2, 0.034],
         ],
-        26,
+        18,
       ),
     },
   })
@@ -151,9 +155,9 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
     minzoom: Z_MID_TO_NEAR,
     paint: {
       'circle-color': ['get', 'c'] as unknown as maplibregl.ExpressionSpecification,
-      'circle-opacity': 0.68,
-      'circle-stroke-color': 'rgba(255,255,255,0.7)',
-      'circle-stroke-width': 0.8,
+      'circle-opacity': 0.55,
+      'circle-pitch-alignment': 'map',
+      'circle-pitch-scale': 'map',
       'circle-radius': [
         'interpolate',
         ['linear'],
