@@ -2,6 +2,22 @@
   font-family: var(--font-sans);
 }
 
+/* ── Root scale ──────────────────────────────────────────────────────────
+   Every size in the CSS is rem-based, so the root font-size is the ONE dial
+   for overall display density. 1rem = 16px on 16" screens and larger;
+   laptops step to 14px (= 87.5%, tuned on a 14" MacBook) and every
+   component scales together. Phones (≤640px) keep the full-size scale —
+   their layouts were tuned at 16. Hairline borders and ticks stay in px so
+   they never blur. */
+html {
+  font-size: 16px;
+}
+@media (min-width: 641px) and (max-width: 1600px) {
+  html {
+    font-size: 13.6px; /* = 85%, tuned by eye on a 14" MacBook */
+  }
+}
+
 * {
   box-sizing: border-box;
 }
