@@ -11,7 +11,8 @@ export interface Alternative {
   key: string
   /** Short label under the chart columns. */
   label: string
-  /** Column label lines as drawn in the design (numbers get bolded). */
+  /** Column label: line one is the method, line two an optional detail
+      (rendered smaller and lighter, so the six labels read evenly). */
   chartLines: string[]
   /** Longer name used in the family cards / tooltips. */
   name: string
@@ -53,7 +54,7 @@ export const ALTERNATIVES: Alternative[] = [
   {
     key: 'hybrid2500',
     label: 'Landfill + thermal, 2,500\u00A0ppt split',
-    chartLines: ['Landfill < 2,500\u00A0ppt +', 'Ex Situ TCH > 2,500\u00A0ppt'],
+    chartLines: ['Landfill + Ex Situ TCH', 'split at 2,500\u00A0ppt'],
     name: 'Hybrid: contain below 2,500\u00A0ppt, treat above',
     family: 'hybrid',
     costM: 240,
@@ -63,7 +64,7 @@ export const ALTERNATIVES: Alternative[] = [
   {
     key: 'hybrid1200',
     label: 'Landfill + thermal, 1,200\u00A0ppt split',
-    chartLines: ['Landfill < 1,200\u00A0ppt +', 'Ex Situ TCH > 1,200\u00A0ppt'],
+    chartLines: ['Landfill + Ex Situ TCH', 'split at 1,200\u00A0ppt'],
     name: 'Hybrid: contain below 1,200\u00A0ppt, treat above',
     family: 'hybrid',
     costM: 335,
@@ -84,7 +85,7 @@ export const ALTERNATIVES: Alternative[] = [
   {
     key: 'thermal',
     label: 'Ex-situ thermal',
-    chartLines: ['Ex Situ TCH (Thermal', 'Conductive Heating)'],
+    chartLines: ['Ex Situ TCH', 'Thermal Conductive Heating'],
     name: 'Ex-situ thermal treatment (conductive heating)',
     family: 'treatment',
     costM: 535,
@@ -95,7 +96,7 @@ export const ALTERNATIVES: Alternative[] = [
   {
     key: 'mcd',
     label: 'MCD',
-    chartLines: ['MCD (Mechano-', 'Chemical Destruction)'],
+    chartLines: ['MCD', 'Mechano-Chemical Destruction'],
     name: 'Mechanochemical destruction',
     family: 'treatment',
     costM: 600,

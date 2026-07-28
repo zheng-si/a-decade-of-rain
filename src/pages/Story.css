@@ -507,8 +507,7 @@
   left: 3px;
   transform: translateY(-100%);
   padding-bottom: 3px;
-  font-family: var(--font-serif);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: var(--track-tight);
   color: var(--ink-soft);
@@ -555,11 +554,10 @@
 
 .timeline-scan-unit {
   margin-top: 3px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: var(--track-caps-wide);
-  text-transform: uppercase;
-  color: #fff; /* full white — the 8px size needs every bit of contrast */
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: var(--track-tight);
+  color: #fff;
 }
 
 /* Hook + steps overlay the sticky graphic. The container ignores the pointer
@@ -710,7 +708,7 @@
   font-weight: 600;
   letter-spacing: var(--track-tight);
   color: var(--ink);
-  background: rgba(33, 53, 40, 0.05);
+  background: none;
   border: 1px solid rgba(33, 53, 40, 0.32);
   border-radius: 999px;
   cursor: pointer;
@@ -718,7 +716,7 @@
 }
 
 .story-hook-cta:hover {
-  background: rgba(33, 53, 40, 0.11);
+  background: rgba(33, 53, 40, 0.07);
   border-color: rgba(33, 53, 40, 0.55);
 }
 
@@ -731,19 +729,6 @@
   display: inline-block;
   font-size: 14px;
   line-height: 1;
-  animation: hook-cue 2s ease-in-out infinite;
-}
-
-@keyframes hook-cue {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.75;
-  }
-  50% {
-    transform: translateY(4px);
-    opacity: 1;
-  }
 }
 
 .story-step {
@@ -1067,8 +1052,7 @@
 /* WCAG 2.2.2 / motion sensitivity: kill the looping CSS animations when the
    reader asks for reduced motion (the JS rain + pulse loops check this too). */
 @media (prefers-reduced-motion: reduce) {
-  .map-dot-ring,
-  .story-hook-cta-arrow {
+  .map-dot-ring {
     animation: none;
   }
 }
@@ -2438,10 +2422,10 @@
 
 .act2-closing {
   margin: 24px 0 12px;
-  max-width: 760px;
+  max-width: 680px;
   font-family: var(--font-serif);
-  font-size: clamp(17px, 2vw, 24px);
-  line-height: 1.4;
+  font-size: 19px;
+  line-height: 1.45;
   color: var(--ink);
 }
 
@@ -2710,8 +2694,17 @@
 .alt-xlabel:last-child {
   border-right: none;
 }
+/* Two-level labels: the method on line one, a lighter detail line under it.
+   Every column gets the same hierarchy, so the row reads evenly. */
 .alt-xlabel span {
   display: block;
+  font-weight: 500;
+  color: var(--ink);
+}
+.alt-xlabel span + span {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink-faint);
 }
 
 /* Family extent brackets under the column labels: an upward-opening
