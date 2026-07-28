@@ -42,6 +42,30 @@
   src: url('/fonts/serif/Literata-var.woff2') format('woff2');
 }
 
+/* Gentium Book Plus — SIL's extended-Latin book face (finals candidate;
+   subset to the same latin + latin-ext + vietnamese ranges). */
+@font-face {
+  font-family: 'Gentium Book Plus';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/serif/GentiumBookPlus-Regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Gentium Book Plus';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/serif/GentiumBookPlus-Bold.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Gentium Book Plus';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/serif/GentiumBookPlus-Italic.woff2') format('woff2');
+}
+
 /* Gambarino — retired from the serif slot (no Vietnamese glyphs); kept
    declared for a one-line rollback. */
 @font-face {
@@ -108,6 +132,6 @@
 
 :root {
   --font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  /* SWITCH: 'Gambarino' or 'Playfair Display' to roll the serif back. */
-  --font-serif: 'Literata', Georgia, 'Times New Roman', serif;
+  /* SWITCH: 'Literata' / 'Gambarino' / 'Playfair Display' also declared. */
+  --font-serif: 'Gentium Book Plus', Georgia, 'Times New Roman', serif;
 }
