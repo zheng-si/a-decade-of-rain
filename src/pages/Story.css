@@ -2217,6 +2217,11 @@
   object-fit: cover;
   filter: grayscale(1) brightness(1.16) contrast(1.02);
 }
+/* The Phu Cat source photograph is flatter than the other two — give it a
+   contrast pull of its own so the three faces read at one level. */
+.act2-card.is-contained .act2-photo {
+  filter: grayscale(1) brightness(1.22) contrast(1.32);
+}
 .act2-photo-veil {
   position: absolute;
   inset: 0;
