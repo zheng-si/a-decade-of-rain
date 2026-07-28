@@ -257,15 +257,18 @@
   z-index: 6;
   display: flex;
   flex-direction: column;
-  color: var(--forest-text);
+  color: #fff;
   /* Hidden behind the banner: slid fully left until the story starts. */
   transform: translateX(-100%);
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Two-family palette: the rail is the forest ground, with the brand
-     orange carried only by the biohazard mark and the active tick. */
-  background: linear-gradient(180deg, #24392c 0%, var(--forest) 55%, #1b2c21 100%);
-  border-right: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 3px 0 12px rgba(16, 26, 20, 0.18);
+  /* Top stop equals the banner wash / rain (--accent #ff5449) so the rail
+     reads as the same orange, then deepens to the crimson foot. */
+  background: linear-gradient(180deg, #ff5449 0%, #e0463a 40%, #c5372a 72%, #a52c1e 100%);
+  /* Crisp divider between the rail and the year/volume ruler to its right:
+     a white hairline (reads on the crimson) plus a soft shadow (reads on the
+     pale ruler). */
+  border-right: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 1px 0 0 rgba(33, 53, 40, 0.14), 3px 0 12px rgba(60, 20, 16, 0.14);
 }
 
 .story-rail.is-shown {
@@ -278,14 +281,14 @@
   align-items: center;
   gap: 8px;
   padding: 22px 8px 9px;
-  color: var(--forest-text);
+  color: #fff;
   text-decoration: none;
 }
 
 .story-rail-bio {
   width: 33px;
   height: 30px;
-  color: var(--accent);
+  opacity: 0.96;
 }
 
 .story-rail-mark span {
@@ -321,7 +324,7 @@
   /* 13px margin + the 11px padding on the adjacent label/link = a 24px gap
      on every side of every divider. */
   margin: 11px 15px;
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.24);
 }
 
 .story-rail-act {
@@ -332,7 +335,7 @@
   font-size: 17px;
   letter-spacing: normal;
   text-align: center;
-  color: var(--forest-text);
+  color: #fff;
 }
 
 .story-rail-group ul {
@@ -353,30 +356,30 @@
   font-family: var(--font-sans);
   font-size: 11px;
   line-height: 1.32;
-  color: var(--forest-text);
+  color: rgba(255, 255, 255, 0.92);
   overflow-wrap: break-word;
   transition: color 0.15s, background 0.15s;
 }
 
-/* Resting items recede to keep the focus on the active section; hover and
-   the active state restore full brightness. */
+/* Resting items recede to keep the focus on the active section; hover and the
+   active state restore full white. */
 .story-rail-link:not(.is-on):not(.is-upcoming) {
-  color: rgba(232, 236, 230, 0.48);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .story-rail-link:hover:not(.is-upcoming) {
-  color: var(--forest-text);
-  background: rgba(255, 255, 255, 0.07);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .story-rail-link.is-on {
   color: #fff;
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.12);
 }
 
-/* Active marker: the accent tick on the rail's left edge — the only colour
-   the rail carries. */
+/* Active marker: a 4px white bar on the rail's left edge — it never collides
+   with the centred label the way the old caret could. */
 .story-rail-link::before {
   content: '';
   position: absolute;
@@ -384,7 +387,7 @@
   top: 50%;
   bottom: 50%;
   width: 2px;
-  background: var(--accent);
+  background: #fff;
   opacity: 0;
   transition: top 0.18s ease, bottom 0.18s ease, opacity 0.18s;
 }
@@ -402,7 +405,7 @@
 }
 
 .story-rail-link.is-upcoming {
-  color: rgba(232, 236, 230, 0.42);
+  color: rgba(255, 255, 255, 0.42);
   cursor: default;
 }
 
@@ -411,14 +414,14 @@
 .story-rail-foot {
   flex: none;
   padding: 10px 10px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  border-top: 1px solid rgba(255, 255, 255, 0.24);
   text-align: center;
 }
 .story-rail-foot p {
   margin: 0 0 7px;
   font-size: 10px;
   font-weight: 500;
-  color: rgba(232, 236, 230, 0.75);
+  color: rgba(255, 255, 255, 0.72);
 }
 .story-rail-foot img {
   display: block;
@@ -431,7 +434,7 @@
   font-size: 10px;
   font-weight: 500;
   letter-spacing: var(--track-tight);
-  color: rgba(232, 236, 230, 0.62);
+  color: rgba(255, 255, 255, 0.68);
   line-height: 1.5;
 }
 
@@ -2226,7 +2229,7 @@
   background: linear-gradient(180deg, rgba(198, 68, 48, 0.84) 0%, rgba(232, 108, 82, 0.66) 55%, rgba(243, 142, 108, 0.58) 100%);
 }
 .act2-card.is-contained .act2-photo-veil {
-  background: linear-gradient(180deg, rgba(26, 52, 38, 0.88) 0%, rgba(44, 90, 64, 0.7) 55%, rgba(71, 121, 92, 0.6) 100%);
+  background: linear-gradient(180deg, rgba(18, 32, 24, 0.9) 0%, rgba(33, 53, 40, 0.74) 55%, rgba(52, 74, 60, 0.62) 100%);
 }
 .act2-photo-copy {
   position: relative;
@@ -3328,12 +3331,12 @@
 }
 
 /* Landmark moments invert to their project's gradient, so the grid gets a
-   rhythm: one blue, one green, one red card along the diagonal. */
+   rhythm: one deep green, one green, one red card along the diagonal. */
 .tl-card.is-invert {
   border-color: transparent;
 }
 .tl-card.is-invert.is-phucat {
-  background: linear-gradient(180deg, #46688f 0%, #6488b0 100%);
+  background: linear-gradient(180deg, #24523a 0%, #40704f 100%);
 }
 .tl-card.is-invert.is-danang {
   background: linear-gradient(180deg, #2f7049 0%, #4d9a6b 100%);
