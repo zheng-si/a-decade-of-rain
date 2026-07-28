@@ -5,7 +5,6 @@
 // and the row visually consistent.
 
 export const CLOSE_HEAD = {
-  eyebrow: 'Epilogue',
   // The \u00A0 keeps the year glued to its preposition, so the line breaks
   // after "stopped" instead of stranding "1971." at the start of line two.
   statement: 'The rain stopped in\u00A01971. The work has not.',
@@ -23,28 +22,28 @@ export interface CloseAction {
 export const CLOSE_ACTIONS: CloseAction[] = [
   {
     name: 'USAID Vietnam',
-    role: 'Official programme',
+    role: 'Official Programme',
     desc: 'The joint U.S.–Vietnam remediation effort: fact sheets, progress and project documents.',
     action: 'Follow the work',
     url: 'https://vn.usembassy.gov/fact-sheets-dioxin-remediation-at-bien-hoa-airbase-area/',
   },
   {
     name: 'VAVA',
-    role: 'Victims’ association',
+    role: 'Victims’ Association',
     desc: 'The Vietnam Association for Victims of Agent Orange: 400,000 members, chapters in all 63 provinces, direct support to affected families.',
     action: 'Donate',
     url: 'http://www.vava.org.vn/',
   },
   {
     name: 'VAORRC',
-    role: 'US relief campaign',
+    role: 'U.S. Relief Campaign',
     desc: 'The Vietnam Agent Orange Relief & Responsibility Campaign; tax-deductible giving via Veterans For Peace.',
-    action: 'Donate (US)',
+    action: 'Donate (U.S.)',
     url: 'https://www.vn-agentorange.org/',
   },
   {
     name: 'War Legacies Project',
-    role: 'Research · advocacy',
+    role: 'Research · Advocacy',
     desc: 'Two decades of fieldwork documenting Agent Orange’s legacy and supporting families in rural Vietnam and Laos.',
     action: 'Get involved',
     url: 'https://www.warlegacies.org/',
@@ -71,11 +70,11 @@ export const REF_GROUPS: RefGroup[] = [
     ],
   },
   {
-    title: 'Reports & fact sheets',
+    title: 'Reports and Fact Sheets',
     sourceIds: ['usaf_ranchhand', 'usaid_danang', 'usembassy_bienhoa', 'undp_hotspots', 'va_basics', 'aspen_whatis', 'aspen_bienhoa'],
   },
   {
-    title: 'News & features',
+    title: 'News and Features',
     sourceIds: ['yale_e360', 'pulitzer_forest', 'va_news', 'aorecord_hotspots'],
   },
   {
@@ -83,7 +82,7 @@ export const REF_GROUPS: RefGroup[] = [
     lines: [
       'The Land: U.S. Air Force and U.S. Army photographs (public domain); RANCH HAND Collection, Vietnam Archive, Texas Tech University',
       'The Body: Alexis Duclos and other photographers via Wikimedia Commons (Creative Commons)',
-      'The Actions & Methods: USAID Vietnam project photographs (public domain)',
+      'The Actions and Methods: USAID Vietnam project photographs (public domain)',
     ],
   },
 ]
@@ -92,7 +91,8 @@ export const COLOPHON = {
   lines: [
     'A story about what fell, what it broke, and what it takes to clean it up.',
     'Built with React, MapLibre GL and Scrollama.',
+    'Set in Playfair Display and Public Sans.',
   ],
-  credit: 'Designed & built by Si Zheng',
+  credit: 'Designed and built by Si Zheng',
   email: 'zhengsi0709@gmail.com',
 }

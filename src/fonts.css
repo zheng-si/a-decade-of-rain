@@ -2,10 +2,9 @@
    coverage, so UI text and map glyphs share ONE face with no fallback
    mixing) — UI, body, and map labels.
 
-   Editorial headlines use Gambarino. Playfair Display (SIL OFL) is kept
-   declared below too, so the headline face can be switched in ONE line —
-   change the single `--font-serif` line at the bottom. Only the family
-   named there is actually fetched by the browser. */
+   The editorial serif is Playfair Display (SIL OFL, native Vietnamese).
+   The face is switched in ONE line — the `--font-serif` token at the
+   bottom. Only the family named there is actually fetched by the browser. */
 
 @font-face {
   font-family: 'Public Sans';
@@ -29,7 +28,8 @@
   src: url('/fonts/ui/PublicSans-Medium.woff2') format('woff2');
 }
 
-/* Gambarino — the active headline face (see --font-serif). */
+/* Gambarino — retired from the serif slot (no Vietnamese glyphs); kept
+   declared for a one-line rollback. */
 @font-face {
   font-family: 'Gambarino';
   font-style: normal;
@@ -40,60 +40,28 @@
     url('/fonts/ui/Gambarino-Regular.woff') format('woff');
 }
 
-/* Playfair Display — kept declared for a one-line switch back (see
-   --font-serif). Three subsets (latin, latin-ext, vietnamese) at the two
-   weights the serif uses (400, and 500 for one stat). */
+/* Playfair Display — THE editorial serif. Self-subset from the official
+   variable fonts (latin + latin-ext + vietnamese in one file, ALL OpenType
+   features kept — the previous fontsource subsets dropped `lnum`, which is
+   why lining-nums silently did nothing). Figures sit on the baseline via
+   the body-level lining-nums rule in index.css. */
 @font-face {
   font-family: 'Playfair Display';
   font-style: normal;
-  font-weight: 400;
+  font-weight: 400 900;
   font-display: swap;
-  src: url('/fonts/serif/playfair-display-latin-400-normal.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  src: url('/fonts/serif/PlayfairDisplay-var.woff2') format('woff2');
 }
 @font-face {
   font-family: 'Playfair Display';
-  font-style: normal;
-  font-weight: 400;
+  font-style: italic;
+  font-weight: 400 900;
   font-display: swap;
-  src: url('/fonts/serif/playfair-display-latin-ext-400-normal.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: 'Playfair Display';
-  font-style: normal;
-  font-weight: 400;
-  font-display: swap;
-  src: url('/fonts/serif/playfair-display-vietnamese-400-normal.woff2') format('woff2');
-  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+1EA0-1EF9, U+20AB;
-}
-@font-face {
-  font-family: 'Playfair Display';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('/fonts/serif/playfair-display-latin-500-normal.woff2') format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Playfair Display';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('/fonts/serif/playfair-display-latin-ext-500-normal.woff2') format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-@font-face {
-  font-family: 'Playfair Display';
-  font-style: normal;
-  font-weight: 500;
-  font-display: swap;
-  src: url('/fonts/serif/playfair-display-vietnamese-500-normal.woff2') format('woff2');
-  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+1EA0-1EF9, U+20AB;
+  src: url('/fonts/serif/PlayfairDisplay-Italic-var.woff2') format('woff2');
 }
 
 :root {
   --font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  /* SWITCH: use 'Playfair Display' here to swap in the Didone headline face. */
-  --font-serif: 'Gambarino', Georgia, 'Times New Roman', serif;
+  /* SWITCH: 'Gambarino' is still declared for a one-line rollback. */
+  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
 }

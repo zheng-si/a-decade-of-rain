@@ -133,7 +133,6 @@ export default function RainbowHerbicides({ years, series }: Props) {
     <section className="story-fullscreen rainbow" aria-label={RAINBOW.title}>
       <div className="fs-inner">
         <header className="fs-head">
-          <p className="fs-eyebrow">{RAINBOW.eyebrow}</p>
           <h2 className="fs-title">{RAINBOW.title}</h2>
         </header>
         <div className="rainbow-grid">
@@ -244,11 +243,11 @@ export default function RainbowHerbicides({ years, series }: Props) {
                 {active ? (
                   <>
                     <dl className="rainbow-defs">
-                      <dt>Make-up</dt>
+                      <dt>Make-Up</dt>
                       <dd>{active.makeup}</dd>
                       <dt>Use</dt>
                       <dd>{active.use}</dd>
-                      <dt>What it left behind</dt>
+                      <dt>What It Left Behind</dt>
                       <dd>{active.legacy}</dd>
                     </dl>
                     <p className="rainbow-card-src">

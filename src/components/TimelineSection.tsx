@@ -42,7 +42,6 @@ export default function TimelineSection() {
     <section className="story-fullscreen timeline-sec" id="sec-timeline" aria-label={TIMELINE_HEAD.title}>
       <div className="fs-inner tl-inner">
         <header className="fs-head">
-          <p className="fs-eyebrow">{TIMELINE_HEAD.eyebrow}</p>
           <h2 className="fs-title">{TIMELINE_HEAD.title}</h2>
           <p className="fs-dek">{TIMELINE_HEAD.dek}</p>
         </header>

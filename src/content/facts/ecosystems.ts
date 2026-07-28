@@ -40,7 +40,7 @@ export const VEG_TYPES: VegType[] = [
   { key: 'grassland', color: '#C3D888', ink: '#5E7A2C', name: 'Grassland', sprayed: 50, total: 700, sourced: false },
   { key: 'rice', color: '#544685', ink: '#4A3D77', name: 'Rice', sprayed: 200, total: 2900, sourced: true, sourceId: 'nas_1974' },
   { key: 'mangrove', color: '#ABA1CD', ink: '#5C4F97', name: 'Mangrove', sprayed: 105, total: 291, sourced: true, sourceId: 'nas_1974' },
-  { key: 'marsh', color: '#61C1C2', ink: '#2C7E7F', name: 'Marshes & other inundated vegetation', sprayed: 8, total: 350, sourced: false },
+  { key: 'marsh', color: '#61C1C2', ink: '#2C7E7F', name: 'Marshes and other inundated vegetation', sprayed: 8, total: 350, sourced: false },
   { key: 'rubber', color: '#DDC21A', ink: '#7C6D0F', name: 'Tree crops, chiefly rubber', sprayed: 25, total: 120, sourced: false },
 ]
 
@@ -49,12 +49,11 @@ export const VEG_AXIS_MAX = 6000
 export const VEG_AXIS_STEP = 2000
 
 export const ECOSYSTEMS = {
-  eyebrow: 'What it fell on',
   title: 'The War-disrupted Ecosystems',
   dek: 'The spraying did not fall on empty ground. It settled onto a living map of triple-canopy forest, coastal mangrove, rice and rubber. The damage to the soils, and thereby to the ecosystems, has proven far harder to quantify than the gallons themselves.',
-  scaleUnit: '×10³ ha',
+  scaleUnit: 'thousand ha',
   scaleSprayed: 'Area sprayed once or more',
   scaleTotal: 'Area of type',
-  note: 'Vegetation map redrawn from the war-era U.S. land-use survey (after Westing / SIPRI). Well-documented shares: dense forest ~35% and mangrove ~36% sprayed one or more times (Westing 1971; Stellman et al. 2003, ~105,000 of 291,000 ha), plus ~200,000 ha of crop spraying, chiefly rice (NAS 1974). Types marked “est.” are not separately tabulated in the literature and await a spray-track overlay.',
+  note: 'Vegetation map redrawn from the war-era U.S. land-use survey (after Westing / SIPRI). Well-documented shares: dense forest about 35% and mangrove about 36% sprayed one or more times (Westing 1971; Stellman et al. 2003, about 105,000 of 291,000\u00A0ha), plus some 200,000\u00A0ha of crop spraying, chiefly rice (NAS 1974). Types marked “est.” are not separately tabulated in the literature and await a spray-track overlay.',
   mapAlt: 'Map of South Vietnam shaded by vegetation type: forest, mangrove, rice, grassland, rubber and marsh.',
 }

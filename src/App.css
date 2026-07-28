@@ -32,31 +32,42 @@
   --accent-line: #e8443a; /* map linework on paper · 3.5:1 (non-text ≥3) */
 
   /* ── type scale ────────────────────────────────────────────────────────
-     h1  hook banner title        serif
-     h2  story-card title         serif
-     h3  story-card period/eyebrow serif, accent
-     lead hook dek                sans light
-     dek  card dek                sans medium
-     body card body               sans light
-     quote pull quote             serif
-     caption UI small print       sans
-     chip map label chips         sans semibold */
-  --type-h1-size: clamp(44px, 8vw, 92px);
+     ONE modular scale, site-wide. Fixed steps (px):
+       10 · 11 · 12 · 13 · 14 · 15 · 17 · 19 · 24 · 28
+     plus three fluid display steps:
+       clamp(27→38) section titles · clamp(30→44) statements/big % ·
+       clamp(40→72) masthead + wall figures.
+     Role ladder: 10–11 chart furniture and footnotes · 12 UI controls,
+     badges, labels · 13 body text · 14 deks and primary buttons ·
+     15 wall captions · 17 quotes and card deks (serif) · 19 card titles
+     (serif) · 24 section subtitles and card years (serif) · 28 stat
+     figures (serif). Every font-size sits on a tick — no one-offs. */
+  --type-h1-size: clamp(40px, 6.5vw, 72px);
   --type-h1-lh: 1.02;
-  --type-h2-size: 26px;
+  --type-h2-size: 24px;
   --type-h2-lh: 1.14;
-  --type-h3-size: 23px;
-  --type-lead-size: 16px;
+  --type-h3-size: 24px; /* story-card year eyebrow — same tier as the title */
   --type-lead-lh: 1.68;
-  --type-dek-size: 15px;
-  --type-dek-lh: 1.4;
-  --type-body-size: 14px;
+  --type-body-size: 13px;
   --type-body-lh: 1.65;
   --type-quote-size: 17px;
   --type-quote-lh: 1.35;
-  --type-caption-size: 12px;
   --type-chip-size: 11px;
   --type-chip-weight: 600;
+
+  /* ── tracking (letter-spacing), three ticks ────────────────────────────
+     0.02em small-caps-adjacent emphasis · 0.06em uppercase tags/badges ·
+     0.1em wide uppercase (eyebrow-scale). Serif display sets solid (no
+     tracking). */
+  --track-tight: 0.02em;
+  --track-caps: 0.06em;
+  --track-caps-wide: 0.1em;
+
+  /* ── numerals ──────────────────────────────────────────────────────────
+     RULE: proportional lining figures everywhere — body sets `lining-nums`
+     (index.css) and it inherits site-wide. No `tabular-nums` anywhere:
+     Public Sans's tabular digits carry a uniform full-width advance that
+     reads gappy, and nothing in the site aligns digits column-on-column. */
 }
 
 .app {
@@ -85,7 +96,7 @@
   padding: 5px 13px;
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--track-tight);
   color: var(--ink-soft);
   text-decoration: none;
   border-radius: 4px;
@@ -276,7 +287,7 @@
   background: rgba(255, 255, 255, 0.6);
   color: var(--ink-soft);
   font-family: var(--font-sans);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   padding: 6px 12px;
   border-radius: 999px;
@@ -317,22 +328,13 @@
   z-index: 1;
 }
 
-.intro-card .eyebrow {
-  margin: 0 0 10px;
-  font-size: 10.5px;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  color: var(--accent);
-  font-weight: 600;
-}
-
 .intro-card h1 {
   margin: 0 0 14px;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 27px;
+  font-size: 24px;
   line-height: 1.14;
-  letter-spacing: 0.01em;
+  letter-spacing: normal;
   color: var(--ink);
 }
 
@@ -350,7 +352,7 @@
 .intro-card .lede {
   margin: 0;
   font-weight: 300;
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.62;
   color: var(--ink-soft);
 }

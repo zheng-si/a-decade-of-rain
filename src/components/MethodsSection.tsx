@@ -43,7 +43,6 @@ export default function MethodsSection() {
     <section className="story-fullscreen methods" id="sec-methods" aria-label={METHODS_HEAD.title}>
       <div className="fs-inner methods-inner">
         <header className="fs-head">
-          <p className="fs-eyebrow">{METHODS_HEAD.eyebrow}</p>
           <h2 className="fs-title">{METHODS_HEAD.title}</h2>
           <p className="fs-dek">{METHODS_HEAD.dek}</p>
         </header>

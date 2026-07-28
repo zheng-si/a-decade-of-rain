@@ -11,7 +11,8 @@ export interface Alternative {
   key: string
   /** Short label under the chart columns. */
   label: string
-  /** Column label lines as drawn in the design (numbers get bolded). */
+  /** Column label: line one is the method, line two an optional detail
+      (rendered smaller and lighter, so the six labels read evenly). */
   chartLines: string[]
   /** Longer name used in the family cards / tooltips. */
   name: string
@@ -24,21 +25,18 @@ export interface Alternative {
   screenNote?: string
 }
 
-export const ALT_FAMILIES: Record<AltFamily, { title: string; blurb: string; methodChips: string[] }> = {
+export const ALT_FAMILIES: Record<AltFamily, { title: string; blurb: string }> = {
   containment: {
     title: 'Containment only',
     blurb: 'Seal everything in an engineered landfill. Cheapest and quickest, but the dioxin is isolated, not destroyed.',
-    methodChips: ['Landfill'],
   },
   hybrid: {
     title: 'Hybrid',
     blurb: 'Split the soil by concentration: contain what sits below a dioxin threshold, treat the worst of it thermally.',
-    methodChips: ['Landfill + Ex Situ Tch'],
   },
   treatment: {
     title: 'Treatment only',
     blurb: 'Destroy the dioxin in every cubic metre. The most thorough option, and by far the most expensive.',
-    methodChips: ['Incineration', 'Ex Situ Tch', 'MCD'],
   },
 }
 
@@ -55,9 +53,9 @@ export const ALTERNATIVES: Alternative[] = [
   },
   {
     key: 'hybrid2500',
-    label: 'Landfill + thermal, 2,500 ppt split',
-    chartLines: ['Landfill < 2500 PPT +', 'Ex Situ Tch > 2500 PPT'],
-    name: 'Hybrid: contain below 2,500 ppt, treat above',
+    label: 'Landfill + thermal, 2,500\u00A0ppt split',
+    chartLines: ['Landfill + Ex Situ TCH', 'split at 2,500\u00A0ppt'],
+    name: 'Hybrid: contain below 2,500\u00A0ppt, treat above',
     family: 'hybrid',
     costM: 240,
     co2Kt: 33,
@@ -65,9 +63,9 @@ export const ALTERNATIVES: Alternative[] = [
   },
   {
     key: 'hybrid1200',
-    label: 'Landfill + thermal, 1,200 ppt split',
-    chartLines: ['Landfill < 1200 PPT +', 'Ex Situ Tch > 1200 PPT'],
-    name: 'Hybrid: contain below 1,200 ppt, treat above',
+    label: 'Landfill + thermal, 1,200\u00A0ppt split',
+    chartLines: ['Landfill + Ex Situ TCH', 'split at 1,200\u00A0ppt'],
+    name: 'Hybrid: contain below 1,200\u00A0ppt, treat above',
     family: 'hybrid',
     costM: 335,
     co2Kt: 52,
@@ -87,7 +85,7 @@ export const ALTERNATIVES: Alternative[] = [
   {
     key: 'thermal',
     label: 'Ex-situ thermal',
-    chartLines: ['Ex Situ Tch (Thermal', 'Conducting Heating)'],
+    chartLines: ['Ex Situ TCH', 'Thermal Conductive Heating'],
     name: 'Ex-situ thermal treatment (conductive heating)',
     family: 'treatment',
     costM: 535,
@@ -98,7 +96,7 @@ export const ALTERNATIVES: Alternative[] = [
   {
     key: 'mcd',
     label: 'MCD',
-    chartLines: ['MCD (Mechano-', 'Chemical Destruction)'],
+    chartLines: ['MCD', 'Mechano-Chemical Destruction'],
     name: 'Mechanochemical destruction',
     family: 'treatment',
     costM: 600,
@@ -109,14 +107,13 @@ export const ALTERNATIVES: Alternative[] = [
 ]
 
 export const ALTS = {
-  eyebrow: 'Act II · The alternatives',
   title: 'The Remediation Alternatives',
   dek: 'For Biên Hòa, USAID weighed six ways to deal with half a million cubic metres of contaminated soil. They fall into three families: contain it all, destroy it all, or split the difference.',
   chartTitle: 'What each alternative costs, and what it emits',
   arrow: 'Increasing cost and complexity',
   revealLabel: 'Find out what alternatives USAID retained',
-  revealBanner: 'After screening, 3 alternatives are retained',
+  revealBanner: 'After screening, three alternatives are retained',
   retainedLabel: 'Retained',
-  note: 'Cost and CO2 figures are rounded, indicative values from the USAID environmental assessment for Biên Hòa, for comparing alternatives rather than quoting budgets.',
+  note: 'Cost and CO₂ figures are rounded, indicative values from the USAID environmental assessment for Biên Hòa, for comparing alternatives rather than quoting budgets.',
   sourceId: 'usembassy_bienhoa',
 }

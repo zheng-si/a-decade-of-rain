@@ -59,7 +59,6 @@ export default function EcosystemsFigure() {
     <section className="story-fullscreen ecosystems" aria-label={ECOSYSTEMS.title}>
       <div className="fs-inner">
         <header className="fs-head">
-          <p className="fs-eyebrow">{ECOSYSTEMS.eyebrow}</p>
           <h2 className="fs-title">{ECOSYSTEMS.title}</h2>
         </header>
 
@@ -87,9 +86,8 @@ export default function EcosystemsFigure() {
               </div>
             </div>
 
-            {/* Sort toggle + the affordance hint that these rows are clickable. */}
+            {/* Sort toggle, right-aligned; the buttons name the ranking themselves. */}
             <div className="eco-controls">
-              <span className="eco-sort-label">Ranked by</span>
               <div className="eco-sort" role="group" aria-label="Rank vegetation types by">
                 <button
                   className={`eco-sort-btn${sortMode === 'pct' ? ' is-active' : ''}`}
@@ -123,12 +121,11 @@ export default function EcosystemsFigure() {
                       <span className="eco-swatch" style={{ background: v.color }} />
                       <span className="eco-type-name">
                         {v.name}
-                        {!v.sourced && <span className="eco-est" title="estimate pending confirmation">est.</span>}
+                        {!v.sourced && <span className="eco-est" title="estimate pending confirmation">Est.</span>}
                       </span>
                       <span className="eco-type-pct">
                         {sortMode === 'pct' ? `${pct(v.sprayed, v.total)}%` : v.sprayed.toLocaleString()}
                       </span>
-                      <span className="eco-type-go" aria-hidden="true">→</span>
                     </button>
                     <div className="eco-bar">
                       <div

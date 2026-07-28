@@ -46,14 +46,14 @@ export const AGENTS: AgentInfo[] = [
     name: 'Agent Blue',
     tagline: 'Rapid short-term defoliation, for grass control and use on rice',
     makeup: 'Cacodylic acid (an organic arsenic compound).',
-    use: 'A desiccant that withered grasses and, above all, rice. This was the crop-destruction agent, aimed at the enemy’s food supply.',
+    use: 'A desiccant that withered grasses and, above all, rice. This was the crop-destruction agent, aimed at the rice crops feeding North Vietnamese and Viet Cong forces.',
     legacy:
       'Arsenic-based rather than dioxin-based, but arsenic does not break down; it stays in the soil and water indefinitely.',
     sourceIds: ['va_basics'],
   },
   {
     key: 'other',
-    name: 'Agents Purple, Pink & Green',
+    name: 'Agents Purple, Pink and Green',
     tagline: 'The early defoliants, used before Agent Orange took over',
     makeup: 'Other 2,4,5-T formulations (Purple, Pink, Green).',
     use: 'The first-generation agents of the early 1960s, largely replaced by Agent Orange from 1965.',
@@ -64,11 +64,10 @@ export const AGENTS: AgentInfo[] = [
 ]
 
 export const RAINBOW = {
-  eyebrow: 'What fell',
   title: 'The Rainbow Herbicides',
-  dek: 'Ranch Hand sprayed a family of weedkillers, each known by the colour banded on its drum. Together they came to nearly 20 million gallons, yet they were far from equal, in volume and in what they left behind.',
+  dek: 'Ranch Hand sprayed a family of defoliants, each known by the colour banded on its drum. Together they came to nearly 20 million gallons, yet they were far from equal, in volume and in what they left behind.',
   chartTitle: 'Herbicide sprayed per year, by agent',
-  chartUnit: 'US gallons',
+  chartUnit: 'U.S. gallons',
   chartNote: 'Real spray volumes from the HERBS spray records (Stellman et al., 2003).',
   chartSourceId: 'stellman_2003',
 }

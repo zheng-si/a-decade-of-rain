@@ -296,7 +296,7 @@
   font-size: 15px;
   font-weight: 400;
   line-height: 1.3;
-  letter-spacing: 0.01em;
+  letter-spacing: normal;
   text-align: center;
 }
 
@@ -333,7 +333,7 @@
   font-family: var(--font-serif);
   font-weight: 400;
   font-size: 17px;
-  letter-spacing: 0.01em;
+  letter-spacing: normal;
   text-align: center;
   color: #fff;
 }
@@ -419,10 +419,8 @@
 }
 .story-rail-foot p {
   margin: 0 0 7px;
-  font-size: 8.5px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 500;
   color: rgba(255, 255, 255, 0.72);
 }
 .story-rail-foot img {
@@ -433,9 +431,9 @@
 }
 .story-rail-foot .story-rail-foot-more {
   margin: 0;
-  font-size: 8px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: var(--track-caps);
   text-transform: none;
   color: rgba(255, 255, 255, 0.68);
   line-height: 1.5;
@@ -508,10 +506,10 @@
   transform: translateY(-100%);
   padding-bottom: 3px;
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-weight: 500;
+  letter-spacing: var(--track-tight);
   color: var(--ink-soft);
-  font-variant-numeric: tabular-nums;
+  /* Proportional figures: static labels, nothing to align digit-for-digit. */
   text-shadow: 0 1px 3px rgba(250, 249, 244, 0.95), 0 0 3px rgba(250, 249, 244, 0.95);
 }
 
@@ -549,16 +547,14 @@
   font-size: 19px;
   line-height: 1;
   color: #fff;
-  font-variant-numeric: tabular-nums;
 }
 
 .timeline-scan-unit {
   margin-top: 3px;
-  font-size: 8px;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: #fff; /* full white — the 8px size needs every bit of contrast */
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: var(--track-tight);
+  color: #fff;
 }
 
 /* Hook + steps overlay the sticky graphic. The container ignores the pointer
@@ -601,8 +597,8 @@
   justify-content: center;
   gap: 12px;
   margin: 0 0 34px;
-  font-size: 10.5px;
-  letter-spacing: 0.04em;
+  font-size: 10px;
+  letter-spacing: var(--track-caps);
   color: var(--ink);
   white-space: nowrap;
 }
@@ -658,7 +654,8 @@
 .story-hook-inner {
   position: relative;
   z-index: 2;
-  max-width: 720px;
+  /* Wide enough for the 24px subtitle to hold one line on desktop. */
+  max-width: 880px;
   /* Forest type on the warm banner passes AA everywhere on its own
      (see design-system.md), so no shadow is needed. */
 }
@@ -669,7 +666,7 @@
   font-weight: 400;
   font-size: var(--type-h1-size);
   line-height: var(--type-h1-lh);
-  letter-spacing: 0.01em;
+  letter-spacing: normal;
   color: var(--ink);
   text-wrap: balance;
 }
@@ -678,9 +675,9 @@
 .story-hook-sub {
   margin: 0 0 28px;
   font-family: var(--font-serif);
-  font-size: 21px;
+  font-size: 24px;
   font-weight: 400;
-  letter-spacing: 0.01em;
+  letter-spacing: normal;
   color: var(--ink);
   text-wrap: balance;
 }
@@ -689,57 +686,47 @@
   margin: 0 auto;
   max-width: 560px;
   font-weight: 300;
-  font-size: var(--type-dek-size); /* one step down from lead per review */
+  font-size: 13px;
   line-height: var(--type-lead-lh);
   color: var(--ink);
   /* No single-word orphan line ("by year."); falls back gracefully. */
   text-wrap: pretty;
 }
 
-/* Scroll cue: serif, sentence case, deep orange — quiet but legible. */
+/* Scroll cue: the same pill as the footer's "Back to top" (.close-top),
+   inked for the paper surface so the two scroll buttons read as one part. */
 .story-hook-cta {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  gap: 8px;
   margin: 42px 0 0;
-  padding: 6px 4px;
-  font-family: var(--font-serif);
-  font-size: 19px;
-  font-weight: 400;
-  letter-spacing: 0.02em;
+  padding: 9px 18px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: var(--track-tight);
   color: var(--ink);
   background: none;
-  border: none;
+  border: 1px solid rgba(33, 53, 40, 0.32);
+  border-radius: 999px;
   cursor: pointer;
-  transition: color 0.2s, transform 0.2s;
+  transition: background 0.15s, border-color 0.15s;
 }
 
 .story-hook-cta:hover {
-  color: var(--accent-deep);
-  transform: translateY(2px);
+  background: rgba(33, 53, 40, 0.07);
+  border-color: rgba(33, 53, 40, 0.55);
 }
 
 .story-hook-cta:focus-visible {
   outline: 2px solid var(--accent-deep);
   outline-offset: 4px;
-  border-radius: 3px;
 }
 
 .story-hook-cta-arrow {
   display: inline-block;
-  animation: hook-cue 2s ease-in-out infinite;
-}
-
-@keyframes hook-cue {
-  0%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.75;
-  }
-  50% {
-    transform: translateY(4px);
-    opacity: 1;
-  }
+  font-size: 14px;
+  line-height: 1;
 }
 
 .story-step {
@@ -774,7 +761,7 @@
   font-family: var(--font-serif);
   font-size: var(--type-h3-size);
   font-weight: 400;
-  letter-spacing: 0.01em;
+  letter-spacing: normal;
   color: var(--accent);
 }
 
@@ -789,7 +776,7 @@
   border: 1px solid rgba(146, 247, 188, 0.14);
   border-radius: 4px;
   font-size: 12px;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--track-tight);
   color: var(--forest-text-soft);
 }
 
@@ -797,7 +784,6 @@
   color: var(--accent-bright); /* AA on the dark stat pill */
   font-size: 13px;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
 }
 
 .story-name {
@@ -811,9 +797,10 @@
 
 .story-dek {
   margin: 0 0 12px;
-  font-weight: 500;
-  font-size: var(--type-dek-size);
-  line-height: var(--type-dek-lh);
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.4;
   color: var(--forest-text);
 }
 
@@ -881,10 +868,8 @@
    chart's Accumulation/Each-year toggle. */
 .map-key-view-label {
   margin: 0 0 5px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 500;
   color: var(--ink-faint);
 }
 .map-key-view {
@@ -902,9 +887,9 @@
   border-radius: 999px;
   background: transparent;
   font-family: inherit;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--track-tight);
   color: var(--ink-soft);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
@@ -939,7 +924,7 @@
 }
 
 .map-key-compass-n {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   line-height: 1;
   color: var(--ink-soft);
@@ -973,11 +958,10 @@
 
 .map-key-scale-label {
   margin-bottom: -1px;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
   line-height: 1;
   color: var(--ink-soft);
-  font-variant-numeric: tabular-nums;
 }
 
 .map-key-heat {
@@ -995,7 +979,7 @@
   display: flex;
   justify-content: space-between;
   margin-top: 3px;
-  font-size: 9.5px;
+  font-size: 10px;
   color: var(--ink-faint);
 }
 
@@ -1062,8 +1046,7 @@
 /* WCAG 2.2.2 / motion sensitivity: kill the looping CSS animations when the
    reader asks for reduced motion (the JS rain + pulse loops check this too). */
 @media (prefers-reduced-motion: reduce) {
-  .map-dot-ring,
-  .story-hook-cta-arrow {
+  .map-dot-ring {
     animation: none;
   }
 }
@@ -1122,34 +1105,64 @@
 }
 
 .fs-head {
-  max-width: 680px;
   margin: 0 0 34px;
 }
 
-.fs-eyebrow {
-  margin: 0 0 12px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--accent-deep);
+.fs-title {
+  max-width: 620px; /* title measure only — the dek has its own rule below */
 }
 
 .fs-title {
   margin: 0 0 14px;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: clamp(30px, 4.4vw, 46px);
+  font-size: clamp(27px, 3.6vw, 38px);
   line-height: 1.05;
   color: var(--ink);
 }
 
 .fs-dek {
   margin: 0;
-  font-size: 16px;
+  /* MEASURE RULE: section deks run to half the content width minus half the
+     card gap (12px grid gap), so the dek's right edge lines up with the first
+     column of any 50/50 card row beneath it (~70 characters at 14px). */
+  max-width: calc(50% - 6px);
+  font-size: 14px;
   line-height: 1.6;
   color: var(--ink-soft);
   text-wrap: pretty;
+}
+
+/* Deks living inside their own grid column keep the column's width (the
+   chart below is the alignment reference). */
+.eco-legend .fs-dek,
+.rainbow-main .fs-dek {
+  max-width: none;
+}
+
+/* Per-section measures — each dek's right edge meets its section's own
+   reference object:
+   · Hotspots: the three-card row (container minus the fixed 275px map
+     and its 30px gap);
+   · Alternatives: two of the three family cards (12px grid gap);
+   · Timeline: no cap — the dek fits one line. */
+.actions .fs-dek {
+  max-width: calc(100% - 305px);
+}
+.alternatives .fs-dek {
+  max-width: calc((100% - 24px) * 2 / 3 + 12px);
+}
+.timeline-sec .fs-dek {
+  max-width: none;
+}
+
+@media (max-width: 640px) {
+  .fs-dek,
+  .actions .fs-dek,
+  .alternatives .fs-dek,
+  .close-body {
+    max-width: none;
+  }
 }
 
 /* Dek + chart (left) and agent card (right); card top aligns with the dek. */
@@ -1182,7 +1195,7 @@
 }
 
 .rainbow-chart-title {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--ink-soft);
 }
@@ -1198,7 +1211,7 @@
 .rainbow-mode-btn {
   padding: 4px 12px;
   font-family: var(--font-sans);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--ink-soft);
   background: none;
@@ -1241,7 +1254,6 @@
   font-family: var(--font-sans);
   font-size: 10px;
   letter-spacing: -0.01em;
-  font-variant-numeric: tabular-nums;
 }
 
 .rainbow-band {
@@ -1262,7 +1274,7 @@
   gap: 7px;
   padding: 6px 12px;
   font-family: var(--font-sans);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--ink-soft);
   background: rgba(255, 255, 255, 0.6);
@@ -1290,7 +1302,7 @@
 
 .rainbow-chart-note {
   margin: 12px 0 0;
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--ink-faint);
 }
 
@@ -1322,7 +1334,9 @@
    the lighter agents (White/Blue). */
 .rainbow-card-head {
   display: flex;
-  align-items: center;
+  /* Top-aligned, not centred: the tagline reserves two lines even when it
+     uses one, so centring drifts the icon low against the visible text. */
+  align-items: flex-start;
   gap: 14px;
   padding: 20px 22px 16px;
   background: var(--paper-solid);
@@ -1333,6 +1347,7 @@
   flex: none;
   width: 32px;
   height: 32px;
+  margin-top: 3px; /* optically centred on the name + first tagline line */
   color: var(--agent-ink);
 }
 
@@ -1340,14 +1355,14 @@
   margin: 0 0 3px;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 22px;
+  font-size: 19px;
   line-height: 1.1;
   color: var(--ink);
 }
 
 .rainbow-card-tag {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: 1.35;
   color: var(--ink-soft);
   /* Reserve two lines so switching agents never reflows the header. */
@@ -1371,15 +1386,15 @@
 
 .rainbow-stat strong {
   font-family: var(--font-serif);
-  font-size: 30px;
+  font-weight: 400; /* big serif figures set regular site-wide, never bold */
+  font-size: 28px;
   line-height: 1;
-  font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
 
 .rainbow-stat span {
-  font-size: 12px;
-  color: var(--ink-faint);
+  font-size: 13px;
+  color: var(--ink-soft);
 }
 
 .rainbow-defs {
@@ -1388,10 +1403,8 @@
 
 .rainbow-defs dt {
   margin: 20px 0 5px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 500;
   color: var(--agent-ink);
 }
 
@@ -1401,7 +1414,7 @@
 
 .rainbow-defs dd {
   margin: 0;
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.55;
   color: var(--ink);
 }
@@ -1429,7 +1442,6 @@
   .vt,
   .eco-headline,
   .eco-hint-arrow,
-  .eco-type-go,
   .act2-data-face,
   .act2-photo-face,
   .act2-data-face .act2-facts > div,
@@ -1469,7 +1481,6 @@
   height: 16px;
   font-size: 11px;
   color: var(--ink-soft);
-  font-variant-numeric: tabular-nums;
 }
 
 .eco-scale-ticks span {
@@ -1539,7 +1550,7 @@
 .eco-controls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 10px;
   margin: 0 0 15px;
   flex-wrap: wrap;
@@ -1555,7 +1566,7 @@
 .eco-sort-btn {
   padding: 7px 13px;
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--ink-soft);
   background: none;
@@ -1570,14 +1581,6 @@
   background: var(--forest);
 }
 
-.eco-sort-label {
-  margin: 0 9px 0 0;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
 .eco-hint {
   margin: 0;
   font-size: 11px;
@@ -1614,7 +1617,7 @@
   border: none;
   cursor: pointer;
   font-family: var(--font-sans);
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--ink);
   text-align: left;
   transition: background 0.15s;
@@ -1628,23 +1631,6 @@
 .eco-type:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
-}
-
-/* Arrow that surfaces on hover / selection, pointing to the map. */
-.eco-type-go {
-  flex: none;
-  width: 12px;
-  text-align: center;
-  color: var(--ink-faint);
-  opacity: 0;
-  transform: translateX(-4px);
-  transition: opacity 0.15s, transform 0.15s;
-}
-
-.eco-type:hover .eco-type-go,
-.eco-type.is-on .eco-type-go {
-  opacity: 1;
-  transform: none;
 }
 
 .eco-swatch {
@@ -1667,10 +1653,8 @@
 .eco-est {
   margin-left: 6px;
   padding: 1px 5px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 500;
   color: var(--ink-faint);
   border: 1px solid var(--rule);
   border-radius: 3px;
@@ -1680,7 +1664,6 @@
   font-size: 12px;
   font-weight: 700;
   color: var(--ink-soft);
-  font-variant-numeric: tabular-nums;
 }
 
 .eco-type.is-on .eco-type-name,
@@ -1716,7 +1699,7 @@
 
 .eco-note {
   margin: 0;
-  font-size: 11.5px;
+  font-size: 11px;
   line-height: 1.5;
   color: var(--ink-faint);
 }
@@ -1778,7 +1761,7 @@
 .eco-headline strong {
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: clamp(38px, 5vw, 58px);
+  font-size: clamp(30px, 4vw, 44px);
   line-height: 1;
 }
 
@@ -1787,6 +1770,9 @@
   line-height: 1.35;
   color: var(--ink-soft);
   text-shadow: none;
+  /* Even out the two-to-three-line rag ("of tree crops, chiefly rubber /
+     sprayed" → balanced lines), whatever the selected type's name length. */
+  text-wrap: balance;
 }
 
 .eco-headline-src {
@@ -1823,7 +1809,7 @@
   gap: 10px;
   padding: 9px 0;
   border-bottom: 1px solid var(--rule);
-  font-size: 13.5px;
+  font-size: 13px;
   color: var(--ink);
 }
 
@@ -1843,7 +1829,6 @@
 }
 
 .rainbow-bd-val {
-  font-variant-numeric: tabular-nums;
   font-weight: 700;
 }
 
@@ -1851,7 +1836,7 @@
 .fs-note {
   margin: 0;
   max-width: 760px;
-  font-size: 11.5px;
+  font-size: 11px;
   line-height: 1.5;
   color: var(--ink-faint);
 }
@@ -1887,24 +1872,17 @@
 .wall-lead {
   align-self: center;
 }
-.wall-eyebrow {
-  margin: 0 0 18px;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.13em;
-  text-transform: uppercase;
-  opacity: 0.82;
-}
 .wall-value {
   margin: 0 0 12px;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: clamp(48px, 7vw, 96px);
+  font-size: clamp(40px, 6vw, 72px);
   line-height: 0.98;
 }
 .wall-label {
   margin: 0 0 22px;
   max-width: 300px;
+  font-family: var(--font-serif);
   font-size: 17px;
   line-height: 1.4;
   opacity: 0.96;
@@ -1912,7 +1890,7 @@
 .wall-lede {
   margin: 0 0 8px;
   max-width: 340px;
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.6;
   opacity: 0.86;
 }
@@ -1926,7 +1904,7 @@
    its caption on the line below, so nothing crowds. */
 .wall-stats {
   list-style: none;
-  margin: 0 0 24px;
+  margin: 0 0 32px;
   padding: 18px 0 0;
   max-width: 340px;
   display: grid;
@@ -1941,14 +1919,15 @@
   margin-bottom: 4px;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 31px;
+  font-size: 28px;
   line-height: 1;
 }
 .wall-stat-l {
   display: block;
-  font-size: 12.5px;
+  font-family: var(--font-serif);
+  font-size: 15px;
   line-height: 1.4;
-  opacity: 0.82;
+  opacity: 0.88;
 }
 
 /* Right: three frames — a full-width hero over two side-by-side tiles.
@@ -1994,17 +1973,16 @@
 }
 .wall-consent p {
   margin: 0 0 8px;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 11px;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.96);
+  color: rgba(255, 255, 255, 0.88);
 }
 .wall-consent-btn {
   padding: 8px 17px;
   font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: var(--track-tight);
   color: #b03222;
   background: #fff;
   border: none;
@@ -2174,13 +2152,15 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(240px, 300px));
   gap: 12px;
-  align-items: stretch;
+  /* `start`, NOT `stretch`: a stretched row would resize the resting cards
+     whenever a sibling opens. Heights stay pinned by the card's own floor. */
+  align-items: start;
 }
 
 /* Volume bar under the contamination fact: orange on the shared 0–500k m³
    scale, echoing the ecosystems figure's sprayed-area bars. */
 .act2-volbar {
-  margin-top: 8px;
+  margin-top: 6px;
   height: 6px;
   background: var(--rule);
   border-radius: 2px;
@@ -2196,10 +2176,10 @@
 .act2-card {
   display: flex;
   flex-direction: column;
-  /* One fixed floor for both faces, sized to the tallest data face, so a card
-     doesn't change height when it flips and open/rest cards always line up. */
-  min-height: 468px;
-  padding: 22px 20px 16px;
+  /* One fixed floor for both faces, sized just over the tallest data face, so
+     a card never changes height on flip and the three always line up. */
+  min-height: 416px;
+  padding: 18px 20px 14px;
   cursor: pointer;
   background: var(--paper-solid);
   border: 1px solid var(--rule);
@@ -2275,15 +2255,15 @@
 }
 .act2-photo-place {
   margin: 0; /* .act2-card-head's 6px bottom margin sets the gap, as on the data face */
-  font-size: 11.5px;
+  font-size: 11px;
   color: rgba(255, 255, 255, 0.88);
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
 }
 .act2-photo-hint {
   margin: 0;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--track-tight);
   opacity: 0.9;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
 }
@@ -2378,18 +2358,14 @@
   align-items: baseline;
   gap: 4px;
   padding: 3px 7px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
   border-radius: 3px;
   color: #fff;
 }
 .act2-badge em {
   font-style: normal;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
+  font-weight: 500;
   opacity: 0.85;
 }
 .act2-badge.is-completed {
@@ -2403,8 +2379,8 @@
 }
 
 .act2-place {
-  margin: 0 0 14px;
-  font-size: 11.5px;
+  margin: 0 0 10px;
+  font-size: 11px;
   color: var(--ink-faint);
 }
 
@@ -2414,15 +2390,13 @@
   margin: 0 0 8px;
 }
 .act2-facts > div {
-  padding: 10px 0;
+  padding: 6px 0 7px;
   border-top: 1px solid var(--rule);
 }
 .act2-facts dt {
-  margin: 0 0 4px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  margin: 0 0 3px;
+  font-size: 11px;
+  font-weight: 500;
 }
 .act2-card.is-completed .act2-facts dt {
   color: #3f8f5f;
@@ -2434,9 +2408,11 @@
   color: #5a7ca8;
 }
 .act2-facts dd {
+  /* Proportional figures on purpose: these are read as prose, and Public
+     Sans's tabular digits (uniform full-width advance) read gappy here. */
   margin: 0;
-  font-size: 12.5px;
-  line-height: 1.5;
+  font-size: 13px;
+  line-height: 1.42;
   color: var(--ink);
 }
 
@@ -2444,10 +2420,10 @@
   /* Pinned to the card's bottom edge, so a stretched card leaves its slack
      between the facts and the note rather than below it. */
   margin: auto 0 0;
-  padding-top: 10px;
+  padding-top: 8px;
   border-top: 1px solid var(--rule);
-  font-size: 11.5px;
-  line-height: 1.55;
+  font-size: 11px;
+  line-height: 1.45;
   color: var(--ink-soft);
 }
 
@@ -2458,12 +2434,15 @@
 }
 
 .act2-closing {
+  /* Same measure as .fs-note below it; `pretty` keeps the last line from
+     carrying a single word. */
   margin: 24px 0 12px;
   max-width: 760px;
   font-family: var(--font-serif);
-  font-size: clamp(18px, 2.2vw, 24px);
-  line-height: 1.4;
+  font-size: 19px;
+  line-height: 1.45;
   color: var(--ink);
+  text-wrap: pretty;
 }
 
 /* ── Act II · The Alternatives ────────────────────────────────────────────── */
@@ -2497,16 +2476,11 @@
   border-color: var(--fam);
 }
 .alt-family.is-kept h3,
-.alt-family.is-kept p,
-.alt-family.is-kept .alt-family-icon {
+.alt-family.is-kept p {
   color: #fff !important;
 }
 .alt-family.is-kept p {
   opacity: 0.94;
-}
-.alt-family.is-kept .alt-method-chip {
-  background: #fff !important;
-  color: var(--fam) !important;
 }
 .alt-family.is-kept .alt-family-checks {
   color: #fff;
@@ -2550,27 +2524,8 @@
   --fam: #2f5c44;
   border-top-color: #2f5c44;
 }
-.alt-family-head {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 0 0 5px;
-}
-.alt-family-icon {
-  flex: none;
-  width: 30px;
-  height: 30px;
-}
-.alt-family-icon svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-.alt-family .alt-family-icon {
-  color: var(--fam);
-}
 .alt-family h3 {
-  margin: 0;
+  margin: 0 0 5px;
   font-family: var(--font-serif);
   font-weight: 400;
   font-size: 19px;
@@ -2578,29 +2533,9 @@
 }
 .alt-family p {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: 1.5;
   color: var(--ink-soft);
-}
-/* Which chart columns this family covers — chips keyed to the x labels. */
-.alt-family-methods {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 5px;
-  margin: 7px 0 0;
-}
-.alt-method-chip {
-  padding: 3px 9px;
-  font-size: 11px;
-  font-weight: 600;
-  border-radius: 999px;
-  color: #fff;
-  white-space: nowrap;
-  transition: background 0.25s, color 0.25s;
-}
-.alt-family .alt-method-chip {
-  background: var(--fam);
 }
 
 /* The comparison chart, reproducing the Figma design: one plot, a grey cost
@@ -2621,7 +2556,7 @@
   margin-bottom: 8px;
   font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.015em;
+  letter-spacing: var(--track-tight);
   color: #ff564b;
 }
 .alt-arrow-line {
@@ -2640,10 +2575,11 @@
   border-right: 0;
 }
 
-/* Axis titles + family labels row, sharing the plot gutters. */
+/* Axis titles row (family group labels moved below the chart). */
 .alt-gheads {
   display: flex;
   align-items: flex-end;
+  justify-content: space-between;
   gap: 0;
   margin: 0 0 8px;
 }
@@ -2663,23 +2599,8 @@
   display: block;
   font-style: normal;
   font-weight: 600;
-  font-size: 10.5px;
+  font-size: 10px;
   opacity: 0.85;
-}
-.alt-ghead {
-  padding: 0 0 2px;
-  font-size: 12.5px;
-  font-weight: 700;
-  text-align: center;
-}
-.alt-ghead.is-containment {
-  color: #9dbda7;
-}
-.alt-ghead.is-hybrid {
-  color: #85a08d;
-}
-.alt-ghead.is-treatment {
-  color: #677c6d;
 }
 
 /* The plot: axes flank six family-tinted columns; bars overflow the top
@@ -2692,7 +2613,6 @@
   flex: 0 0 var(--alt-gutter-l);
   font-size: 12px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
 }
 .alt-axis.is-co2 {
   flex: 0 0 var(--alt-gutter-r);
@@ -2789,11 +2709,52 @@
 .alt-xlabel:last-child {
   border-right: none;
 }
+/* Two-level labels: the method on line one, a lighter detail line under it.
+   Every column gets the same hierarchy, so the row reads evenly. */
 .alt-xlabel span {
   display: block;
+  font-weight: 500;
+  color: var(--ink);
 }
-.alt-xlabel strong {
+.alt-xlabel span + span {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink-faint);
+}
+
+/* Family extent brackets under the column labels: an upward-opening
+   bracket spanning each family's columns, label centred beneath — kept
+   below the plot so the tallest bars never collide with them. */
+.alt-bands {
+  display: flex;
+  gap: 0;
+  margin: 12px var(--alt-gutter-r) 0 var(--alt-gutter-l);
+}
+.alt-band-group {
+  padding: 0 12px;
+  text-align: center;
+}
+.alt-band-group i {
+  display: block;
+  height: 6px;
+  border: 1.5px solid currentColor;
+  border-top: none;
+  opacity: 0.7;
+}
+.alt-band-group span {
+  display: inline-block;
+  margin-top: 7px;
+  font-size: 12px;
   font-weight: 700;
+}
+.alt-band-group.is-containment {
+  color: #6a9c81;
+}
+.alt-band-group.is-hybrid {
+  color: #4d7d63;
+}
+.alt-band-group.is-treatment {
+  color: #2f5c44;
 }
 
 /* Full-width USAID reveal button; once revealed it becomes the green
@@ -2814,7 +2775,6 @@
   font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 600;
-  text-transform: capitalize;
   color: #fff;
   background: #5abe88;
   border: 1px solid #5abe88;
@@ -2869,7 +2829,7 @@
   width: 100%;
   padding: 7px 9px;
   border-radius: 4px;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
   line-height: 1.45;
   text-align: center;
@@ -2925,7 +2885,8 @@
      full-width rows share the min-width so bars and labels stay aligned. */
   .alt-gheads,
   .alt-chartgrid,
-  .alt-xlabels {
+  .alt-xlabels,
+  .alt-bands {
     min-width: 560px;
   }
 }
@@ -2947,7 +2908,7 @@
   gap: 7px;
   padding: 6px 14px;
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--ink-soft);
   background: rgba(255, 255, 255, 0.6);
@@ -3025,7 +2986,7 @@
   writing-mode: vertical-rl;
   font-family: var(--font-serif);
   font-size: 17px;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--track-tight);
   color: var(--ink-soft);
   white-space: nowrap;
 }
@@ -3080,7 +3041,7 @@
   margin: 0 0 7px;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 23px;
+  font-size: 19px;
   text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
 }
 .method-tagline {
@@ -3094,9 +3055,9 @@
 }
 .method-hint {
   margin: 0;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--track-tight);
   opacity: 0.9;
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
 }
@@ -3123,12 +3084,12 @@
   margin: 0 0 10px;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 24px;
+  font-size: 19px;
   color: #fff;
 }
 .method-copy p {
   margin: 0;
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.65;
   color: rgba(255, 255, 255, 0.92);
 }
@@ -3167,7 +3128,7 @@
   position: absolute;
   white-space: nowrap;
   transform: translateY(-50%);
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 500;
   line-height: 1.25;
   text-align: right;
@@ -3242,7 +3203,7 @@
   transform: translateX(-50%);
   margin-top: 5px;
   font-style: normal;
-  font-size: 10.5px;
+  font-size: 10px;
   color: var(--ink-soft);
 }
 .tl-band-row {
@@ -3256,7 +3217,7 @@
   top: 50%;
   transform: translateY(-50%);
   padding-right: 0;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 600;
   color: var(--ink-soft);
   white-space: nowrap;
@@ -3276,10 +3237,8 @@
 }
 .tl-band-status {
   padding: 0 8px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
   color: #fff;
   white-space: nowrap;
 }
@@ -3344,10 +3303,8 @@
 }
 .tl-card-tag {
   margin: 0;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--tlc);
 }
 .tl-card-stat {
@@ -3360,16 +3317,16 @@
 .tl-card-stat strong {
   font-family: var(--font-serif);
   font-weight: 500;
-  font-size: 20px;
+  font-size: 19px;
   color: var(--ink);
 }
 .tl-card-stat span {
-  font-size: 10.5px;
+  font-size: 10px;
   color: var(--ink-faint);
 }
 .tl-card-text {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.55;
   color: var(--ink-soft);
 }
@@ -3461,23 +3418,21 @@
   position: relative;
   max-width: 1120px;
 }
-.close-eyebrow {
-  color: rgba(255, 255, 255, 0.62);
-}
 .close-statement {
   margin: 0 0 18px;
   max-width: 720px;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: clamp(34px, 4.6vw, 56px);
+  font-size: clamp(30px, 4vw, 44px);
   line-height: 1.12;
   color: #fff;
   text-wrap: balance;
 }
 .close-body {
   margin: 0 0 44px;
-  max-width: 600px;
-  font-size: 15px;
+  /* Two of the four action cards below (12px gap): 2 cols + 1 gap. */
+  max-width: calc(50% - 6px);
+  font-size: 13px;
   line-height: 1.7;
   color: rgba(255, 255, 255, 0.82);
 }
@@ -3510,28 +3465,26 @@
 }
 .close-action-role {
   margin: 0 0 8px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 500;
   color: rgba(255, 255, 255, 0.6);
 }
 .close-action-name {
   margin: 0 0 7px;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 21px;
+  font-size: 19px;
   color: #fff;
 }
 .close-action-desc {
   margin: 0 0 14px;
-  font-size: 11.5px;
+  font-size: 11px;
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.78);
 }
 .close-action-cta {
   margin: auto 0 0;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 700;
   color: #9fd4b4;
 }
@@ -3542,9 +3495,6 @@
 /* Sources ledger stays in the forest green, continuing the hero. */
 .close-sources {
   background: linear-gradient(180deg, #12271a 0%, #16311f 48%, #21432f 100%);
-}
-.close-sources .fs-eyebrow {
-  color: rgba(255, 255, 255, 0.62);
 }
 .close-sources .fs-title {
   color: #fff;
@@ -3560,10 +3510,8 @@
 }
 .close-ref-group h3 {
   margin: 0 0 9px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
   color: #9fd4b4;
 }
 .close-ref-group ul {
@@ -3573,7 +3521,7 @@
 }
 .close-ref-group li {
   padding: 4px 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.75);
   border-top: 1px solid rgba(255, 255, 255, 0.14);
@@ -3659,9 +3607,9 @@
   gap: 8px;
   padding: 9px 18px;
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--track-tight);
   color: #fff;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.32);
@@ -3676,4 +3624,27 @@
 .close-top:hover {
   background: rgba(255, 255, 255, 0.16);
   border-color: rgba(255, 255, 255, 0.55);
+}
+
+/* ── orphan / rag control, site-wide ─────────────────────────────────────
+   Titles balance their lines; running text avoids stranded last words.
+   (The hook already sets both — this generalises the rule.) */
+.fs-title,
+.story-name,
+.close-statement,
+.wall-label,
+.rainbow-card-name,
+.act2-card-name {
+  text-wrap: balance;
+}
+
+.fs-dek,
+.story-dek,
+.story-body,
+.close-body,
+.wall-lede,
+.method-copy p,
+.eco-note,
+.fs-note {
+  text-wrap: pretty;
 }

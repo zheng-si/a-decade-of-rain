@@ -30,7 +30,6 @@ export interface WallStat {
 export interface ConsequenceWall {
   key: 'land' | 'body'
   theme: 'eco' | 'health'
-  eyebrow: string
   value: string
   label: string
   /** A few secondary figures shown beneath the headline number. */
@@ -47,32 +46,30 @@ export const WALLS: ConsequenceWall[] = [
   {
     key: 'land',
     theme: 'eco',
-    eyebrow: 'The consequences · the land',
-    value: '3.1M ha',
+    value: '3.1M\u00A0ha',
     label: 'of forest and mangrove stripped bare',
     stats: [
-      { value: '≈36%', label: 'of the south’s mangrove forest destroyed' },
-      { value: '4×', label: 'some forest sprayed four or more times' },
-      { value: '50 yrs+', label: 'and the worst-hit land is still bare' },
+      { value: '36%', label: 'of the south’s mangrove forest destroyed' },
+      { value: '4+', label: 'times some of the forest was sprayed' },
+      { value: '50+\u00A0yrs', label: 'and the worst-hit land is still bare' },
     ],
     lede: 'The herbicides broke down in weeks, but the forests did not come back. Half a century on, the worst-hit mangroves and hillsides still have not recovered.',
     sourceId: 'stellman_2003',
     photos: [
       { src: land1, alt: 'A C-123 aircraft spraying defoliant over dense forest', caption: 'A U.S. Air Force C-123 lays a swath of defoliant over triple-canopy forest.', credit: 'U.S. Air Force' },
       { src: land4, alt: 'Three aircraft spraying herbicide in formation', caption: 'Three UC-123s lay parallel swaths of herbicide in a single pass.', credit: 'U.S. Air Force' },
-      { src: land3, alt: 'Aerial view of sprayed mangrove forest, 1968', caption: 'Aerial view of mangrove sprayed in the Rừng Sác, III Corps, 1968.', credit: 'RANCH HAND Collection, Vietnam Archive, Texas Tech University' },
+      { src: land3, alt: 'Aerial view of sprayed mangrove forest, 1968', caption: 'Aerial view of mangrove sprayed in the Rừng Sác, Military Region III, 1968.', credit: 'RANCH HAND Collection, Vietnam Archive, Texas Tech University' },
     ],
   },
   {
     key: 'body',
     theme: 'health',
-    eyebrow: 'The consequences · the body',
-    value: '≥150,000',
+    value: '150,000+',
     label: 'children born with serious birth defects',
     stats: [
-      { value: '≈3M', label: 'Vietnamese with Agent Orange–linked illness' },
+      { value: '3M', label: 'Vietnamese with Agent Orange–linked illness' },
       { value: '4', label: 'generations affected, and counting' },
-      { value: '7–11 yrs', label: 'dioxin’s half-life in the human body' },
+      { value: '7–11\u00A0yrs', label: 'dioxin’s half-life in the human body' },
     ],
     lede: 'Dioxin lingers in the body for years and crosses into the next generation. The toll is now counted across a second, third and fourth generation.',
     sourceId: 'aspen_whatis',

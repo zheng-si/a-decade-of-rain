@@ -177,7 +177,7 @@ export default function TimelineRuler({ monthlyCum, yearStart, nodeFracs, fmt, s
       <div className="timeline-cursor" style={{ top: scanTopCss, left: `${barTip}px` }}>
         <div className="timeline-scan-vol">
           <span className="timeline-scan-num">{fmt(vol)}</span>
-          <span className="timeline-scan-unit">gallons sprayed</span>
+          <span className="timeline-scan-unit">Gallons Sprayed</span>
         </div>
       </div>
     </aside>
