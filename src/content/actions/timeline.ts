@@ -57,7 +57,7 @@ export const TL_MOMENTS: TlMoment[] = [
     project: 'phucat',
     tag: 'Phú Cát sealed',
     milestone: true,
-    body: 'The smallest hotspot is dealt with first: ~7,500\u00A0m³ isolated in an engineered landfill on site, with UNDP, finished within the year.',
+    body: 'The smallest hotspot is dealt with first: about 7,500\u00A0m³ isolated in an engineered landfill on site, with UNDP, finished within the year.',
   },
   {
     year: '2012',
@@ -69,7 +69,7 @@ export const TL_MOMENTS: TlMoment[] = [
     year: '2013',
     project: 'danang',
     tag: 'The pile rises',
-    body: 'A sealed treatment structure the size of a football field is built, and the first ~45,000\u00A0m³ of soil and sediment are loaded in.',
+    body: 'A sealed treatment structure the size of a football field is built, and the first 45,000-odd\u00A0m³ of soil and sediment are loaded in.',
   },
   {
     year: '2014',
@@ -81,14 +81,14 @@ export const TL_MOMENTS: TlMoment[] = [
     year: '2016',
     project: 'danang',
     tag: 'The scope grows',
-    body: 'Phase 2 brings the treated total towards 90,000\u00A0m³, half as much again as planned; ~50,000\u00A0m³ of lighter soil is sealed under cover.',
+    body: 'Phase 2 brings the treated total towards 90,000\u00A0m³, half as much again as planned; about 50,000\u00A0m³ of lighter soil is sealed under cover.',
   },
   {
     year: '2018',
     project: 'danang',
     tag: 'Đà Nẵng finished',
     milestone: true,
-    stat: { value: '90,000\u00A0m³', label: 'treated · ≈ US$110 million' },
+    stat: { value: '90,000\u00A0m³', label: 'treated · about US$110 million' },
     body: 'November: declared complete; the land goes back to expand the airport.',
   },
   {
@@ -96,7 +96,7 @@ export const TL_MOMENTS: TlMoment[] = [
     project: 'bienhoa',
     tag: 'The big one begins',
     milestone: true,
-    stat: { value: '500,000\u00A0m³', label: 'roughly 4× Đà Nẵng' },
+    stat: { value: '500,000\u00A0m³', label: 'roughly four times Đà Nẵng' },
     body: 'The United States and Vietnam launch the cleanup at Biên Hòa.',
   },
   {
@@ -115,7 +115,7 @@ export const TL_MOMENTS: TlMoment[] = [
     year: '2026',
     project: 'bienhoa',
     tag: 'Unfinished',
-    body: 'Most of the soil still waits its turn. The end date, once ~2030, now rides on whether the money keeps coming.',
+    body: 'Most of the soil still waits its turn. The end date, once put at 2030, now rides on whether the money keeps coming.',
   },
 ]
 

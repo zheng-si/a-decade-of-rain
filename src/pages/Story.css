@@ -1930,13 +1930,6 @@
   font-size: 28px;
   line-height: 1;
 }
-/* Symbols inside serif display figures (see ConsequencesInterlude). */
-.stat-sym {
-  font-family: var(--font-sans);
-  font-weight: 300;
-  font-size: 0.82em;
-}
-
 .wall-stat-l {
   display: block;
   font-size: 12px;

@@ -117,7 +117,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
   },
   {
     id: 'peak',
-    name: 'Peak: War Zone C & the Iron Triangle',
+    name: 'Peak: War Zone C and the Iron Triangle',
     landmarks: [
       { name: 'War Zone C', point: [106.25, 11.58] },
       { name: 'Iron Triangle', point: [106.53, 11.1] },
@@ -155,7 +155,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
     ],
     dek: 'The coastal forests of Cà Mau and the Rừng Sác.',
     body: 'Mangroves prove catastrophically fragile: a single spraying can kill a whole forest. The Rừng Sác shipping channels and the Cà Mau peninsula are among the hardest hit; across the war, some 3.1 million hectares of forest and mangrove are defoliated between Quảng Trị and Cà Mau — damage scientists later brand an “ecocide.”',
-    stat: { value: '3.1M\u00A0ha', label: 'forest & mangrove defoliated' },
+    stat: { value: '3.1M\u00A0ha', label: 'forest and mangrove defoliated' },
   },
   {
     id: 'a-sau',
@@ -172,7 +172,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
     ],
     dek: 'A corridor to the Ho Chi Minh Trail, drenched again and again.',
     body: 'Some 224 spray runs cross the A Sầu / A Lưới valley between 1965 and 1970, parts of it sprayed as many as eleven times. Decades later, soil around the former A So air base still held nearly 900\u00A0ppt of dioxin — one of the country’s enduring hotspots. Residents have told the Pulitzer Center that for years after the spraying, no rice would grow.',
-    stat: { value: '11×', label: 'sprayed in places' },
+    stat: { value: '11', label: 'times sprayed, in places' },
   },
   {
     id: 'hotspots',

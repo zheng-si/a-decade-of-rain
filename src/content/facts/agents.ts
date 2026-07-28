@@ -53,7 +53,7 @@ export const AGENTS: AgentInfo[] = [
   },
   {
     key: 'other',
-    name: 'Agents Purple, Pink & Green',
+    name: 'Agents Purple, Pink and Green',
     tagline: 'The early defoliants, used before Agent Orange took over',
     makeup: 'Other 2,4,5-T formulations (Purple, Pink, Green).',
     use: 'The first-generation agents of the early 1960s, largely replaced by Agent Orange from 1965.',

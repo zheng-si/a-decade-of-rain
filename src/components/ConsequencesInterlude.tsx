@@ -2,25 +2,6 @@ import { useState } from 'react'
 import { WALLS, type ConsequenceWall } from '../content/interlude/consequences'
 import { SOURCES } from '../content/sources'
 
-// Symbols inside the big serif figures (×, ~) render in the sans — Playfair
-// draws them as small raised/ornamental forms that misread at display size.
-function StatValue({ v }: { v: string }) {
-  const parts = v.split(/([×~])/)
-  return (
-    <>
-      {parts.map((p, i) =>
-        p === '×' || p === '~' ? (
-          <span key={i} className="stat-sym">
-            {p}
-          </span>
-        ) : (
-          p
-        ),
-      )}
-    </>
-  )
-}
-
 // One full-page photo wall. Sensitive walls (the health toll) blur every photo
 // by default behind a single consent toggle — reveal only on the reader's say-so.
 function Wall({ w }: { w: ConsequenceWall }) {
@@ -32,17 +13,13 @@ function Wall({ w }: { w: ConsequenceWall }) {
     <section id={`sec-${w.key}`} className={`story-fullscreen interlude-wall is-${w.theme}`} aria-label={w.label}>
       <div className="wall-inner">
         <div className="wall-lead">
-          <p className="wall-value">
-            <StatValue v={w.value} />
-          </p>
+          <p className="wall-value">{w.value}</p>
           <p className="wall-label">{w.label}</p>
           {w.stats && (
             <ul className="wall-stats">
               {w.stats.map((s, i) => (
                 <li key={i}>
-                  <span className="wall-stat-v">
-                    <StatValue v={s.value} />
-                  </span>
+                  <span className="wall-stat-v">{s.value}</span>
                   <span className="wall-stat-l">{s.label}</span>
                 </li>
               ))}

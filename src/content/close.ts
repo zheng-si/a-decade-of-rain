@@ -70,11 +70,11 @@ export const REF_GROUPS: RefGroup[] = [
     ],
   },
   {
-    title: 'Reports & fact sheets',
+    title: 'Reports and fact sheets',
     sourceIds: ['usaf_ranchhand', 'usaid_danang', 'usembassy_bienhoa', 'undp_hotspots', 'va_basics', 'aspen_whatis', 'aspen_bienhoa'],
   },
   {
-    title: 'News & features',
+    title: 'News and features',
     sourceIds: ['yale_e360', 'pulitzer_forest', 'va_news', 'aorecord_hotspots'],
   },
   {
@@ -82,7 +82,7 @@ export const REF_GROUPS: RefGroup[] = [
     lines: [
       'The Land: U.S. Air Force and U.S. Army photographs (public domain); RANCH HAND Collection, Vietnam Archive, Texas Tech University',
       'The Body: Alexis Duclos and other photographers via Wikimedia Commons (Creative Commons)',
-      'The Actions & Methods: USAID Vietnam project photographs (public domain)',
+      'The Actions and Methods: USAID Vietnam project photographs (public domain)',
     ],
   },
 ]
@@ -93,6 +93,6 @@ export const COLOPHON = {
     'Built with React, MapLibre GL and Scrollama.',
     'Set in Playfair Display and Public Sans.',
   ],
-  credit: 'Designed & built by Si Zheng',
+  credit: 'Designed and built by Si Zheng',
   email: 'zhengsi0709@gmail.com',
 }

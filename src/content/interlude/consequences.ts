@@ -49,8 +49,8 @@ export const WALLS: ConsequenceWall[] = [
     value: '3.1M\u00A0ha',
     label: 'of forest and mangrove stripped bare',
     stats: [
-      { value: '~36%', label: 'of the south’s mangrove forest destroyed' },
-      { value: '4×', label: 'some forest sprayed four or more times' },
+      { value: '36%', label: 'of the south’s mangrove forest destroyed' },
+      { value: '4+', label: 'times some of the forest was sprayed' },
       { value: '50+\u00A0yrs', label: 'and the worst-hit land is still bare' },
     ],
     lede: 'The herbicides broke down in weeks, but the forests did not come back. Half a century on, the worst-hit mangroves and hillsides still have not recovered.',
@@ -67,7 +67,7 @@ export const WALLS: ConsequenceWall[] = [
     value: '150,000+',
     label: 'children born with serious birth defects',
     stats: [
-      { value: '~3M', label: 'Vietnamese with Agent Orange–linked illness' },
+      { value: '3M', label: 'Vietnamese with Agent Orange–linked illness' },
       { value: '4', label: 'generations affected, and counting' },
       { value: '7–11\u00A0yrs', label: 'dioxin’s half-life in the human body' },
     ],
