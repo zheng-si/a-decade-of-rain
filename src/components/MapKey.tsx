@@ -99,14 +99,6 @@ export default function MapKey({ map, ready, started, is3D, onToggle3D }: Props)
           National border
         </li>
         <li>
-          <span className="key-swatch key-veg" />
-          Vegetation
-        </li>
-        <li>
-          <span className="key-swatch key-water" />
-          Water
-        </li>
-        <li>
           <span className="key-swatch key-pilot" />
           Marked site
         </li>

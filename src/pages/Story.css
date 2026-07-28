@@ -257,18 +257,15 @@
   z-index: 6;
   display: flex;
   flex-direction: column;
-  color: #fff;
+  color: var(--ink);
   /* Hidden behind the banner: slid fully left until the story starts. */
   transform: translateX(-100%);
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Top stop equals the banner wash / rain (--accent #ff5449) so the rail
-     reads as the same orange, then deepens to the crimson foot. */
-  background: linear-gradient(180deg, #ff5449 0%, #e0463a 40%, #c5372a 72%, #a52c1e 100%);
-  /* Crisp divider between the rail and the year/volume ruler to its right:
-     a white hairline (reads on the crimson) plus a soft shadow (reads on the
-     pale ruler). */
-  border-right: 1px solid rgba(255, 255, 255, 0.6);
-  box-shadow: 1px 0 0 rgba(33, 53, 40, 0.14), 3px 0 12px rgba(60, 20, 16, 0.14);
+  /* Quiet-palette experiment: the rail is paper, not a colour block — the
+     accent appears only as the active-section tick. */
+  background: var(--paper-solid);
+  border-right: 1px solid var(--rule);
+  box-shadow: 3px 0 12px rgba(40, 38, 30, 0.06);
 }
 
 .story-rail.is-shown {
@@ -281,14 +278,14 @@
   align-items: center;
   gap: 8px;
   padding: 22px 8px 9px;
-  color: #fff;
+  color: var(--ink);
   text-decoration: none;
 }
 
 .story-rail-bio {
   width: 33px;
   height: 30px;
-  opacity: 0.96;
+  color: var(--accent);
 }
 
 .story-rail-mark span {
@@ -324,7 +321,7 @@
   /* 13px margin + the 11px padding on the adjacent label/link = a 24px gap
      on every side of every divider. */
   margin: 11px 15px;
-  background: rgba(255, 255, 255, 0.24);
+  background: var(--rule);
 }
 
 .story-rail-act {
@@ -335,7 +332,7 @@
   font-size: 17px;
   letter-spacing: normal;
   text-align: center;
-  color: #fff;
+  color: var(--ink);
 }
 
 .story-rail-group ul {
@@ -356,30 +353,30 @@
   font-family: var(--font-sans);
   font-size: 11px;
   line-height: 1.32;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--ink);
   overflow-wrap: break-word;
   transition: color 0.15s, background 0.15s;
 }
 
-/* Resting items recede to keep the focus on the active section; hover and the
-   active state restore full white. */
+/* Resting items recede to keep the focus on the active section; hover and
+   the active state restore full ink. */
 .story-rail-link:not(.is-on):not(.is-upcoming) {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--ink-faint);
 }
 
 .story-rail-link:hover:not(.is-upcoming) {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.1);
+  color: var(--ink);
+  background: rgba(33, 53, 40, 0.05);
 }
 
 .story-rail-link.is-on {
-  color: #fff;
+  color: var(--ink);
   font-weight: 700;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(33, 53, 40, 0.06);
 }
 
-/* Active marker: a 4px white bar on the rail's left edge — it never collides
-   with the centred label the way the old caret could. */
+/* Active marker: the accent tick on the rail's left edge — the only colour
+   the rail carries. */
 .story-rail-link::before {
   content: '';
   position: absolute;
@@ -387,7 +384,7 @@
   top: 50%;
   bottom: 50%;
   width: 2px;
-  background: #fff;
+  background: var(--accent);
   opacity: 0;
   transition: top 0.18s ease, bottom 0.18s ease, opacity 0.18s;
 }
@@ -405,7 +402,7 @@
 }
 
 .story-rail-link.is-upcoming {
-  color: rgba(255, 255, 255, 0.42);
+  color: var(--ink-faint);
   cursor: default;
 }
 
@@ -414,28 +411,27 @@
 .story-rail-foot {
   flex: none;
   padding: 10px 10px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.24);
+  border-top: 1px solid var(--rule);
   text-align: center;
 }
 .story-rail-foot p {
   margin: 0 0 7px;
   font-size: 10px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--ink-soft);
 }
 .story-rail-foot img {
   display: block;
   width: 62px;
   margin: 0 auto 6px;
-  opacity: 0.95;
+  opacity: 0.9;
 }
 .story-rail-foot .story-rail-foot-more {
   margin: 0;
   font-size: 10px;
-  font-weight: 600;
-  letter-spacing: var(--track-caps);
-  text-transform: none;
-  color: rgba(255, 255, 255, 0.68);
+  font-weight: 500;
+  letter-spacing: var(--track-tight);
+  color: var(--ink-faint);
   line-height: 1.5;
 }
 
@@ -738,16 +734,18 @@
   pointer-events: none;
 }
 
-/* Solid dark-forest card — stands clearly off the pale map. */
+/* Quiet-palette experiment: paper card with a hairline and an accent top
+   rule — the map shows through the page around it, nothing shouts. */
 .story-card {
   pointer-events: auto;
   width: min(408px, 84vw);
   padding: 24px 26px 26px;
-  background: var(--forest);
-  border: 1px solid rgba(146, 247, 188, 0.12);
+  background: var(--paper-solid);
+  border: 1px solid var(--rule);
+  border-top: 3px solid var(--accent);
   border-radius: 4px;
-  box-shadow: 0 20px 48px rgba(16, 26, 20, 0.42);
-  color: var(--forest-text);
+  box-shadow: 0 14px 38px rgba(40, 38, 30, 0.16);
+  color: var(--ink);
   opacity: 0.42;
   transition: opacity 0.4s;
 }
@@ -762,7 +760,7 @@
   font-size: var(--type-h3-size);
   font-weight: 400;
   letter-spacing: normal;
-  color: var(--accent);
+  color: var(--accent-deep);
 }
 
 /* Stat chip — a lifted pill inside the card. */
@@ -772,16 +770,16 @@
   gap: 6px;
   margin: 16px 0 0;
   padding: 6px 13px;
-  background: var(--forest-2);
-  border: 1px solid rgba(146, 247, 188, 0.14);
+  background: rgba(33, 53, 40, 0.04);
+  border: 1px solid var(--rule);
   border-radius: 4px;
   font-size: 12px;
   letter-spacing: var(--track-tight);
-  color: var(--forest-text-soft);
+  color: var(--ink-soft);
 }
 
 .story-stat strong {
-  color: var(--accent-bright); /* AA on the dark stat pill */
+  color: var(--accent-deep); /* AA on paper */
   font-size: 13px;
   font-weight: 700;
 }
@@ -792,7 +790,7 @@
   font-weight: 400;
   font-size: var(--type-h2-size);
   line-height: var(--type-h2-lh);
-  color: var(--forest-text);
+  color: var(--ink);
 }
 
 .story-dek {
@@ -801,21 +799,21 @@
   font-weight: 400;
   font-size: 17px;
   line-height: 1.4;
-  color: var(--forest-text);
+  color: var(--ink);
 }
 
 .story-body {
   margin: 0;
-  font-weight: 300;
+  font-weight: 400;
   font-size: var(--type-body-size);
   line-height: var(--type-body-lh);
-  color: var(--forest-text-soft);
+  color: var(--ink-soft);
 }
 
 .story-quote {
   margin: 16px 0 0;
   padding: 12px 0 0;
-  border-top: 1px solid rgba(146, 247, 188, 0.16);
+  border-top: 1px solid var(--rule);
 }
 
 .story-quote p {
@@ -823,17 +821,17 @@
   font-family: var(--font-serif);
   font-size: var(--type-quote-size);
   line-height: var(--type-quote-lh);
-  color: var(--forest-text);
+  color: var(--ink);
 }
 
 .story-quote cite {
   font-style: normal;
   font-size: 12px;
-  color: var(--forest-text-soft);
+  color: var(--ink-faint);
 }
 
 .story-quote a {
-  color: var(--accent-bright); /* AA on the dark card */
+  color: var(--accent-deep); /* AA on paper */
   text-decoration: underline;
 }
 
