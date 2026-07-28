@@ -86,9 +86,8 @@ export default function EcosystemsFigure() {
               </div>
             </div>
 
-            {/* Sort toggle + the affordance hint that these rows are clickable. */}
+            {/* Sort toggle, right-aligned; the buttons name the ranking themselves. */}
             <div className="eco-controls">
-              <span className="eco-sort-label">Ranked By</span>
               <div className="eco-sort" role="group" aria-label="Rank vegetation types by">
                 <button
                   className={`eco-sort-btn${sortMode === 'pct' ? ' is-active' : ''}`}

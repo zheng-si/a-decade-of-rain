@@ -159,7 +159,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
   },
   {
     id: 'a-sau',
-    name: 'A Sầu Valley: sprayed eleven times',
+    name: 'A Sầu: sprayed eleven times',
     landmarks: [{ name: 'A Lưới', boundaryId: 'a-luoi', point: [107.1, 16.38] }],
     period: '1965–70',
     date: '1969-08-01',

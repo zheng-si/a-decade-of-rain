@@ -33,33 +33,25 @@
 
   /* ── type scale ────────────────────────────────────────────────────────
      ONE modular scale, site-wide. Fixed steps (px):
-       9 · 10 · 11 · 12 · 13 · 14 · 15 · 17 · 19 · 24 · 28
-     plus two fluid display steps (h1 masthead, section titles). Every
-     font-size in the CSS sits on a tick — no half-pixel one-offs.
-
-     h1  hook banner title        serif
-     h2  story-card title         serif
-     h3  story-card period/eyebrow serif, accent
-     lead hook dek                sans light
-     dek  card dek                sans medium
-     body card body               sans light
-     quote pull quote             serif
-     caption UI small print       sans
-     chip map label chips         sans semibold */
+       10 · 11 · 12 · 13 · 14 · 15 · 17 · 19 · 24 · 28
+     plus three fluid display steps:
+       clamp(27→38) section titles · clamp(30→44) statements/big % ·
+       clamp(40→72) masthead + wall figures.
+     Role ladder: 10–11 chart furniture and footnotes · 12 UI controls,
+     badges, labels · 13 body text · 14 deks and primary buttons ·
+     15 wall captions · 17 quotes and card deks (serif) · 19 card titles
+     (serif) · 24 section subtitles and card years (serif) · 28 stat
+     figures (serif). Every font-size sits on a tick — no one-offs. */
   --type-h1-size: clamp(40px, 6.5vw, 72px);
   --type-h1-lh: 1.02;
   --type-h2-size: 24px;
   --type-h2-lh: 1.14;
-  --type-h3-size: 19px;
-  --type-lead-size: 15px;
+  --type-h3-size: 24px; /* story-card year eyebrow — same tier as the title */
   --type-lead-lh: 1.68;
-  --type-dek-size: 14px;
-  --type-dek-lh: 1.4;
-  --type-body-size: 14px;
+  --type-body-size: 13px;
   --type-body-lh: 1.65;
   --type-quote-size: 17px;
   --type-quote-lh: 1.35;
-  --type-caption-size: 12px;
   --type-chip-size: 11px;
   --type-chip-weight: 600;
 

@@ -431,7 +431,7 @@
 }
 .story-rail-foot .story-rail-foot-more {
   margin: 0;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: var(--track-caps);
   text-transform: none;
@@ -654,7 +654,8 @@
 .story-hook-inner {
   position: relative;
   z-index: 2;
-  max-width: 720px;
+  /* Wide enough for the 24px subtitle to hold one line on desktop. */
+  max-width: 880px;
   /* Forest type on the warm banner passes AA everywhere on its own
      (see design-system.md), so no shadow is needed. */
 }
@@ -674,7 +675,7 @@
 .story-hook-sub {
   margin: 0 0 28px;
   font-family: var(--font-serif);
-  font-size: 19px;
+  font-size: 24px;
   font-weight: 400;
   letter-spacing: normal;
   color: var(--ink);
@@ -685,7 +686,7 @@
   margin: 0 auto;
   max-width: 560px;
   font-weight: 300;
-  font-size: var(--type-dek-size); /* one step down from lead per review */
+  font-size: 13px;
   line-height: var(--type-lead-lh);
   color: var(--ink);
   /* No single-word orphan line ("by year."); falls back gracefully. */
@@ -701,7 +702,7 @@
   margin: 42px 0 0;
   padding: 9px 18px;
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: var(--track-tight);
   color: var(--ink);
@@ -796,9 +797,10 @@
 
 .story-dek {
   margin: 0 0 12px;
-  font-weight: 500;
-  font-size: var(--type-dek-size);
-  line-height: var(--type-dek-lh);
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.4;
   color: var(--forest-text);
 }
 
@@ -885,7 +887,7 @@
   border-radius: 999px;
   background: transparent;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: var(--track-tight);
   color: var(--ink-soft);
@@ -922,7 +924,7 @@
 }
 
 .map-key-compass-n {
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 700;
   line-height: 1;
   color: var(--ink-soft);
@@ -1118,7 +1120,7 @@
 
 .fs-dek {
   margin: 0;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 1.6;
   color: var(--ink-soft);
   text-wrap: pretty;
@@ -1170,7 +1172,7 @@
 .rainbow-mode-btn {
   padding: 4px 12px;
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--ink-soft);
   background: none;
@@ -1321,7 +1323,7 @@
 
 .rainbow-card-tag {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.35;
   color: var(--ink-soft);
   /* Reserve two lines so switching agents never reflows the header. */
@@ -1352,8 +1354,8 @@
 }
 
 .rainbow-stat span {
-  font-size: 12px;
-  color: var(--ink-faint);
+  font-size: 13px;
+  color: var(--ink-soft);
 }
 
 .rainbow-defs {
@@ -1509,7 +1511,7 @@
 .eco-controls {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 10px;
   margin: 0 0 15px;
   flex-wrap: wrap;
@@ -1525,7 +1527,7 @@
 .eco-sort-btn {
   padding: 7px 13px;
   font-family: var(--font-sans);
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--ink-soft);
   background: none;
@@ -1540,12 +1542,6 @@
   background: var(--forest);
 }
 
-.eco-sort-label {
-  margin: 0 9px 0 0;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--ink-faint);
-}
 .eco-hint {
   margin: 0;
   font-size: 11px;
@@ -1726,7 +1722,7 @@
 .eco-headline strong {
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: clamp(32px, 4.2vw, 48px);
+  font-size: clamp(30px, 4vw, 44px);
   line-height: 1;
 }
 
@@ -1855,7 +1851,7 @@
 .wall-lede {
   margin: 0 0 8px;
   max-width: 340px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
   opacity: 0.86;
 }
@@ -1890,8 +1886,7 @@
 .wall-stat-l {
   display: block;
   font-family: var(--font-serif);
-  /* Playfair runs small on the body — 14px is its floor for readable captions. */
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.4;
   opacity: 0.88;
 }
@@ -1939,16 +1934,15 @@
 }
 .wall-consent p {
   margin: 0 0 8px;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 12px;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.96);
+  color: rgba(255, 255, 255, 0.88);
 }
 .wall-consent-btn {
   padding: 8px 17px;
   font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   letter-spacing: var(--track-tight);
   color: #b03222;
   background: #fff;
@@ -2145,7 +2139,7 @@
   flex-direction: column;
   /* One fixed floor for both faces, sized just over the tallest data face, so
      a card never changes height on flip and the three always line up. */
-  min-height: 404px;
+  min-height: 416px;
   padding: 18px 20px 14px;
   cursor: pointer;
   background: var(--paper-solid);
@@ -2378,7 +2372,7 @@
   /* Proportional figures on purpose: these are read as prose, and Public
      Sans's tabular digits (uniform full-width advance) read gappy here. */
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.42;
   color: var(--ink);
 }
@@ -2500,7 +2494,7 @@
 }
 .alt-family p {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.5;
   color: var(--ink-soft);
 }
@@ -2875,7 +2869,7 @@
   gap: 7px;
   padding: 6px 14px;
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--ink-soft);
   background: rgba(255, 255, 255, 0.6);
@@ -3051,7 +3045,7 @@
   margin: 0 0 10px;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 24px;
+  font-size: 19px;
   color: #fff;
 }
 .method-copy p {
@@ -3270,7 +3264,7 @@
 }
 .tl-card-tag {
   margin: 0;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 500;
   color: var(--tlc);
 }
@@ -3293,7 +3287,7 @@
 }
 .tl-card-text {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.55;
   color: var(--ink-soft);
 }
@@ -3398,7 +3392,7 @@
 .close-body {
   margin: 0 0 44px;
   max-width: 600px;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.7;
   color: rgba(255, 255, 255, 0.82);
 }
@@ -3487,7 +3481,7 @@
 }
 .close-ref-group li {
   padding: 4px 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.75);
   border-top: 1px solid rgba(255, 255, 255, 0.14);
@@ -3573,7 +3567,7 @@
   gap: 8px;
   padding: 9px 18px;
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
   letter-spacing: var(--track-tight);
   color: #fff;
