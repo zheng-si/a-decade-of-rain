@@ -14,7 +14,7 @@ html {
 }
 @media (min-width: 641px) and (max-width: 1600px) {
   html {
-    font-size: 14px;
+    font-size: 13.2px; /* = 82.5%, tuned by eye on a 14" MacBook */
   }
 }
 
