@@ -82,7 +82,7 @@ export const REF_GROUPS: RefGroup[] = [
     lines: [
       'The Land: U.S. Air Force and U.S. Army photographs (public domain); RANCH HAND Collection, Vietnam Archive, Texas Tech University',
       'The Body: Alexis Duclos and other photographers via Wikimedia Commons (Creative Commons)',
-      'The Actions and Methods: USAID Vietnam project photographs (public domain)',
+      'The Actions and Methods: U.S. Air Force and USAID Vietnam project photographs (public domain)',
     ],
   },
 ]
