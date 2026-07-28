@@ -511,7 +511,7 @@
   font-weight: 500;
   letter-spacing: var(--track-tight);
   color: var(--ink-soft);
-  font-variant-numeric: lining-nums tabular-nums;
+  /* Proportional figures: static labels, nothing to align digit-for-digit. */
   text-shadow: 0 1px 3px rgba(250, 249, 244, 0.95), 0 0 3px rgba(250, 249, 244, 0.95);
 }
 
@@ -2139,7 +2139,9 @@
   display: grid;
   grid-template-columns: repeat(3, minmax(240px, 300px));
   gap: 12px;
-  align-items: stretch;
+  /* `start`, NOT `stretch`: a stretched row would resize the resting cards
+     whenever a sibling opens. Heights stay pinned by the card's own floor. */
+  align-items: start;
 }
 
 /* Volume bar under the contamination fact: orange on the shared 0–500k m³
@@ -2161,9 +2163,9 @@
 .act2-card {
   display: flex;
   flex-direction: column;
-  /* One fixed floor for both faces, sized to the tallest data face, so a card
-     doesn't change height when it flips and open/rest cards always line up. */
-  min-height: 372px;
+  /* One fixed floor for both faces, sized just over the tallest data face, so
+     a card never changes height on flip and the three always line up. */
+  min-height: 404px;
   padding: 18px 20px 14px;
   cursor: pointer;
   background: var(--paper-solid);
@@ -2399,7 +2401,8 @@
   color: #5a7ca8;
 }
 .act2-facts dd {
-  font-variant-numeric: lining-nums tabular-nums;
+  /* Proportional figures on purpose: these are read as prose, and Public
+     Sans's tabular digits (uniform full-width advance) read gappy here. */
   margin: 0;
   font-size: 12px;
   line-height: 1.42;
@@ -2424,9 +2427,10 @@
 }
 
 .act2-closing {
-  /* Full content width, aligned with the card row above; `pretty` keeps the
-     last line from carrying a single word. */
+  /* Same measure as .fs-note below it; `pretty` keeps the last line from
+     carrying a single word. */
   margin: 24px 0 12px;
+  max-width: 760px;
   font-family: var(--font-serif);
   font-size: 19px;
   line-height: 1.45;
