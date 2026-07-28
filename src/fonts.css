@@ -132,6 +132,6 @@
 
 :root {
   --font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  /* SWITCH: 'Literata' / 'Gambarino' / 'Playfair Display' also declared. */
-  --font-serif: 'Gentium Book Plus', Georgia, 'Times New Roman', serif;
+  /* SWITCH: 'Literata' / 'Gentium Book Plus' / 'Gambarino' also declared. */
+  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
 }
