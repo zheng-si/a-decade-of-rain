@@ -243,11 +243,11 @@ export default function RainbowHerbicides({ years, series }: Props) {
                 {active ? (
                   <>
                     <dl className="rainbow-defs">
-                      <dt>Make-up</dt>
+                      <dt>Make-Up</dt>
                       <dd>{active.makeup}</dd>
                       <dt>Use</dt>
                       <dd>{active.use}</dd>
-                      <dt>What it left behind</dt>
+                      <dt>What It Left Behind</dt>
                       <dd>{active.legacy}</dd>
                     </dl>
                     <p className="rainbow-card-src">

@@ -88,7 +88,7 @@ export default function EcosystemsFigure() {
 
             {/* Sort toggle + the affordance hint that these rows are clickable. */}
             <div className="eco-controls">
-              <span className="eco-sort-label">Ranked by</span>
+              <span className="eco-sort-label">Ranked By</span>
               <div className="eco-sort" role="group" aria-label="Rank vegetation types by">
                 <button
                   className={`eco-sort-btn${sortMode === 'pct' ? ' is-active' : ''}`}
@@ -122,7 +122,7 @@ export default function EcosystemsFigure() {
                       <span className="eco-swatch" style={{ background: v.color }} />
                       <span className="eco-type-name">
                         {v.name}
-                        {!v.sourced && <span className="eco-est" title="estimate pending confirmation">est.</span>}
+                        {!v.sourced && <span className="eco-est" title="estimate pending confirmation">Est.</span>}
                       </span>
                       <span className="eco-type-pct">
                         {sortMode === 'pct' ? `${pct(v.sprayed, v.total)}%` : v.sprayed.toLocaleString()}

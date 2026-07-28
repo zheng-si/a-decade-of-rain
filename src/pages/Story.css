@@ -1619,9 +1619,7 @@
   margin-left: 6px;
   padding: 1px 5px;
   font-size: 10px;
-  font-weight: 700;
-  letter-spacing: var(--track-tight);
-  text-transform: uppercase;
+  font-weight: 500;
   color: var(--ink-faint);
   border: 1px solid var(--rule);
   border-radius: 3px;
@@ -2327,18 +2325,14 @@
   align-items: baseline;
   gap: 4px;
   padding: 3px 7px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: var(--track-caps);
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
   border-radius: 3px;
   color: #fff;
 }
 .act2-badge em {
   font-style: normal;
-  font-weight: 600;
-  letter-spacing: 0;
-  text-transform: none;
+  font-weight: 500;
   opacity: 0.85;
 }
 .act2-badge.is-completed {
@@ -3210,10 +3204,8 @@
 }
 .tl-band-status {
   padding: 0 8px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: var(--track-caps);
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 600;
   color: #fff;
   white-space: nowrap;
 }
@@ -3278,10 +3270,8 @@
 }
 .tl-card-tag {
   margin: 0;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: var(--track-caps);
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 500;
   color: var(--tlc);
 }
 .tl-card-stat {

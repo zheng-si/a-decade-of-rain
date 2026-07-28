@@ -130,7 +130,7 @@ export default function StoryNav() {
       </div>
 
       <div className="story-rail-foot">
-        <p>Data and reporting</p>
+        <p>Data and Reporting</p>
         <img src={usaidWhite} alt="USAID" />
         <p className="story-rail-foot-more">UNDP · U.S. National Archives</p>
       </div>

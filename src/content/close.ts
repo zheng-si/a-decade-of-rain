@@ -22,28 +22,28 @@ export interface CloseAction {
 export const CLOSE_ACTIONS: CloseAction[] = [
   {
     name: 'USAID Vietnam',
-    role: 'Official programme',
+    role: 'Official Programme',
     desc: 'The joint U.S.–Vietnam remediation effort: fact sheets, progress and project documents.',
     action: 'Follow the work',
     url: 'https://vn.usembassy.gov/fact-sheets-dioxin-remediation-at-bien-hoa-airbase-area/',
   },
   {
     name: 'VAVA',
-    role: 'Victims’ association',
+    role: 'Victims’ Association',
     desc: 'The Vietnam Association for Victims of Agent Orange: 400,000 members, chapters in all 63 provinces, direct support to affected families.',
     action: 'Donate',
     url: 'http://www.vava.org.vn/',
   },
   {
     name: 'VAORRC',
-    role: 'U.S. relief campaign',
+    role: 'U.S. Relief Campaign',
     desc: 'The Vietnam Agent Orange Relief & Responsibility Campaign; tax-deductible giving via Veterans For Peace.',
     action: 'Donate (U.S.)',
     url: 'https://www.vn-agentorange.org/',
   },
   {
     name: 'War Legacies Project',
-    role: 'Research · advocacy',
+    role: 'Research · Advocacy',
     desc: 'Two decades of fieldwork documenting Agent Orange’s legacy and supporting families in rural Vietnam and Laos.',
     action: 'Get involved',
     url: 'https://www.warlegacies.org/',
@@ -70,11 +70,11 @@ export const REF_GROUPS: RefGroup[] = [
     ],
   },
   {
-    title: 'Reports and fact sheets',
+    title: 'Reports and Fact Sheets',
     sourceIds: ['usaf_ranchhand', 'usaid_danang', 'usembassy_bienhoa', 'undp_hotspots', 'va_basics', 'aspen_whatis', 'aspen_bienhoa'],
   },
   {
-    title: 'News and features',
+    title: 'News and Features',
     sourceIds: ['yale_e360', 'pulitzer_forest', 'va_news', 'aorecord_hotspots'],
   },
   {
