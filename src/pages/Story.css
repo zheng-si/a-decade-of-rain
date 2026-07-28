@@ -1718,13 +1718,13 @@
 /* Vegetation fills (must match ecosystems.ts colours). The three palest
    families — forest, grassland, rubber — are deepened a touch from the raw
    Figma swatches so the legend chips and the selected map both read. */
-.vt-forest { fill: #8fb4a0; }
-.vt-slashburn { fill: #859f97; }
-.vt-grassland { fill: #c3d888; }
-.vt-rice { fill: #544685; }
-.vt-mangrove { fill: #aba1cd; }
-.vt-marsh { fill: #61c1c2; }
-.vt-rubber { fill: #ddc21a; }
+.vt-forest { fill: #90a697; }
+.vt-slashburn { fill: #8c9b94; }
+.vt-grassland { fill: #b8c29a; }
+.vt-rice { fill: #6a6480; }
+.vt-mangrove { fill: #a29cb5; }
+.vt-marsh { fill: #7fa8a9; }
+.vt-rubber { fill: #c0ac5a; }
 
 /* Two-tone model (per the Figma design): by DEFAULT every type sits at 20%
    opacity — a pale wash of its own colour. Selecting a type lifts just that
@@ -2069,13 +2069,13 @@
   cursor: pointer;
 }
 .act2-pin.is-completed {
-  --pin: #3f8f5f;
+  --pin: #4e554e;
 }
 .act2-pin.is-ongoing {
   --pin: var(--accent-deep);
 }
 .act2-pin.is-contained {
-  --pin: #5a7ca8;
+  --pin: #7a8076;
 }
 .act2-dot {
   position: absolute;
@@ -2187,13 +2187,13 @@
   transition: box-shadow 0.2s;
 }
 .act2-card.is-active.is-completed {
-  box-shadow: 0 0 0 2px #3f8f5f, 0 6px 18px rgba(63, 143, 95, 0.18);
+  box-shadow: 0 0 0 2px #4e554e, 0 6px 18px rgba(60, 66, 60, 0.16);
 }
 .act2-card.is-active.is-ongoing {
   box-shadow: 0 0 0 2px var(--accent-deep), 0 6px 18px rgba(207, 55, 32, 0.16);
 }
 .act2-card.is-active.is-contained {
-  box-shadow: 0 0 0 2px #5a7ca8, 0 6px 18px rgba(90, 124, 168, 0.18);
+  box-shadow: 0 0 0 2px #7a8076, 0 6px 18px rgba(110, 116, 106, 0.16);
 }
 
 /* Resting face: a status-washed site photograph. */
@@ -2222,7 +2222,7 @@
   mix-blend-mode: multiply;
 }
 .act2-card.is-completed .act2-photo-veil {
-  background: linear-gradient(180deg, rgba(38, 78, 54, 0.86) 0%, rgba(62, 110, 80, 0.68) 55%, rgba(84, 134, 101, 0.6) 100%);
+  background: linear-gradient(180deg, rgba(48, 54, 48, 0.86) 0%, rgba(72, 78, 70, 0.68) 55%, rgba(94, 100, 90, 0.6) 100%);
 }
 .act2-card.is-ongoing .act2-photo-veil {
   background: linear-gradient(180deg, rgba(198, 68, 48, 0.84) 0%, rgba(232, 108, 82, 0.66) 55%, rgba(243, 142, 108, 0.58) 100%);
@@ -2324,13 +2324,13 @@
   flex: 1;
 }
 .act2-card.is-completed {
-  border-top-color: #3f8f5f;
+  border-top-color: #4e554e;
 }
 .act2-card.is-ongoing {
   border-top-color: var(--accent);
 }
 .act2-card.is-contained {
-  border-top-color: #5a7ca8;
+  border-top-color: #7a8076;
 }
 
 .act2-card-head {
@@ -2367,13 +2367,13 @@
   opacity: 0.85;
 }
 .act2-badge.is-completed {
-  background: #3f8f5f;
+  background: #4e554e;
 }
 .act2-badge.is-ongoing {
   background: var(--accent-deep);
 }
 .act2-badge.is-contained {
-  background: #5a7ca8;
+  background: #7a8076;
 }
 
 .act2-place {
@@ -2397,13 +2397,13 @@
   font-weight: 500;
 }
 .act2-card.is-completed .act2-facts dt {
-  color: #3f8f5f;
+  color: #4e554e;
 }
 .act2-card.is-ongoing .act2-facts dt {
   color: var(--accent-deep);
 }
 .act2-card.is-contained .act2-facts dt {
-  color: #5a7ca8;
+  color: #6b7065;
 }
 .act2-facts dd {
   /* Proportional figures on purpose: these are read as prose, and Public
@@ -2470,8 +2470,8 @@
    theme green, and gets a checkmark per retained alternative in its top-right
    corner (Carbon checkmark--filled). */
 .alt-family.is-kept {
-  background: var(--fam);
-  border-color: var(--fam);
+  background: var(--ink);
+  border-color: var(--ink);
 }
 .alt-family.is-kept h3,
 .alt-family.is-kept p {
@@ -2511,16 +2511,16 @@
   animation-delay: 0.08s;
 }
 .alt-family.is-containment {
-  --fam: #6a9c81;
-  border-top-color: #8fb4a0;
+  --fam: #9ba294;
+  border-top-color: #aeb4a6;
 }
 .alt-family.is-hybrid {
-  --fam: #4d7d63;
-  border-top-color: #5a8a6f;
+  --fam: #6b7368;
+  border-top-color: #7c8377;
 }
 .alt-family.is-treatment {
-  --fam: #2f5c44;
-  border-top-color: #2f5c44;
+  --fam: #3e463f;
+  border-top-color: #3e463f;
 }
 .alt-family h3 {
   margin: 0 0 5px;
@@ -2746,13 +2746,13 @@
   font-weight: 700;
 }
 .alt-band-group.is-containment {
-  color: #6a9c81;
+  color: #6b7368;
 }
 .alt-band-group.is-hybrid {
-  color: #4d7d63;
+  color: #4e554e;
 }
 .alt-band-group.is-treatment {
-  color: #2f5c44;
+  color: #33372f;
 }
 
 /* Full-width USAID reveal button; once revealed it becomes the green
@@ -2774,24 +2774,24 @@
   font-size: 14px;
   font-weight: 600;
   color: #fff;
-  background: #5abe88;
-  border: 1px solid #5abe88;
+  background: var(--ink);
+  border: 1px solid var(--ink);
   border-radius: 5px;
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 .alt-reveal-btn:hover {
-  background: #4bae79;
-  border-color: #4bae79;
+  background: #182920;
+  border-color: #182920;
 }
 .alt-reveal-btn.is-banner {
   background: #fff;
-  border-color: #5abe88;
-  color: #3f9e6c;
+  border-color: #4e554e;
+  color: var(--ink);
 }
 .alt-reveal-btn.is-banner:hover {
-  background: #f3faf6;
+  background: #f5f5f0;
 }
 
 .alt-verdicts {
@@ -2818,10 +2818,10 @@
   line-height: 1;
 }
 .alt-verdict.is-kept .alt-verdict-mark {
-  color: #3f9e6c;
+  color: var(--accent-deep);
 }
 .alt-verdict.is-cut .alt-verdict-mark {
-  color: var(--accent);
+  color: var(--ink-faint);
 }
 .alt-verdict-chip {
   width: 100%;
@@ -2834,10 +2834,10 @@
   color: #fff;
 }
 .alt-verdict.is-kept .alt-verdict-chip {
-  background: #5abe88;
+  background: var(--accent-chip);
 }
 .alt-verdict.is-cut .alt-verdict-chip {
-  background: var(--accent);
+  background: #6b7065;
   text-align: left;
 }
 
@@ -2919,7 +2919,7 @@
   border-color: #cfccc0;
 }
 .method-tab.is-landfill {
-  --mth: #2c5a40;
+  --mth: #4e554e;
 }
 .method-tab.is-thermal {
   --mth: #d64a37;
@@ -2968,7 +2968,7 @@
   flex: 0.45;
 }
 .method-panel.is-landfill.is-open {
-  background: linear-gradient(180deg, #16301f 0%, #2c5a40 55%, #47795c 100%);
+  background: linear-gradient(180deg, #22261f 0%, #3e463f 55%, #5c645b 100%);
 }
 .method-panel.is-thermal.is-open {
   background: linear-gradient(180deg, #c93f2d 0%, #ec5844 50%, #f4926f 100%);
@@ -3020,7 +3020,7 @@
   mix-blend-mode: multiply;
 }
 .method-panel.is-landfill .method-rest-veil {
-  background: linear-gradient(180deg, rgba(38, 78, 54, 0.86) 0%, rgba(62, 110, 80, 0.68) 55%, rgba(84, 134, 101, 0.6) 100%);
+  background: linear-gradient(180deg, rgba(48, 54, 48, 0.86) 0%, rgba(72, 78, 70, 0.68) 55%, rgba(94, 100, 90, 0.6) 100%);
 }
 .method-panel.is-thermal .method-rest-veil {
   background: linear-gradient(180deg, rgba(198, 68, 48, 0.84) 0%, rgba(232, 108, 82, 0.66) 55%, rgba(243, 142, 108, 0.58) 100%);
@@ -3167,10 +3167,10 @@
 
 /* Project colours, matching the three base cards. */
 .is-phucat {
-  --tlc: #5a7ca8;
+  --tlc: #7a8076;
 }
 .is-danang {
-  --tlc: #3f8f5f;
+  --tlc: #4e554e;
 }
 .is-bienhoa {
   --tlc: var(--accent-deep);
