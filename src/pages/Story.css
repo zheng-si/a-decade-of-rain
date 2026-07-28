@@ -665,8 +665,8 @@
 
 .story-hook-title {
   margin: 0 0 14px;
-  font-family: var(--font-display);
-  font-weight: 700;
+  font-family: var(--font-serif);
+  font-weight: 400;
   font-size: var(--type-h1-size);
   line-height: var(--type-h1-lh);
   letter-spacing: 0.01em;
@@ -1128,8 +1128,8 @@
 
 .fs-title {
   margin: 0 0 14px;
-  font-family: var(--font-display);
-  font-weight: 700;
+  font-family: var(--font-serif);
+  font-weight: 400;
   font-size: clamp(30px, 4.4vw, 46px);
   line-height: 1.05;
   color: var(--ink);
@@ -1361,8 +1361,7 @@
 }
 
 .rainbow-stat strong {
-  font-family: var(--font-display);
-  font-weight: 700;
+  font-family: var(--font-serif);
   font-size: 30px;
   line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -1768,8 +1767,8 @@
 }
 
 .eco-headline strong {
-  font-family: var(--font-display);
-  font-weight: 700;
+  font-family: var(--font-serif);
+  font-weight: 400;
   font-size: clamp(38px, 5vw, 58px);
   line-height: 1;
 }
@@ -1881,8 +1880,8 @@
 }
 .wall-value {
   margin: 0 0 12px;
-  font-family: var(--font-display);
-  font-weight: 700;
+  font-family: var(--font-serif);
+  font-weight: 400;
   font-size: clamp(48px, 7vw, 96px);
   line-height: 0.98;
 }
@@ -1923,8 +1922,8 @@
 .wall-stat-v {
   display: block;
   margin-bottom: 4px;
-  font-family: var(--font-display);
-  font-weight: 700;
+  font-family: var(--font-serif);
+  font-weight: 400;
   font-size: 31px;
   line-height: 1;
 }

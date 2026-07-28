@@ -91,7 +91,6 @@ export const COLOPHON = {
   lines: [
     'A story about what fell, what it broke, and what it takes to clean it up.',
     'Built with React, MapLibre GL and Scrollama.',
-    'Set in Danh Đá — a revival of Saigon sign lettering by Republish (Behalf Studio) — with Gambarino and Public Sans.',
   ],
   credit: 'Designed & built by Si Zheng',
   email: 'zhengsi0709@gmail.com',
