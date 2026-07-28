@@ -46,12 +46,12 @@ export const WALLS: ConsequenceWall[] = [
   {
     key: 'land',
     theme: 'eco',
-    value: '3.1M ha',
+    value: '3.1M\u00A0ha',
     label: 'of forest and mangrove stripped bare',
     stats: [
       { value: '~36%', label: 'of the south’s mangrove forest destroyed' },
       { value: '4×', label: 'some forest sprayed four or more times' },
-      { value: '50+ yrs', label: 'and the worst-hit land is still bare' },
+      { value: '50+\u00A0yrs', label: 'and the worst-hit land is still bare' },
     ],
     lede: 'The herbicides broke down in weeks, but the forests did not come back. Half a century on, the worst-hit mangroves and hillsides still have not recovered.',
     sourceId: 'stellman_2003',
@@ -69,7 +69,7 @@ export const WALLS: ConsequenceWall[] = [
     stats: [
       { value: '~3M', label: 'Vietnamese with Agent Orange–linked illness' },
       { value: '4', label: 'generations affected, and counting' },
-      { value: '7–11 yrs', label: 'dioxin’s half-life in the human body' },
+      { value: '7–11\u00A0yrs', label: 'dioxin’s half-life in the human body' },
     ],
     lede: 'Dioxin lingers in the body for years and crosses into the next generation. The toll is now counted across a second, third and fourth generation.',
     sourceId: 'aspen_whatis',

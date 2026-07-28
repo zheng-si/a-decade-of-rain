@@ -70,8 +70,8 @@ export const METHODS: Method[] = [
   {
     key: 'thermal',
     title: 'Ex-situ Thermal Treatment',
-    tagline: 'Cook the dioxin out of the soil at roughly 335 °C.',
-    body: 'Thermal treatment destroys the dioxin instead of storing it, and it is far more involved. An enclosed pile is built above ground; the contaminated soil is excavated and loaded in; heater wells cook it to roughly 335 °C while the offgas is collected and cleaned. Used at Đà Nẵng, the full cycle of building, loading, heating and unloading ran about four years.',
+    tagline: 'Cook the dioxin out of the soil at roughly 335\u00A0°C.',
+    body: 'Thermal treatment destroys the dioxin instead of storing it, and it is far more involved. An enclosed pile is built above ground; the contaminated soil is excavated and loaded in; heater wells cook it to roughly 335\u00A0°C while the offgas is collected and cleaned. Used at Đà Nẵng, the full cycle of building, loading, heating and unloading ran about four years.',
     caption: 'Ex-situ thermal treatment pile, layered structure',
     img: thermalImg,
     photo: thermalPhoto,

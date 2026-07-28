@@ -32,6 +32,11 @@
   --accent-line: #e8443a; /* map linework on paper · 3.5:1 (non-text ≥3) */
 
   /* ── type scale ────────────────────────────────────────────────────────
+     ONE modular scale, site-wide. Fixed steps (px):
+       9 · 10 · 11 · 12 · 13 · 14 · 15 · 17 · 19 · 24 · 28
+     plus two fluid display steps (h1 masthead, section titles). Every
+     font-size in the CSS sits on a tick — no half-pixel one-offs.
+
      h1  hook banner title        serif
      h2  story-card title         serif
      h3  story-card period/eyebrow serif, accent
@@ -41,14 +46,14 @@
      quote pull quote             serif
      caption UI small print       sans
      chip map label chips         sans semibold */
-  --type-h1-size: clamp(44px, 8vw, 92px);
+  --type-h1-size: clamp(40px, 6.5vw, 72px);
   --type-h1-lh: 1.02;
-  --type-h2-size: 26px;
+  --type-h2-size: 24px;
   --type-h2-lh: 1.14;
-  --type-h3-size: 23px;
-  --type-lead-size: 16px;
+  --type-h3-size: 19px;
+  --type-lead-size: 15px;
   --type-lead-lh: 1.68;
-  --type-dek-size: 15px;
+  --type-dek-size: 14px;
   --type-dek-lh: 1.4;
   --type-body-size: 14px;
   --type-body-lh: 1.65;
@@ -57,6 +62,19 @@
   --type-caption-size: 12px;
   --type-chip-size: 11px;
   --type-chip-weight: 600;
+
+  /* ── tracking (letter-spacing), three ticks ────────────────────────────
+     0.02em small-caps-adjacent emphasis · 0.06em uppercase tags/badges ·
+     0.1em wide uppercase (eyebrow-scale). Serif display sets solid (no
+     tracking). */
+  --track-tight: 0.02em;
+  --track-caps: 0.06em;
+  --track-caps-wide: 0.1em;
+
+  /* ── numerals ──────────────────────────────────────────────────────────
+     RULE: any number that aligns, ticks, or updates (stats, counters,
+     axes, readouts) sets `font-variant-numeric: tabular-nums`; numbers
+     inside running prose stay proportional. */
 }
 
 .app {
@@ -85,7 +103,7 @@
   padding: 5px 13px;
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: var(--track-tight);
   color: var(--ink-soft);
   text-decoration: none;
   border-radius: 4px;
@@ -196,12 +214,14 @@
 }
 
 .timeline-date {
+  font-variant-numeric: tabular-nums;
   font-size: 17px;
   font-weight: 600;
   color: var(--ink);
 }
 
 .timeline-stat {
+  font-variant-numeric: tabular-nums;
   font-size: 12px;
   color: var(--ink-faint);
 }
@@ -276,7 +296,7 @@
   background: rgba(255, 255, 255, 0.6);
   color: var(--ink-soft);
   font-family: var(--font-sans);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   padding: 6px 12px;
   border-radius: 999px;
@@ -321,9 +341,9 @@
   margin: 0 0 14px;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 27px;
+  font-size: 24px;
   line-height: 1.14;
-  letter-spacing: 0.01em;
+  letter-spacing: normal;
   color: var(--ink);
 }
 
@@ -341,7 +361,7 @@
 .intro-card .lede {
   margin: 0;
   font-weight: 300;
-  font-size: 13.5px;
+  font-size: 13px;
   line-height: 1.62;
   color: var(--ink-soft);
 }
