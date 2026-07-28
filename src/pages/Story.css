@@ -419,10 +419,8 @@
 }
 .story-rail-foot p {
   margin: 0 0 7px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: var(--track-caps);
-  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 500;
   color: rgba(255, 255, 255, 0.72);
 }
 .story-rail-foot img {
@@ -549,7 +547,6 @@
   font-size: 19px;
   line-height: 1;
   color: #fff;
-  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .timeline-scan-unit {
@@ -783,11 +780,9 @@
 }
 
 .story-stat strong {
-  font-variant-numeric: lining-nums tabular-nums;
   color: var(--accent-bright); /* AA on the dark stat pill */
   font-size: 13px;
   font-weight: 700;
-  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .story-name {
@@ -871,10 +866,8 @@
    chart's Accumulation/Each-year toggle. */
 .map-key-view-label {
   margin: 0 0 5px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: var(--track-caps);
-  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 500;
   color: var(--ink-faint);
 }
 .map-key-view {
@@ -967,7 +960,6 @@
   font-weight: 600;
   line-height: 1;
   color: var(--ink-soft);
-  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .map-key-heat {
@@ -1221,7 +1213,6 @@
   font-family: var(--font-sans);
   font-size: 10px;
   letter-spacing: -0.01em;
-  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .rainbow-band {
@@ -1357,7 +1348,6 @@
   font-weight: 400; /* big serif figures set regular site-wide, never bold */
   font-size: 28px;
   line-height: 1;
-  font-variant-numeric: lining-nums tabular-nums;
   color: var(--ink);
 }
 
@@ -1372,10 +1362,8 @@
 
 .rainbow-defs dt {
   margin: 20px 0 5px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: var(--track-caps);
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 500;
   color: var(--agent-ink);
 }
 
@@ -1452,7 +1440,6 @@
   height: 16px;
   font-size: 11px;
   color: var(--ink-soft);
-  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .eco-scale-ticks span {
@@ -1555,10 +1542,8 @@
 
 .eco-sort-label {
   margin: 0 9px 0 0;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: var(--track-caps);
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 500;
   color: var(--ink-faint);
 }
 .eco-hint {
@@ -1646,7 +1631,6 @@
   font-size: 12px;
   font-weight: 700;
   color: var(--ink-soft);
-  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .eco-type.is-on .eco-type-name,
@@ -1812,7 +1796,6 @@
 }
 
 .rainbow-bd-val {
-  font-variant-numeric: lining-nums tabular-nums;
   font-weight: 700;
 }
 
@@ -1899,7 +1882,6 @@
   display: block;
 }
 .wall-stat-v {
-  font-variant-numeric: lining-nums tabular-nums;
   display: block;
   margin-bottom: 4px;
   font-family: var(--font-serif);
@@ -2386,10 +2368,8 @@
 }
 .act2-facts dt {
   margin: 0 0 3px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: var(--track-caps);
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 500;
 }
 .act2-card.is-completed .act2-facts dt {
   color: #3f8f5f;
@@ -2606,7 +2586,6 @@
   flex: 0 0 var(--alt-gutter-l);
   font-size: 12px;
   font-weight: 600;
-  font-variant-numeric: lining-nums tabular-nums;
 }
 .alt-axis.is-co2 {
   flex: 0 0 var(--alt-gutter-r);
@@ -3313,7 +3292,6 @@
   flex-wrap: wrap;
 }
 .tl-card-stat strong {
-  font-variant-numeric: lining-nums tabular-nums;
   font-family: var(--font-serif);
   font-weight: 500;
   font-size: 19px;
@@ -3463,10 +3441,8 @@
 }
 .close-action-role {
   margin: 0 0 8px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: var(--track-caps);
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 500;
   color: rgba(255, 255, 255, 0.6);
 }
 .close-action-name {
@@ -3510,10 +3486,8 @@
 }
 .close-ref-group h3 {
   margin: 0 0 9px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: var(--track-caps);
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
   color: #9fd4b4;
 }
 .close-ref-group ul {

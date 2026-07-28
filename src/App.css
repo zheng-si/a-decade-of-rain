@@ -72,9 +72,10 @@
   --track-caps-wide: 0.1em;
 
   /* ── numerals ──────────────────────────────────────────────────────────
-     RULE: any number that aligns, ticks, or updates (stats, counters,
-     axes, readouts) sets `font-variant-numeric: tabular-nums`; numbers
-     inside running prose stay proportional. */
+     RULE: proportional lining figures everywhere — body sets `lining-nums`
+     (index.css) and it inherits site-wide. No `tabular-nums` anywhere:
+     Public Sans's tabular digits carry a uniform full-width advance that
+     reads gappy, and nothing in the site aligns digits column-on-column. */
 }
 
 .app {
@@ -214,14 +215,12 @@
 }
 
 .timeline-date {
-  font-variant-numeric: lining-nums tabular-nums;
   font-size: 17px;
   font-weight: 600;
   color: var(--ink);
 }
 
 .timeline-stat {
-  font-variant-numeric: lining-nums tabular-nums;
   font-size: 12px;
   color: var(--ink-faint);
 }
