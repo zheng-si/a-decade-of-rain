@@ -33,12 +33,12 @@ export const ALT_FAMILIES: Record<AltFamily, { title: string; blurb: string; met
   hybrid: {
     title: 'Hybrid',
     blurb: 'Split the soil by concentration: contain what sits below a dioxin threshold, treat the worst of it thermally.',
-    methodChips: ['Landfill + Ex Situ Tch'],
+    methodChips: ['Landfill + Ex Situ TCH'],
   },
   treatment: {
     title: 'Treatment only',
     blurb: 'Destroy the dioxin in every cubic metre. The most thorough option, and by far the most expensive.',
-    methodChips: ['Incineration', 'Ex Situ Tch', 'MCD'],
+    methodChips: ['Incineration', 'Ex Situ TCH', 'MCD'],
   },
 }
 
@@ -56,7 +56,7 @@ export const ALTERNATIVES: Alternative[] = [
   {
     key: 'hybrid2500',
     label: 'Landfill + thermal, 2,500 ppt split',
-    chartLines: ['Landfill < 2500 PPT +', 'Ex Situ Tch > 2500 PPT'],
+    chartLines: ['Landfill < 2,500 ppt +', 'Ex Situ TCH > 2,500 ppt'],
     name: 'Hybrid: contain below 2,500 ppt, treat above',
     family: 'hybrid',
     costM: 240,
@@ -66,7 +66,7 @@ export const ALTERNATIVES: Alternative[] = [
   {
     key: 'hybrid1200',
     label: 'Landfill + thermal, 1,200 ppt split',
-    chartLines: ['Landfill < 1200 PPT +', 'Ex Situ Tch > 1200 PPT'],
+    chartLines: ['Landfill < 1,200 ppt +', 'Ex Situ TCH > 1,200 ppt'],
     name: 'Hybrid: contain below 1,200 ppt, treat above',
     family: 'hybrid',
     costM: 335,
@@ -87,7 +87,7 @@ export const ALTERNATIVES: Alternative[] = [
   {
     key: 'thermal',
     label: 'Ex-situ thermal',
-    chartLines: ['Ex Situ Tch (Thermal', 'Conducting Heating)'],
+    chartLines: ['Ex Situ TCH (Thermal', 'Conductive Heating)'],
     name: 'Ex-situ thermal treatment (conductive heating)',
     family: 'treatment',
     costM: 535,
@@ -115,8 +115,8 @@ export const ALTS = {
   chartTitle: 'What each alternative costs, and what it emits',
   arrow: 'Increasing cost and complexity',
   revealLabel: 'Find out what alternatives USAID retained',
-  revealBanner: 'After screening, 3 alternatives are retained',
+  revealBanner: 'After screening, three alternatives are retained',
   retainedLabel: 'Retained',
-  note: 'Cost and CO2 figures are rounded, indicative values from the USAID environmental assessment for Biên Hòa, for comparing alternatives rather than quoting budgets.',
+  note: 'Cost and CO₂ figures are rounded, indicative values from the USAID environmental assessment for Biên Hòa, for comparing alternatives rather than quoting budgets.',
   sourceId: 'usembassy_bienhoa',
 }

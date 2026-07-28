@@ -59,7 +59,7 @@ Licensed **MIT, © 2026 Andrew Stellman**. Pinned to commit
 - `gallons` — recorded at mission level in HERBS, so many individual legs read
   `0`; the heat map weights by gallons, which is correct for spray *intensity*.
 
-## `hotspots.ts` — dioxin hotspot airbases
+## `hotspots.ts` — dioxin hotspot air bases
 
-Hand-curated former US airbases that are the focus of post-war remediation
+Hand-curated former U.S. air bases that are the focus of post-war remediation
 (Da Nang, Bien Hoa, Phu Cat). See file for per-site notes.

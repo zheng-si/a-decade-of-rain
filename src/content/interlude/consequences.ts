@@ -53,14 +53,14 @@ export const WALLS: ConsequenceWall[] = [
     stats: [
       { value: '≈36%', label: 'of the south’s mangrove forest destroyed' },
       { value: '4×', label: 'some forest sprayed four or more times' },
-      { value: '50 yrs+', label: 'and the worst-hit land is still bare' },
+      { value: '50+ yrs', label: 'and the worst-hit land is still bare' },
     ],
     lede: 'The herbicides broke down in weeks, but the forests did not come back. Half a century on, the worst-hit mangroves and hillsides still have not recovered.',
     sourceId: 'stellman_2003',
     photos: [
       { src: land1, alt: 'A C-123 aircraft spraying defoliant over dense forest', caption: 'A U.S. Air Force C-123 lays a swath of defoliant over triple-canopy forest.', credit: 'U.S. Air Force' },
       { src: land4, alt: 'Three aircraft spraying herbicide in formation', caption: 'Three UC-123s lay parallel swaths of herbicide in a single pass.', credit: 'U.S. Air Force' },
-      { src: land3, alt: 'Aerial view of sprayed mangrove forest, 1968', caption: 'Aerial view of mangrove sprayed in the Rừng Sác, III Corps, 1968.', credit: 'RANCH HAND Collection, Vietnam Archive, Texas Tech University' },
+      { src: land3, alt: 'Aerial view of sprayed mangrove forest, 1968', caption: 'Aerial view of mangrove sprayed in the Rừng Sác, Military Region III, 1968.', credit: 'RANCH HAND Collection, Vietnam Archive, Texas Tech University' },
     ],
   },
   {

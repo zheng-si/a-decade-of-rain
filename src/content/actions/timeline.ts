@@ -44,7 +44,7 @@ export const TL_MOMENTS: TlMoment[] = [
     year: '2009',
     project: 'programme',
     tag: 'The handshake',
-    body: 'USAID and Vietnam’s Office 33 sign the MOU framing the Đà Nẵng project; assessment of the contamination begins.',
+    body: 'USAID and Vietnam’s Office 33 sign the memorandum of understanding that frames the Đà Nẵng project; assessment of the contamination begins.',
   },
   {
     year: '2011',
@@ -96,7 +96,7 @@ export const TL_MOMENTS: TlMoment[] = [
     project: 'bienhoa',
     tag: 'The big one begins',
     milestone: true,
-    stat: { value: '500,000 m³', label: 'roughly four times Đà Nẵng' },
+    stat: { value: '500,000 m³', label: 'roughly 4× Đà Nẵng' },
     body: 'The United States and Vietnam launch the cleanup at Biên Hòa.',
   },
   {
@@ -123,6 +123,6 @@ export const TIMELINE_HEAD = {
   eyebrow: 'Act II · The timeline',
   title: 'Remediation Project Timeline',
   dek: 'From a signature to a finished cleanup, and into a bigger, unfinished one. Two decades of work at a glance.',
-  note: 'Milestones from USAID and U.S. Embassy Vietnam fact sheets, the UNDP three-hotspots report, and 2024-25 news coverage of the Biên Hòa project.',
+  note: 'Milestones from USAID and U.S. Embassy Vietnam fact sheets, the UNDP three-hotspots report, and 2024–25 news coverage of the Biên Hòa project.',
   sourceId: 'usaid_danang',
 }

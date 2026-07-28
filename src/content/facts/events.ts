@@ -3,9 +3,11 @@
 // HERBS dataset (see scripts/build-spray-data.mjs); facts and quotes are sourced
 // via sources.ts. Copy is editorial and meant to be revised.
 //
-// Quotes flagged `pending` still need their exact wording checked against the
-// primary source (blocked from the build sandbox until the source domains are
-// reachable).
+// EDITORIAL RULE — direct quotes: only wording verified against the primary
+// source may appear inside quotation marks. Unverified material is carried as
+// attributed paraphrase in the body instead (see the A Sầu node).
+// Terminology: the HERBS dataset counts spray RUNS (one aircraft's spray pass);
+// "mission" is reserved for sourced mission counts.
 
 export interface Camera {
   center: [number, number]
@@ -18,7 +20,6 @@ export interface Quote {
   text: string
   speaker: string
   sourceId: string
-  pending?: boolean
 }
 
 export interface City {
@@ -84,13 +85,13 @@ export const FACTS_EVENTS: StoryEvent[] = [
       { lng: 106.82, lat: 10.97, label: 'Biên Hòa · first mission, Jan 1962', leader: 250 },
     ],
     dek: 'Operation Ranch Hand, the decade of defoliation, starts small.',
-    body: 'The first test spray runs on 10 August 1961 near Đắk Tô in the central highlands; the first official mission follows in January 1962 along Route 15 toward Biên Hòa. The aim: strip away the jungle canopy that hid supply lines and ambushes. Just 107 missions fly in 1962, the quiet start of a decade-long campaign.',
+    body: 'The first test spray runs on 10 August 1961 near Đắk Tô in the central highlands; the first official mission follows in January 1962 along Route 15 toward Biên Hòa. The aim: strip away the jungle canopy that hid supply lines and ambushes. Only 70 spray runs are recorded in 1962, the quiet start of a decade-long campaign.',
     quote: {
       text: 'Only we can prevent forests.',
       speaker: 'Operation Ranch Hand squadron motto',
       sourceId: 'usaf_ranchhand',
     },
-    stat: { value: '107', label: 'missions in 1962' },
+    stat: { value: '70', label: 'spray runs recorded in 1962' },
   },
   {
     id: 'warzone-d',
@@ -106,10 +107,10 @@ export const FACTS_EVENTS: StoryEvent[] = [
       { name: 'Biên Hòa', lng: 106.82, lat: 10.97 },
     ],
     dek: 'Defoliation becomes routine northeast of Sài Gòn.',
-    body: 'As US ground forces surge, spraying escalates across the guerrilla base areas known as War Zone D. In 1966 the campaign jumps to 2.6 million gallons: Agent Orange soaking the forest that hid the trails and camps.',
+    body: 'As U.S. ground forces surge, spraying escalates across the guerrilla base areas known as War Zone D. In 1966 the campaign jumps to 2.6 million gallons: Agent Orange soaking the forest that hid the trails and camps.',
     quote: {
       text: 'We saw this awful poison being sprayed almost every day but were told it was just bug spray and not to worry.',
-      speaker: 'US veteran, C-130A crew (1968–70)',
+      speaker: 'U.S. veteran, C-130A crew (1968–70)',
       sourceId: 'va_news',
     },
     stat: { value: '2.6M', label: 'gallons in 1966' },
@@ -152,14 +153,8 @@ export const FACTS_EVENTS: StoryEvent[] = [
       { name: 'Cà Mau', lng: 105.15, lat: 9.18 },
       { name: 'Cần Thơ', lng: 105.78, lat: 10.03 },
     ],
-    dek: 'The coastal forests of Cà Mau and the Rung Sát.',
-    body: 'Mangroves proved catastrophically fragile: a single spraying could kill a whole forest. From the Rung Sát shipping channels to the Cà Mau peninsula, some 3.1 million hectares of forest and mangrove were defoliated between Quảng Trị and Cà Mau, damage later branded an "ecocide."',
-    quote: {
-      text: 'total annihilation of the vegetative cover.',
-      speaker: 'Scientific assessment of repeated spraying',
-      sourceId: 'westing_bioscience',
-      pending: true,
-    },
+    dek: 'The coastal forests of Cà Mau and the Rừng Sác.',
+    body: 'Mangroves prove catastrophically fragile: a single spraying can kill a whole forest. The Rừng Sác shipping channels and the Cà Mau peninsula are among the hardest hit; across the war, some 3.1 million hectares of forest and mangrove are defoliated between Quảng Trị and Cà Mau — damage scientists later brand an “ecocide.”',
     stat: { value: '3.1M ha', label: 'forest & mangrove defoliated' },
   },
   {
@@ -176,20 +171,14 @@ export const FACTS_EVENTS: StoryEvent[] = [
       { name: 'A Lưới', lng: 107.28, lat: 16.22 },
     ],
     dek: 'A corridor to the Ho Chi Minh Trail, drenched again and again.',
-    body: 'Some 224 missions crossed the A Sầu / A Lưới valley between 1965 and 1970, parts of it sprayed as many as eleven times. Decades later the soil around the former A So airbase still measured up to 897.85 ppt of dioxin, one of the country’s enduring hotspots.',
-    quote: {
-      text: 'We had no rice for nine years.',
-      speaker: 'A Sầu valley resident',
-      sourceId: 'pulitzer_forest',
-      pending: true,
-    },
+    body: 'Some 224 spray runs cross the A Sầu / A Lưới valley between 1965 and 1970, parts of it sprayed as many as eleven times. Decades later, soil around the former A So air base still held nearly 900 ppt of dioxin — one of the country’s enduring hotspots. Residents have told the Pulitzer Center that for years after the spraying, no rice would grow.',
     stat: { value: '11×', label: 'sprayed in places' },
   },
   {
     id: 'hotspots',
     name: 'The Halt, and the Hotspots',
     landmarks: [{ name: 'Biên Hòa Air Base', point: [106.815, 10.976] }],
-    period: '1970–71 → today',
+    period: '1970–71 to today',
     date: '1971-01-01',
     camera: { center: [106.83, 10.99], zoom: 9.6 },
     agent: 'all',
@@ -199,13 +188,13 @@ export const FACTS_EVENTS: StoryEvent[] = [
       { name: 'Sài Gòn', lng: 106.7, lat: 10.78 },
     ],
     dek: 'Spraying stops; the poison stays at the bases.',
-    body: 'Ranch Hand winds down and ends in 1971. But the dioxin concentrates where the drums were stored and loaded: the airbases. Biên Hòa remains the single largest reservoir of contamination, the focus of remediation that continues to this day.',
+    body: 'Ranch Hand winds down and ends in 1971. But the dioxin concentrates where the drums were stored and loaded: the air bases. Biên Hòa remains the single largest reservoir of contamination, the focus of remediation that continues to this day.',
     quote: {
       text: 'the largest remaining dioxin hotspot in Vietnam — and, arguably, in the entire world.',
-      speaker: 'On Biên Hòa airbase',
+      speaker: 'On Biên Hòa Air Base',
       sourceId: 'aspen_bienhoa',
     },
-    stat: { value: '3', label: 'priority hotspot airbases' },
+    stat: { value: '3', label: 'priority hotspot air bases' },
   },
   {
     id: 'reckoning',

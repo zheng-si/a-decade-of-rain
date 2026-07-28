@@ -37,9 +37,9 @@ export const CLOSE_ACTIONS: CloseAction[] = [
   },
   {
     name: 'VAORRC',
-    role: 'US relief campaign',
+    role: 'U.S. relief campaign',
     desc: 'The Vietnam Agent Orange Relief & Responsibility Campaign; tax-deductible giving via Veterans For Peace.',
-    action: 'Donate (US)',
+    action: 'Donate (U.S.)',
     url: 'https://www.vn-agentorange.org/',
   },
   {
