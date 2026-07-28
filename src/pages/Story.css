@@ -1133,14 +1133,34 @@
   text-wrap: pretty;
 }
 
-/* Deks living inside their own grid column keep the column's width. */
+/* Deks living inside their own grid column keep the column's width (the
+   chart below is the alignment reference). */
 .eco-legend .fs-dek,
 .rainbow-main .fs-dek {
   max-width: none;
 }
 
+/* Per-section measures — each dek's right edge meets its section's own
+   reference object:
+   · Hotspots: the three-card row (container minus the fixed 275px map
+     and its 30px gap);
+   · Alternatives: two of the three family cards (12px grid gap);
+   · Timeline: no cap — the dek fits one line. */
+.actions .fs-dek {
+  max-width: calc(100% - 305px);
+}
+.alternatives .fs-dek {
+  max-width: calc((100% - 24px) * 2 / 3 + 12px);
+}
+.timeline-sec .fs-dek {
+  max-width: none;
+}
+
 @media (max-width: 640px) {
-  .fs-dek {
+  .fs-dek,
+  .actions .fs-dek,
+  .alternatives .fs-dek,
+  .close-body {
     max-width: none;
   }
 }
@@ -3410,7 +3430,8 @@
 }
 .close-body {
   margin: 0 0 44px;
-  max-width: 600px;
+  /* Two of the four action cards below (12px gap): 2 cols + 1 gap. */
+  max-width: calc(50% - 6px);
   font-size: 13px;
   line-height: 1.7;
   color: rgba(255, 255, 255, 0.82);
