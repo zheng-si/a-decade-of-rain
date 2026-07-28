@@ -1,0 +1,198 @@
+// ── Explorer M2 · gridded proportional symbols ────────────────────────────
+// One representational language at every zoom — the dot — with only the
+// aggregation cell size changing (CLEVER°FRANKE model; see
+// docs/explorer-m2-plan.md). Two grid tiers are re-binned at runtime from
+// the ~20k spray events; the near tier draws the raw events themselves.
+
+import type maplibregl from 'maplibre-gl'
+import type { SprayDataset } from '../data/spray'
+import { mapConfig } from '../config/mapConfig'
+
+export const VOL_COARSE_SOURCE = 'vol-coarse'
+export const VOL_FINE_SOURCE = 'vol-fine'
+export const VOL_RAW_LAYER = 'vol-raw'
+export const VOL_COARSE_LAYER = 'vol-coarse-l'
+export const VOL_FINE_LAYER = 'vol-fine-l'
+
+const COARSE_DEG = 0.3
+const FINE_DEG = 0.09
+// Hand-off zooms between the tiers.
+const Z_FAR_TO_MID = 7.0
+const Z_MID_TO_NEAR = 9.2
+
+/** Per-agent-index colour, resolved once from the dataset's agent table. */
+export function agentIndexColors(spray: SprayDataset): string[] {
+  const byCode: Record<string, string> = {}
+  for (const g of mapConfig.agents) for (const c of g.codes) byCode[c] = g.color
+  const other = mapConfig.agents.find((g) => g.key === 'other')?.color ?? '#9a6cc4'
+  return spray.agents.map((a) => byCode[a.code] ?? other)
+}
+
+interface Cell {
+  x: number
+  y: number
+  total: number
+  byColor: Record<string, number>
+}
+
+/** Bin events up to `day` (and matching `indices`, null = all) into a grid. */
+function binGrid(
+  spray: SprayDataset,
+  colors: string[],
+  day: number,
+  indices: number[] | null,
+  cellDeg: number,
+): GeoJSON.FeatureCollection {
+  const sel = indices ? new Set(indices) : null
+  const cells = new Map<string, Cell>()
+  for (const f of spray.features.features) {
+    const p = f.properties
+    if (p.day > day) continue
+    if (sel && !sel.has(p.agent)) continue
+    const [lng, lat] = (f.geometry as GeoJSON.Point).coordinates
+    const x = Math.floor(lng / cellDeg)
+    const y = Math.floor(lat / cellDeg)
+    const key = `${x}|${y}`
+    let cell = cells.get(key)
+    if (!cell) {
+      cell = { x, y, total: 0, byColor: {} }
+      cells.set(key, cell)
+    }
+    cell.total += p.gallons
+    const c = colors[p.agent]
+    cell.byColor[c] = (cell.byColor[c] ?? 0) + p.gallons
+  }
+  const features: GeoJSON.Feature[] = []
+  for (const cell of cells.values()) {
+    let best = ''
+    let bestV = -1
+    for (const [c, v] of Object.entries(cell.byColor))
+      if (v > bestV) {
+        best = c
+        bestV = v
+      }
+    features.push({
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [(cell.x + 0.5) * cellDeg, (cell.y + 0.5) * cellDeg],
+      },
+      properties: { g: Math.round(cell.total), c: best },
+    })
+  }
+  return { type: 'FeatureCollection', features }
+}
+
+/** Area-true radius: k·√gallons, capped so dots stay inside their cell.
+ *  MapLibre requires the zoom interpolate to be the OUTERMOST expression,
+ *  so the cap is applied inside each stop's output. */
+const gridRadius = (kStops: [number, number][], cap: number): maplibregl.ExpressionSpecification =>
+  [
+    'interpolate',
+    ['linear'],
+    ['zoom'],
+    ...kStops.flatMap(([z, k]) => [z, ['min', ['*', k, ['sqrt', ['get', 'g']]], cap]]),
+  ] as unknown as maplibregl.ExpressionSpecification
+
+/** Add the three-tier symbol stack. Returns the bottom layer id (for
+ *  inserting reference overlays beneath the symbols). */
+export function addVolumeLayers(map: maplibregl.Map, spraySource: string): string {
+  const empty: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
+  map.addSource(VOL_COARSE_SOURCE, { type: 'geojson', data: empty })
+  map.addSource(VOL_FINE_SOURCE, { type: 'geojson', data: empty })
+
+  const shared = {
+    'circle-color': ['get', 'c'] as unknown as maplibregl.ExpressionSpecification,
+    'circle-opacity': 0.72,
+    'circle-stroke-color': 'rgba(255,255,255,0.7)',
+    'circle-stroke-width': 1,
+  }
+
+  map.addLayer({
+    id: VOL_COARSE_LAYER,
+    type: 'circle',
+    source: VOL_COARSE_SOURCE,
+    maxzoom: Z_FAR_TO_MID,
+    paint: {
+      ...shared,
+      'circle-radius': gridRadius(
+        [
+          [5.6, 0.02],
+          [7.0, 0.045],
+        ],
+        30,
+      ),
+    },
+  })
+
+  map.addLayer({
+    id: VOL_FINE_LAYER,
+    type: 'circle',
+    source: VOL_FINE_SOURCE,
+    minzoom: Z_FAR_TO_MID,
+    maxzoom: Z_MID_TO_NEAR,
+    paint: {
+      ...shared,
+      'circle-radius': gridRadius(
+        [
+          [7.0, 0.018],
+          [9.2, 0.05],
+        ],
+        26,
+      ),
+    },
+  })
+
+  // Near tier: the raw events themselves (single runs are ~1k gallons).
+  map.addLayer({
+    id: VOL_RAW_LAYER,
+    type: 'circle',
+    source: spraySource,
+    minzoom: Z_MID_TO_NEAR,
+    paint: {
+      'circle-color': ['get', 'c'] as unknown as maplibregl.ExpressionSpecification,
+      'circle-opacity': 0.68,
+      'circle-stroke-color': 'rgba(255,255,255,0.7)',
+      'circle-stroke-width': 0.8,
+      'circle-radius': [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        9.2,
+        ['min', ['*', 0.14, ['sqrt', ['get', 'gallons']]], 18],
+        12,
+        ['min', ['*', 0.34, ['sqrt', ['get', 'gallons']]], 18],
+      ] as unknown as maplibregl.ExpressionSpecification,
+    },
+  })
+  return VOL_COARSE_LAYER
+}
+
+/** Re-bin both grid tiers and re-filter the raw tier for a new playhead /
+ *  agent selection. Called from the throttled day effect (not per frame). */
+export function updateVolume(
+  map: maplibregl.Map,
+  spray: SprayDataset,
+  colors: string[],
+  day: number,
+  indices: number[] | null,
+) {
+  const coarse = map.getSource(VOL_COARSE_SOURCE) as maplibregl.GeoJSONSource | undefined
+  const fine = map.getSource(VOL_FINE_SOURCE) as maplibregl.GeoJSONSource | undefined
+  if (!coarse || !fine) return
+  coarse.setData(binGrid(spray, colors, day, indices, COARSE_DEG))
+  fine.setData(binGrid(spray, colors, day, indices, FINE_DEG))
+  const dayF: maplibregl.FilterSpecification = ['<=', ['get', 'day'], day] as never
+  const filter = indices
+    ? (['all', dayF, ['in', ['get', 'agent'], ['literal', indices]]] as never)
+    : dayF
+  if (map.getLayer(VOL_RAW_LAYER)) map.setFilter(VOL_RAW_LAYER, filter)
+}
+
+/** Stamp each raw event feature with its resolved colour (`c`) so the near
+ *  tier can colour by agent without a runtime match expression. */
+export function stampEventColors(spray: SprayDataset, colors: string[]) {
+  for (const f of spray.features.features) {
+    ;(f.properties as { c?: string }).c = colors[f.properties.agent]
+  }
+}

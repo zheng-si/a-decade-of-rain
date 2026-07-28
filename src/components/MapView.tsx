@@ -9,15 +9,17 @@ import { buildAgentChoices, type AgentChoice } from './agentChoices'
 import {
   resolveMapStyle,
   applyMapTheme,
-  addSprayLayers,
-  setSprayTime,
-  setAgentVisibility,
   addHillshade,
   setHillshade,
   addMilitaryRegions,
   addIslandMarks,
-  agentLayerId,
 } from './mapTheme'
+import {
+  addVolumeLayers,
+  updateVolume,
+  agentIndexColors,
+  stampEventColors,
+} from './volumeGrid'
 import { applyLabelCuration } from './labelLayers'
 
 const SPRAY_SOURCE = 'spray'
@@ -142,6 +144,7 @@ export default function MapView() {
 
   // Refs mirror state for the animation loop to avoid stale closures.
   const dayRef = useRef(0)
+  const colorsRef = useRef<string[] | null>(null)
   const playingRef = useRef(false)
   dayRef.current = day
   playingRef.current = playing
@@ -197,13 +200,18 @@ export default function MapView() {
         }
 
         const agentChoices = buildAgentChoices(spray.agents)
+        // M2: gridded proportional symbols replace the heatmap — one
+        // representational language (the dot) at every zoom, only the
+        // aggregation cell size changes (docs/explorer-m2-plan.md).
+        const colors = agentIndexColors(spray)
+        colorsRef.current = colors
+        stampEventColors(spray, colors)
         map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
-        addSprayLayers(map, SPRAY_SOURCE, agentChoices, spray.dayMax)
+        const bottomLayer = addVolumeLayers(map, SPRAY_SOURCE)
 
         // Same reference overlays as the story: military-region dividers +
-        // tags (under the spray heat) and the disputed-island marks.
-        const firstHeat = agentChoices.find((c) => c.indices && c.color)
-        addMilitaryRegions(map, mrGeo, mrLabelsGeo, firstHeat && agentLayerId(firstHeat.key))
+        // tags (under the spray symbols) and the disputed-island marks.
+        addMilitaryRegions(map, mrGeo, mrLabelsGeo, bottomLayer)
         addIslandMarks(map)
 
         setChoices(agentChoices)
@@ -260,16 +268,13 @@ export default function MapView() {
     const key = `${Math.floor(day / FILTER_STEP_DAYS)}|${agentKey}|${atEnd}`
     if (key === appliedKeyRef.current) return
     appliedKeyRef.current = key
-    setSprayTime(map, choices, day)
+    if (dataRef.current && colorsRef.current)
+      updateVolume(map, dataRef.current, colorsRef.current, day, activeIndices)
     if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
   }, [ready, day, agentKey, activeIndices, choices, bounds.max])
 
-  // Toggle which agent layers are visible.
-  useEffect(() => {
-    const map = mapRef.current
-    if (!ready || !map) return
-    setAgentVisibility(map, choices, agentKey)
-  }, [ready, agentKey, choices])
+  // Agent selection re-bins the grids and re-filters the raw tier (the
+  // throttle key includes agentKey, so the day effect above handles it).
 
   // Animation loop: advance the playhead in real time while playing. The loop
   // tracks the playhead in a local — the first frame can fire before React
