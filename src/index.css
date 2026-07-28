@@ -13,3 +13,10 @@ body,
   padding: 0;
   height: 100%;
 }
+
+/* House numeral style: figures sit on the baseline everywhere (Literata's
+   default figures would otherwise be oldstyle in places). Data contexts
+   additionally set tabular-nums — see the numerals rule in App.css. */
+body {
+  font-variant-numeric: lining-nums;
+}

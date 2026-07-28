@@ -29,7 +29,21 @@
   src: url('/fonts/ui/PublicSans-Medium.woff2') format('woff2');
 }
 
-/* Gambarino — the active headline face (see --font-serif). */
+/* Literata — the active editorial serif (see --font-serif). One variable
+   file (opsz 7–72 + wght 200–900), subset to latin + latin-ext + vietnamese:
+   native Vietnamese coverage (no fallback mixing in Đà Nẵng / A Sầu), and
+   the optical axis serves display cuts at title sizes and sturdier text
+   cuts small — automatically, via font-optical-sizing. */
+@font-face {
+  font-family: 'Literata';
+  font-style: normal;
+  font-weight: 200 900;
+  font-display: swap;
+  src: url('/fonts/serif/Literata-var.woff2') format('woff2');
+}
+
+/* Gambarino — retired from the serif slot (no Vietnamese glyphs); kept
+   declared for a one-line rollback. */
 @font-face {
   font-family: 'Gambarino';
   font-style: normal;
@@ -94,6 +108,6 @@
 
 :root {
   --font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  /* SWITCH: use 'Playfair Display' here to swap in the Didone headline face. */
-  --font-serif: 'Gambarino', Georgia, 'Times New Roman', serif;
+  /* SWITCH: 'Gambarino' or 'Playfair Display' to roll the serif back. */
+  --font-serif: 'Literata', Georgia, 'Times New Roman', serif;
 }
