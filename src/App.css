@@ -214,14 +214,14 @@
 }
 
 .timeline-date {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
   font-size: 17px;
   font-weight: 600;
   color: var(--ink);
 }
 
 .timeline-stat {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
   font-size: 12px;
   color: var(--ink-faint);
 }

@@ -24,21 +24,18 @@ export interface Alternative {
   screenNote?: string
 }
 
-export const ALT_FAMILIES: Record<AltFamily, { title: string; blurb: string; methodChips: string[] }> = {
+export const ALT_FAMILIES: Record<AltFamily, { title: string; blurb: string }> = {
   containment: {
     title: 'Containment only',
     blurb: 'Seal everything in an engineered landfill. Cheapest and quickest, but the dioxin is isolated, not destroyed.',
-    methodChips: ['Landfill'],
   },
   hybrid: {
     title: 'Hybrid',
     blurb: 'Split the soil by concentration: contain what sits below a dioxin threshold, treat the worst of it thermally.',
-    methodChips: ['Landfill + Ex Situ TCH'],
   },
   treatment: {
     title: 'Treatment only',
     blurb: 'Destroy the dioxin in every cubic metre. The most thorough option, and by far the most expensive.',
-    methodChips: ['Incineration', 'Ex Situ TCH', 'MCD'],
   },
 }
 

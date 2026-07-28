@@ -507,11 +507,12 @@
   left: 3px;
   transform: translateY(-100%);
   padding-bottom: 3px;
-  font-size: 11px;
-  font-weight: 600;
+  font-family: var(--font-serif);
+  font-size: 12px;
+  font-weight: 500;
   letter-spacing: var(--track-tight);
   color: var(--ink-soft);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
   text-shadow: 0 1px 3px rgba(250, 249, 244, 0.95), 0 0 3px rgba(250, 249, 244, 0.95);
 }
 
@@ -549,7 +550,7 @@
   font-size: 19px;
   line-height: 1;
   color: #fff;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .timeline-scan-unit {
@@ -795,11 +796,11 @@
 }
 
 .story-stat strong {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
   color: var(--accent-bright); /* AA on the dark stat pill */
   font-size: 13px;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .story-name {
@@ -979,7 +980,7 @@
   font-weight: 600;
   line-height: 1;
   color: var(--ink-soft);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .map-key-heat {
@@ -1234,7 +1235,7 @@
   font-family: var(--font-sans);
   font-size: 10px;
   letter-spacing: -0.01em;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .rainbow-band {
@@ -1366,7 +1367,7 @@
   font-family: var(--font-serif);
   font-size: 28px;
   line-height: 1;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
   color: var(--ink);
 }
 
@@ -1462,7 +1463,7 @@
   height: 16px;
   font-size: 11px;
   color: var(--ink-soft);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .eco-scale-ticks span {
@@ -1673,7 +1674,7 @@
   font-size: 12px;
   font-weight: 700;
   color: var(--ink-soft);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 
 .eco-type.is-on .eco-type-name,
@@ -1836,7 +1837,7 @@
 }
 
 .rainbow-bd-val {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
   font-weight: 700;
 }
 
@@ -1890,6 +1891,7 @@
 .wall-label {
   margin: 0 0 22px;
   max-width: 300px;
+  font-family: var(--font-serif);
   font-size: 17px;
   line-height: 1.4;
   opacity: 0.96;
@@ -1922,7 +1924,7 @@
   display: block;
 }
 .wall-stat-v {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
   display: block;
   margin-bottom: 4px;
   font-family: var(--font-serif);
@@ -1932,6 +1934,7 @@
 }
 .wall-stat-l {
   display: block;
+  font-family: var(--font-serif);
   font-size: 12px;
   line-height: 1.4;
   opacity: 0.82;
@@ -2420,7 +2423,7 @@
   color: #5a7ca8;
 }
 .act2-facts dd {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
   margin: 0;
   font-size: 12px;
   line-height: 1.5;
@@ -2484,16 +2487,11 @@
   border-color: var(--fam);
 }
 .alt-family.is-kept h3,
-.alt-family.is-kept p,
-.alt-family.is-kept .alt-family-icon {
+.alt-family.is-kept p {
   color: #fff !important;
 }
 .alt-family.is-kept p {
   opacity: 0.94;
-}
-.alt-family.is-kept .alt-method-chip {
-  background: #fff !important;
-  color: var(--fam) !important;
 }
 .alt-family.is-kept .alt-family-checks {
   color: #fff;
@@ -2537,27 +2535,8 @@
   --fam: #2f5c44;
   border-top-color: #2f5c44;
 }
-.alt-family-head {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 0 0 5px;
-}
-.alt-family-icon {
-  flex: none;
-  width: 30px;
-  height: 30px;
-}
-.alt-family-icon svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-.alt-family .alt-family-icon {
-  color: var(--fam);
-}
 .alt-family h3 {
-  margin: 0;
+  margin: 0 0 5px;
   font-family: var(--font-serif);
   font-weight: 400;
   font-size: 19px;
@@ -2568,26 +2547,6 @@
   font-size: 12px;
   line-height: 1.5;
   color: var(--ink-soft);
-}
-/* Which chart columns this family covers — chips keyed to the x labels. */
-.alt-family-methods {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 5px;
-  margin: 7px 0 0;
-}
-.alt-method-chip {
-  padding: 3px 9px;
-  font-size: 11px;
-  font-weight: 600;
-  border-radius: 999px;
-  color: #fff;
-  white-space: nowrap;
-  transition: background 0.25s, color 0.25s;
-}
-.alt-family .alt-method-chip {
-  background: var(--fam);
 }
 
 /* The comparison chart, reproducing the Figma design: one plot, a grey cost
@@ -2627,10 +2586,11 @@
   border-right: 0;
 }
 
-/* Axis titles + family labels row, sharing the plot gutters. */
+/* Axis titles row (family group labels moved below the chart). */
 .alt-gheads {
   display: flex;
   align-items: flex-end;
+  justify-content: space-between;
   gap: 0;
   margin: 0 0 8px;
 }
@@ -2653,21 +2613,6 @@
   font-size: 10px;
   opacity: 0.85;
 }
-.alt-ghead {
-  padding: 0 0 2px;
-  font-size: 12px;
-  font-weight: 700;
-  text-align: center;
-}
-.alt-ghead.is-containment {
-  color: #9dbda7;
-}
-.alt-ghead.is-hybrid {
-  color: #85a08d;
-}
-.alt-ghead.is-treatment {
-  color: #677c6d;
-}
 
 /* The plot: axes flank six family-tinted columns; bars overflow the top
    line on purpose (incineration), as in the design. */
@@ -2679,7 +2624,7 @@
   flex: 0 0 var(--alt-gutter-l);
   font-size: 12px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
 }
 .alt-axis.is-co2 {
   flex: 0 0 var(--alt-gutter-r);
@@ -2781,6 +2726,41 @@
 }
 .alt-xlabel strong {
   font-weight: 700;
+}
+
+/* Family extent brackets under the column labels: an upward-opening
+   bracket spanning each family's columns, label centred beneath — kept
+   below the plot so the tallest bars never collide with them. */
+.alt-bands {
+  display: flex;
+  gap: 0;
+  margin: 12px var(--alt-gutter-r) 0 var(--alt-gutter-l);
+}
+.alt-band-group {
+  padding: 0 12px;
+  text-align: center;
+}
+.alt-band-group i {
+  display: block;
+  height: 6px;
+  border: 1.5px solid currentColor;
+  border-top: none;
+  opacity: 0.7;
+}
+.alt-band-group span {
+  display: inline-block;
+  margin-top: 7px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.alt-band-group.is-containment {
+  color: #6a9c81;
+}
+.alt-band-group.is-hybrid {
+  color: #4d7d63;
+}
+.alt-band-group.is-treatment {
+  color: #2f5c44;
 }
 
 /* Full-width USAID reveal button; once revealed it becomes the green
@@ -2911,7 +2891,8 @@
      full-width rows share the min-width so bars and labels stay aligned. */
   .alt-gheads,
   .alt-chartgrid,
-  .alt-xlabels {
+  .alt-xlabels,
+  .alt-bands {
     min-width: 560px;
   }
 }
@@ -3344,7 +3325,7 @@
   flex-wrap: wrap;
 }
 .tl-card-stat strong {
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
   font-family: var(--font-serif);
   font-weight: 500;
   font-size: 19px;
