@@ -257,15 +257,15 @@
   z-index: 6;
   display: flex;
   flex-direction: column;
-  color: var(--ink);
+  color: var(--forest-text);
   /* Hidden behind the banner: slid fully left until the story starts. */
   transform: translateX(-100%);
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Quiet-palette experiment: the rail is paper, not a colour block — the
-     accent appears only as the active-section tick. */
-  background: var(--paper-solid);
-  border-right: 1px solid var(--rule);
-  box-shadow: 3px 0 12px rgba(40, 38, 30, 0.06);
+  /* Two-family palette: the rail is the forest ground, with the brand
+     orange carried only by the biohazard mark and the active tick. */
+  background: linear-gradient(180deg, #24392c 0%, var(--forest) 55%, #1b2c21 100%);
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 3px 0 12px rgba(16, 26, 20, 0.18);
 }
 
 .story-rail.is-shown {
@@ -278,7 +278,7 @@
   align-items: center;
   gap: 8px;
   padding: 22px 8px 9px;
-  color: var(--ink);
+  color: var(--forest-text);
   text-decoration: none;
 }
 
@@ -321,7 +321,7 @@
   /* 13px margin + the 11px padding on the adjacent label/link = a 24px gap
      on every side of every divider. */
   margin: 11px 15px;
-  background: var(--rule);
+  background: rgba(255, 255, 255, 0.16);
 }
 
 .story-rail-act {
@@ -332,7 +332,7 @@
   font-size: 17px;
   letter-spacing: normal;
   text-align: center;
-  color: var(--ink);
+  color: var(--forest-text);
 }
 
 .story-rail-group ul {
@@ -353,26 +353,26 @@
   font-family: var(--font-sans);
   font-size: 11px;
   line-height: 1.32;
-  color: var(--ink);
+  color: var(--forest-text);
   overflow-wrap: break-word;
   transition: color 0.15s, background 0.15s;
 }
 
 /* Resting items recede to keep the focus on the active section; hover and
-   the active state restore full ink. */
+   the active state restore full brightness. */
 .story-rail-link:not(.is-on):not(.is-upcoming) {
-  color: var(--ink-faint);
+  color: rgba(232, 236, 230, 0.48);
 }
 
 .story-rail-link:hover:not(.is-upcoming) {
-  color: var(--ink);
-  background: rgba(33, 53, 40, 0.05);
+  color: var(--forest-text);
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .story-rail-link.is-on {
-  color: var(--ink);
+  color: #fff;
   font-weight: 700;
-  background: rgba(33, 53, 40, 0.06);
+  background: rgba(255, 255, 255, 0.09);
 }
 
 /* Active marker: the accent tick on the rail's left edge — the only colour
@@ -402,7 +402,7 @@
 }
 
 .story-rail-link.is-upcoming {
-  color: var(--ink-faint);
+  color: rgba(232, 236, 230, 0.42);
   cursor: default;
 }
 
@@ -411,14 +411,14 @@
 .story-rail-foot {
   flex: none;
   padding: 10px 10px 20px;
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
   text-align: center;
 }
 .story-rail-foot p {
   margin: 0 0 7px;
   font-size: 10px;
   font-weight: 500;
-  color: var(--ink-soft);
+  color: rgba(232, 236, 230, 0.75);
 }
 .story-rail-foot img {
   display: block;
@@ -431,7 +431,7 @@
   font-size: 10px;
   font-weight: 500;
   letter-spacing: var(--track-tight);
-  color: var(--ink-faint);
+  color: rgba(232, 236, 230, 0.62);
   line-height: 1.5;
 }
 
@@ -734,18 +734,16 @@
   pointer-events: none;
 }
 
-/* Quiet-palette experiment: paper card with a hairline and an accent top
-   rule — the map shows through the page around it, nothing shouts. */
+/* Solid dark-forest card — stands clearly off the pale map. */
 .story-card {
   pointer-events: auto;
   width: min(408px, 84vw);
   padding: 24px 26px 26px;
-  background: var(--paper-solid);
-  border: 1px solid var(--rule);
-  border-top: 3px solid var(--accent);
+  background: var(--forest);
+  border: 1px solid rgba(146, 247, 188, 0.12);
   border-radius: 4px;
-  box-shadow: 0 14px 38px rgba(40, 38, 30, 0.16);
-  color: var(--ink);
+  box-shadow: 0 20px 48px rgba(16, 26, 20, 0.42);
+  color: var(--forest-text);
   opacity: 0.42;
   transition: opacity 0.4s;
 }
@@ -760,7 +758,7 @@
   font-size: var(--type-h3-size);
   font-weight: 400;
   letter-spacing: normal;
-  color: var(--accent-deep);
+  color: var(--accent);
 }
 
 /* Stat chip — a lifted pill inside the card. */
@@ -770,16 +768,16 @@
   gap: 6px;
   margin: 16px 0 0;
   padding: 6px 13px;
-  background: rgba(33, 53, 40, 0.04);
-  border: 1px solid var(--rule);
+  background: var(--forest-2);
+  border: 1px solid rgba(146, 247, 188, 0.14);
   border-radius: 4px;
   font-size: 12px;
   letter-spacing: var(--track-tight);
-  color: var(--ink-soft);
+  color: var(--forest-text-soft);
 }
 
 .story-stat strong {
-  color: var(--accent-deep); /* AA on paper */
+  color: var(--accent-bright); /* AA on the dark stat pill */
   font-size: 13px;
   font-weight: 700;
 }
@@ -790,7 +788,7 @@
   font-weight: 400;
   font-size: var(--type-h2-size);
   line-height: var(--type-h2-lh);
-  color: var(--ink);
+  color: var(--forest-text);
 }
 
 .story-dek {
@@ -799,21 +797,21 @@
   font-weight: 400;
   font-size: 17px;
   line-height: 1.4;
-  color: var(--ink);
+  color: var(--forest-text);
 }
 
 .story-body {
   margin: 0;
-  font-weight: 400;
+  font-weight: 300;
   font-size: var(--type-body-size);
   line-height: var(--type-body-lh);
-  color: var(--ink-soft);
+  color: var(--forest-text-soft);
 }
 
 .story-quote {
   margin: 16px 0 0;
   padding: 12px 0 0;
-  border-top: 1px solid var(--rule);
+  border-top: 1px solid rgba(146, 247, 188, 0.16);
 }
 
 .story-quote p {
@@ -821,17 +819,17 @@
   font-family: var(--font-serif);
   font-size: var(--type-quote-size);
   line-height: var(--type-quote-lh);
-  color: var(--ink);
+  color: var(--forest-text);
 }
 
 .story-quote cite {
   font-style: normal;
   font-size: 12px;
-  color: var(--ink-faint);
+  color: var(--forest-text-soft);
 }
 
 .story-quote a {
-  color: var(--accent-deep); /* AA on paper */
+  color: var(--accent-bright); /* AA on the dark card */
   text-decoration: underline;
 }
 
@@ -1718,13 +1716,13 @@
 /* Vegetation fills (must match ecosystems.ts colours). The three palest
    families — forest, grassland, rubber — are deepened a touch from the raw
    Figma swatches so the legend chips and the selected map both read. */
-.vt-forest { fill: #90a697; }
-.vt-slashburn { fill: #8c9b94; }
-.vt-grassland { fill: #b8c29a; }
-.vt-rice { fill: #6a6480; }
-.vt-mangrove { fill: #a29cb5; }
-.vt-marsh { fill: #7fa8a9; }
-.vt-rubber { fill: #c0ac5a; }
+.vt-forest { fill: #8fb4a0; }
+.vt-slashburn { fill: #859f97; }
+.vt-grassland { fill: #c3d888; }
+.vt-rice { fill: #544685; }
+.vt-mangrove { fill: #aba1cd; }
+.vt-marsh { fill: #61c1c2; }
+.vt-rubber { fill: #ddc21a; }
 
 /* Two-tone model (per the Figma design): by DEFAULT every type sits at 20%
    opacity — a pale wash of its own colour. Selecting a type lifts just that
@@ -2069,13 +2067,13 @@
   cursor: pointer;
 }
 .act2-pin.is-completed {
-  --pin: #4e554e;
+  --pin: #3f8f5f;
 }
 .act2-pin.is-ongoing {
   --pin: var(--accent-deep);
 }
 .act2-pin.is-contained {
-  --pin: #7a8076;
+  --pin: #2c5a40;
 }
 .act2-dot {
   position: absolute;
@@ -2187,13 +2185,13 @@
   transition: box-shadow 0.2s;
 }
 .act2-card.is-active.is-completed {
-  box-shadow: 0 0 0 2px #4e554e, 0 6px 18px rgba(60, 66, 60, 0.16);
+  box-shadow: 0 0 0 2px #3f8f5f, 0 6px 18px rgba(63, 143, 95, 0.18);
 }
 .act2-card.is-active.is-ongoing {
   box-shadow: 0 0 0 2px var(--accent-deep), 0 6px 18px rgba(207, 55, 32, 0.16);
 }
 .act2-card.is-active.is-contained {
-  box-shadow: 0 0 0 2px #7a8076, 0 6px 18px rgba(110, 116, 106, 0.16);
+  box-shadow: 0 0 0 2px #2c5a40, 0 6px 18px rgba(44, 90, 64, 0.18);
 }
 
 /* Resting face: a status-washed site photograph. */
@@ -2222,13 +2220,13 @@
   mix-blend-mode: multiply;
 }
 .act2-card.is-completed .act2-photo-veil {
-  background: linear-gradient(180deg, rgba(48, 54, 48, 0.86) 0%, rgba(72, 78, 70, 0.68) 55%, rgba(94, 100, 90, 0.6) 100%);
+  background: linear-gradient(180deg, rgba(38, 78, 54, 0.86) 0%, rgba(62, 110, 80, 0.68) 55%, rgba(84, 134, 101, 0.6) 100%);
 }
 .act2-card.is-ongoing .act2-photo-veil {
   background: linear-gradient(180deg, rgba(198, 68, 48, 0.84) 0%, rgba(232, 108, 82, 0.66) 55%, rgba(243, 142, 108, 0.58) 100%);
 }
 .act2-card.is-contained .act2-photo-veil {
-  background: linear-gradient(180deg, rgba(50, 74, 106, 0.86) 0%, rgba(80, 108, 146, 0.68) 55%, rgba(104, 132, 168, 0.6) 100%);
+  background: linear-gradient(180deg, rgba(26, 52, 38, 0.88) 0%, rgba(44, 90, 64, 0.7) 55%, rgba(71, 121, 92, 0.6) 100%);
 }
 .act2-photo-copy {
   position: relative;
@@ -2324,13 +2322,13 @@
   flex: 1;
 }
 .act2-card.is-completed {
-  border-top-color: #4e554e;
+  border-top-color: #3f8f5f;
 }
 .act2-card.is-ongoing {
   border-top-color: var(--accent);
 }
 .act2-card.is-contained {
-  border-top-color: #7a8076;
+  border-top-color: #2c5a40;
 }
 
 .act2-card-head {
@@ -2367,13 +2365,13 @@
   opacity: 0.85;
 }
 .act2-badge.is-completed {
-  background: #4e554e;
+  background: #3f8f5f;
 }
 .act2-badge.is-ongoing {
   background: var(--accent-deep);
 }
 .act2-badge.is-contained {
-  background: #7a8076;
+  background: #2c5a40;
 }
 
 .act2-place {
@@ -2397,13 +2395,13 @@
   font-weight: 500;
 }
 .act2-card.is-completed .act2-facts dt {
-  color: #4e554e;
+  color: #3f8f5f;
 }
 .act2-card.is-ongoing .act2-facts dt {
   color: var(--accent-deep);
 }
 .act2-card.is-contained .act2-facts dt {
-  color: #6b7065;
+  color: #2c5a40;
 }
 .act2-facts dd {
   /* Proportional figures on purpose: these are read as prose, and Public
@@ -2470,8 +2468,8 @@
    theme green, and gets a checkmark per retained alternative in its top-right
    corner (Carbon checkmark--filled). */
 .alt-family.is-kept {
-  background: var(--ink);
-  border-color: var(--ink);
+  background: var(--fam);
+  border-color: var(--fam);
 }
 .alt-family.is-kept h3,
 .alt-family.is-kept p {
@@ -2511,16 +2509,16 @@
   animation-delay: 0.08s;
 }
 .alt-family.is-containment {
-  --fam: #9ba294;
-  border-top-color: #aeb4a6;
+  --fam: #6a9c81;
+  border-top-color: #8fb4a0;
 }
 .alt-family.is-hybrid {
-  --fam: #6b7368;
-  border-top-color: #7c8377;
+  --fam: #4d7d63;
+  border-top-color: #5a8a6f;
 }
 .alt-family.is-treatment {
-  --fam: #3e463f;
-  border-top-color: #3e463f;
+  --fam: #2f5c44;
+  border-top-color: #2f5c44;
 }
 .alt-family h3 {
   margin: 0 0 5px;
@@ -2746,13 +2744,13 @@
   font-weight: 700;
 }
 .alt-band-group.is-containment {
-  color: #6b7368;
+  color: #6a9c81;
 }
 .alt-band-group.is-hybrid {
-  color: #4e554e;
+  color: #4d7d63;
 }
 .alt-band-group.is-treatment {
-  color: #33372f;
+  color: #2f5c44;
 }
 
 /* Full-width USAID reveal button; once revealed it becomes the green
@@ -2774,24 +2772,24 @@
   font-size: 14px;
   font-weight: 600;
   color: #fff;
-  background: var(--ink);
-  border: 1px solid var(--ink);
+  background: #5abe88;
+  border: 1px solid #5abe88;
   border-radius: 5px;
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 .alt-reveal-btn:hover {
-  background: #182920;
-  border-color: #182920;
+  background: #4bae79;
+  border-color: #4bae79;
 }
 .alt-reveal-btn.is-banner {
   background: #fff;
-  border-color: #4e554e;
-  color: var(--ink);
+  border-color: #5abe88;
+  color: #3f9e6c;
 }
 .alt-reveal-btn.is-banner:hover {
-  background: #f5f5f0;
+  background: #f3faf6;
 }
 
 .alt-verdicts {
@@ -2818,10 +2816,10 @@
   line-height: 1;
 }
 .alt-verdict.is-kept .alt-verdict-mark {
-  color: var(--accent-deep);
+  color: #3f9e6c;
 }
 .alt-verdict.is-cut .alt-verdict-mark {
-  color: var(--ink-faint);
+  color: var(--accent);
 }
 .alt-verdict-chip {
   width: 100%;
@@ -2834,10 +2832,10 @@
   color: #fff;
 }
 .alt-verdict.is-kept .alt-verdict-chip {
-  background: var(--accent-chip);
+  background: #5abe88;
 }
 .alt-verdict.is-cut .alt-verdict-chip {
-  background: #6b7065;
+  background: var(--accent);
   text-align: left;
 }
 
@@ -2919,7 +2917,7 @@
   border-color: #cfccc0;
 }
 .method-tab.is-landfill {
-  --mth: #4e554e;
+  --mth: #2c5a40;
 }
 .method-tab.is-thermal {
   --mth: #d64a37;
@@ -2968,7 +2966,7 @@
   flex: 0.45;
 }
 .method-panel.is-landfill.is-open {
-  background: linear-gradient(180deg, #22261f 0%, #3e463f 55%, #5c645b 100%);
+  background: linear-gradient(180deg, #16301f 0%, #2c5a40 55%, #47795c 100%);
 }
 .method-panel.is-thermal.is-open {
   background: linear-gradient(180deg, #c93f2d 0%, #ec5844 50%, #f4926f 100%);
@@ -3020,7 +3018,7 @@
   mix-blend-mode: multiply;
 }
 .method-panel.is-landfill .method-rest-veil {
-  background: linear-gradient(180deg, rgba(48, 54, 48, 0.86) 0%, rgba(72, 78, 70, 0.68) 55%, rgba(94, 100, 90, 0.6) 100%);
+  background: linear-gradient(180deg, rgba(38, 78, 54, 0.86) 0%, rgba(62, 110, 80, 0.68) 55%, rgba(84, 134, 101, 0.6) 100%);
 }
 .method-panel.is-thermal .method-rest-veil {
   background: linear-gradient(180deg, rgba(198, 68, 48, 0.84) 0%, rgba(232, 108, 82, 0.66) 55%, rgba(243, 142, 108, 0.58) 100%);
@@ -3167,10 +3165,10 @@
 
 /* Project colours, matching the three base cards. */
 .is-phucat {
-  --tlc: #7a8076;
+  --tlc: #2c5a40;
 }
 .is-danang {
-  --tlc: #4e554e;
+  --tlc: #3f8f5f;
 }
 .is-bienhoa {
   --tlc: var(--accent-deep);

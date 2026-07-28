@@ -149,10 +149,10 @@ export const mapConfig: MapConfig = {
   // Agent names mapped to saturated, readable colours: Orange = orange,
   // White = light grey, Blue = light blue, Other = violet.
   agents: [
-    { key: 'O', label: 'Orange', codes: ['O'], color: '#ff5449' },
-    { key: 'W', label: 'White', codes: ['W'], color: '#b5bab0' },
-    { key: 'B', label: 'Blue', codes: ['B'], color: '#7d857b' },
-    { key: 'other', label: 'Other', codes: ['P', 'U', 'K', 'D', 'T'], color: '#4a5350' },
+    { key: 'O', label: 'Orange', codes: ['O'], color: '#ef7d1a' },
+    { key: 'W', label: 'White', codes: ['W'], color: '#a9adb3' },
+    { key: 'B', label: 'Blue', codes: ['B'], color: '#5aa6e0' },
+    { key: 'other', label: 'Other', codes: ['P', 'U', 'K', 'D', 'T'], color: '#9a6cc4' },
   ],
 
   heatmap: {
