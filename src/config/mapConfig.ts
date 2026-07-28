@@ -128,8 +128,10 @@ export const mapConfig: MapConfig = {
   // paper, soft desaturated sage land, pale cool sea, hairline borders.
   theme: {
     land: '#f4f2ea',
-    water: '#dde6e4',
-    greenspace: '#cdd8c3',
+    /* Water/vegetation at half strength (mixed 50% toward the land tone) so
+       the basemap sits further behind the data. */
+    water: '#e9ece7',
+    greenspace: '#e1e5d7',
     building: '#e9e3d6',
     road: '#ffffff',
     boundary: '#6b6e66',
