@@ -14,8 +14,8 @@ export const VOL_RAW_LAYER = 'vol-raw'
 export const VOL_COARSE_LAYER = 'vol-coarse-l'
 export const VOL_FINE_LAYER = 'vol-fine-l'
 
-const COARSE_DEG = 0.3
-const FINE_DEG = 0.09
+const COARSE_DEG = 0.18
+const FINE_DEG = 0.05
 // Hand-off zooms between the tiers.
 const Z_FAR_TO_MID = 7.0
 const Z_MID_TO_NEAR = 9.2
@@ -121,10 +121,10 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
       ...shared,
       'circle-radius': gridRadius(
         [
-          [5.6, 0.013],
-          [7.0, 0.03],
+          [5.6, 0.02],
+          [7.0, 0.046],
         ],
-        22,
+        16,
       ),
     },
   })
@@ -139,10 +139,10 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
       ...shared,
       'circle-radius': gridRadius(
         [
-          [7.0, 0.012],
-          [9.2, 0.034],
+          [7.0, 0.022],
+          [9.2, 0.06],
         ],
-        18,
+        14,
       ),
     },
   })
