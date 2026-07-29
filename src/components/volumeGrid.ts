@@ -33,7 +33,9 @@ const DIM = '#c9cdc4'
 
 /** Bin events up to `day` into a grid. With a selection, each cell emits a
  *  grey feature for the other agents' volume UNDER a tinted feature for the
- *  selected agent's — context stays visible, the selection reads on top. */
+ *  selected agent's — context stays visible, the selection reads on top.
+ *  Both features also carry the cell's totals (gt/rt), dominant agent group
+ *  (dom), and first/last spray day (d0/d1) for the hover tooltip. */
 function binGrid(
   spray: SprayDataset,
   day: number,
@@ -42,9 +44,19 @@ function binGrid(
   tint: string,
 ): GeoJSON.FeatureCollection {
   const sel = indices ? new Set(indices) : null
-  const cells = new Map<string, { x: number; y: number; inSel: number; out: number }>()
+  interface Cell {
+    x: number
+    y: number
+    inSel: number
+    out: number
+    runs: number
+    byGroup: number[]
+    d0: number
+    d1: number
+  }
+  const cells = new Map<string, Cell>()
   for (const f of spray.features.features) {
-    const p = f.properties
+    const p = f.properties as { day: number; agent: number; gallons: number; gi?: number }
     if (p.day > day) continue
     const [lng, lat] = (f.geometry as GeoJSON.Point).coordinates
     const x = Math.floor(lng / cellDeg)
@@ -52,29 +64,49 @@ function binGrid(
     const key = `${x}|${y}`
     let cell = cells.get(key)
     if (!cell) {
-      cell = { x, y, inSel: 0, out: 0 }
+      cell = { x, y, inSel: 0, out: 0, runs: 0, byGroup: [0, 0, 0, 0], d0: Infinity, d1: -Infinity }
       cells.set(key, cell)
     }
     if (!sel || sel.has(p.agent)) cell.inSel += p.gallons
     else cell.out += p.gallons
+    cell.runs++
+    if (p.gi != null && p.gi >= 0) cell.byGroup[p.gi] += p.gallons
+    if (p.day < cell.d0) cell.d0 = p.day
+    if (p.day > cell.d1) cell.d1 = p.day
   }
   const features: GeoJSON.Feature[] = []
   for (const cell of cells.values()) {
     const coords: [number, number] = [(cell.x + 0.5) * cellDeg, (cell.y + 0.5) * cellDeg]
+    let dom = 0
+    for (let i = 1; i < cell.byGroup.length; i++) if (cell.byGroup[i] > cell.byGroup[dom]) dom = i
+    const shared = {
+      gt: Math.round(cell.inSel + cell.out),
+      rt: cell.runs,
+      dom,
+      d0: cell.d0,
+      d1: cell.d1,
+    }
     if (sel && cell.out > 0)
       features.push({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: coords },
-        properties: { g: Math.round(cell.out), c: DIM, s: 0 },
+        properties: { g: Math.round(cell.out), c: DIM, s: 0, ...shared },
       })
     if (cell.inSel > 0)
       features.push({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: coords },
-        properties: { g: Math.round(cell.inSel), c: tint, s: 1 },
+        properties: { g: Math.round(cell.inSel), c: tint, s: 1, ...shared },
       })
   }
   return { type: 'FeatureCollection', features }
+}
+
+/** The aggregation cell size in effect at a zoom level (null = raw events). */
+export function cellDegAt(zoom: number): number | null {
+  if (zoom < Z_FAR_TO_MID) return COARSE_DEG
+  if (zoom < Z_MID_TO_NEAR) return FINE_DEG
+  return null
 }
 
 /** Area-true radius: k·√gallons, capped so dots stay inside their cell.
@@ -204,11 +236,14 @@ export function updateVolume(
   }
 }
 
-/** Stamp each raw event feature with its resolved colour (`c`) so the near
- *  tier can colour by agent without a runtime match expression. */
-export function stampEventColors(spray: SprayDataset, colors: string[]) {
+/** Stamp each raw event feature with its resolved colour (`c`) and agent
+ *  group index (`gi`) so the near tier can colour by agent without a runtime
+ *  match expression and the bins can tally a dominant group per cell. */
+export function stampEventColors(spray: SprayDataset, colors: string[], groupOf?: number[]) {
   for (const f of spray.features.features) {
-    ;(f.properties as { c?: string }).c = colors[f.properties.agent]
+    const p = f.properties as { agent: number; c?: string; gi?: number }
+    p.c = colors[p.agent]
+    if (groupOf) p.gi = groupOf[p.agent] ?? -1
   }
 }
 

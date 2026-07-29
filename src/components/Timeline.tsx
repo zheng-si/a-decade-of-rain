@@ -62,6 +62,8 @@ interface TimelineProps {
   onPause: () => void
   onReset: () => void
   onSelectAgent: (key: string) => void
+  flyToLabels?: string[]
+  onFlyTo?: (index: number) => void
 }
 
 const fmtGallons = (g: number) =>
@@ -98,6 +100,8 @@ export default function Timeline({
   onPause,
   onReset,
   onSelectAgent,
+  flyToLabels,
+  onFlyTo,
 }: TimelineProps) {
   const groups = agentChoices.filter((c) => c.indices && c.color)
   const selGi = groups.findIndex((g) => g.key === activeAgentKey)
@@ -279,6 +283,17 @@ export default function Timeline({
       </div>
 
       <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
+
+      {flyToLabels && onFlyTo && (
+        <p className="explorer-flyto">
+          <span className="flyto-label">Jump To</span>
+          {flyToLabels.map((label, i) => (
+            <button key={label} onClick={() => onFlyTo(i)}>
+              {label}
+            </button>
+          ))}
+        </p>
+      )}
 
       <p className="explorer-links">
         <Link to="/">← Read the Story</Link>

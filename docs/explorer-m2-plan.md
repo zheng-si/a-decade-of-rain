@@ -41,11 +41,20 @@ cell — dots grow as the record fills.
   the day/agent throttle now re-bins and `setData`s the two grid sources
   and re-filters the raw layer.
 
-## Still to do (M2+)
+## Done since (M2.5 / M3)
 
-- Legend: per-tier entries (dot-size ramp + agent hues) in the map key.
-- Playback modes: cumulative (default) vs rolling window.
+- Panel redesign to the Figma-refined language (frosted card, serif header,
+  transport, statline, chart ruler, agent primers, per-agent tinting).
+- M3 interactions: hover tooltip on every symbol tier (cell totals, dominant
+  agent, date range), click-to-inspect card (full-record cell aggregates:
+  agent mix bars + yearly sparkline; single-run card at near zoom), and
+  curated "Jump To" fly-tos (A Sầu, Cần Giờ, the three hotspot airbases).
+
+## Still to do
+
+- Time-range brush on the chart (rolling window playback).
 - Agent multi-select (chips → set of indices).
+- "About this data" popover (runs vs missions, 0-gallon legs, gridding).
 - Rebase this branch onto post-#155 master and restyle the chrome to the
-  rem type system / Initial Caps / no-tabular rules.
-- M3 inspect panel (province/CTZ aggregates), M4 story↔archive deep links.
+  rem type system.
+- M4 story↔archive deep links.

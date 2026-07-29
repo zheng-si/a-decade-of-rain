@@ -21,7 +21,16 @@ import {
   agentIndexColors,
   stampEventColors,
   quietBasemap,
+  cellDegAt,
+  VOL_COARSE_LAYER,
+  VOL_FINE_LAYER,
+  VOL_RAW_LAYER,
 } from './volumeGrid'
+import ArchiveInspect, {
+  fmtGallons,
+  type Inspect,
+  type CellInspect,
+} from './ArchiveInspect'
 import { applyLabelCuration } from './labelLayers'
 
 const SPRAY_SOURCE = 'spray'
@@ -37,6 +46,71 @@ const FILTER_STEP_DAYS = 12
 
 const monthLabel = (day: number) =>
   dayToDate(day).toLocaleDateString('en-US', { year: 'numeric', month: 'short', timeZone: 'UTC' })
+
+const dayLabel = (day: number) =>
+  dayToDate(day).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
+
+// Curated "Jump To" views — places the story dwells on, one ease away.
+const PRESETS: { label: string; center: [number, number]; zoom: number }[] = [
+  { label: 'A Sầu Valley', center: [107.3, 16.13], zoom: 10 },
+  { label: 'Cần Giờ', center: [106.89, 10.52], zoom: 10 },
+  { label: 'Biên Hòa', center: [106.818, 10.972], zoom: 10.8 },
+  { label: 'Đà Nẵng', center: [108.199, 16.044], zoom: 10.8 },
+  { label: 'Phù Cát', center: [109.043, 13.952], zoom: 10.8 },
+]
+
+/** Full-record aggregates for one grid cell (ignores the playhead — the
+ *  inspect card tells the place's whole story). */
+function aggregateCell(
+  data: SprayDataset,
+  cx: number,
+  cy: number,
+  deg: number,
+): CellInspect {
+  const minX = cx - deg / 2
+  const maxX = cx + deg / 2
+  const minY = cy - deg / 2
+  const maxY = cy + deg / 2
+  let gallons = 0
+  let runs = 0
+  let missions = 0
+  let firstDay = Infinity
+  let lastDay = -Infinity
+  const byGroup = [0, 0, 0, 0]
+  const byYear = new Array(11).fill(0)
+  for (const f of data.features.features) {
+    const [lng, lat] = (f.geometry as GeoJSON.Point).coordinates
+    if (lng < minX || lng >= maxX || lat < minY || lat >= maxY) continue
+    const p = f.properties as { day: number; gallons: number; gi?: number }
+    runs++
+    if (p.gallons > 0) {
+      missions++
+      gallons += p.gallons
+      if (p.gi != null && p.gi >= 0) byGroup[p.gi] += p.gallons
+      const y = dayToDate(p.day).getUTCFullYear() - 1961
+      if (y >= 0 && y < 11) byYear[y] += p.gallons
+    }
+    if (p.day < firstDay) firstDay = p.day
+    if (p.day > lastDay) lastDay = p.day
+  }
+  return {
+    kind: 'cell',
+    center: [cx, cy],
+    cellKm: Math.round(deg * 111),
+    gallons,
+    runs,
+    missions,
+    firstDay,
+    lastDay,
+    byGroup,
+    byYear,
+  }
+}
 
 // ── F1 · URL as state ─────────────────────────────────────────────────────
 // /archive?t=1968-06-15&agent=O&cam=106.5,16.2,5.8&view=3d — every control's
@@ -141,6 +215,7 @@ export default function MapView() {
   const [is3D, setIs3D] = useState(false)
   const [stats, setStats] = useState({ missions: 0, runs: 0, gallons: 0 })
   const [volume, setVolume] = useState<VolumeChart | null>(null)
+  const [inspect, setInspect] = useState<Inspect | null>(null)
   // Bumped on moveend so the URL mirror below sees camera changes.
   const [camTick, setCamTick] = useState(0)
   const [shared, setShared] = useState(false)
@@ -217,9 +292,69 @@ export default function MapView() {
         // aggregation cell size changes (docs/explorer-m2-plan.md).
         const colors = agentIndexColors(spray)
         colorsRef.current = colors
-        stampEventColors(spray, colors)
+        const groups = agentChoices.filter((c) => c.indices && c.color)
+        const groupOf: number[] = []
+        groups.forEach((g, gi) => (g.indices as number[]).forEach((ai) => (groupOf[ai] = gi)))
+        const groupLabels = groups.map((g) => g.label)
+        stampEventColors(spray, colors, groupOf)
         map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
         const bottomLayer = addVolumeLayers(map, SPRAY_SOURCE)
+
+        // ── M3 · hover + click ────────────────────────────────────────────
+        // One tooltip follows the pointer over any symbol tier; clicking a
+        // grid dot opens the cell's full-record inspect card, clicking a raw
+        // event shows that single run. Empty clicks dismiss the card.
+        const volLayers = [VOL_COARSE_LAYER, VOL_FINE_LAYER, VOL_RAW_LAYER]
+        const hover = new maplibregl.Popup({
+          closeButton: false,
+          closeOnClick: false,
+          className: 'adr-popup adr-hover',
+          offset: 12,
+          maxWidth: '250px',
+        })
+        map.on('mousemove', (e) => {
+          const feats = map.queryRenderedFeatures(e.point, { layers: volLayers })
+          if (!feats.length) {
+            hover.remove()
+            map.getCanvas().style.cursor = ''
+            return
+          }
+          map.getCanvas().style.cursor = 'pointer'
+          const p = feats[0].properties as Record<string, number>
+          let html: string
+          if (p.gt != null) {
+            html =
+              `<strong>${fmtGallons(p.gt)} gallons · ${p.rt.toLocaleString()} runs</strong>` +
+              `<span>Mostly ${groupLabels[p.dom] ?? '?'} · ${monthLabel(p.d0)} – ${monthLabel(p.d1)}</span>`
+          } else {
+            html =
+              `<strong>${p.gallons > 0 ? `${fmtGallons(p.gallons)} gallons` : 'Continuation leg'}</strong>` +
+              `<span>${groupLabels[p.gi] ?? 'Unknown'} · ${dayLabel(p.day)}</span>`
+          }
+          hover.setLngLat(e.lngLat).setHTML(html).addTo(map)
+        })
+        map.on('click', (e) => {
+          const feats = map.queryRenderedFeatures(e.point, { layers: volLayers })
+          if (!feats.length) {
+            setInspect(null)
+            return
+          }
+          const f = feats[0]
+          const p = f.properties as Record<string, number>
+          const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number]
+          if (p.gt != null) {
+            const deg = cellDegAt(map.getZoom()) ?? 0.03
+            if (dataRef.current) setInspect(aggregateCell(dataRef.current, coords[0], coords[1], deg))
+          } else {
+            setInspect({
+              kind: 'run',
+              coords,
+              day: p.day,
+              groupIndex: p.gi ?? -1,
+              gallons: p.gallons,
+            })
+          }
+        })
 
         // Same reference overlays as the story: military-region dividers +
         // tags (under the spray symbols) and the disputed-island marks.
@@ -379,6 +514,20 @@ export default function MapView() {
             setDay(bounds.min)
           }}
           onSelectAgent={setAgentKey}
+          flyToLabels={PRESETS.map((p) => p.label)}
+          onFlyTo={(i) => {
+            const p = PRESETS[i]
+            mapRef.current?.easeTo({ center: p.center, zoom: p.zoom, duration: 1800 })
+          }}
+        />
+      )}
+      {inspect && (
+        <ArchiveInspect
+          data={inspect}
+          groups={choices
+            .filter((c) => c.indices && c.color)
+            .map((c) => ({ label: c.label, color: c.color! }))}
+          onClose={() => setInspect(null)}
         />
       )}
     </div>

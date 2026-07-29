@@ -412,6 +412,37 @@
   color: var(--ink-faint);
 }
 
+/* Curated map bookmarks: quiet text buttons in one small row. */
+.explorer-flyto {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 12px 0 0;
+  font-size: 11px;
+}
+
+.explorer-flyto .flyto-label {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+}
+
+.explorer-flyto button {
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.explorer-flyto button:hover {
+  color: var(--accent-deep);
+}
+
 .explorer-links {
   margin: 16px 0 0;
   font-size: 13px;
@@ -600,6 +631,169 @@
   .archive-key {
     display: none;
   }
+}
+
+/* ── inspect card (click a dot) ───────────────────────────────────────────
+   Full-record story of one grid cell (or one raw run), docked under the
+   map key in the key's own paper language. */
+.archive-inspect {
+  position: absolute;
+  top: 400px;
+  right: 24px;
+  z-index: 5;
+  width: 216px;
+  padding: 12px 14px 13px;
+  background: rgba(252, 251, 247, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 4px;
+  box-shadow: 0 8px 24px rgba(33, 53, 40, 0.14);
+  font-family: var(--font-sans);
+}
+
+.inspect-close {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  border: none;
+  background: none;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+
+.inspect-close:hover {
+  color: var(--ink);
+}
+
+.inspect-kicker {
+  margin: 0 0 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
+.inspect-coords {
+  margin: 0 0 8px;
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+.inspect-figure {
+  margin: 0 0 3px;
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+.inspect-figure strong {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--accent-deep);
+}
+
+.inspect-sub {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 3px;
+  font-size: 11px;
+  color: var(--ink-soft);
+}
+
+.inspect-note {
+  margin: 6px 0 0;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+.inspect-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: none;
+}
+
+/* Agent mix: dot · label · bar · value. */
+.inspect-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 9px 0 0;
+  padding-top: 9px;
+  border-top: 1px solid var(--rule);
+}
+
+.inspect-group-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--ink-soft);
+}
+
+.inspect-group-label {
+  width: 40px;
+  flex: none;
+}
+
+.inspect-bar-track {
+  flex: 1;
+  height: 5px;
+  border-radius: 2px;
+  background: rgba(33, 53, 40, 0.07);
+  overflow: hidden;
+}
+
+.inspect-bar {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  opacity: 0.85;
+}
+
+.inspect-group-value {
+  width: 34px;
+  flex: none;
+  text-align: right;
+  color: var(--ink-faint);
+}
+
+/* Eleven-year sparkline. */
+.inspect-years {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 34px;
+  margin: 10px 0 0;
+  padding-top: 9px;
+  border-top: 1px solid var(--rule);
+}
+
+.inspect-year-col {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.inspect-year-bar {
+  display: block;
+  width: 100%;
+  border-radius: 1px;
+  background: var(--accent);
+  opacity: 0.8;
+}
+
+.inspect-year-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 3px;
+  font-size: 9px;
+  color: var(--ink-faint);
 }
 
 /* ── MapLibre popups, restyled to the card language ───────────────────── */
