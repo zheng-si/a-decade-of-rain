@@ -137,23 +137,12 @@ export default function Timeline({
         <p className="explorer-date">{dateLabel}</p>
       </div>
 
-      {volume && <p className="explorer-label">Spraying Volume</p>}
-
       {volume && (
-        <div className="explorer-stats">
-          <div className="explorer-stat">
-            <strong>{missionCount.toLocaleString()}</strong>
-            <span>Missions</span>
-          </div>
-          <div className="explorer-stat is-center">
-            <strong>{runCount.toLocaleString()}</strong>
-            <span>Runs</span>
-          </div>
-          <div className="explorer-stat is-right">
-            <strong>{fmtGallons(gallons)}</strong>
-            <span>Gallons</span>
-          </div>
-        </div>
+        <p className="explorer-statline">
+          <strong>{missionCount.toLocaleString()}</strong> <span>Missions</span> ·{' '}
+          <strong>{runCount.toLocaleString()}</strong> <span>Runs</span> ·{' '}
+          <strong>{fmtGallons(gallons)}</strong> <span>Gallons</span>
+        </p>
       )}
 
       {volume && (
@@ -218,11 +207,30 @@ export default function Timeline({
 
       {volume && (
         <div className="explorer-axis" aria-hidden="true">
+          {/* Ruler: a major tick each year (labelled), a minor tick each
+              quarter — month-level reading comes from the playhead date. */}
           {volume.monthStart.map((d0, i) => {
             const date = dayToDate(d0)
-            if (date.getUTCMonth() !== 0 || date.getUTCFullYear() % 2 !== 0) return null
+            const m = date.getUTCMonth()
+            if (m % 3 !== 0) return null
+            const left = `${((d0 - dayMin) / span) * 100}%`
             return (
-              <span key={i} style={{ left: `${((d0 - dayMin) / span) * 100}%` }}>
+              <span
+                key={`t${i}`}
+                className={`axis-tick${m === 0 ? ' is-major' : ''}`}
+                style={{ left }}
+              />
+            )
+          })}
+          {volume.monthStart.map((d0, i) => {
+            const date = dayToDate(d0)
+            if (date.getUTCMonth() !== 0) return null
+            return (
+              <span
+                key={`y${i}`}
+                className="axis-year"
+                style={{ left: `${((d0 - dayMin) / span) * 100}%` }}
+              >
                 {date.getUTCFullYear()}
               </span>
             )
@@ -230,7 +238,6 @@ export default function Timeline({
         </div>
       )}
 
-      <p className="explorer-label">Spraying Agents</p>
       <div className="explorer-agents">
         {agentChoices.map((c) => {
           const active = c.key === activeAgentKey

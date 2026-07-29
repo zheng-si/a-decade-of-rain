@@ -195,10 +195,21 @@
   color: var(--ink-soft);
 }
 
-/* Small tracked section labels ("Spraying Volume" / "Spraying Agents"). */
-.explorer-label {
-  margin: 24px 0 10px;
-  font-size: 11px;
+/* Cumulative counters as one editorial line: red figures, quiet labels. */
+.explorer-statline {
+  margin: 20px 0 10px;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--ink-faint);
+}
+
+.explorer-statline strong {
+  font-weight: 600;
+  color: var(--accent-deep);
+}
+
+.explorer-statline span {
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -280,43 +291,6 @@
   color: var(--ink);
 }
 
-/* Cumulative missions / runs / gallons — three red columns over the chart.
-   Each column takes a fixed third of the row, so nothing shifts while the
-   numbers count up during playback. */
-.explorer-stats {
-  display: flex;
-  margin: 2px 0 10px;
-}
-
-.explorer-stat {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.explorer-stat.is-center {
-  text-align: center;
-}
-
-.explorer-stat.is-right {
-  text-align: right;
-}
-
-.explorer-stat strong {
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.1;
-  color: var(--accent-deep);
-}
-
-.explorer-stat span {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent-deep);
-}
 
 /* ── the scrubber IS a chart ──────────────────────────────────────────────
    Monthly spray volume in the map's own encoding: one hue for the whole
@@ -366,19 +340,32 @@
   border-radius: 2px;
 }
 
-/* Year labels under the chart, hung on the even-year seams. */
+/* Ruler under the chart: yearly major ticks (labelled), quarterly minors. */
 .explorer-axis {
   position: relative;
-  height: 15px;
-  margin: 8px 0 0;
+  height: 24px;
+  margin: 0;
   font-size: 11px;
   font-weight: 500;
   color: var(--ink-faint);
 }
 
-.explorer-axis span {
+.axis-tick {
   position: absolute;
-  top: 1px;
+  top: 0;
+  width: 1px;
+  height: 4px;
+  background: rgba(33, 53, 40, 0.3);
+}
+
+.axis-tick.is-major {
+  height: 7px;
+  background: rgba(33, 53, 40, 0.45);
+}
+
+.axis-year {
+  position: absolute;
+  top: 10px;
   transform: translateX(-50%);
 }
 
@@ -390,6 +377,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 2px;
+  margin-top: 20px;
   padding: 3px;
   background: rgba(255, 255, 255, 0.85);
   border-radius: 999px;
