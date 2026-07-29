@@ -224,7 +224,7 @@ export default function Timeline({
           })}
           {volume.monthStart.map((d0, i) => {
             const date = dayToDate(d0)
-            if (date.getUTCMonth() !== 0) return null
+            if (date.getUTCMonth() !== 0 || date.getUTCFullYear() % 2 !== 0) return null
             return (
               <span
                 key={`y${i}`}

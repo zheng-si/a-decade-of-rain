@@ -152,7 +152,9 @@ export const mapConfig: MapConfig = {
   // White = light grey, Blue = light blue, Other = violet.
   agents: [
     { key: 'O', label: 'Orange', codes: ['O'], color: '#ef7d1a' },
-    { key: 'W', label: 'White', codes: ['W'], color: '#a9adb3' },
+    // Slate-blue silver: blue-leaning so an isolated White stays clearly
+    // apart from the green-leaning context grey (#c9cdc4) on the map.
+    { key: 'W', label: 'White', codes: ['W'], color: '#93a1b3' },
     { key: 'B', label: 'Blue', codes: ['B'], color: '#5aa6e0' },
     { key: 'other', label: 'Other', codes: ['P', 'U', 'K', 'D', 'T'], color: '#9a6cc4' },
   ],
