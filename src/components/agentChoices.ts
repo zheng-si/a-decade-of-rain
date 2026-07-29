@@ -17,7 +17,7 @@ export interface AgentChoice {
 export function buildAgentChoices(agents: AgentInfo[]): AgentChoice[] {
   const indexOf = (code: string) => agents.find((a) => a.code === code)?.index
   const choices: AgentChoice[] = [
-    { key: 'all', label: 'All Agents', indices: null, color: null },
+    { key: 'all', label: 'All', indices: null, color: null },
   ]
   for (const g of mapConfig.agents) {
     const indices = g.codes.map(indexOf).filter((i): i is number => i != null)

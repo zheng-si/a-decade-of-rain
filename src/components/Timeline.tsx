@@ -106,7 +106,7 @@ export default function Timeline({
       <div className="explorer-transport">
         <div className="transport-buttons">
           <button
-            className={`transport-btn is-primary${playing ? ' is-down' : ''}`}
+            className="transport-btn is-primary"
             onClick={onPlay}
             disabled={playing}
             aria-label="Play"
@@ -115,31 +115,35 @@ export default function Timeline({
               <path d="M2.5 1.5 L10.5 6 L2.5 10.5 Z" />
             </svg>
           </button>
-          <button
-            className="transport-btn"
-            onClick={onPause}
-            disabled={!playing}
-            aria-label="Pause"
-          >
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              <rect x="2.4" y="1.8" width="2.4" height="8.4" />
-              <rect x="7.2" y="1.8" width="2.4" height="8.4" />
-            </svg>
-          </button>
-          <button className="transport-btn" onClick={onReset} aria-label="Reset to start">
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              <rect x="2" y="1.8" width="1.7" height="8.4" />
-              <path d="M10.3 1.8 L4.7 6 L10.3 10.2 Z" />
-            </svg>
-          </button>
+          <div className="transport-secondary">
+            <button
+              className="transport-btn is-ghost"
+              onClick={onPause}
+              disabled={!playing}
+              aria-label="Pause"
+            >
+              <svg viewBox="0 0 12 12" aria-hidden="true">
+                <rect x="2.4" y="1.8" width="2.4" height="8.4" />
+                <rect x="7.2" y="1.8" width="2.4" height="8.4" />
+              </svg>
+            </button>
+            <button className="transport-btn is-ghost" onClick={onReset} aria-label="Reset to start">
+              <svg viewBox="0 0 12 12" aria-hidden="true">
+                <rect x="2" y="1.8" width="1.7" height="8.4" />
+                <path d="M10.3 1.8 L4.7 6 L10.3 10.2 Z" />
+              </svg>
+            </button>
+          </div>
         </div>
         <p className="explorer-readout">
           <strong>{dateLabel}</strong>
           <span>
-            {runCount.toLocaleString()} runs · {fmtGallons(gallons)} gal
+            {runCount.toLocaleString()} runs · {fmtGallons(gallons)} gallons
           </span>
         </p>
       </div>
+
+      {volume && <p className="explorer-label">Spraying Volume</p>}
 
       {volume && (
         <div className="explorer-chart">
@@ -215,6 +219,7 @@ export default function Timeline({
         </div>
       )}
 
+      <p className="explorer-label">Spraying Agents</p>
       <div className="explorer-agents">
         {agentChoices.map((c) => {
           const active = c.key === activeAgentKey

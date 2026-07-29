@@ -100,16 +100,6 @@ export default function ArchiveKey({
         </div>
       </div>
 
-      {/* Proportional-symbol ramp: area ∝ gallons. */}
-      <div className="archive-key-ramp" aria-hidden="true">
-        <svg viewBox="0 0 60 24">
-          <circle cx="6" cy="18" r="3" />
-          <circle cx="21" cy="15" r="6" />
-          <circle cx="45" cy="12" r="10" />
-        </svg>
-        <p>Dot Area ∝ Gallons Sprayed</p>
-      </div>
-
       <ul className="map-key-list" aria-hidden="true">
         <li>
           <span className="key-swatch">

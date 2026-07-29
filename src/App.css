@@ -155,19 +155,23 @@
   left: 24px;
   z-index: 2;
   width: min(400px, calc(100vw - 48px));
-  padding: 20px 22px 18px;
+  padding: 22px 22px 20px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.7);
 }
 
+/* Year eyebrow sits on the same serif tier as the title (story-card rule). */
 .explorer-eyebrow {
-  margin: 0 0 2px;
+  margin: 0 0 14px;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 15px;
+  font-size: 24px;
+  line-height: 1.05;
   color: var(--accent-deep);
 }
 
 .explorer-title {
-  margin: 0 0 8px;
+  margin: 0 0 14px;
   font-family: var(--font-serif);
   font-weight: 400;
   font-size: 24px;
@@ -176,24 +180,35 @@
 }
 
 .explorer-dek {
-  margin: 0 0 14px;
+  margin: 0 0 20px;
   font-weight: 300;
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.6;
   color: var(--ink-soft);
+}
+
+/* Small tracked section labels ("Spraying Volume" / "Spraying Agents"). */
+.explorer-label {
+  margin: 16px 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
 }
 
 /* ── transport (play / pause / reset) + readout ───────────────────────── */
 .explorer-transport {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 10px 0;
+  gap: 16px;
+  padding: 14px 0 2px;
   border-top: 1px solid var(--rule);
 }
 
 .transport-buttons {
   display: flex;
+  align-items: center;
   gap: 6px;
 }
 
@@ -201,15 +216,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   padding: 0;
-  border: 1px solid var(--rule);
+  border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.75);
+  background: transparent;
   color: var(--ink);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
+  transition: background 0.15s, opacity 0.15s;
 }
 
 .transport-btn svg {
@@ -218,48 +233,65 @@
   fill: currentColor;
 }
 
-.transport-btn:hover:not(:disabled) {
-  border-color: #cfccc0;
-}
-
 .transport-btn:disabled {
   opacity: 0.35;
   cursor: default;
 }
 
-/* The play button is the panel's one filled control. */
+/* The play button is the panel's one filled control — forest, not red. */
 .transport-btn.is-primary {
-  background: var(--accent-chip);
-  border-color: var(--accent-chip);
+  background: var(--forest);
   color: #fff;
 }
 
 .transport-btn.is-primary:hover:not(:disabled) {
-  background: var(--accent-deep);
-  border-color: var(--accent-deep);
+  background: #2c4636;
 }
 
 .transport-btn.is-primary:disabled {
-  opacity: 0.3;
+  opacity: 0.4;
+}
+
+/* Pause + reset share one white capsule. */
+.transport-secondary {
+  display: flex;
+  padding: 2px;
+  gap: 0;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(40, 38, 30, 0.08);
+}
+
+.transport-btn.is-ghost {
+  width: 34px;
+  height: 28px;
+  border-radius: 999px;
+}
+
+.transport-btn.is-ghost:hover:not(:disabled) {
+  background: rgba(33, 53, 40, 0.06);
 }
 
 .explorer-readout {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 3px;
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.2;
 }
 
 .explorer-readout strong {
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--ink);
 }
 
 .explorer-readout span {
-  font-size: 12px;
-  color: var(--ink-soft);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
 }
 
 /* ── the scrubber IS a chart ──────────────────────────────────────────────
@@ -269,14 +301,13 @@
    the chart (native drag + keyboard for free). */
 .explorer-chart {
   position: relative;
-  margin-top: 4px;
   border-bottom: 1px solid rgba(33, 53, 40, 0.28);
 }
 
 .explorer-chart svg {
   display: block;
   width: 100%;
-  height: 58px;
+  height: 104px;
 }
 
 .explorer-chart .is-future {
@@ -314,9 +345,9 @@
 /* Year labels under the chart, hung on the even-year seams. */
 .explorer-axis {
   position: relative;
-  height: 14px;
-  margin: 4px 0 10px;
-  font-size: 10px;
+  height: 15px;
+  margin: 6px 0 0;
+  font-size: 11px;
   font-weight: 500;
   color: var(--ink-faint);
 }
@@ -327,15 +358,21 @@
   transform: translateX(-50%);
 }
 
+/* Agent filter: one white capsule holding borderless chips. */
 .explorer-agents {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
-  gap: 0.375rem;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(40, 38, 30, 0.08);
 }
 
 .explorer-links {
-  margin: 14px 0 0;
-  font-size: 12px;
+  margin: 18px 0 0;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -348,26 +385,25 @@
   text-decoration: underline;
 }
 
-/* Canonical filter chip — the same spec as .rainbow-chip (Story.css):
-   paper pill, colour dot, active = filled with the entity colour. */
+/* Borderless chip inside the capsule; active = filled with entity colour. */
 .agent-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.4375rem;
-  border: 1px solid var(--rule);
-  background: rgba(255, 255, 255, 0.6);
+  gap: 6px;
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--ink-soft);
   font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 600;
-  padding: 0.375rem 0.75rem;
-  border-radius: 62.4375rem;
+  padding: 5px 10px;
+  border-radius: 999px;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
 
 .agent-chip:hover {
-  border-color: #cfccc0;
+  background: rgba(33, 53, 40, 0.05);
 }
 
 .agent-dot {
@@ -469,28 +505,15 @@
   color: var(--ink);
 }
 
-/* Proportional-symbol ramp: three area-true dots + the one-line rule. */
-.archive-key-ramp {
-  padding-bottom: 9px;
-  margin-bottom: 9px;
-  border-bottom: 1px solid var(--rule);
+/* The scale row's rule is not needed here — legend rows follow directly. */
+.archive-key .map-key-top {
+  border-bottom: none;
+  padding-bottom: 6px;
+  margin-bottom: 4px;
 }
 
-.archive-key-ramp svg {
-  display: block;
-  width: 96px;
-  height: 24px;
-}
-
-.archive-key-ramp circle {
-  fill: var(--accent);
-  opacity: 0.55;
-}
-
-.archive-key-ramp p {
-  margin: 4px 0 0;
-  font-size: 10px;
-  color: var(--ink-faint);
+.archive-key .map-key-scale-label {
+  white-space: nowrap;
 }
 
 /* Legend swatches specific to the volume-symbol map. */
