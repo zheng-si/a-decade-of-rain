@@ -149,12 +149,10 @@ export default function Timeline({
             )}
           </button>
           <button className="transport-btn is-ghost" onClick={onReset} aria-label="Reset to start">
-            {/* Circular reset arrow (mirrored): arrowhead upper-right, dash in the gap. */}
-            <svg viewBox="0 0 14 14" className="icon-reset" aria-hidden="true">
-              <g transform="translate(14 0) scale(-1 1)">
-                <path d="M7.78 11.43 A4.5 4.5 0 1 0 3.1 4.75" />
-                <path d="M5.19 3.53 L3.1 4.75 L3.1 2.35" />
-                <path d="M3.82 10.18 A4.5 4.5 0 0 0 4.75 10.9" />
+            {/* Material Symbols "refresh" (wght 300), mirrored horizontally. */}
+            <svg viewBox="0 -960 960 960" className="icon-reset" aria-hidden="true">
+              <g transform="translate(960 0) scale(-1 1)">
+                <path d="M481.54-180q-125.63 0-212.81-87.17-87.19-87.17-87.19-212.77 0-125.6 87.19-212.83Q355.91-780 481.54-780q70.15 0 132.77 31.19 62.61 31.2 104.15 88.04V-780h60v244.61H533.85v-59.99h158q-31.62-57.93-87.7-91.27Q548.08-720 481.54-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h63.23q-27.23 97.92-107.27 158.96Q583.46-180 481.54-180Z" />
               </g>
             </svg>
           </button>

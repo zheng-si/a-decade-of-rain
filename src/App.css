@@ -263,15 +263,10 @@
   fill: currentColor;
 }
 
-/* The reset ring is stroked, not filled. */
 .transport-btn .icon-reset {
-  width: 15px;
-  height: 15px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.3;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
 }
 
 .transport-btn:disabled {
