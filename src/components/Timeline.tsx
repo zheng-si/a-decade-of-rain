@@ -98,8 +98,10 @@ export default function Timeline({
         <p className="explorer-eyebrow">1961–1971</p>
         <h1 className="explorer-title">The Archive</h1>
         <p className="explorer-dek">
-          Every recorded mission of Operation Ranch Hand. Press play to watch the decade fall
-          month by month, or isolate an agent — the rest stays grey.
+          The complete HERBS record behind Stellman et&nbsp;al. (2003): every recorded spray run
+          of Operation Ranch Hand, each dot&apos;s area proportional to the gallons that fell
+          there. Press play to watch the decade fall month by month, isolate an agent — the rest
+          stays grey — or tilt the terrain into 3D. Every view is shareable straight from its URL.
         </p>
       </header>
 
@@ -107,26 +109,21 @@ export default function Timeline({
         <div className="transport-buttons">
           <button
             className="transport-btn is-primary"
-            onClick={onPlay}
-            disabled={playing}
-            aria-label="Play"
+            onClick={playing ? onPause : onPlay}
+            aria-label={playing ? 'Pause' : 'Play'}
           >
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M2.5 1.5 L10.5 6 L2.5 10.5 Z" />
-            </svg>
-          </button>
-          <div className="transport-secondary">
-            <button
-              className="transport-btn is-ghost"
-              onClick={onPause}
-              disabled={!playing}
-              aria-label="Pause"
-            >
+            {playing ? (
               <svg viewBox="0 0 12 12" aria-hidden="true">
                 <rect x="2.4" y="1.8" width="2.4" height="8.4" />
                 <rect x="7.2" y="1.8" width="2.4" height="8.4" />
               </svg>
-            </button>
+            ) : (
+              <svg viewBox="0 0 12 12" aria-hidden="true">
+                <path d="M2.5 1.5 L10.5 6 L2.5 10.5 Z" />
+              </svg>
+            )}
+          </button>
+          <div className="transport-secondary">
             <button className="transport-btn is-ghost" onClick={onReset} aria-label="Reset to start">
               <svg viewBox="0 0 12 12" aria-hidden="true">
                 <rect x="2" y="1.8" width="1.7" height="8.4" />
