@@ -262,7 +262,14 @@ export default function MapView() {
     if (key === appliedKeyRef.current) return
     appliedKeyRef.current = key
     if (dataRef.current && colorsRef.current)
-      updateVolume(map, dataRef.current, colorsRef.current, day, activeIndices)
+      updateVolume(
+        map,
+        dataRef.current,
+        colorsRef.current,
+        day,
+        activeIndices,
+        choices.find((c) => c.key === agentKey)?.color ?? null,
+      )
     if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
   }, [ready, day, agentKey, activeIndices, choices, bounds.max])
 

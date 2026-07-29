@@ -180,10 +180,17 @@ export function updateVolume(
   colors: string[],
   day: number,
   indices: number[] | null,
+  tint?: string | null,
 ) {
   const coarse = map.getSource(VOL_COARSE_SOURCE) as maplibregl.GeoJSONSource | undefined
   const fine = map.getSource(VOL_FINE_SOURCE) as maplibregl.GeoJSONSource | undefined
   if (!coarse || !fine) return
+  // Option A — one hue at a time: the whole field reads in the brand red;
+  // an agent's own colour appears only when that agent is isolated. The
+  // four-hue dominant-agent mix was the visual noise.
+  const c = tint ?? '#ff5449'
+  for (const lyr of [VOL_COARSE_LAYER, VOL_FINE_LAYER, VOL_RAW_LAYER])
+    if (map.getLayer(lyr)) map.setPaintProperty(lyr, 'circle-color', c)
   coarse.setData(binGrid(spray, colors, day, indices, COARSE_DEG))
   fine.setData(binGrid(spray, colors, day, indices, FINE_DEG))
   const dayF: maplibregl.FilterSpecification = ['<=', ['get', 'day'], day] as never
