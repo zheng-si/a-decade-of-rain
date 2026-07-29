@@ -190,8 +190,8 @@
 .explorer-dek {
   margin: 0 0 24px;
   font-weight: 300;
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.65;
   color: var(--ink-soft);
 }
 
@@ -260,24 +260,14 @@
   opacity: 0.4;
 }
 
-/* Pause + reset share one white capsule. */
-.transport-secondary {
-  display: flex;
-  padding: 2px;
-  gap: 0;
+/* Reset: a white circle beside the filled play/pause toggle. */
+.transport-btn.is-ghost {
   background: rgba(255, 255, 255, 0.85);
-  border-radius: 999px;
   box-shadow: 0 1px 4px rgba(40, 38, 30, 0.08);
 }
 
-.transport-btn.is-ghost {
-  width: 34px;
-  height: 28px;
-  border-radius: 999px;
-}
-
 .transport-btn.is-ghost:hover:not(:disabled) {
-  background: rgba(33, 53, 40, 0.06);
+  background: #fff;
 }
 
 /* The playhead date, in the display serif beside the transport. */
@@ -290,14 +280,16 @@
   color: var(--ink);
 }
 
-/* Cumulative missions / runs / gallons — three red columns over the chart. */
+/* Cumulative missions / runs / gallons — three red columns over the chart.
+   Each column takes a fixed third of the row, so nothing shifts while the
+   numbers count up during playback. */
 .explorer-stats {
   display: flex;
-  justify-content: space-between;
-  margin: 2px 0 12px;
+  margin: 2px 0 10px;
 }
 
 .explorer-stat {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -312,8 +304,8 @@
 }
 
 .explorer-stat strong {
-  font-size: 18px;
-  font-weight: 500;
+  font-size: 12px;
+  font-weight: 600;
   line-height: 1.1;
   color: var(--accent-deep);
 }
@@ -390,11 +382,13 @@
   transform: translateX(-50%);
 }
 
-/* Agent filter: one white capsule holding borderless chips. */
+/* Agent filter: one white capsule spanning the content width, chips spread
+   so the capsule's edges align with the panel's other blocks. */
 .explorer-agents {
-  display: inline-flex;
+  display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 2px;
   padding: 3px;
   background: rgba(255, 255, 255, 0.85);

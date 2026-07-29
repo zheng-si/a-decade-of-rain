@@ -99,12 +99,12 @@ export default function Timeline({
       <header className="explorer-head">
         <p className="explorer-eyebrow">1961–1971</p>
         <h1 className="explorer-title">The Archive</h1>
-        <p className="explorer-subtitle">The decade of defoliation, replayable.</p>
+        <p className="explorer-subtitle">The Decade of Defoliation, Replayable.</p>
         <p className="explorer-dek">
           The complete HERBS record behind Stellman et&nbsp;al. (2003): 8,360 missions of
           Operation Ranch Hand, flown as 24,604 recorded spray runs, each dot&apos;s area
           proportional to the gallons that fell there. Press play to watch the decade fall month
-          by month, isolate an agent — the rest stays grey — or tilt the terrain into 3D. Every
+          by month, isolate an agent to grey out the rest, or tilt the terrain into 3D. Every
           view is shareable straight from its URL.
         </p>
       </header>
@@ -127,14 +127,12 @@ export default function Timeline({
               </svg>
             )}
           </button>
-          <div className="transport-secondary">
-            <button className="transport-btn is-ghost" onClick={onReset} aria-label="Reset to start">
-              <svg viewBox="0 0 12 12" aria-hidden="true">
-                <rect x="2" y="1.8" width="1.7" height="8.4" />
-                <path d="M10.3 1.8 L4.7 6 L10.3 10.2 Z" />
-              </svg>
-            </button>
-          </div>
+          <button className="transport-btn is-ghost" onClick={onReset} aria-label="Reset to start">
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <rect x="2" y="1.8" width="1.7" height="8.4" />
+              <path d="M10.3 1.8 L4.7 6 L10.3 10.2 Z" />
+            </svg>
+          </button>
         </div>
         <p className="explorer-date">{dateLabel}</p>
       </div>
