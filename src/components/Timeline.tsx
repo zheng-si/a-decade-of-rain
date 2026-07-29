@@ -1,12 +1,13 @@
 import type { CSSProperties } from 'react'
+import { Link } from 'react-router-dom'
 import type { AgentChoice } from './agentChoices'
 import { dayToDate, dateToDay, type SprayDataset } from '../data/spray'
 
-// ── the scrubber IS a chart ───────────────────────────────────────────────
-// The Archive's playback bar carries the data itself: monthly spray volume,
-// stacked by agent colour — the horizontal sibling of the story's vertical
-// cumulative ruler. Months right of the playhead dim ("still to fall"), and
-// the date chip rides the playhead instead of sitting in a separate readout.
+// ── the Explorer's control panel ──────────────────────────────────────────
+// One frosted-glass card, top-left, in the story's paper language: identity
+// block, transport (play / pause / reset), the monthly-volume chart as the
+// scrubber, and the agent filter. The chart speaks the map's own encoding —
+// one hue for the whole record, the selection tinted and the rest grey.
 
 export interface VolumeChart {
   /** Gallons per month per agent group (group order = the coloured choices). */
@@ -56,12 +57,17 @@ interface TimelineProps {
   activeAgentKey: string
   volume: VolumeChart | null
   onScrub: (day: number) => void
-  onTogglePlay: () => void
+  onPlay: () => void
+  onPause: () => void
+  onReset: () => void
   onSelectAgent: (key: string) => void
 }
 
 const fmtGallons = (g: number) =>
   g >= 1_000_000 ? `${(g / 1_000_000).toFixed(1)}M` : g >= 1000 ? `${Math.round(g / 1000)}K` : `${g}`
+
+/** Grey for de-emphasised volume — the same DIM the map uses. */
+const CHART_DIM = '#c9cdc4'
 
 export default function Timeline({
   day,
@@ -75,83 +81,114 @@ export default function Timeline({
   activeAgentKey,
   volume,
   onScrub,
-  onTogglePlay,
+  onPlay,
+  onPause,
+  onReset,
   onSelectAgent,
 }: TimelineProps) {
   const groups = agentChoices.filter((c) => c.indices && c.color)
+  const selGi = groups.findIndex((g) => g.key === activeAgentKey)
+  const tint = selGi >= 0 ? groups[selGi].color! : 'var(--accent)'
   const span = Math.max(1, dayMax - dayMin)
   const pct = ((day - dayMin) / span) * 100
 
   return (
-    <div className="timeline">
-      <div className="timeline-row">
-        <button
-          className="timeline-play"
-          onClick={onTogglePlay}
-          aria-label={playing ? 'Pause' : 'Play'}
-        >
-          {playing ? '❚❚' : '▶'}
-        </button>
-        <div className="timeline-readout">
-          <span className="timeline-stat">
-            {runCount.toLocaleString()} runs · {fmtGallons(gallons)} gal cumulative
-          </span>
+    <section className="explorer-panel" aria-label="Archive controls">
+      <header className="explorer-head">
+        <p className="explorer-eyebrow">1961–1971</p>
+        <h1 className="explorer-title">The Archive</h1>
+        <p className="explorer-dek">
+          Every recorded mission of Operation Ranch Hand. Press play to watch the decade fall
+          month by month, or isolate an agent — the rest stays grey.
+        </p>
+      </header>
+
+      <div className="explorer-transport">
+        <div className="transport-buttons">
+          <button
+            className={`transport-btn is-primary${playing ? ' is-down' : ''}`}
+            onClick={onPlay}
+            disabled={playing}
+            aria-label="Play"
+          >
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <path d="M2.5 1.5 L10.5 6 L2.5 10.5 Z" />
+            </svg>
+          </button>
+          <button
+            className="transport-btn"
+            onClick={onPause}
+            disabled={!playing}
+            aria-label="Pause"
+          >
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <rect x="2.4" y="1.8" width="2.4" height="8.4" />
+              <rect x="7.2" y="1.8" width="2.4" height="8.4" />
+            </svg>
+          </button>
+          <button className="transport-btn" onClick={onReset} aria-label="Reset to start">
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <rect x="2" y="1.8" width="1.7" height="8.4" />
+              <path d="M10.3 1.8 L4.7 6 L10.3 10.2 Z" />
+            </svg>
+          </button>
         </div>
+        <p className="explorer-readout">
+          <strong>{dateLabel}</strong>
+          <span>
+            {runCount.toLocaleString()} runs · {fmtGallons(gallons)} gal
+          </span>
+        </p>
       </div>
 
       {volume && (
-        <div className="timeline-chart">
+        <div className="explorer-chart">
           <svg
             viewBox={`0 0 ${volume.months.length} 100`}
             preserveAspectRatio="none"
             aria-hidden="true"
           >
-            {/* year seams, to hang the axis labels on */}
-            {volume.monthStart.map((d0, i) =>
-              i > 0 && dayToDate(d0).getUTCMonth() === 0 ? (
-                <rect key={`y${i}`} x={i - 0.05} y={0} width={0.1} height={100} className="timeline-grid" />
-              ) : null,
-            )}
             {volume.months.map((m, i) => {
               const total = m.reduce((a, b) => a + b, 0)
               if (!total) return null
               const played = volume.monthStart[i] <= day
-              let y = 100
+              // The chart mirrors the map: one hue for the whole field; with a
+              // selection, the selected agent's share sits tinted on the
+              // baseline and the rest stacks grey above it.
+              const sel = selGi >= 0 ? m[selGi] : total
+              const other = total - sel
+              const hSel = (sel / volume.max) * 100
+              const hOther = (other / volume.max) * 100
               return (
                 <g key={i} className={played ? undefined : 'is-future'}>
-                  {m.map((g, gi) => {
-                    if (!g) return null
-                    const h = (g / volume.max) * 100
-                    y -= h
-                    const dim = activeAgentKey !== 'all' && groups[gi]?.key !== activeAgentKey
-                    return (
-                      <rect
-                        key={gi}
-                        x={i + 0.09}
-                        y={y}
-                        width={0.82}
-                        height={h}
-                        fill={groups[gi]?.color ?? '#999'}
-                        className={dim ? 'is-dim' : undefined}
-                      />
-                    )
-                  })}
+                  {other > 0 && selGi >= 0 && (
+                    <rect
+                      x={i + 0.12}
+                      y={100 - hSel - hOther}
+                      width={0.76}
+                      height={hOther}
+                      fill={CHART_DIM}
+                    />
+                  )}
+                  {sel > 0 && (
+                    <rect
+                      x={i + 0.12}
+                      y={100 - hSel}
+                      width={0.76}
+                      height={hSel}
+                      fill={tint}
+                      opacity={0.85}
+                    />
+                  )}
                 </g>
               )
             })}
           </svg>
 
-          <div className="timeline-playhead" style={{ left: `${pct}%` }} />
-          <div
-            className="timeline-chip"
-            style={{ left: `${Math.min(95, Math.max(5, pct))}%` }}
-            aria-hidden="true"
-          >
-            {dateLabel}
-          </div>
+          <div className="explorer-playhead" style={{ left: `${pct}%` }} />
 
           <input
-            className="timeline-slider"
+            className="explorer-slider"
             type="range"
             min={dayMin}
             max={dayMax}
@@ -165,10 +202,10 @@ export default function Timeline({
       )}
 
       {volume && (
-        <div className="timeline-axis" aria-hidden="true">
+        <div className="explorer-axis" aria-hidden="true">
           {volume.monthStart.map((d0, i) => {
             const date = dayToDate(d0)
-            if (date.getUTCMonth() !== 0) return null
+            if (date.getUTCMonth() !== 0 || date.getUTCFullYear() % 2 !== 0) return null
             return (
               <span key={i} style={{ left: `${((d0 - dayMin) / span) * 100}%` }}>
                 {date.getUTCFullYear()}
@@ -178,7 +215,7 @@ export default function Timeline({
         </div>
       )}
 
-      <div className="timeline-agents">
+      <div className="explorer-agents">
         {agentChoices.map((c) => {
           const active = c.key === activeAgentKey
           return (
@@ -194,6 +231,10 @@ export default function Timeline({
           )
         })}
       </div>
-    </div>
+
+      <p className="explorer-links">
+        <Link to="/">← Read the Story</Link>
+      </p>
+    </section>
   )
 }

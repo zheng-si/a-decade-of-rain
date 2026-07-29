@@ -4,6 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import { loadSpray, dayToDate, dateToDay, type SprayDataset } from '../data/spray'
 import { mapConfig } from '../config/mapConfig'
 import Timeline, { buildVolume, type VolumeChart } from './Timeline'
+import ArchiveKey from './ArchiveKey'
 import { buildAgentChoices, type AgentChoice } from './agentChoices'
 import {
   resolveMapStyle,
@@ -337,14 +338,16 @@ export default function MapView() {
     <div className="map-wrap">
       <div ref={containerRef} className="map-root" />
       {ready && (
-        <div className="map-actions">
-          <button className="view-toggle" onClick={toggleView} aria-pressed={is3D}>
-            {is3D ? '▦ Flat view' : '⛰ 3D view'}
-          </button>
-          <button className="view-toggle" onClick={shareView} aria-live="polite">
-            {shared ? '✓ Link copied' : '⧉ Share view'}
-          </button>
-        </div>
+        <ArchiveKey
+          map={mapRef.current}
+          ready={ready}
+          is3D={is3D}
+          onToggle3D={toggleView}
+          onShare={shareView}
+          shared={shared}
+          tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
+          filtered={agentKey !== 'all'}
+        />
       )}
       {ready && (
         <Timeline
@@ -362,7 +365,12 @@ export default function MapView() {
             setPlaying(false)
             setDay(d)
           }}
-          onTogglePlay={() => setPlaying((p) => !p)}
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onReset={() => {
+            setPlaying(false)
+            setDay(bounds.min)
+          }}
           onSelectAgent={setAgentKey}
         />
       )}
