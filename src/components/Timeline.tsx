@@ -99,6 +99,7 @@ export default function Timeline({
       <header className="explorer-head">
         <p className="explorer-eyebrow">1961–1971</p>
         <h1 className="explorer-title">The Archive</h1>
+        <p className="explorer-subtitle">The decade of defoliation, replayable.</p>
         <p className="explorer-dek">
           The complete HERBS record behind Stellman et&nbsp;al. (2003): 8,360 missions of
           Operation Ranch Hand, flown as 24,604 recorded spray runs, each dot&apos;s area
@@ -135,16 +136,27 @@ export default function Timeline({
             </button>
           </div>
         </div>
-        <p className="explorer-readout">
-          <strong>{dateLabel}</strong>
-          <span>
-            {missionCount.toLocaleString()} missions · {runCount.toLocaleString()} runs ·{' '}
-            {fmtGallons(gallons)}&nbsp;gallons
-          </span>
-        </p>
+        <p className="explorer-date">{dateLabel}</p>
       </div>
 
       {volume && <p className="explorer-label">Spraying Volume</p>}
+
+      {volume && (
+        <div className="explorer-stats">
+          <div className="explorer-stat">
+            <strong>{missionCount.toLocaleString()}</strong>
+            <span>Missions</span>
+          </div>
+          <div className="explorer-stat is-center">
+            <strong>{runCount.toLocaleString()}</strong>
+            <span>Runs</span>
+          </div>
+          <div className="explorer-stat is-right">
+            <strong>{fmtGallons(gallons)}</strong>
+            <span>Gallons</span>
+          </div>
+        </div>
+      )}
 
       {volume && (
         <div className="explorer-chart">
