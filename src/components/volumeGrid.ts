@@ -15,7 +15,7 @@ export const VOL_COARSE_LAYER = 'vol-coarse-l'
 export const VOL_FINE_LAYER = 'vol-fine-l'
 
 const COARSE_DEG = 0.18
-const FINE_DEG = 0.05
+const FINE_DEG = 0.03
 // Hand-off zooms between the tiers.
 const Z_FAR_TO_MID = 7.0
 const Z_MID_TO_NEAR = 9.2
@@ -139,10 +139,10 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
       ...shared,
       'circle-radius': gridRadius(
         [
-          [7.0, 0.022],
-          [9.2, 0.06],
+          [7.0, 0.037],
+          [9.2, 0.1],
         ],
-        14,
+        12,
       ),
     },
   })
@@ -238,9 +238,9 @@ export function quietBasemap(map: maplibregl.Map) {
         map.setPaintProperty(id, 'text-halo-width', 1.1)
         map.setLayoutProperty(id, 'text-transform', 'uppercase')
         map.setLayoutProperty(id, 'text-letter-spacing', 0.2)
-        map.setLayoutProperty(id, 'text-font', ['Westgate'])
+        map.setLayoutProperty(id, 'text-font', ['Danh Da'])
         // Flat tiered sizes, well under the basemap defaults.
-        const size = /country/.test(id) ? 11 : /state|province|region/.test(id) ? 10 : 9
+        const size = /country/.test(id) ? 13 : /state|province|region/.test(id) ? 12 : 11
         map.setLayoutProperty(id, 'text-size', size)
       }
     } catch {

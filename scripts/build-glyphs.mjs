@@ -29,6 +29,7 @@ const ROOT = join(__dirname, '..')
 const FONTS = [
   { file: 'fonts/PublicSans-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Public Sans Medium' },
   { file: 'fonts/Westgate-Regular.otf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Westgate' },
+  { file: 'fonts/DanhDa-Bold.otf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Danh Da' },
 ]
 
 const LAST_RANGE = 32 // ranges 0..32 → codepoints 0–8447 (Latin + Vietnamese)
