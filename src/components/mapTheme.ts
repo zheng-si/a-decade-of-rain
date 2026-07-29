@@ -200,7 +200,7 @@ export function addMilitaryRegions(
       type: 'line',
       source: 'military-regions',
       layout: { 'line-join': 'round' },
-      paint: { 'line-color': '#e8443a', 'line-width': 2.2, 'line-opacity': 0.9, 'line-dasharray': [2.4, 1.8] },
+      paint: { 'line-color': '#ec7066', 'line-width': 1.2, 'line-opacity': 0.55, 'line-dasharray': [2.4, 1.8] },
     },
     beforeId,
   )

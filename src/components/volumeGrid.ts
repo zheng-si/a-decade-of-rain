@@ -221,16 +221,27 @@ export function quietBasemap(map: maplibregl.Map) {
         map.setPaintProperty(id, 'line-color', '#dde4e0')
         continue
       }
+      if (/boundary|admin/.test(id) && layer.type === 'line') {
+        map.setPaintProperty(id, 'line-color', '#a8ada2')
+        map.setPaintProperty(id, 'line-width', 0.7)
+        map.setPaintProperty(id, 'line-opacity', 0.6)
+        continue
+      }
       if (layer.type === 'symbol' && map.getLayoutProperty(id, 'text-field') != null) {
         if (/village|hamlet|suburb|neighbourhood|quarter|town/.test(id)) {
           map.setLayoutProperty(id, 'visibility', 'none')
           continue
         }
-        map.setPaintProperty(id, 'text-color', '#8d938b')
+        const isWater = /water|sea|ocean|marine|river|lake|bay/.test(id)
+        map.setPaintProperty(id, 'text-color', isWater ? '#88a7ad' : '#8d938b')
         map.setPaintProperty(id, 'text-halo-color', 'rgba(250,249,244,0.92)')
-        map.setPaintProperty(id, 'text-halo-width', 1.2)
+        map.setPaintProperty(id, 'text-halo-width', 1.1)
         map.setLayoutProperty(id, 'text-transform', 'uppercase')
         map.setLayoutProperty(id, 'text-letter-spacing', 0.2)
+        map.setLayoutProperty(id, 'text-font', ['Westgate'])
+        // Flat tiered sizes, well under the basemap defaults.
+        const size = /country/.test(id) ? 11 : /state|province|region/.test(id) ? 10 : 9
+        map.setLayoutProperty(id, 'text-size', size)
       }
     } catch {
       /* layer doesn't support the property — skip */

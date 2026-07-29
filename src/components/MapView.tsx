@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { HOTSPOTS } from '../data/hotspots'
 import { loadSpray, dayToDate, dateToDay, type SprayDataset } from '../data/spray'
 import { mapConfig } from '../config/mapConfig'
 import Timeline, { buildVolume, type VolumeChart } from './Timeline'
@@ -13,6 +12,7 @@ import {
   setHillshade,
   addMilitaryRegions,
   addIslandMarks,
+  HILLSHADE_LAYER,
 } from './mapTheme'
 import {
   addVolumeLayers,
@@ -199,6 +199,9 @@ export default function MapView() {
             maxzoom: 15,
           })
           addHillshade(map, DEM_SOURCE)
+          // CF-style ground: soft relief always on, not just in the 3D view.
+          map.setLayoutProperty(HILLSHADE_LAYER, 'visibility', 'visible')
+          map.setPaintProperty(HILLSHADE_LAYER, 'hillshade-exaggeration', 0.28)
         }
 
         const agentChoices = buildAgentChoices(spray.agents)
@@ -237,19 +240,7 @@ export default function MapView() {
         setReady(true)
       })
 
-      HOTSPOTS.forEach((h) => {
-        const popup = new maplibregl.Popup({
-          offset: 14,
-          closeButton: false,
-          className: 'adr-popup',
-        }).setHTML(`<strong>${h.name}</strong><span>${h.note}</span>`)
-        const el = document.createElement('div')
-        el.className = 'hotspot-marker'
-        new maplibregl.Marker({ element: el })
-          .setLngLat([h.lng, h.lat])
-          .setPopup(popup)
-          .addTo(map)
-      })
+      // Hotspot ring markers retired — the volume symbols carry the story.
     })
 
     return () => {

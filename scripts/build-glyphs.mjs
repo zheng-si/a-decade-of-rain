@@ -26,7 +26,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 
 // Primary font + the fallback that fills its gaps.
-const FONTS = [{ file: 'fonts/PublicSans-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Public Sans Medium' }]
+const FONTS = [
+  { file: 'fonts/PublicSans-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Public Sans Medium' },
+  { file: 'fonts/Westgate-Regular.otf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Westgate' },
+]
 
 const LAST_RANGE = 32 // ranges 0..32 → codepoints 0–8447 (Latin + Vietnamese)
 
