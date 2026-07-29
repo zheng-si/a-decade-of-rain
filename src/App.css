@@ -384,8 +384,19 @@
   box-shadow: 0 1px 4px rgba(40, 38, 30, 0.08);
 }
 
+/* Per-agent primer under the chips — a FIXED-height slot (two 11px lines),
+   so switching agents never changes the card's height. */
+.explorer-agent-note {
+  height: 34px;
+  margin: 10px 0 0;
+  overflow: hidden;
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ink-faint);
+}
+
 .explorer-links {
-  margin: 24px 0 0;
+  margin: 16px 0 0;
   font-size: 13px;
   font-weight: 600;
 }

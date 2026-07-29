@@ -70,6 +70,17 @@ const fmtGallons = (g: number) =>
 /** Grey for de-emphasised volume — the same DIM the map uses. */
 const CHART_DIM = '#c9cdc4'
 
+/** One-line primers per agent choice, shown in a fixed-height slot under the
+ *  chips (all ≤2 lines at panel width, so the card never changes height). */
+const AGENT_NOTES: Record<string, string> = {
+  all: 'Four herbicide families, one decade. Pick an agent to isolate its share of the 19.5 million gallons.',
+  O: 'The workhorse defoliant, a 2,4-D and 2,4,5-T mix contaminated with TCDD dioxin: 12.1M gallons, 62% of all spraying.',
+  W: 'A slower 2,4-D and picloram mix with no dioxin, 5.4M gallons; it increasingly replaced Orange late in the war.',
+  B: 'Arsenic-based cacodylic acid, the crop killer: 1.3M gallons aimed at rice fields and food supplies.',
+  other:
+    'The early mixes, Purple and Pink, dioxin-heavier than Orange, plus a tail of unattributed runs; mostly before 1965.',
+}
+
 export default function Timeline({
   day,
   dayMin,
@@ -254,6 +265,8 @@ export default function Timeline({
           )
         })}
       </div>
+
+      <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
 
       <p className="explorer-links">
         <Link to="/">← Read the Story</Link>
