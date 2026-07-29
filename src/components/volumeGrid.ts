@@ -221,6 +221,12 @@ export function quietBasemap(map: maplibregl.Map) {
         map.setPaintProperty(id, 'line-color', '#dde4e0')
         continue
       }
+      if (layer.type === 'line' && /highway|road|street|bridge|tunnel|transportation/.test(id)) {
+        if (!/motorway|trunk|primary|major/.test(id)) {
+          map.setLayoutProperty(id, 'visibility', 'none')
+        }
+        continue
+      }
       if (/boundary|admin/.test(id) && layer.type === 'line') {
         map.setPaintProperty(id, 'line-color', '#a8ada2')
         map.setPaintProperty(id, 'line-width', 0.7)
@@ -237,14 +243,24 @@ export function quietBasemap(map: maplibregl.Map) {
           continue
         }
         const isWater = /water|sea|ocean|marine|river|lake|bay/.test(id)
-        map.setPaintProperty(id, 'text-color', isWater ? '#88a7ad' : '#8d938b')
+        if (isWater) {
+          // Open-sea names read in English (the site's language); coalesce
+          // falls back to the local name where no translation exists.
+          map.setLayoutProperty(id, 'text-field', [
+            'coalesce',
+            ['get', 'name:en'],
+            ['get', 'name_en'],
+            ['get', 'name'],
+          ])
+        }
+        map.setPaintProperty(id, 'text-color', isWater ? '#7d9ba1' : '#6f7568')
         map.setPaintProperty(id, 'text-halo-color', 'rgba(250,249,244,0.92)')
         map.setPaintProperty(id, 'text-halo-width', 1.1)
         map.setLayoutProperty(id, 'text-transform', 'uppercase')
         map.setLayoutProperty(id, 'text-letter-spacing', 0.2)
         map.setLayoutProperty(id, 'text-font', ['Cuprum'])
         // Flat tiered sizes, well under the basemap defaults.
-        const size = /country/.test(id) ? 14 : 13
+        const size = /country/.test(id) ? 16 : 14
         map.setLayoutProperty(id, 'text-size', size)
       }
     } catch {
