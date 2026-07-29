@@ -106,8 +106,11 @@ function applyView(map: maplibregl.Map, next: boolean, animate = true) {
   })
 }
 
-/** Cumulative run count + gallons up to `day`, restricted to `indices`. */
+/** Cumulative missions, runs and gallons up to `day`, restricted to `indices`.
+ *  HERBS records gallons at mission level (continuation legs read 0), so the
+ *  gallons-bearing records double as the mission count. */
 function cumulative(data: SprayDataset, day: number, indices: number[] | null) {
+  let missions = 0
   let runs = 0
   let gallons = 0
   const set = indices ? new Set(indices) : null
@@ -116,9 +119,12 @@ function cumulative(data: SprayDataset, day: number, indices: number[] | null) {
     if (p.day > day) continue // features are day-sorted, but cheap enough to scan
     if (set && !set.has(p.agent)) continue
     runs++
-    gallons += p.gallons
+    if (p.gallons > 0) {
+      missions++
+      gallons += p.gallons
+    }
   }
-  return { runs, gallons }
+  return { missions, runs, gallons }
 }
 
 export default function MapView() {
@@ -133,7 +139,7 @@ export default function MapView() {
   const [playing, setPlaying] = useState(false)
   const [agentKey, setAgentKey] = useState('all')
   const [is3D, setIs3D] = useState(false)
-  const [stats, setStats] = useState({ runs: 0, gallons: 0 })
+  const [stats, setStats] = useState({ missions: 0, runs: 0, gallons: 0 })
   const [volume, setVolume] = useState<VolumeChart | null>(null)
   // Bumped on moveend so the URL mirror below sees camera changes.
   const [camTick, setCamTick] = useState(0)
@@ -356,6 +362,7 @@ export default function MapView() {
           dayMax={bounds.max}
           playing={playing}
           dateLabel={monthLabel(day)}
+          missionCount={stats.missions}
           runCount={stats.runs}
           gallons={stats.gallons}
           agentChoices={choices}

@@ -51,6 +51,7 @@ interface TimelineProps {
   dayMax: number
   playing: boolean
   dateLabel: string
+  missionCount: number
   runCount: number
   gallons: number
   agentChoices: AgentChoice[]
@@ -75,6 +76,7 @@ export default function Timeline({
   dayMax,
   playing,
   dateLabel,
+  missionCount,
   runCount,
   gallons,
   agentChoices,
@@ -98,10 +100,11 @@ export default function Timeline({
         <p className="explorer-eyebrow">1961–1971</p>
         <h1 className="explorer-title">The Archive</h1>
         <p className="explorer-dek">
-          The complete HERBS record behind Stellman et&nbsp;al. (2003): every recorded spray run
-          of Operation Ranch Hand, each dot&apos;s area proportional to the gallons that fell
-          there. Press play to watch the decade fall month by month, isolate an agent — the rest
-          stays grey — or tilt the terrain into 3D. Every view is shareable straight from its URL.
+          The complete HERBS record behind Stellman et&nbsp;al. (2003): 8,360 missions of
+          Operation Ranch Hand, flown as 24,604 recorded spray runs, each dot&apos;s area
+          proportional to the gallons that fell there. Press play to watch the decade fall month
+          by month, isolate an agent — the rest stays grey — or tilt the terrain into 3D. Every
+          view is shareable straight from its URL.
         </p>
       </header>
 
@@ -135,7 +138,8 @@ export default function Timeline({
         <p className="explorer-readout">
           <strong>{dateLabel}</strong>
           <span>
-            {runCount.toLocaleString()} runs · {fmtGallons(gallons)} gallons
+            {missionCount.toLocaleString()} missions · {runCount.toLocaleString()} runs ·{' '}
+            {fmtGallons(gallons)}&nbsp;gallons
           </span>
         </p>
       </div>
