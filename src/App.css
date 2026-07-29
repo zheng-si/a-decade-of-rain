@@ -544,7 +544,7 @@
    live here. */
 .archive-key {
   position: absolute;
-  top: 72px;
+  top: 24px;
   right: 24px;
   z-index: 5;
   width: 172px;
@@ -633,27 +633,21 @@
   }
 }
 
-/* ── inspect card (click a dot) ───────────────────────────────────────────
-   Full-record story of one grid cell (or one raw run), docked under the
-   map key in the key's own paper language. */
+/* ── inspect section (click a dot) ────────────────────────────────────────
+   Full-record story of one grid cell (or one raw run), embedded as the
+   bottom section of the map key panel. */
 .archive-inspect {
-  position: absolute;
-  top: 400px;
-  right: 24px;
-  z-index: 5;
-  width: 216px;
-  padding: 12px 14px 13px;
-  background: rgba(252, 251, 247, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 4px;
-  box-shadow: 0 8px 24px rgba(33, 53, 40, 0.14);
+  position: relative;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--rule);
   font-family: var(--font-sans);
 }
 
 .inspect-close {
   position: absolute;
-  top: 4px;
-  right: 8px;
+  top: 8px;
+  right: 0;
   border: none;
   background: none;
   font-size: 16px;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import type maplibregl from 'maplibre-gl'
 
 // ── the Explorer's map key ────────────────────────────────────────────────
@@ -18,6 +18,8 @@ interface Props {
   tint: string
   /** Whether an agent is isolated (shows the grey-context legend row). */
   filtered: boolean
+  /** Extra section rendered below the legend (the inspect card). */
+  children?: ReactNode
 }
 
 // Round down to a 1/2/3/5 × 10ⁿ value for a clean scale-bar label.
@@ -49,6 +51,7 @@ export default function ArchiveKey({
   shared,
   tint,
   filtered,
+  children,
 }: Props) {
   const [scale, setScale] = useState<{ label: string; w: number }>({ label: '', w: 0 })
 
@@ -124,6 +127,7 @@ export default function ArchiveKey({
           National Border
         </li>
       </ul>
+      {children}
     </div>
   )
 }

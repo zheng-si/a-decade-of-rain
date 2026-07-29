@@ -488,7 +488,17 @@ export default function MapView() {
           shared={shared}
           tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
           filtered={agentKey !== 'all'}
-        />
+        >
+          {inspect && (
+            <ArchiveInspect
+              data={inspect}
+              groups={choices
+                .filter((c) => c.indices && c.color)
+                .map((c) => ({ label: c.label, color: c.color! }))}
+              onClose={() => setInspect(null)}
+            />
+          )}
+        </ArchiveKey>
       )}
       {ready && (
         <Timeline
@@ -519,15 +529,6 @@ export default function MapView() {
             const p = PRESETS[i]
             mapRef.current?.easeTo({ center: p.center, zoom: p.zoom, duration: 1800 })
           }}
-        />
-      )}
-      {inspect && (
-        <ArchiveInspect
-          data={inspect}
-          groups={choices
-            .filter((c) => c.indices && c.color)
-            .map((c) => ({ label: c.label, color: c.color! }))}
-          onClose={() => setInspect(null)}
         />
       )}
     </div>

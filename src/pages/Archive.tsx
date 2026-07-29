@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 import MapView from '../components/MapView'
-import { TopBar } from '../App'
 
 // The Archive — the product face of the project: the complete HERBS record as
 // a replayable, filterable map. The story is the guided tour; this is the
@@ -17,9 +16,9 @@ export default function Archive() {
 
   return (
     <div className="app">
-      <TopBar />
-      {/* The identity block now lives inside MapView's control panel — one
-          frosted card carries the title, transport and the volume chart. */}
+      {/* The identity block lives inside MapView's control panel — one
+          frosted card carries the title, transport and the volume chart.
+          Story navigation is the panel's own "Read the Story" link. */}
       <MapView />
     </div>
   )
