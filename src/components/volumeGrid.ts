@@ -200,3 +200,40 @@ export function stampEventColors(spray: SprayDataset, colors: string[]) {
     ;(f.properties as { c?: string }).c = colors[f.properties.agent]
   }
 }
+
+
+/** CF-style quiet basemap for the explorer: vegetation and buildings off,
+ *  water a shade paler, town-and-below labels gone, remaining labels set
+ *  as small tracked grey caps so the data owns the page. */
+export function quietBasemap(map: maplibregl.Map) {
+  for (const layer of map.getStyle().layers ?? []) {
+    const id = layer.id
+    try {
+      if (/wood|forest|park|grass|green|landcover|landuse|vegetation|building/.test(id)) {
+        map.setLayoutProperty(id, 'visibility', 'none')
+        continue
+      }
+      if (layer.type === 'fill' && /water|sea|ocean|river|lake/.test(id)) {
+        map.setPaintProperty(id, 'fill-color', '#e9edea')
+        continue
+      }
+      if (layer.type === 'line' && /water|river|lake/.test(id)) {
+        map.setPaintProperty(id, 'line-color', '#dde4e0')
+        continue
+      }
+      if (layer.type === 'symbol' && map.getLayoutProperty(id, 'text-field') != null) {
+        if (/village|hamlet|suburb|neighbourhood|quarter|town/.test(id)) {
+          map.setLayoutProperty(id, 'visibility', 'none')
+          continue
+        }
+        map.setPaintProperty(id, 'text-color', '#8d938b')
+        map.setPaintProperty(id, 'text-halo-color', 'rgba(250,249,244,0.92)')
+        map.setPaintProperty(id, 'text-halo-width', 1.2)
+        map.setLayoutProperty(id, 'text-transform', 'uppercase')
+        map.setLayoutProperty(id, 'text-letter-spacing', 0.2)
+      }
+    } catch {
+      /* layer doesn't support the property — skip */
+    }
+  }
+}

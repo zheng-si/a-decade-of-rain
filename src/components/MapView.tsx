@@ -19,6 +19,7 @@ import {
   updateVolume,
   agentIndexColors,
   stampEventColors,
+  quietBasemap,
 } from './volumeGrid'
 import { applyLabelCuration } from './labelLayers'
 
@@ -186,6 +187,7 @@ export default function MapView() {
         // Same cartography as the story: theme recolour + curated labels.
         applyMapTheme(map)
         applyLabelCuration(map)
+        quietBasemap(map)
 
         // DEM source + hillshade for the 3D terrain (enabled on toggle).
         if (mapConfig.terrain && !map.getSource(DEM_SOURCE)) {
