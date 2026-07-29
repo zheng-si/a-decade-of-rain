@@ -14,7 +14,7 @@ export const VOL_RAW_LAYER = 'vol-raw'
 export const VOL_COARSE_LAYER = 'vol-coarse-l'
 export const VOL_FINE_LAYER = 'vol-fine-l'
 
-const COARSE_DEG = 0.18
+const COARSE_DEG = 0.12
 const FINE_DEG = 0.03
 // Hand-off zooms between the tiers.
 const Z_FAR_TO_MID = 7.0
@@ -28,57 +28,51 @@ export function agentIndexColors(spray: SprayDataset): string[] {
   return spray.agents.map((a) => byCode[a.code] ?? other)
 }
 
-interface Cell {
-  x: number
-  y: number
-  total: number
-  byColor: Record<string, number>
-}
+/** Grey for de-emphasised (non-selected) volume. */
+const DIM = '#c9cdc4'
 
-/** Bin events up to `day` (and matching `indices`, null = all) into a grid. */
+/** Bin events up to `day` into a grid. With a selection, each cell emits a
+ *  grey feature for the other agents' volume UNDER a tinted feature for the
+ *  selected agent's — context stays visible, the selection reads on top. */
 function binGrid(
   spray: SprayDataset,
-  colors: string[],
   day: number,
   indices: number[] | null,
   cellDeg: number,
+  tint: string,
 ): GeoJSON.FeatureCollection {
   const sel = indices ? new Set(indices) : null
-  const cells = new Map<string, Cell>()
+  const cells = new Map<string, { x: number; y: number; inSel: number; out: number }>()
   for (const f of spray.features.features) {
     const p = f.properties
     if (p.day > day) continue
-    if (sel && !sel.has(p.agent)) continue
     const [lng, lat] = (f.geometry as GeoJSON.Point).coordinates
     const x = Math.floor(lng / cellDeg)
     const y = Math.floor(lat / cellDeg)
     const key = `${x}|${y}`
     let cell = cells.get(key)
     if (!cell) {
-      cell = { x, y, total: 0, byColor: {} }
+      cell = { x, y, inSel: 0, out: 0 }
       cells.set(key, cell)
     }
-    cell.total += p.gallons
-    const c = colors[p.agent]
-    cell.byColor[c] = (cell.byColor[c] ?? 0) + p.gallons
+    if (!sel || sel.has(p.agent)) cell.inSel += p.gallons
+    else cell.out += p.gallons
   }
   const features: GeoJSON.Feature[] = []
   for (const cell of cells.values()) {
-    let best = ''
-    let bestV = -1
-    for (const [c, v] of Object.entries(cell.byColor))
-      if (v > bestV) {
-        best = c
-        bestV = v
-      }
-    features.push({
-      type: 'Feature',
-      geometry: {
-        type: 'Point',
-        coordinates: [(cell.x + 0.5) * cellDeg, (cell.y + 0.5) * cellDeg],
-      },
-      properties: { g: Math.round(cell.total), c: best },
-    })
+    const coords: [number, number] = [(cell.x + 0.5) * cellDeg, (cell.y + 0.5) * cellDeg]
+    if (sel && cell.out > 0)
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: coords },
+        properties: { g: Math.round(cell.out), c: DIM, s: 0 },
+      })
+    if (cell.inSel > 0)
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: coords },
+        properties: { g: Math.round(cell.inSel), c: tint, s: 1 },
+      })
   }
   return { type: 'FeatureCollection', features }
 }
@@ -111,20 +105,22 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
     'circle-pitch-alignment': 'map' as const,
     'circle-pitch-scale': 'map' as const,
   }
+  const sharedLayout = { 'circle-sort-key': ['get', 's'] as unknown as maplibregl.ExpressionSpecification }
 
   map.addLayer({
     id: VOL_COARSE_LAYER,
     type: 'circle',
     source: VOL_COARSE_SOURCE,
     maxzoom: Z_FAR_TO_MID,
+    layout: sharedLayout,
     paint: {
       ...shared,
       'circle-radius': gridRadius(
         [
-          [5.6, 0.02],
-          [7.0, 0.046],
+          [5.6, 0.03],
+          [7.0, 0.069],
         ],
-        16,
+        13,
       ),
     },
   })
@@ -135,6 +131,7 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
     source: VOL_FINE_SOURCE,
     minzoom: Z_FAR_TO_MID,
     maxzoom: Z_MID_TO_NEAR,
+    layout: sharedLayout,
     paint: {
       ...shared,
       'circle-radius': gridRadius(
@@ -177,7 +174,6 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
 export function updateVolume(
   map: maplibregl.Map,
   spray: SprayDataset,
-  colors: string[],
   day: number,
   indices: number[] | null,
   tint?: string | null,
@@ -185,19 +181,27 @@ export function updateVolume(
   const coarse = map.getSource(VOL_COARSE_SOURCE) as maplibregl.GeoJSONSource | undefined
   const fine = map.getSource(VOL_FINE_SOURCE) as maplibregl.GeoJSONSource | undefined
   if (!coarse || !fine) return
-  // Option A — one hue at a time: the whole field reads in the brand red;
-  // an agent's own colour appears only when that agent is isolated. The
-  // four-hue dominant-agent mix was the visual noise.
+  // One hue at a time: brand red for the whole field, an agent's colour
+  // when isolated — and the rest of the record dims to grey rather than
+  // vanishing, so the selection keeps its context.
   const c = tint ?? '#ff5449'
-  for (const lyr of [VOL_COARSE_LAYER, VOL_FINE_LAYER, VOL_RAW_LAYER])
-    if (map.getLayer(lyr)) map.setPaintProperty(lyr, 'circle-color', c)
-  coarse.setData(binGrid(spray, colors, day, indices, COARSE_DEG))
-  fine.setData(binGrid(spray, colors, day, indices, FINE_DEG))
-  const dayF: maplibregl.FilterSpecification = ['<=', ['get', 'day'], day] as never
-  const filter = indices
-    ? (['all', dayF, ['in', ['get', 'agent'], ['literal', indices]]] as never)
-    : dayF
-  if (map.getLayer(VOL_RAW_LAYER)) map.setFilter(VOL_RAW_LAYER, filter)
+  coarse.setData(binGrid(spray, day, indices, COARSE_DEG, c))
+  fine.setData(binGrid(spray, day, indices, FINE_DEG, c))
+  if (map.getLayer(VOL_RAW_LAYER)) {
+    map.setFilter(VOL_RAW_LAYER, ['<=', ['get', 'day'], day] as never)
+    map.setPaintProperty(
+      VOL_RAW_LAYER,
+      'circle-color',
+      indices
+        ? (['case', ['in', ['get', 'agent'], ['literal', indices]], c, DIM] as never)
+        : c,
+    )
+    map.setLayoutProperty(
+      VOL_RAW_LAYER,
+      'circle-sort-key',
+      indices ? (['case', ['in', ['get', 'agent'], ['literal', indices]], 1, 0] as never) : 0,
+    )
+  }
 }
 
 /** Stamp each raw event feature with its resolved colour (`c`) so the near

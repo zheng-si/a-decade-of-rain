@@ -261,15 +261,8 @@ export default function MapView() {
     const key = `${Math.floor(day / FILTER_STEP_DAYS)}|${agentKey}|${atEnd}`
     if (key === appliedKeyRef.current) return
     appliedKeyRef.current = key
-    if (dataRef.current && colorsRef.current)
-      updateVolume(
-        map,
-        dataRef.current,
-        colorsRef.current,
-        day,
-        activeIndices,
-        choices.find((c) => c.key === agentKey)?.color ?? null,
-      )
+    if (dataRef.current)
+      updateVolume(map, dataRef.current, day, activeIndices, choices.find((c) => c.key === agentKey)?.color ?? null)
     if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
   }, [ready, day, agentKey, activeIndices, choices, bounds.max])
 
