@@ -238,9 +238,9 @@ export function quietBasemap(map: maplibregl.Map) {
         map.setPaintProperty(id, 'text-halo-width', 1.1)
         map.setLayoutProperty(id, 'text-transform', 'uppercase')
         map.setLayoutProperty(id, 'text-letter-spacing', 0.2)
-        map.setLayoutProperty(id, 'text-font', ['Danh Da'])
+        map.setLayoutProperty(id, 'text-font', ['Familjen Grotesk'])
         // Flat tiered sizes, well under the basemap defaults.
-        const size = /country/.test(id) ? 13 : /state|province|region/.test(id) ? 12 : 11
+        const size = /country/.test(id) ? 16 : /state|province|region/.test(id) ? 15 : 14
         map.setLayoutProperty(id, 'text-size', size)
       }
     } catch {
