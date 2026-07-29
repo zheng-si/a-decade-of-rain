@@ -224,6 +224,19 @@ export function quietBasemap(map: maplibregl.Map) {
       if (layer.type === 'line' && /highway|road|street|bridge|tunnel|transportation/.test(id)) {
         if (!/motorway|trunk|primary|major/.test(id)) {
           map.setLayoutProperty(id, 'visibility', 'none')
+        } else {
+          // The kept trunk network stays a hairline whisper.
+          map.setPaintProperty(id, 'line-width', [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            5,
+            0.4,
+            10,
+            1.1,
+            14,
+            2,
+          ])
         }
         continue
       }
@@ -231,6 +244,11 @@ export function quietBasemap(map: maplibregl.Map) {
         map.setPaintProperty(id, 'line-color', '#a8ada2')
         map.setPaintProperty(id, 'line-width', 0.7)
         map.setPaintProperty(id, 'line-opacity', 0.6)
+        // District/city rings are noise at this scale: draw nothing below
+        // the national/provincial levels (admin_level > 4).
+        const existing = map.getFilter(id)
+        const levelF = ['<=', ['coalesce', ['to-number', ['get', 'admin_level']], 2], 4]
+        map.setFilter(id, (existing ? ['all', existing, levelF] : levelF) as never)
         continue
       }
       if (layer.type === 'symbol' && map.getLayoutProperty(id, 'text-field') != null) {
@@ -260,7 +278,12 @@ export function quietBasemap(map: maplibregl.Map) {
         map.setLayoutProperty(id, 'text-letter-spacing', 0.2)
         map.setLayoutProperty(id, 'text-font', ['Cuprum'])
         // Flat tiered sizes, well under the basemap defaults.
-        const size = /country/.test(id) ? 16 : 14
+        const size = /country/.test(id) ? 15 : 12
+        if (!/country/.test(id)) {
+          // Settlements only appear once the reader starts zooming in; the
+          // full-country overview stays clear for the data.
+          map.setLayerZoomRange(id, 6.4, 22)
+        }
         map.setLayoutProperty(id, 'text-size', size)
       }
     } catch {
