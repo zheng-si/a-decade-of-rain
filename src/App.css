@@ -221,10 +221,9 @@
 }
 
 .explorer-statline span {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   color: var(--ink-faint);
 }
 
@@ -266,8 +265,8 @@
 
 /* The reset ring is stroked, not filled. */
 .transport-btn .icon-reset {
-  width: 13px;
-  height: 13px;
+  width: 15px;
+  height: 15px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.3;

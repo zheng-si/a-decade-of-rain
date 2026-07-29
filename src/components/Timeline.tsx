@@ -102,6 +102,8 @@ export default function Timeline({
   const groups = agentChoices.filter((c) => c.indices && c.color)
   const selGi = groups.findIndex((g) => g.key === activeAgentKey)
   const tint = selGi >= 0 ? groups[selGi].color! : 'var(--accent)'
+  // Stat figures take the selected agent's colour (default red via CSS).
+  const statStyle = selGi >= 0 ? { color: groups[selGi].color! } : undefined
   const span = Math.max(1, dayMax - dayMin)
   const pct = ((day - dayMin) / span) * 100
 
@@ -147,11 +149,13 @@ export default function Timeline({
             )}
           </button>
           <button className="transport-btn is-ghost" onClick={onReset} aria-label="Reset to start">
-            {/* Circular reset arrow: open ring, arrowhead upper-left, dash in the gap. */}
+            {/* Circular reset arrow (mirrored): arrowhead upper-right, dash in the gap. */}
             <svg viewBox="0 0 14 14" className="icon-reset" aria-hidden="true">
-              <path d="M7.78 11.43 A4.5 4.5 0 1 0 3.1 4.75" />
-              <path d="M5.19 3.53 L3.1 4.75 L3.1 2.35" />
-              <path d="M3.82 10.18 A4.5 4.5 0 0 0 4.75 10.9" />
+              <g transform="translate(14 0) scale(-1 1)">
+                <path d="M7.78 11.43 A4.5 4.5 0 1 0 3.1 4.75" />
+                <path d="M5.19 3.53 L3.1 4.75 L3.1 2.35" />
+                <path d="M3.82 10.18 A4.5 4.5 0 0 0 4.75 10.9" />
+              </g>
             </svg>
           </button>
         </div>
@@ -160,9 +164,9 @@ export default function Timeline({
 
       {volume && (
         <p className="explorer-statline">
-          <strong>{missionCount.toLocaleString()}</strong> <span>Missions</span> ·{' '}
-          <strong>{runCount.toLocaleString()}</strong> <span>Runs</span> ·{' '}
-          <strong>{fmtGallons(gallons)}</strong> <span>Gallons</span>
+          <strong style={statStyle}>{missionCount.toLocaleString()}</strong> <span>Missions</span>{' '}
+          · <strong style={statStyle}>{runCount.toLocaleString()}</strong> <span>Runs</span> ·{' '}
+          <strong style={statStyle}>{fmtGallons(gallons)}</strong> <span>Gallons</span>
         </p>
       )}
 
