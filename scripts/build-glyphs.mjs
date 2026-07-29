@@ -31,6 +31,7 @@ const FONTS = [
   { file: 'fonts/Westgate-Regular.otf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Westgate' },
   { file: 'fonts/DanhDa-Bold.otf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Danh Da' },
   { file: 'fonts/FamiljenGrotesk-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Familjen Grotesk' },
+  { file: 'fonts/Cuprum-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Cuprum' },
 ]
 
 const LAST_RANGE = 32 // ranges 0..32 → codepoints 0–8447 (Latin + Vietnamese)

@@ -212,8 +212,8 @@ export function addMilitaryRegions(
     maxzoom: 8.5,
     layout: {
       'text-field': ['get', 'name'],
-      'text-font': ['Familjen Grotesk'],
-      'text-size': 15,
+      'text-font': ['Cuprum'],
+      'text-size': 14,
       'text-transform': 'uppercase',
       'text-letter-spacing': 0.1,
     },
