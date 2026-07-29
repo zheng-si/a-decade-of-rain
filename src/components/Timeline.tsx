@@ -112,7 +112,15 @@ export default function Timeline({
         <h1 className="explorer-title">The Archive</h1>
         <p className="explorer-subtitle">The Decade of Defoliation, Replayable.</p>
         <p className="explorer-dek">
-          The complete HERBS record behind Stellman et&nbsp;al. (2003): 8,360 missions of
+          The complete{' '}
+          <a
+            href="https://github.com/andrewstellman/hea-v"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            HERBS record
+          </a>{' '}
+          behind Stellman et&nbsp;al. (2003): 8,360 missions of
           Operation Ranch Hand, flown as 24,604 recorded spray runs, each dot&apos;s area
           proportional to the gallons that fell there. Press play to watch the decade fall month
           by month, isolate an agent to grey out the rest, or tilt the terrain into 3D. Every
@@ -139,9 +147,11 @@ export default function Timeline({
             )}
           </button>
           <button className="transport-btn is-ghost" onClick={onReset} aria-label="Reset to start">
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              <rect x="2" y="1.8" width="1.7" height="8.4" />
-              <path d="M10.3 1.8 L4.7 6 L10.3 10.2 Z" />
+            {/* Circular reset arrow: open ring, arrowhead upper-left, dash in the gap. */}
+            <svg viewBox="0 0 14 14" className="icon-reset" aria-hidden="true">
+              <path d="M7.78 11.43 A4.5 4.5 0 1 0 3.1 4.75" />
+              <path d="M5.19 3.53 L3.1 4.75 L3.1 2.35" />
+              <path d="M3.82 10.18 A4.5 4.5 0 0 0 4.75 10.9" />
             </svg>
           </button>
         </div>
