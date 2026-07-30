@@ -429,6 +429,66 @@ code {
 .serif { font-family: var(--font-serif); font-weight: 400; }
 .serif-d { font-family: var(--font-serif-display); font-weight: 400; }
 
+/* Which of the two serifs a rung is set in — "(serif)" alone was ambiguous
+   enough that the page got read as all-Playfair. */
+.face {
+  display: inline-block;
+  margin-left: 0.375rem;
+  padding: 0 0.3125rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  font-size: 0.5625rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  vertical-align: 0.1em;
+}
+
+/* two display faces, same string, same size */
+.faces {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+.face-card {
+  padding: 0.875rem 1rem 1rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.25rem;
+  background: var(--paper-solid);
+}
+
+.face-card .who {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.face-card .who b {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.face-card .who span { font-size: 0.625rem; color: var(--ink-faint); }
+
+.face-card .sample {
+  font-size: 1.75rem;
+  line-height: 1.15;
+  color: var(--ink);
+  margin-bottom: 0.125rem;
+}
+
+.face-card .lc { font-size: 1.0625rem; line-height: 1.3; color: var(--ink-soft); }
+.face-card .job { margin-top: 0.625rem; font-size: 0.6875rem; color: var(--ink-soft); }
+
 /* ── demos ────────────────────────────────────────────────────────────── */
 .demo-bar {
   display: flex;
@@ -847,11 +907,11 @@ footer a { color: inherit; text-decoration: underline; text-underline-offset: 2p
     <div class="rung"><span class="tick">13</span><span class="spec s13">Body copy sets here, at three hundred weight.</span><span class="role">Body</span></div>
     <div class="rung"><span class="tick">14</span><span class="spec s14">Deks and primary buttons</span><span class="role">Deks, buttons</span></div>
     <div class="rung"><span class="tick">15</span><span class="spec s15">Wall captions</span><span class="role">Photo-wall captions</span></div>
-    <div class="rung"><span class="tick">17</span><span class="spec s17 serif">The Decade of Defoliation</span><span class="role">Quotes, card deks (serif)</span></div>
-    <div class="rung"><span class="tick">19</span><span class="spec s19 serif-d">Dec 1971 · 81K</span><span class="role">Card titles, anchor figures (serif)</span></div>
+    <div class="rung"><span class="tick">17</span><span class="spec s17 serif">Quotes and card deks</span><span class="role">Story quotes, card deks<span class="face">Gambarino</span></span></div>
+    <div class="rung"><span class="tick">19</span><span class="spec s19 serif-d">Dec 1971 · 81K</span><span class="role">Explorer anchor figures<span class="face">Playfair</span></span></div>
     <div class="rung off"><span class="tick">20 ✗</span><span class="spec off-20 serif-d">81K</span><span class="role">The inspect figure, before it joined the ladder</span></div>
-    <div class="rung"><span class="tick">24</span><span class="spec s24 serif">The Archive</span><span class="role">Section subtitles, card years (serif)</span></div>
-    <div class="rung"><span class="tick">28</span><span class="spec s28 serif">19.5M</span><span class="role">Stat figures (serif)</span></div>
+    <div class="rung"><span class="tick">24</span><span class="spec s24"><span class="serif">Rain on the Trail</span> <span class="serif-d" style="margin-left:1.25rem">The Archive</span></span><span class="role">Story card titles · Archive panel title<span class="face">Both</span></span></div>
+    <div class="rung"><span class="tick">28</span><span class="spec s28 serif">19.5M</span><span class="role">Story stat figures<span class="face">Gambarino</span></span></div>
     <div class="rung off"><span class="tick">9 ✗</span><span class="spec off-9" style="font-weight:600;letter-spacing:.07em">MAP VIEW</span><span class="role">The key's kicker, before it matched</span></div>
     <div class="rung off"><span class="tick">8 ✗</span><span class="spec off-8">16.86°N 106.74°E</span><span class="role">Coordinates — below the legibility floor</span></div>
   </div>
@@ -859,6 +919,46 @@ footer a { color: inherit; text-decoration: underline; text-underline-offset: 2p
   <p class="note" style="margin-top:.75rem">
     Plus three fluid display steps: <code>clamp(27→38)</code> section titles ·
     <code>clamp(30→44)</code> statements · <code>clamp(40→72)</code> masthead.
+  </p>
+
+  <h3>Two display faces, one per surface</h3>
+
+  <p>
+    Both serifs are live at once, and the difference is <i>which half of the site
+    you are on</i> — not size, not meaning. Everything on this page that is set in
+    a serif is <b>Gambarino</b>, including the masthead and these section titles,
+    because the page belongs to the project as a whole. Playfair appears only in
+    the Explorer specimens below.
+  </p>
+
+  <div class="faces">
+    <div class="face-card">
+      <p class="who"><b>Gambarino</b><span>--font-serif</span></p>
+      <p class="sample serif">Ag The Archive · 1971</p>
+      <p class="lc serif">Handgloves quickly, 19.5M gallons</p>
+      <p class="job">The Story's voice. Masthead, section titles, card titles and
+      years, quotes, deks, stat figures. Set the two samples against each other:
+      Gambarino runs about 7% narrower on the same string, with flared stem
+      endings and a drawn, slightly irregular feel.</p>
+    </div>
+    <div class="face-card">
+      <p class="who"><b>Playfair Display</b><span>--font-serif-display</span></p>
+      <p class="sample serif-d">Ag The Archive · 1971</p>
+      <p class="lc serif-d">Handgloves quickly, 19.5M gallons</p>
+      <p class="job">The Archive's voice. Panel title and subtitle, the playhead
+      date, the one anchor figure per card. Higher stroke contrast and a stricter
+      vertical axis, which is why it holds up as a figure but not as running text.</p>
+    </div>
+  </div>
+
+  <p class="note" style="margin-top:.75rem">
+    They are close enough at a glance to be mistaken for one face, which is the
+    point of labelling each rung above. <code>src/fonts.css</code> declares both,
+    so the Story's headline face is a one-line switch. One trap if you go looking
+    in devtools: the shipped <code>Gambarino-Regular.woff2</code> reports its family
+    name as the literal string <code>false</code> (the <code>.woff</code> build
+    reports <code>Gambarino</code>), so a font inspector will tell you the face is
+    unnamed rather than missing. Metrics and rendering are unaffected.
   </p>
 
   <h3>The serif rule</h3>
@@ -893,9 +993,10 @@ footer a { color: inherit; text-decoration: underline; text-underline-offset: 2p
   </div>
 
   <p class="note" style="margin-top:1rem">
-    The physical reason: Playfair and Gambarino are high-contrast Didones whose thin
-    strokes disintegrate below ~15px. Public Sans ships <b>300/400/500 only</b> —
-    anything bolder is a synthesised faux-bold.
+    The physical reason: both display faces carry high stroke contrast — Playfair
+    on a Didone-style vertical axis, Gambarino with flared, calligraphic stems — and
+    their thin strokes thin out towards a hairline below roughly 15px. Public Sans
+    ships <b>300/400/500 only</b>, so anything bolder is a synthesised faux-bold.
   </p>
 </section>
 
@@ -1107,8 +1208,8 @@ footer a { color: inherit; text-decoration: underline; text-underline-offset: 2p
     Specification: <code>docs/design-system.md</code> · tokens:
     <code>docs/design-tokens.tokens.json</code> · cartographic rationale:
     <code>docs/explorer-m2-plan.md</code>. Faces are embedded here, so this page is
-    the type it describes: Gambarino and Playfair Display for display, Public Sans
-    300/400/500 for everything else.
+    the type it describes: Gambarino for its own display type, Playfair Display in the
+    Explorer specimens, Public Sans 300/400/500 for everything else.
   </p>
   <p>
     Single-ground by choice: a warm-paper identity shown on a dark sheet would
