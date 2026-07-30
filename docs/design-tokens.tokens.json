@@ -1,16 +1,16 @@
 {
-  "$description": "A Decade of Rain — design tokens. Import with the free Tokens Studio for Figma plugin (Import > paste this JSON), then push to Figma variables / styles. Legacy value/type format for broad compatibility.",
+  "$description": "A Decade of Rain — design tokens. Import with the free Tokens Studio for Figma plugin (Import > paste this JSON), then push to Figma variables / styles. Legacy value/type format for broad compatibility. Sizes are px at the 100% root; the shipped site scales the root to 85% (13.6px) between 641 and 1600px viewport width, so every value below moves together. Spec: docs/design-system.md",
   "color": {
     "surface": {
       "paper":       { "value": "#faf9f4", "type": "color", "description": "Page background; glass panels with alpha (rgb 250,249,244)" },
-      "paperSolid":  { "value": "#fdfdfd", "type": "color", "description": "Solid paper" },
-      "forest":      { "value": "#213528", "type": "color", "description": "Dark surface: story cards, stat pills" },
+      "paperSolid":  { "value": "#fdfdfd", "type": "color", "description": "Solid paper: popups, map key" },
+      "forest":      { "value": "#213528", "type": "color", "description": "Dark surface: story cards, filled controls" },
       "forest2":     { "value": "#2c3730", "type": "color", "description": "Raised dark surface (stat pill bg)" }
     },
     "ink": {
-      "ink":      { "value": "#213528", "type": "color", "description": "Headings & primary text on paper · 12.4:1" },
-      "inkSoft":  { "value": "#4e6355", "type": "color", "description": "Secondary text, UI labels · 6.2:1" },
-      "inkFaint": { "value": "#647468", "type": "color", "description": "Captions, smallest print · 4.7:1 (AA floor)" },
+      "ink":      { "value": "#213528", "type": "color", "description": "Titles AND structural labels (small tracked caps) · 12.4:1" },
+      "inkSoft":  { "value": "#4e6355", "type": "color", "description": "Content: body, legend rows, stat labels, dates · 6.2:1" },
+      "inkFaint": { "value": "#647468", "type": "color", "description": "Notes about content: coordinates, axis years, table values · 4.7:1 (AA floor)" },
       "rule":     { "value": "#dfe3d9", "type": "color", "description": "Hairline dividers (non-text)" }
     },
     "onForest": {
@@ -19,16 +19,23 @@
       "mint":           { "value": "#92f7bc", "type": "color", "description": "Decorative borders only · never text" }
     },
     "accent": {
-      "accent":       { "value": "#ff5449", "type": "color", "description": "GEOMETRY: dots, pulse rings, heatmap, rain, scan line" },
+      "accent":       { "value": "#ff5449", "type": "color", "description": "GEOMETRY: dots, pulse rings, heat, rain, chart bars" },
       "accentChip":   { "value": "#d63328", "type": "color", "description": "CHIP FILL behind white text · 4.8:1 vs #fff" },
       "accentBright": { "value": "#ff7a70", "type": "color", "description": "Accent TEXT on forest · 5.2:1" },
-      "accentDeep":   { "value": "#cf3720", "type": "color", "description": "Accent TEXT on paper · 4.7:1 (= heat-ramp deep end)" },
+      "accentDeep":   { "value": "#cf3720", "type": "color", "description": "Accent TEXT on paper; every figure in a stat line · 4.7:1" },
       "accentLine":   { "value": "#e8443a", "type": "color", "description": "Map linework on paper · 3.5:1 (non-text >=3)" }
+    },
+    "data": {
+      "agentOrange": { "value": "#ef7d1a", "type": "color", "description": "Series hue · Agent Orange" },
+      "agentWhite":  { "value": "#93a1b3", "type": "color", "description": "Series hue · Agent White (slate blue-grey, so it reads apart from contextGrey)" },
+      "agentBlue":   { "value": "#5aa6e0", "type": "color", "description": "Series hue · Agent Blue" },
+      "agentOther":  { "value": "#9a6cc4", "type": "color", "description": "Series hue · Purple/Pink/unattributed" },
+      "contextGrey": { "value": "#c9cdc4", "type": "color", "description": "The unselected record: selection greys the rest rather than hiding it" }
     },
     "status": {
       "completed": { "value": "#3f8f5f", "type": "color", "description": "Da Nang · done (card border/badge, map pin, timeline band)" },
       "ongoing":   { "value": "#cf3720", "type": "color", "description": "Bien Hoa · running (= accentDeep)" },
-      "contained": { "value": "#5a7ca8", "type": "color", "description": "Phu Cat · sealed" }
+      "contained": { "value": "#2c5a40", "type": "color", "description": "Phu Cat · sealed (forest; the former blue was retired in the palette purification)" }
     },
     "green": {
       "famContainment": { "value": "#6a9c81", "type": "color", "description": "Alternatives family accent (--fam)" },
@@ -39,72 +46,111 @@
     }
   },
   "fontFamilies": {
-    "serif": { "value": "Gambarino", "type": "fontFamilies", "description": "Display & editorial headlines" },
-    "sans":  { "value": "Public Sans", "type": "fontFamilies", "description": "Body, UI, map labels (native Vietnamese coverage)" }
+    "sans":         { "value": "Public Sans", "type": "fontFamilies", "description": "Body, UI, map glyph fallback. Ships 300/400/500 ONLY — anything bolder is faux bold" },
+    "serif":        { "value": "Gambarino", "type": "fontFamilies", "description": "The Story's display face" },
+    "serifDisplay": { "value": "Playfair Display", "type": "fontFamilies", "description": "The Archive's display face" },
+    "map":          { "value": "Cuprum", "type": "fontFamilies", "description": "Basemap labels (tracked caps); needs a built glyph stack" }
   },
   "fontWeights": {
-    "light":    { "value": "300", "type": "fontWeights" },
-    "regular":  { "value": "400", "type": "fontWeights" },
-    "medium":   { "value": "500", "type": "fontWeights" },
-    "semibold": { "value": "600", "type": "fontWeights" }
+    "light":    { "value": "300", "type": "fontWeights", "description": "Body copy" },
+    "regular":  { "value": "400", "type": "fontWeights", "description": "Default; stat LABELS" },
+    "medium":   { "value": "500", "type": "fontWeights", "description": "Stat FIGURES; serif display" },
+    "semibold": { "value": "600", "type": "fontWeights", "description": "Small tracked caps and chips only — never at display sizes" }
+  },
+  "tracking": {
+    "tight":    { "value": "2%",  "type": "letterSpacing", "description": "Small-caps-adjacent emphasis" },
+    "caps":     { "value": "6%",  "type": "letterSpacing", "description": "Uppercase tags, badges, structural labels" },
+    "capsWide": { "value": "10%", "type": "letterSpacing", "description": "Wide uppercase, eyebrow scale" }
   },
   "lineHeights": {
     "h1": { "value": "102%", "type": "lineHeights" },
     "h2": { "value": "114%", "type": "lineHeights" },
     "lead": { "value": "168%", "type": "lineHeights" },
-    "dek": { "value": "140%", "type": "lineHeights" },
     "body": { "value": "165%", "type": "lineHeights" },
     "quote": { "value": "135%", "type": "lineHeights" }
   },
   "radius": {
-    "base": { "value": "4", "type": "borderRadius", "description": "Standard corner radius (cards, chips, nav)" },
-    "sm":   { "value": "2", "type": "borderRadius" }
+    "base": { "value": "4", "type": "borderRadius", "description": "Cards, chips, nav, popups" },
+    "sm":   { "value": "2", "type": "borderRadius", "description": "Bars, tooltip tip corner" },
+    "lg":   { "value": "6", "type": "borderRadius", "description": "Explorer control panel" },
+    "pill": { "value": "999", "type": "borderRadius", "description": "Capsules, filter chips, ghost pills" }
+  },
+  "$scale": {
+    "$description": "The ladder — every font-size sits on a tick, no one-offs. Fixed px steps plus three fluid display steps.",
+    "s10": { "value": "10", "type": "fontSizes", "description": "Structural labels (tracked caps), sparkline years" },
+    "s11": { "value": "11", "type": "fontSizes", "description": "Chart furniture, legend rows, stat pairs, notes" },
+    "s12": { "value": "12", "type": "fontSizes", "description": "UI controls, badges, chips" },
+    "s13": { "value": "13", "type": "fontSizes", "description": "Body copy; tooltip headline" },
+    "s14": { "value": "14", "type": "fontSizes", "description": "Deks, primary buttons" },
+    "s15": { "value": "15", "type": "fontSizes", "description": "Wall captions" },
+    "s17": { "value": "17", "type": "fontSizes", "description": "Quotes, card deks, panel subtitle (serif)" },
+    "s19": { "value": "19", "type": "fontSizes", "description": "Card titles, display anchor figures (serif)" },
+    "s24": { "value": "24", "type": "fontSizes", "description": "Section subtitles, card years, panel title (serif)" },
+    "s28": { "value": "28", "type": "fontSizes", "description": "Stat figures (serif)" },
+    "fluidSection":   { "value": "38", "type": "fontSizes", "description": "clamp(27,·,38) section titles — max shown" },
+    "fluidStatement": { "value": "44", "type": "fontSizes", "description": "clamp(30,·,44) statements, big percentages" },
+    "fluidMasthead":  { "value": "72", "type": "fontSizes", "description": "clamp(40,·,72) masthead, photo-wall figures" }
   },
   "typography": {
     "h1": {
-      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "92", "lineHeight": "102%", "letterSpacing": "0.5%" },
+      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "72", "lineHeight": "102%", "letterSpacing": "0.5%" },
       "type": "typography",
-      "description": "Hook banner title · responsive clamp(44px,8vw,92px) in code; 92 = the max"
+      "description": "Masthead · clamp(40,6.5vw,72) in code; 72 = the max"
     },
-    "h2": {
-      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "26", "lineHeight": "114%" },
+    "cardTitle": {
+      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "24", "lineHeight": "114%" },
       "type": "typography",
-      "description": "Story-card title"
+      "description": "Story-card title; Archive panel title (serifDisplay)"
     },
-    "h3": {
-      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "23" },
+    "cardYear": {
+      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "24" },
       "type": "typography",
-      "description": "Card period / eyebrow (accentDeep on paper)"
+      "description": "Card period / year eyebrow — same tier as the title, in accentDeep"
     },
-    "lead": {
-      "value": { "fontFamily": "Public Sans", "fontWeight": "300", "fontSize": "16", "lineHeight": "168%" },
+    "subtitle": {
+      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "17", "lineHeight": "130%" },
       "type": "typography",
-      "description": "Hook dek"
+      "description": "Card dek / panel subtitle (serif)"
     },
-    "dek": {
-      "value": { "fontFamily": "Public Sans", "fontWeight": "500", "fontSize": "15", "lineHeight": "140%" },
+    "anchorFigure": {
+      "value": { "fontFamily": "Playfair Display", "fontWeight": "500", "fontSize": "19" },
       "type": "typography",
-      "description": "Card dek"
-    },
-    "body": {
-      "value": { "fontFamily": "Public Sans", "fontWeight": "300", "fontSize": "14", "lineHeight": "165%" },
-      "type": "typography",
-      "description": "Card body copy"
+      "description": "The one display figure per surface (playhead date, inspect figure) — serif is a DISPLAY role: 17px and up only"
     },
     "quote": {
       "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "17", "lineHeight": "135%" },
       "type": "typography",
       "description": "Pull quotes"
     },
-    "caption": {
-      "value": { "fontFamily": "Public Sans", "fontWeight": "400", "fontSize": "12" },
+    "lead": {
+      "value": { "fontFamily": "Public Sans", "fontWeight": "300", "fontSize": "14", "lineHeight": "168%" },
       "type": "typography",
-      "description": "Cite lines, UI small print (400-600)"
+      "description": "Deks"
     },
-    "chip": {
-      "value": { "fontFamily": "Public Sans", "fontWeight": "600", "fontSize": "11", "letterSpacing": "2%" },
+    "body": {
+      "value": { "fontFamily": "Public Sans", "fontWeight": "300", "fontSize": "13", "lineHeight": "165%" },
       "type": "typography",
-      "description": "Map label chips (white on accentChip)"
+      "description": "Body copy"
+    },
+    "control": {
+      "value": { "fontFamily": "Public Sans", "fontWeight": "600", "fontSize": "12", "letterSpacing": "2%" },
+      "type": "typography",
+      "description": "Chips, nav links, capsule buttons — Initial Caps"
+    },
+    "note": {
+      "value": { "fontFamily": "Public Sans", "fontWeight": "400", "fontSize": "11" },
+      "type": "typography",
+      "description": "Legend rows, chart furniture, agent primers, stat pairs"
+    },
+    "structuralLabel": {
+      "value": { "fontFamily": "Public Sans", "fontWeight": "600", "fontSize": "10", "letterSpacing": "6%", "textCase": "uppercase" },
+      "type": "typography",
+      "description": "MAP VIEW · 13 KM GRID CELL · JUMP TO — in ink (the darkest), one of only two places uppercase survives"
+    },
+    "statFigure": {
+      "value": { "fontFamily": "Public Sans", "fontWeight": "500", "fontSize": "11" },
+      "type": "typography",
+      "description": "Figure half of a stat pair, in accentDeep; label half is the same size at 400 in inkSoft, 12px of space between pairs and NO interpunct"
     }
   }
 }

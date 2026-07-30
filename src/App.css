@@ -434,7 +434,7 @@
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--ink-faint);
+  color: var(--ink); /* structural label — same tier as MAP VIEW / GRID CELL */
 }
 
 .explorer-flyto button {
