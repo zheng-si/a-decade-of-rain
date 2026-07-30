@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { BIOHAZARD } from './biohazard'
 import usaidWhite from '../assets/brand/usaid-white.png'
 
@@ -127,6 +128,25 @@ export default function StoryNav() {
             </ul>
           </div>
         ))}
+
+        {/* TEMPORARY cross-link. The Archive already links back ("← Read the
+            Story" in its panel) but the story had no way in. This is a plain
+            rail entry until M4 builds the real story↔archive deep links
+            (jumping to the moment in the record the current section is
+            describing). A Link, not a scroll button — it leaves the page. */}
+        <div className="story-rail-group">
+          <p className="story-rail-act">The Record</p>
+          <ul>
+            <li>
+              <Link className="story-rail-link story-rail-out" to="/archive">
+                <span className="story-rail-label">Archive</span>
+                <span className="story-rail-out-arrow" aria-hidden="true">
+                  →
+                </span>
+              </Link>
+            </li>
+          </ul>
+        </div>
       </div>
 
       <div className="story-rail-foot">

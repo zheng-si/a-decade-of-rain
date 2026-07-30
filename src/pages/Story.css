@@ -378,6 +378,35 @@
   background: rgba(255, 255, 255, 0.12);
 }
 
+/* Outbound rail entry (→ the Archive). It is an <a>, not a scroll button, so
+   it opts out of the "resting sections recede" rule — it is a destination,
+   not a section you are simply not on — and cancels the anchor underline. */
+.story-rail-link.story-rail-out {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3125rem;
+  text-decoration: none;
+}
+
+.story-rail-link.story-rail-out:not(.is-on) {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.story-rail-out-arrow {
+  transition: transform 0.15s;
+}
+
+.story-rail-link.story-rail-out:hover .story-rail-out-arrow {
+  transform: translateX(2px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-rail-out-arrow {
+    transition: none;
+  }
+}
+
 /* Active marker: a 4px white bar on the rail's left edge — it never collides
    with the centred label the way the old caret could. */
 .story-rail-link::before {
