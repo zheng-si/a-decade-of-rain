@@ -58,7 +58,6 @@ const dayLabel = (day: number) =>
 // Curated "Jump To" views — places the story dwells on, one ease away.
 const PRESETS: { label: string; center: [number, number]; zoom: number }[] = [
   { label: 'A Sầu Valley', center: [107.3, 16.13], zoom: 10 },
-  { label: 'Cần Giờ', center: [106.89, 10.52], zoom: 10 },
   { label: 'Biên Hòa', center: [106.818, 10.972], zoom: 10.8 },
   { label: 'Đà Nẵng', center: [108.199, 16.044], zoom: 10.8 },
   { label: 'Phù Cát', center: [109.043, 13.952], zoom: 10.8 },

@@ -844,6 +844,19 @@
   box-shadow: 0 8px 24px rgba(33, 53, 40, 0.16);
 }
 
+/* Hover tooltip: no border, so no seam where the tip meets the box; the
+   headline line is utility text (13px sans), per the serif-for-display rule. */
+.adr-hover .maplibregl-popup-content {
+  border: none;
+}
+
+.adr-popup.adr-hover strong {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 13px;
+  margin: 0 0 2px;
+}
+
 .adr-popup strong {
   display: block;
   margin: 0 0 3px;
