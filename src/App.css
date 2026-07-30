@@ -851,18 +851,21 @@
   border: none;
 }
 
+/* Statline grammar: heavier red figures over regular quiet words. */
 .adr-popup.adr-hover strong {
   font-family: var(--font-sans);
-  font-weight: 600;
+  font-weight: 400;
   font-size: 13px;
   margin: 0 0 2px;
+  color: var(--ink-soft);
 }
 
-/* Figures carry the house red; words stay ink. (display: inline undoes the
-   generic .adr-popup span block rule for these nested number spans.) */
+/* (display: inline undoes the generic .adr-popup span block rule for these
+   nested number spans.) */
 .adr-popup.adr-hover strong .n {
   display: inline;
   max-width: none;
+  font-weight: 600;
   color: var(--accent-deep);
 }
 
