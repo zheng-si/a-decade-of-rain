@@ -117,8 +117,8 @@ function timeFilter(day: number, indices: number[]): ExpressionSpecification {
   return ['all', ['<=', ['get', 'day'], day], ['in', ['get', 'agent'], ['literal', indices]]]
 }
 
-/** First label layer, so we can slot the heatmap beneath it (labels stay on top). */
-function firstLabelLayerId(map: maplibregl.Map): string | undefined {
+/** First label layer, so overlays can slot in beneath it (labels stay on top). */
+export function firstLabelLayerId(map: maplibregl.Map): string | undefined {
   for (const l of map.getStyle().layers ?? []) {
     if (l.type === 'symbol') return l.id
   }

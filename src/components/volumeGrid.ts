@@ -7,6 +7,7 @@
 import type maplibregl from 'maplibre-gl'
 import type { SprayDataset } from '../data/spray'
 import { mapConfig } from '../config/mapConfig'
+import { firstLabelLayerId } from './mapTheme'
 
 export const VOL_COARSE_SOURCE = 'vol-coarse'
 export const VOL_FINE_SOURCE = 'vol-fine'
@@ -28,8 +29,10 @@ export function agentIndexColors(spray: SprayDataset): string[] {
   return spray.agents.map((a) => byCode[a.code] ?? other)
 }
 
-/** Grey for de-emphasised (non-selected) volume. */
-const DIM = '#c9cdc4'
+/** Grey for de-emphasised (non-selected) volume. Zero-saturation on purpose —
+ *  the old value was a faint olive tint that shared land's own hue family
+ *  and read as barely-there instead of neutral. */
+const DIM = '#808080'
 
 /** Bin events up to `day` into a grid. With a selection, each cell emits a
  *  grey feature for the other agents' volume UNDER a tinted feature for the
@@ -127,77 +130,91 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
   map.addSource(VOL_COARSE_SOURCE, { type: 'geojson', data: empty })
   map.addSource(VOL_FINE_SOURCE, { type: 'geojson', data: empty })
 
+  // Insert beneath the basemap's first label layer so place names stay
+  // legible over the data rather than the reverse (a plain addLayer with no
+  // beforeId appends to the very top of the stack, above every label).
+  const labelId = firstLabelLayerId(map)
+
   // No strokes; overlap darkens by alpha stacking — the closest WebGL gets
   // to a multiply blend (MapLibre layers have no CSS-style blend modes).
   // pitch-alignment 'map' lays each disc flat on the map plane, so in the
   // 3D view the dots foreshorten into ellipses instead of billboarding.
   const shared = {
     'circle-color': ['get', 'c'] as unknown as maplibregl.ExpressionSpecification,
-    'circle-opacity': 0.6,
+    'circle-opacity': 0.72,
     'circle-pitch-alignment': 'map' as const,
     'circle-pitch-scale': 'map' as const,
   }
   const sharedLayout = { 'circle-sort-key': ['get', 's'] as unknown as maplibregl.ExpressionSpecification }
 
-  map.addLayer({
-    id: VOL_COARSE_LAYER,
-    type: 'circle',
-    source: VOL_COARSE_SOURCE,
-    maxzoom: Z_FAR_TO_MID,
-    layout: sharedLayout,
-    paint: {
-      ...shared,
-      'circle-radius': gridRadius(
-        [
-          [5.6, 0.03],
-          [7.0, 0.069],
-        ],
-        13,
-      ),
+  map.addLayer(
+    {
+      id: VOL_COARSE_LAYER,
+      type: 'circle',
+      source: VOL_COARSE_SOURCE,
+      maxzoom: Z_FAR_TO_MID,
+      layout: sharedLayout,
+      paint: {
+        ...shared,
+        'circle-radius': gridRadius(
+          [
+            [5.6, 0.03],
+            [7.0, 0.069],
+          ],
+          13,
+        ),
+      },
     },
-  })
+    labelId,
+  )
 
-  map.addLayer({
-    id: VOL_FINE_LAYER,
-    type: 'circle',
-    source: VOL_FINE_SOURCE,
-    minzoom: Z_FAR_TO_MID,
-    maxzoom: Z_MID_TO_NEAR,
-    layout: sharedLayout,
-    paint: {
-      ...shared,
-      'circle-radius': gridRadius(
-        [
-          [7.0, 0.037],
-          [9.2, 0.1],
-        ],
-        12,
-      ),
+  map.addLayer(
+    {
+      id: VOL_FINE_LAYER,
+      type: 'circle',
+      source: VOL_FINE_SOURCE,
+      minzoom: Z_FAR_TO_MID,
+      maxzoom: Z_MID_TO_NEAR,
+      layout: sharedLayout,
+      paint: {
+        ...shared,
+        'circle-radius': gridRadius(
+          [
+            [7.0, 0.037],
+            [9.2, 0.1],
+          ],
+          12,
+        ),
+      },
     },
-  })
+    labelId,
+  )
 
   // Near tier: the raw events themselves (single runs are ~1k gallons).
-  map.addLayer({
-    id: VOL_RAW_LAYER,
-    type: 'circle',
-    source: spraySource,
-    minzoom: Z_MID_TO_NEAR,
-    paint: {
-      'circle-color': ['get', 'c'] as unknown as maplibregl.ExpressionSpecification,
-      'circle-opacity': 0.55,
-      'circle-pitch-alignment': 'map',
-      'circle-pitch-scale': 'map',
-      'circle-radius': [
-        'interpolate',
-        ['linear'],
-        ['zoom'],
-        9.2,
-        ['min', ['*', 0.14, ['sqrt', ['get', 'gallons']]], 18],
-        12,
-        ['min', ['*', 0.34, ['sqrt', ['get', 'gallons']]], 18],
-      ] as unknown as maplibregl.ExpressionSpecification,
+  map.addLayer(
+    {
+      id: VOL_RAW_LAYER,
+      type: 'circle',
+      source: spraySource,
+      minzoom: Z_MID_TO_NEAR,
+      paint: {
+        'circle-color': ['get', 'c'] as unknown as maplibregl.ExpressionSpecification,
+        'circle-opacity': 0.72,
+        'circle-pitch-alignment': 'map',
+        'circle-pitch-scale': 'map',
+        'circle-radius': [
+          'interpolate',
+          ['linear'],
+          ['zoom'],
+          9.2,
+          ['min', ['*', 0.14, ['sqrt', ['get', 'gallons']]], 18],
+          12,
+          ['min', ['*', 0.34, ['sqrt', ['get', 'gallons']]], 18],
+        ] as unknown as maplibregl.ExpressionSpecification,
+      },
     },
-  })
+    labelId,
+  )
   return VOL_COARSE_LAYER
 }
 
