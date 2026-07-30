@@ -223,11 +223,12 @@
   color: var(--ink-soft);
 }
 
-/* Figures differ from labels by colour alone — one grammar on every
-   surface (panel statline, inspect counts, hover tooltip). */
+/* One grammar on every surface (panel statline, inspect counts, hover
+   tooltip): figures carry accent red at medium weight, labels stay
+   regular in ink-soft. */
 .explorer-statline strong {
   font-size: 11px;
-  font-weight: 400;
+  font-weight: 500;
   color: var(--accent-deep);
 }
 
@@ -741,7 +742,7 @@
 }
 
 .inspect-sub strong {
-  font-weight: 400;
+  font-weight: 500;
   color: var(--accent-deep);
 }
 
@@ -879,14 +880,14 @@
   color: var(--ink-soft);
 }
 
-/* Figures differ from their labels by colour alone — same size, same weight.
-   (The generic .adr-popup span rule below would otherwise force these
-   nested spans to block layout at 11.5px, half a step under the line.) */
+/* Figures match their labels in size and sit on the same baseline; weight
+   and colour mark them out. (The generic .adr-popup span rule below would
+   otherwise force these nested spans to block layout at 11.5px.) */
 .adr-popup.adr-hover strong .n {
   display: inline;
   max-width: none;
   font-size: inherit;
-  font-weight: inherit;
+  font-weight: 500;
   line-height: inherit;
   color: var(--accent-deep);
 }
