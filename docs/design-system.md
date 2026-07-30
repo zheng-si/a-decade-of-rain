@@ -13,9 +13,16 @@ orange accent family — orange draws, forest speaks.**
 | `src/pages/Story.css` | the story's own components (cards, charts, map key) |
 | `docs/design-tokens.tokens.json` | the same tokens for Tokens Studio → Figma |
 
-`docs/design-system.html` is an older hand-built visual export: it predates the
-type ladder, the rem scale and the Explorer, and carries a banner saying so. Read
-it for the swatches, not the specs — or rebuild it from this document.
+`docs/design-system.html` is the interactive companion to this document — open it
+in a browser (it embeds its own faces, so it works offline and from a file URL).
+It is built in the system's own tokens, so every sheet doubles as a specimen of
+itself, and each rule ships with a toggle that reproduces the bug we actually
+had: the off-ladder sizes, serif applied below 17px, the four stat-line variants,
+MapLibre's border-triangle tip. Prose rules live here; the html is where you go
+to see one.
+
+Edit `docs/design-system.src.html` (the page without its fonts inlined), then run
+`node scripts/build-design-system-doc.mjs` to regenerate the standalone file.
 
 This document is the **specification** — read it before drawing a new surface,
 not after. Anything here that reads like a rule (§2–§4) is meant to be applied

@@ -1,0 +1,1283 @@
+<title>A Decade of Rain — Design System</title>
+<style>
+/*FONTS*/
+
+/* ── tokens ─────────────────────────────────────────────────────────────
+   The palette below IS the subject: these are the site's own tokens, not a
+   theme invented for this page. The page is built in them so it doubles as
+   a specimen of itself. */
+:root {
+  color-scheme: light;
+
+  --paper: #faf9f4;
+  --paper-solid: #fdfdfd;
+  --forest: #213528;
+  --forest-2: #2c3730;
+  --ink: #213528;
+  --ink-soft: #4e6355;
+  --ink-faint: #647468;
+  --rule: #dfe3d9;
+  --forest-text: #e8ece6;
+  --forest-text-soft: #b4ccba;
+  --accent: #ff5449;
+  --accent-chip: #d63328;
+  --accent-bright: #ff7a70;
+  --accent-deep: #cf3720;
+  --accent-line: #e8443a;
+
+  --agent-o: #ef7d1a;
+  --agent-w: #93a1b3;
+  --agent-b: #5aa6e0;
+  --agent-x: #9a6cc4;
+  --dim: #c9cdc4;
+
+  --font-sans: 'Public Sans', system-ui, sans-serif;
+  --font-serif: 'Gambarino', Georgia, serif;
+  --font-serif-display: 'Playfair Display', Georgia, serif;
+
+  /* Page chrome: the "table" the paper sheets sit on. Warm, forest-biased,
+     never a neutral mid-grey. */
+  --ground: #ebe9e1;
+  --ground-edge: #dcdad0;
+  --sheet: var(--paper);
+  --chrome-ink: var(--ink);
+  --chrome-soft: var(--ink-soft);
+}
+
+/* Dark viewers get a darker table; the specimen sheets stay true paper,
+   because a paper identity shown on a dark ground would be a lie. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground: #17211b;
+    --ground-edge: #0f1712;
+    --chrome-ink: var(--forest-text);
+    --chrome-soft: var(--forest-text-soft);
+  }
+}
+:root[data-theme='dark'] {
+  --ground: #17211b;
+  --ground-edge: #0f1712;
+  --chrome-ink: var(--forest-text);
+  --chrome-soft: var(--forest-text-soft);
+}
+:root[data-theme='light'] {
+  --ground: #ebe9e1;
+  --ground-edge: #dcdad0;
+  --chrome-ink: var(--ink);
+  --chrome-soft: var(--ink-soft);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 1.25rem 6rem;
+  background: var(--ground);
+  color: var(--chrome-ink);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  font-variant-numeric: lining-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── masthead ─────────────────────────────────────────────────────────── */
+.masthead {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 3.5rem 0 1.5rem;
+}
+
+.masthead .kicker {
+  margin: 0 0 0.75rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--chrome-soft);
+}
+
+.masthead h1 {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1.02;
+  text-wrap: balance;
+  color: var(--chrome-ink);
+}
+
+.masthead .thesis {
+  max-width: 34rem;
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--chrome-soft);
+}
+
+.masthead .thesis em {
+  font-style: normal;
+  color: var(--accent-deep);
+}
+
+@media (prefers-color-scheme: dark) {
+  .masthead .thesis em { color: var(--accent-bright); }
+}
+:root[data-theme='dark'] .masthead .thesis em { color: var(--accent-bright); }
+:root[data-theme='light'] .masthead .thesis em { color: var(--accent-deep); }
+
+/* ── the density dial (sticky) ────────────────────────────────────────── */
+.dial {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  max-width: 60rem;
+  margin: 0 auto 2rem;
+  padding: 0.6875rem 0.9375rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  background: var(--paper-solid);
+  border: 1px solid var(--rule);
+  border-radius: 0.25rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(33, 53, 40, 0.14);
+  color: var(--ink-soft);
+}
+
+.dial-label {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.switch {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: rgba(33, 53, 40, 0.06);
+  border-radius: 62.4375rem;
+}
+
+.switch button {
+  border: none;
+  background: transparent;
+  border-radius: 62.4375rem;
+  padding: 0.25rem 0.75rem;
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.switch button[aria-pressed='true'] {
+  background: var(--forest);
+  color: #fff;
+}
+
+.dial .readout {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  color: var(--ink-faint);
+}
+
+.dial .readout b {
+  font-weight: 500;
+  color: var(--accent-deep);
+}
+
+/* ── sheets ───────────────────────────────────────────────────────────── */
+section {
+  max-width: 60rem;
+  margin: 0 auto 1.25rem;
+  padding: 2rem 2rem 2.25rem;
+  background: var(--sheet);
+  border: 1px solid var(--ground-edge);
+  border-radius: 0.375rem;
+  color: var(--ink);
+}
+
+@media (max-width: 40rem) {
+  section { padding: 1.5rem 1.125rem 1.75rem; }
+}
+
+.sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.875rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.sec-num {
+  font-family: var(--font-serif);
+  font-size: 1.0625rem;
+  color: var(--accent-deep);
+}
+
+.sec-head h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1.14;
+  color: var(--ink);
+}
+
+h3 {
+  margin: 2rem 0 0.75rem;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.0625rem;
+  color: var(--ink);
+}
+
+h3:first-of-type { margin-top: 0; }
+
+p { max-width: 40rem; margin: 0 0 0.875rem; color: var(--ink-soft); }
+p:last-child { margin-bottom: 0; }
+p b, p strong { font-weight: 500; color: var(--ink); }
+
+code {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 0.75rem;
+  padding: 0.05em 0.3em;
+  background: rgba(33, 53, 40, 0.055);
+  border-radius: 2px;
+  color: var(--ink);
+}
+
+.rule-quote {
+  max-width: 40rem;
+  margin: 0 0 1.25rem;
+  padding: 0.875rem 0 0.875rem 1rem;
+  border-left: 2px solid var(--accent);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+.note {
+  max-width: 40rem;
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  color: var(--ink-faint);
+}
+
+/* ── colour ───────────────────────────────────────────────────────────── */
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.625rem;
+  margin-bottom: 1.25rem;
+}
+
+.swatch {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0;
+  border: 1px solid var(--rule);
+  border-radius: 0.25rem;
+  background: var(--paper-solid);
+  font-family: inherit;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.swatch:hover { border-color: #cfccc0; transform: translateY(-1px); }
+.swatch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.swatch .chip {
+  display: block;
+  height: 3rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.swatch .meta { padding: 0.5rem 0.625rem 0.625rem; }
+
+.swatch .name {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.swatch .hex {
+  display: block;
+  margin-top: 1px;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.625rem;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
+
+.swatch .role {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.625rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.swatch .ratio {
+  display: inline-block;
+  margin-top: 0.375rem;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+}
+
+.copied { color: var(--accent-deep) !important; }
+
+.tier-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+}
+
+.tier-table th {
+  text-align: left;
+  padding: 0 0.75rem 0.5rem 0;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  border-bottom: 1px solid var(--rule);
+}
+
+.tier-table td {
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--ink-soft);
+  vertical-align: top;
+}
+
+.tier-table tr:last-child td { border-bottom: none; }
+.tier-table .demo { font-weight: 500; }
+
+/* ── type ladder ──────────────────────────────────────────────────────── */
+.ladder { display: flex; flex-direction: column; gap: 0; margin-bottom: 1rem; }
+
+.rung {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.rung:last-child { border-bottom: none; }
+
+.rung .tick {
+  flex: none;
+  width: 3.25rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+}
+
+.rung .spec { flex: 1; color: var(--ink); line-height: 1.2; }
+.rung .role { flex: none; width: 12rem; font-size: 0.6875rem; color: var(--ink-soft); }
+
+@media (max-width: 44rem) {
+  .rung { flex-wrap: wrap; gap: 0.375rem 0.75rem; }
+  .rung .role { width: auto; }
+}
+
+.rung.off .tick, .rung.off .role { color: var(--accent-deep); }
+.rung.off { display: none; }
+.showing-off .rung.off { display: flex; }
+
+.s10 { font-size: 0.625rem; }
+.s11 { font-size: 0.6875rem; }
+.s12 { font-size: 0.75rem; }
+.s13 { font-size: 0.8125rem; }
+.s14 { font-size: 0.875rem; }
+.s15 { font-size: 0.9375rem; }
+.s17 { font-size: 1.0625rem; }
+.s19 { font-size: 1.1875rem; }
+.s24 { font-size: 1.5rem; }
+.s28 { font-size: 1.75rem; }
+.off-115 { font-size: 0.71875rem; }
+.off-20 { font-size: 1.25rem; }
+.off-9 { font-size: 0.5625rem; }
+.off-8 { font-size: 0.5rem; }
+
+.serif { font-family: var(--font-serif); font-weight: 400; }
+.serif-d { font-family: var(--font-serif-display); font-weight: 400; }
+
+/* ── demos ────────────────────────────────────────────────────────────── */
+.demo-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin: 0 0 1rem;
+}
+
+.demo-bar .cap {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.pill-row { display: flex; flex-wrap: wrap; gap: 0.375rem; }
+
+.pill {
+  border: 1px solid var(--rule);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 0.25rem 0.625rem;
+  border-radius: 62.4375rem;
+  font-family: inherit;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.pill:hover { border-color: var(--accent-deep); color: var(--accent-deep); }
+.pill[aria-pressed='true'] { background: var(--forest); border-color: var(--forest); color: #fff; }
+.pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.specimen {
+  padding: 1.25rem;
+  background: var(--paper-solid);
+  border: 1px solid var(--rule);
+  border-radius: 0.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.verdict {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  max-width: 40rem;
+  font-size: 0.6875rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.verdict .tag {
+  flex: none;
+  padding: 0.05rem 0.375rem;
+  border-radius: 2px;
+  font-size: 0.5625rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.verdict.good .tag { background: rgba(63, 143, 95, 0.14); color: #2c6b45; }
+.verdict.bad .tag { background: rgba(207, 55, 32, 0.12); color: var(--accent-deep); }
+
+/* stat grammar specimen */
+.statline { display: flex; gap: 0.75rem; line-height: 1.3; }
+.statline .pair { font-size: 0.6875rem; font-weight: 400; color: var(--ink-soft); }
+.statline .pair b { font-weight: 500; color: var(--accent-deep); }
+
+.statline.v-faint .pair { color: var(--ink-faint); }
+.statline.v-weight .pair b { font-weight: 400; }
+.statline.v-dots { gap: 0; }
+.statline.v-dots .pair + .pair::before {
+  content: ' · ';
+  font-weight: 600;
+  color: var(--ink);
+  padding: 0 0.25rem;
+}
+.statline.v-size .pair { font-size: 0.71875rem; letter-spacing: 0.02em; }
+
+/* serif-rule specimen — the Explorer's inspect card, reproduced exactly */
+.serif-demo .anchor { font-size: 0.6875rem; color: var(--ink-soft); line-height: 1.1; }
+.serif-demo .anchor b {
+  font-family: var(--font-serif-display);
+  font-size: 1.1875rem;
+  font-weight: 500;
+  color: var(--accent-deep);
+}
+.serif-demo .anchor .unit { margin-left: 0.25rem; font-size: 0.6875rem; color: var(--ink-soft); }
+.serif-demo .note-line { font-size: 0.6875rem; color: var(--ink-soft); margin-top: 0.375rem; }
+.serif-demo .stat-row { display: flex; gap: 0.75rem; }
+.serif-demo .stat-pair { font-weight: 400; color: var(--ink-soft); }
+.serif-demo .stat-pair b { font-weight: 500; color: var(--accent-deep); }
+.serif-demo.broken .note-line,
+.serif-demo.broken .anchor .unit { font-family: var(--font-serif-display); }
+
+/* ── surfaces over a map ──────────────────────────────────────────────── */
+.map-stage {
+  position: relative;
+  height: 20rem;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  background:
+    radial-gradient(circle at 62% 30%, rgba(255, 84, 73, 0.5) 0 0.55rem, transparent 0.56rem),
+    radial-gradient(circle at 68% 44%, rgba(255, 84, 73, 0.5) 0 0.85rem, transparent 0.86rem),
+    radial-gradient(circle at 58% 58%, rgba(255, 84, 73, 0.5) 0 0.4rem, transparent 0.41rem),
+    radial-gradient(circle at 72% 66%, rgba(255, 84, 73, 0.45) 0 0.65rem, transparent 0.66rem),
+    radial-gradient(circle at 64% 78%, rgba(255, 84, 73, 0.5) 0 0.5rem, transparent 0.51rem),
+    radial-gradient(circle at 55% 22%, rgba(255, 84, 73, 0.4) 0 0.3rem, transparent 0.31rem),
+    /* symbols that run UNDER the panel — otherwise there is nothing for the
+       glass to blur and the recipe cannot be judged */
+    radial-gradient(circle at 12% 14%, rgba(255, 84, 73, 0.5) 0 0.7rem, transparent 0.71rem),
+    radial-gradient(circle at 22% 30%, rgba(255, 84, 73, 0.45) 0 0.45rem, transparent 0.46rem),
+    radial-gradient(circle at 8% 34%, rgba(255, 84, 73, 0.5) 0 0.3rem, transparent 0.31rem),
+    radial-gradient(circle at 26% 8%, rgba(239, 125, 26, 0.45) 0 0.55rem, transparent 0.56rem),
+    radial-gradient(circle at 17% 46%, rgba(255, 84, 73, 0.4) 0 0.9rem, transparent 0.91rem),
+    radial-gradient(circle at 34% 20%, rgba(147, 161, 179, 0.55) 0 0.4rem, transparent 0.41rem),
+    radial-gradient(circle at 40% 40%, rgba(255, 84, 73, 0.45) 0 0.6rem, transparent 0.61rem),
+    linear-gradient(160deg, #eceee9, #e6e9e3);
+}
+
+/* Faint linework across the whole stage: a graticule plus one region
+   boundary, so the blur has structure to soften, not just flat colour. */
+.map-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to right, rgba(33, 53, 40, 0.07) 0 1px, transparent 1px 100%) 0 0 / 3.5rem 100%,
+    linear-gradient(to bottom, rgba(33, 53, 40, 0.07) 0 1px, transparent 1px 100%) 0 0 / 100% 3.5rem,
+    linear-gradient(118deg, transparent 0 46%, rgba(33, 53, 40, 0.16) 46% calc(46% + 1px), transparent calc(46% + 1px) 100%),
+    linear-gradient(74deg, transparent 0 28%, rgba(33, 53, 40, 0.12) 28% calc(28% + 1px), transparent calc(28% + 1px) 100%);
+}
+
+.stage-panel {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  width: 14rem;
+  padding: 1rem;
+  border-radius: 0.375rem;
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 0.375rem 1.5rem rgba(40, 38, 30, 0.08);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  backdrop-filter: blur(18px) saturate(1.35);
+}
+
+.stage-panel.is-paper {
+  background: rgba(252, 251, 247, 0.94);
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0.5rem 1.5rem rgba(33, 53, 40, 0.14);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.stage-panel .eyebrow {
+  margin: 0 0 0.375rem;
+  font-family: var(--font-serif-display);
+  font-size: 1.125rem;
+  color: var(--accent-deep);
+}
+
+.stage-panel .title {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-serif-display);
+  font-size: 1.125rem;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.stage-panel p { font-size: 0.6875rem; line-height: 1.55; margin: 0; }
+
+.stage-caption {
+  position: absolute;
+  bottom: 0.75rem;
+  left: 1rem;
+  right: 1rem;
+  font-size: 0.625rem;
+  color: var(--ink-faint);
+}
+
+/* ── explorer surfaces ────────────────────────────────────────────────── */
+.surfaces {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.mini-key {
+  width: 100%;
+  max-width: 12.5rem;
+  padding: 0.6875rem 0.8125rem 1rem;
+  background: rgba(252, 251, 247, 0.94);
+  border: 1px solid var(--rule);
+  border-radius: 0.25rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(33, 53, 40, 0.14);
+}
+
+.k-label {
+  margin: 0 0 0.3125rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.k-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.k-legend li { display: flex; align-items: center; gap: 0.5625rem; font-size: 0.6875rem; color: var(--ink-soft); }
+.k-sw { flex: none; width: 1.25rem; display: flex; justify-content: center; }
+.k-dot { width: 0.625rem; height: 0.625rem; border-radius: 50%; background: var(--accent); opacity: 0.8; }
+.k-mr { width: 1.25rem; border-top: 1.5px dashed var(--accent-line); }
+.k-border { width: 1.25rem; border-top: 1px solid #a8ada2; }
+
+.k-inspect { margin-top: 0.875rem; padding-top: 0.875rem; border-top: 1px solid var(--rule); }
+.k-coords { margin: 0.25rem 0 0.75rem; font-size: 0.625rem; letter-spacing: 0.02em; color: var(--ink-faint); }
+.k-figure { margin: 0 0 0.75rem; line-height: 1.1; font-size: 0.6875rem; color: var(--ink-soft); }
+.k-figure b { font-family: var(--font-serif-display); font-size: 1.1875rem; font-weight: 500; color: var(--accent-deep); }
+.k-figure span { margin-left: 0.25rem; }
+.k-counts { display: flex; gap: 0.75rem; margin: 0 0 0.25rem; font-size: 0.6875rem; color: var(--ink-soft); }
+.k-counts b { font-weight: 500; color: var(--accent-deep); }
+.k-dates { margin: 0; font-size: 0.6875rem; color: var(--ink-soft); }
+
+.k-mix { display: flex; flex-direction: column; gap: 0.4375rem; margin-top: 0.875rem; padding-top: 0.875rem; border-top: 1px solid var(--rule); }
+.k-mix-row { display: flex; align-items: center; gap: 0.375rem; font-size: 0.625rem; color: var(--ink-soft); }
+.k-mix-row .lbl { width: 2.5rem; flex: none; }
+.k-track { flex: 1; height: 0.3125rem; border-radius: 2px; background: rgba(33, 53, 40, 0.07); overflow: hidden; }
+.k-bar { display: block; height: 100%; border-radius: 2px; opacity: 0.85; }
+.k-val { width: 2.125rem; flex: none; text-align: right; color: var(--ink-soft); }
+
+/* tooltip specimen with the rotated tip */
+.tip-stage {
+  position: relative;
+  padding: 2rem 1rem 3.5rem;
+  border-radius: 0.25rem;
+  background: linear-gradient(160deg, #eceee9, #e6e9e3);
+  border: 1px solid var(--rule);
+}
+
+.tooltip {
+  position: relative;
+  width: fit-content;
+  max-width: 15.625rem;
+  margin: 0 auto;
+  padding: 0.625rem 0.8125rem 0.6875rem;
+  background: var(--paper-solid);
+  border-radius: 0.25rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(33, 53, 40, 0.16);
+  z-index: 1;
+}
+
+.tooltip .head { font-size: 0.8125rem; color: var(--ink-soft); margin: 0 0 2px; display: flex; gap: 0.75rem; }
+.tooltip .head b { font-weight: 500; color: var(--accent-deep); }
+.tooltip .sub { margin: 0; font-size: 0.6875rem; color: var(--ink-soft); }
+
+.tooltip .tip {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 0.6875rem;
+  height: 0.6875rem;
+  margin-left: -0.34375rem;
+  margin-bottom: -0.4375rem;
+  background: var(--paper-solid);
+  transform: rotate(45deg);
+  border-bottom-right-radius: 2px;
+  z-index: 2;
+}
+
+/* the two historical bugs, on demand */
+.tip-stage.legacy-tip .tooltip .tip {
+  width: 0; height: 0;
+  margin-left: -0.625rem;
+  margin-bottom: -1.25rem;
+  background: transparent;
+  border: 0.625rem solid transparent;
+  border-top-color: var(--paper-solid);
+  border-bottom: none;
+  border-radius: 0;
+  transform: none;
+}
+
+.tip-stage.tip-under .tooltip .tip { z-index: 0; }
+.tip-stage.tip-under .tooltip { z-index: 1; }
+
+/* ── rhythm ───────────────────────────────────────────────────────────── */
+.rhythm { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.rhythm-row { display: flex; align-items: center; gap: 0.75rem; font-size: 0.6875rem; color: var(--ink-soft); }
+.rhythm-row .what { width: 12rem; flex: none; color: var(--ink); }
+.rhythm-bar { height: 0.5rem; border-radius: 2px; background: var(--accent); opacity: 0.35; }
+.rhythm-row .px { font-weight: 500; color: var(--accent-deep); }
+
+@media (max-width: 40rem) {
+  .rhythm-row { flex-wrap: wrap; }
+  .rhythm-row .what { width: 100%; }
+}
+
+/* ── footer ───────────────────────────────────────────────────────────── */
+footer {
+  max-width: 60rem;
+  margin: 2.5rem auto 0;
+  padding: 0 0.5rem;
+  font-size: 0.6875rem;
+  line-height: 1.7;
+  color: var(--chrome-soft);
+}
+
+footer a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+  .swatch:hover { transform: none; }
+}
+</style>
+
+<header class="masthead">
+  <p class="kicker">Design system · A Decade of Rain</p>
+  <h1>Warm paper cartography, forest ink, one orange accent</h1>
+  <p class="thesis">
+    The specification for the story and the Explorer, shown in its own materials:
+    every sheet below is set in the system's faces, colours and spacing.
+    <em>Orange draws; forest speaks.</em>
+  </p>
+</header>
+
+<div class="dial" role="group" aria-label="Root density">
+  <span class="dial-label">Root density</span>
+  <div class="switch">
+    <button type="button" data-root="16" aria-pressed="true">100%</button>
+    <button type="button" data-root="13.6" aria-pressed="false">85%</button>
+  </div>
+  <span class="readout">
+    <code>html { font-size: <b id="root-readout">16px</b> }</code>
+    — the site's one density dial. Watch this whole page rescale.
+  </span>
+</div>
+
+<section>
+  <div class="sec-head"><span class="sec-num">1</span><h2>Colour</h2></div>
+
+  <p>
+    The ink scale is <b>semantic, not a lightness ramp</b>. Pick by role, never by
+    how grey something feels — that habit is what let a section label end up
+    lighter than the content it introduced.
+  </p>
+
+  <h3>Ink — three tiers</h3>
+  <table class="tier-table">
+    <thead>
+      <tr><th>Tier</th><th>Role</th><th>Specimen</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>--ink</code></td>
+        <td>Titles <b>and structural labels</b> — the small tracked caps that name a section</td>
+        <td class="demo" style="color: var(--ink)">MAP VIEW</td>
+      </tr>
+      <tr>
+        <td><code>--ink-soft</code></td>
+        <td>Content: body copy, legend rows, stat labels, dates</td>
+        <td class="demo" style="color: var(--ink-soft); font-weight: 400">Sprayed Volume</td>
+      </tr>
+      <tr>
+        <td><code>--ink-faint</code></td>
+        <td>Notes <em>about</em> content: coordinates, axis years, table values</td>
+        <td class="demo" style="color: var(--ink-faint); font-weight: 400">16.86°N 106.74°E</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="note">
+    Structural labels take the <b>darkest</b> ink because size and tracking already
+    separate them from their content — so colour is free to mark them as structure.
+  </p>
+
+  <h3>Tokens — click any swatch to copy its hex</h3>
+  <div class="swatches" id="swatches"></div>
+  <p class="note">
+    Ratios are measured against <code>--paper</code> at load, not quoted from memory.
+    Data hues are <b>data</b>: they may not be borrowed for UI chrome. Agent White is a
+    slate blue-grey on purpose — a neutral silver was indistinguishable from the
+    context grey that carries the unselected record.
+  </p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">2</span><h2>Type</h2></div>
+
+  <p>
+    One modular ladder, site-wide. <b>Every <code>font-size</code> sits on a tick.</b>
+    Off-ladder values are bugs, and they hide well — the four below all shipped and
+    had to be found by measuring computed styles, not by looking.
+  </p>
+
+  <div class="demo-bar">
+    <span class="cap">Ladder</span>
+    <div class="pill-row">
+      <button type="button" class="pill" id="off-toggle" aria-pressed="false">Show the off-ladder bugs</button>
+    </div>
+  </div>
+
+  <div class="ladder" id="ladder">
+    <div class="rung"><span class="tick">10</span><span class="spec s10" style="font-weight:600;letter-spacing:.06em">STRUCTURAL LABEL</span><span class="role">Tracked caps, sparkline years</span></div>
+    <div class="rung"><span class="tick">11</span><span class="spec s11" style="font-weight:400">Legend rows and stat pairs</span><span class="role">Chart furniture, notes</span></div>
+    <div class="rung off"><span class="tick">11.5 ✗</span><span class="spec off-115" style="font-weight:600">Flat / 3D buttons</span><span class="role">Was inherited from the story's map key</span></div>
+    <div class="rung"><span class="tick">12</span><span class="spec s12" style="font-weight:600">All Agents</span><span class="role">UI controls, badges, chips</span></div>
+    <div class="rung"><span class="tick">13</span><span class="spec s13">Body copy sets here, at three hundred weight.</span><span class="role">Body</span></div>
+    <div class="rung"><span class="tick">14</span><span class="spec s14">Deks and primary buttons</span><span class="role">Deks, buttons</span></div>
+    <div class="rung"><span class="tick">15</span><span class="spec s15">Wall captions</span><span class="role">Photo-wall captions</span></div>
+    <div class="rung"><span class="tick">17</span><span class="spec s17 serif">The Decade of Defoliation</span><span class="role">Quotes, card deks (serif)</span></div>
+    <div class="rung"><span class="tick">19</span><span class="spec s19 serif-d">Dec 1971 · 81K</span><span class="role">Card titles, anchor figures (serif)</span></div>
+    <div class="rung off"><span class="tick">20 ✗</span><span class="spec off-20 serif-d">81K</span><span class="role">The inspect figure, before it joined the ladder</span></div>
+    <div class="rung"><span class="tick">24</span><span class="spec s24 serif">The Archive</span><span class="role">Section subtitles, card years (serif)</span></div>
+    <div class="rung"><span class="tick">28</span><span class="spec s28 serif">19.5M</span><span class="role">Stat figures (serif)</span></div>
+    <div class="rung off"><span class="tick">9 ✗</span><span class="spec off-9" style="font-weight:600;letter-spacing:.07em">MAP VIEW</span><span class="role">The key's kicker, before it matched</span></div>
+    <div class="rung off"><span class="tick">8 ✗</span><span class="spec off-8">16.86°N 106.74°E</span><span class="role">Coordinates — below the legibility floor</span></div>
+  </div>
+
+  <p class="note" style="margin-top:.75rem">
+    Plus three fluid display steps: <code>clamp(27→38)</code> section titles ·
+    <code>clamp(30→44)</code> statements · <code>clamp(40→72)</code> masthead.
+  </p>
+
+  <h3>The serif rule</h3>
+  <p class="rule-quote">
+    Serif is a <b>display role</b>, not a content type. It belongs to anchor text —
+    17px and up — and each surface gets exactly one anchor. Below 17px, everything
+    is sans, no matter what the words refer to.
+  </p>
+
+  <div class="demo-bar">
+    <span class="cap">Try it</span>
+    <div class="pill-row">
+      <button type="button" class="pill" id="serif-toggle" aria-pressed="false">Break the rule</button>
+    </div>
+  </div>
+
+  <div class="specimen">
+    <div class="serif-demo" id="serif-demo">
+      <div class="anchor"><b>81K</b><span class="unit">Gallons</span></div>
+      <div class="note-line stat-row">
+        <span class="stat-pair"><b>35</b> Missions</span>
+        <span class="stat-pair"><b>86</b> Runs</span>
+      </div>
+      <div class="note-line">Sep 1966 – May 1969</div>
+    </div>
+  </div>
+  <div class="verdict good" id="serif-verdict">
+    <span class="tag">Rule</span>
+    <span>One serif anchor; the notes below it are sans. The same date and the same
+    kind of figure can be serif in one place and sans in another — that is the rule
+    working, not an inconsistency.</span>
+  </div>
+
+  <p class="note" style="margin-top:1rem">
+    The physical reason: Playfair and Gambarino are high-contrast Didones whose thin
+    strokes disintegrate below ~15px. Public Sans ships <b>300/400/500 only</b> —
+    anything bolder is a synthesised faux-bold.
+  </p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">3</span><h2>Editorial grammar</h2></div>
+
+  <h3>Stat grammar</h3>
+  <p>
+    Any figure-plus-label pair, on any surface, is written the same way: figure at
+    <b>500</b> in <code>--accent-deep</code>, label at <b>400</b> in
+    <code>--ink-soft</code> at the same size, and <b>12px of space</b> between pairs —
+    no separator glyph. Three surfaces once disagreed on colour, weight, gap
+    <em>and</em> tracking at the same time.
+  </p>
+
+  <div class="demo-bar">
+    <span class="cap">Compare</span>
+    <div class="pill-row" id="stat-variants">
+      <button type="button" class="pill" data-v="" aria-pressed="true">Correct</button>
+      <button type="button" class="pill" data-v="v-faint" aria-pressed="false">Faint labels</button>
+      <button type="button" class="pill" data-v="v-weight" aria-pressed="false">Flat weight</button>
+      <button type="button" class="pill" data-v="v-dots" aria-pressed="false">Interpuncts</button>
+      <button type="button" class="pill" data-v="v-size" aria-pressed="false">Off-ladder + tracked</button>
+    </div>
+  </div>
+
+  <div class="specimen">
+    <p class="statline" id="statline">
+      <span class="pair"><b>8,360</b> Missions</span>
+      <span class="pair"><b>24,604</b> Runs</span>
+      <span class="pair"><b>19.5M</b> Gallons</span>
+    </p>
+  </div>
+  <div class="verdict good" id="stat-verdict">
+    <span class="tag">Rule</span>
+    <span id="stat-verdict-text">Figure 500 in accent, label 400 in ink-soft, 12px apart.
+    The red figure already marks where each pair begins.</span>
+  </div>
+
+  <h3>Interpuncts</h3>
+  <p class="rule-quote">
+    <code>·</code> joins parallel phrases of <b>equal rank and equal formatting</b>.
+    The moment the two sides carry their own hierarchy, use white space.
+  </p>
+  <table class="tier-table">
+    <thead><tr><th>Keep the dot</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td class="demo" style="font-weight:400;color:var(--ink-soft)">W.&nbsp;A.&nbsp;Buckingham · U.S. Air Force Office of History</td><td>Two source names of equal rank</td></tr>
+      <tr><td class="demo" style="font-weight:400;color:var(--ink-soft)">Act II · The timeline</td><td>Two eyebrow labels of equal rank</td></tr>
+      <tr><td class="demo" style="font-weight:400;color:var(--ink-soft)">Mostly Orange · Sep 1966 – May 1969</td><td>Running prose, both sides plain</td></tr>
+      <tr><td class="demo" style="font-weight:400;color:var(--accent-deep)">8,360 <span style="color:var(--ink-soft)">Missions</span> · 24,604 <span style="color:var(--ink-soft)">Runs</span></td><td><b style="color:var(--accent-deep)">Drop it</b> — each pair already has internal hierarchy</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Caps and units</h3>
+  <p>
+    <b>Initial Caps for every label, badge, chip and button.</b> Uppercase survives in
+    exactly two places, both signposts rather than content: 10px structural labels
+    (<code>MAP VIEW</code>, <code>JUMP TO</code>) and map linework tags
+    (<code>MILITARY REGION III</code>).
+  </p>
+  <p>
+    Write units as a word beside the figure, sharing a baseline — <b>81K Gallons</b>.
+    Prefer a round number to an <code>≈</code> glyph: <b>13 km Grid Cell</b> says
+    "about" by being round, and reads as a noun phrase parallel to
+    <b>Single Spray Run</b>.
+  </p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">4</span><h2>Surfaces</h2></div>
+
+  <p>
+    Two recipes, chosen by what is <em>behind</em> the panel. Glass is for panels over
+    a map; paper is for panels over a page — <code>backdrop-filter</code> on a
+    <b>fixed</b> panel re-samples the scrolling content beneath it every frame and
+    flickers.
+  </p>
+
+  <div class="demo-bar">
+    <span class="cap">Recipe</span>
+    <div class="pill-row" id="surface-variants">
+      <button type="button" class="pill" data-s="" aria-pressed="true">Frosted glass</button>
+      <button type="button" class="pill" data-s="is-paper" aria-pressed="false">Near-opaque paper</button>
+    </div>
+  </div>
+
+  <div class="map-stage">
+    <div class="stage-panel" id="stage-panel">
+      <p class="eyebrow">1961–1971</p>
+      <p class="title">The Archive</p>
+      <p>Symbols and the graticule keep showing through, softened. That is the whole
+      argument for glass: on a map the data is the ground, and the panel is a pane
+      laid over it rather than a hole cut in it.</p>
+    </div>
+    <p class="stage-caption" id="stage-caption">
+      Glass: <code>rgba(255,255,255,0.5)</code> + <code>blur(18px) saturate(1.35)</code>,
+      1px white border, <code>0 6px 24px rgba(40,38,30,0.08)</code>.
+    </p>
+  </div>
+
+  <h3>Spacing rhythms</h3>
+  <p>
+    Content-versus-control is a legitimate reason for two rhythms inside one panel.
+    Drifting between 9, 10 and 16 in the same stack is not.
+  </p>
+  <div class="rhythm">
+    <div class="rhythm-row"><span class="what">Explorer panel blocks</span><span class="rhythm-bar" style="width:6rem"></span><span class="px">24px</span></div>
+    <div class="rhythm-row"><span class="what">Map key · control half</span><span class="rhythm-bar" style="width:3rem"></span><span class="px">12px</span></div>
+    <div class="rhythm-row"><span class="what">Map key · inspect half</span><span class="rhythm-bar" style="width:3.5rem"></span><span class="px">14px</span></div>
+    <div class="rhythm-row"><span class="what">Label → its capsule</span><span class="rhythm-bar" style="width:1.25rem"></span><span class="px">5px</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">5</span><h2>The Explorer's three surfaces</h2></div>
+
+  <p>
+    Rendered here in the real specification, not screenshotted: a map key whose
+    inspect half appears in place rather than as a second floating card, and a
+    tooltip that shows only what a glance needs.
+  </p>
+
+  <div class="surfaces">
+    <div>
+      <p class="k-label" style="color:var(--ink-faint)">Map key + inspect</p>
+      <div class="mini-key">
+        <p class="k-label">MAP VIEW</p>
+        <ul class="k-legend">
+          <li><span class="k-sw"><span class="k-dot"></span></span>Sprayed Volume</li>
+          <li><span class="k-sw"><span class="k-mr"></span></span>Military Region</li>
+          <li><span class="k-sw"><span class="k-border"></span></span>National Border</li>
+        </ul>
+        <div class="k-inspect">
+          <p class="k-label">13 KM GRID CELL</p>
+          <p class="k-coords">16.86°N 106.74°E</p>
+          <p class="k-figure"><b>81K</b><span>Gallons</span></p>
+          <p class="k-counts"><span><b>35</b> Missions</span><span><b>86</b> Runs</span></p>
+          <p class="k-dates">Sep 1966 – May 1969</p>
+          <div class="k-mix">
+            <div class="k-mix-row"><span class="lbl">Orange</span><span class="k-track"><span class="k-bar" style="width:100%;background:var(--agent-o)"></span></span><span class="k-val">49K</span></div>
+            <div class="k-mix-row"><span class="lbl">White</span><span class="k-track"><span class="k-bar" style="width:64%;background:var(--agent-w)"></span></span><span class="k-val">32K</span></div>
+            <div class="k-mix-row"><span class="lbl">Blue</span><span class="k-track"><span class="k-bar" style="width:9%;background:var(--agent-b)"></span></span><span class="k-val">2K</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="k-label" style="color:var(--ink-faint)">Hover tooltip</p>
+      <div class="demo-bar">
+        <div class="pill-row" id="tip-variants">
+          <button type="button" class="pill" data-t="" aria-pressed="true">Correct</button>
+          <button type="button" class="pill" data-t="legacy-tip" aria-pressed="false">Border triangle</button>
+          <button type="button" class="pill" data-t="tip-under" aria-pressed="false">Tip under content</button>
+        </div>
+      </div>
+      <div class="tip-stage" id="tip-stage">
+        <div class="tooltip">
+          <p class="head"><span><b>81K</b> Gallons</span><span><b>86</b> Runs</span></p>
+          <p class="sub">Mostly Orange · Sep 1966 – May 1969</p>
+          <span class="tip"></span>
+        </div>
+      </div>
+      <div class="verdict good" id="tip-verdict" style="margin-top:.75rem">
+        <span class="tag">Rule</span>
+        <span id="tip-verdict-text">A rotated square with its outer corner rounded to
+        the box's own 2px, tucked 7px back in, painting <b>above</b> the content.</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="note" style="margin-top:1.25rem">
+    MapLibre's own tip is a border triangle — <code>border: 10px solid transparent</code> —
+    which cannot take a radius, and at the four corner anchors a rotated square points
+    the wrong way, so the tip hides there and all four corners stay rounded.
+  </p>
+</section>
+
+<section>
+  <div class="sec-head"><span class="sec-num">6</span><h2>Two encodings, on purpose</h2></div>
+  <p>
+    The story and the Explorer render the same 24,604 spray runs two different ways,
+    and the contrast between them <em>is</em> the product narrative.
+  </p>
+  <table class="tier-table">
+    <thead><tr><th>Surface</th><th>Encoding</th><th>Job</th></tr></thead>
+    <tbody>
+      <tr><td><b>Story</b></td><td>KDE heat field</td><td>Rain on land — feeling</td></tr>
+      <tr><td><b>Explorer</b></td><td>Proportional symbols, area ∝ gallons</td><td>A countable record — inspection</td></tr>
+    </tbody>
+  </table>
+  <p>
+    Because the data is homogeneous — timestamped points, one category, one absolute
+    quantity — the Explorer keeps <b>one representational language at every zoom</b>
+    and changes only the aggregation cell: 0.12° (≈13 km) below z7, 0.03° (≈3 km) to
+    z9.2, then the raw runs. Radius is <code>k·√gallons</code> so <b>area</b>, not
+    radius, carries the quantity; there is no stroke, because overlap darkening by
+    alpha is the closest WebGL gets to a multiply blend.
+  </p>
+  <p class="note">
+    Selection greys the rest of the record rather than hiding it — context stays on
+    the page, and the chart, the legend and the map all follow the same tint.
+  </p>
+</section>
+
+<footer>
+  <p>
+    Specification: <code>docs/design-system.md</code> · tokens:
+    <code>docs/design-tokens.tokens.json</code> · cartographic rationale:
+    <code>docs/explorer-m2-plan.md</code>. Faces are embedded here, so this page is
+    the type it describes: Gambarino and Playfair Display for display, Public Sans
+    300/400/500 for everything else.
+  </p>
+  <p>
+    Single-ground by choice: a warm-paper identity shown on a dark sheet would
+    misrepresent it, so dark viewers get a darker <em>table</em> and the specimens
+    stay paper.
+  </p>
+</footer>
+
+<script>
+  // ── the density dial ────────────────────────────────────────────────────
+  // The real site does this in one media query; here it is a switch so the
+  // whole page can be watched rescaling (everything is authored in rem).
+  const readout = document.getElementById('root-readout');
+  document.querySelectorAll('.dial [data-root]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const px = btn.dataset.root;
+      document.documentElement.style.fontSize = px + 'px';
+      readout.textContent = px + 'px';
+      document.querySelectorAll('.dial [data-root]').forEach((b) =>
+        b.setAttribute('aria-pressed', String(b === btn)));
+    });
+  });
+
+  // ── colour swatches, with measured contrast ─────────────────────────────
+  const TOKENS = [
+    ['--paper', 'Paper', 'Page ground; glass panels with alpha', 0],
+    ['--forest', 'Forest', 'Dark surfaces, filled controls', 1],
+    ['--ink', 'Ink', 'Titles and structural labels', 1],
+    ['--ink-soft', 'Ink soft', 'Content: body, legend rows, labels', 1],
+    ['--ink-faint', 'Ink faint', 'Notes: coordinates, axis years, values', 1],
+    ['--rule', 'Rule', 'Hairline dividers (non-text)', 0],
+    ['--accent', 'Accent', 'Geometry: dots, bars, heat, rain', 0],
+    ['--accent-deep', 'Accent deep', 'Accent text on paper; every stat figure', 1],
+    ['--accent-chip', 'Accent chip', 'Chip fill behind white text', 0],
+    ['--accent-bright', 'Accent bright', 'Accent text on forest', 0],
+    ['--agent-o', 'Agent Orange', 'Series hue — data only', 0],
+    ['--agent-w', 'Agent White', 'Series hue — slate blue-grey on purpose', 0],
+    ['--agent-b', 'Agent Blue', 'Series hue — data only', 0],
+    ['--agent-x', 'Agent Other', 'Purple, Pink, unattributed', 0],
+    ['--dim', 'Context grey', 'The unselected record', 0],
+  ];
+
+  const cs = getComputedStyle(document.documentElement);
+  const hexOf = (name) => cs.getPropertyValue(name).trim();
+
+  const lum = (hex) => {
+    const n = hex.replace('#', '');
+    const v = [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16) / 255)
+      .map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
+    return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+  };
+  const ratio = (a, b) => {
+    const [x, y] = [lum(a), lum(b)].sort((m, n) => n - m);
+    return (x + 0.05) / (y + 0.05);
+  };
+
+  const paper = hexOf('--paper');
+  const grid = document.getElementById('swatches');
+  TOKENS.forEach(([token, name, role, isText]) => {
+    const hex = hexOf(token);
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'swatch';
+    btn.innerHTML =
+      '<span class="chip" style="background:' + hex + '"></span>' +
+      '<span class="meta">' +
+      '<span class="name">' + name + '</span>' +
+      '<code class="hex">' + hex + '</code>' +
+      '<span class="role">' + role + '</span>' +
+      (isText ? '<span class="ratio">' + ratio(hex, paper).toFixed(1) + ':1 on paper</span>' : '') +
+      '</span>';
+    btn.addEventListener('click', () => {
+      const label = btn.querySelector('.hex');
+      const original = hex;
+      navigator.clipboard?.writeText(hex).then(() => {
+        label.textContent = 'Copied';
+        label.classList.add('copied');
+        setTimeout(() => { label.textContent = original; label.classList.remove('copied'); }, 1100);
+      }).catch(() => {});
+    });
+    grid.appendChild(btn);
+  });
+
+  // ── off-ladder toggle ───────────────────────────────────────────────────
+  const ladder = document.getElementById('ladder');
+  const offToggle = document.getElementById('off-toggle');
+  offToggle.addEventListener('click', () => {
+    const on = ladder.classList.toggle('showing-off');
+    offToggle.setAttribute('aria-pressed', String(on));
+    offToggle.textContent = on ? 'Hide the off-ladder bugs' : 'Show the off-ladder bugs';
+  });
+
+  // ── serif rule ──────────────────────────────────────────────────────────
+  const serifDemo = document.getElementById('serif-demo');
+  const serifToggle = document.getElementById('serif-toggle');
+  const serifVerdict = document.getElementById('serif-verdict');
+  const SERIF_OK = serifVerdict.querySelector('span:last-child').innerHTML;
+  serifToggle.addEventListener('click', () => {
+    const broken = serifDemo.classList.toggle('broken');
+    serifToggle.setAttribute('aria-pressed', String(broken));
+    serifToggle.textContent = broken ? 'Obey the rule' : 'Break the rule';
+    serifVerdict.className = 'verdict ' + (broken ? 'bad' : 'good');
+    serifVerdict.querySelector('.tag').textContent = broken ? 'Broken' : 'Rule';
+    serifVerdict.querySelector('span:last-child').innerHTML = broken
+      ? 'Serif applied to 11px notes: the hairlines thin out, the figures lose their ' +
+        'colour contrast advantage, and the anchor stops being an anchor because ' +
+        'everything around it now claims the same voice.'
+      : SERIF_OK;
+  });
+
+  // ── stat grammar variants ───────────────────────────────────────────────
+  const statline = document.getElementById('statline');
+  const statVerdict = document.getElementById('stat-verdict');
+  const statText = document.getElementById('stat-verdict-text');
+  const STAT_COPY = {
+    '': ['good', 'Rule', 'Figure 500 in accent, label 400 in ink-soft, 12px apart. ' +
+      'The red figure already marks where each pair begins.'],
+    'v-faint': ['bad', 'Shipped', 'Labels in ink-faint instead of ink-soft. This is what the ' +
+      'panel had while the tooltip and the inspect card used soft — the same row, ' +
+      'three different greys across three surfaces.'],
+    'v-weight': ['bad', 'Shipped', 'Figures at 400 like their labels: colour alone carries them, ' +
+      'so the row reads flat and the numbers stop being the thing you find first.'],
+    'v-dots': ['bad', 'Shipped', 'Interpuncts between pairs that already have internal ' +
+      'hierarchy — a second, redundant separator that reads as grit at 11px.'],
+    'v-size': ['bad', 'Shipped', 'Off the ladder at 11.5px with 0.02em tracking added. ' +
+      'Invisible in review; obvious the moment you print the computed styles.'],
+  };
+  document.querySelectorAll('#stat-variants .pill').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const v = btn.dataset.v;
+      statline.className = 'statline ' + v;
+      const [kind, tag, text] = STAT_COPY[v];
+      statVerdict.className = 'verdict ' + kind;
+      statVerdict.querySelector('.tag').textContent = tag;
+      statText.textContent = text;
+      document.querySelectorAll('#stat-variants .pill').forEach((b) =>
+        b.setAttribute('aria-pressed', String(b === btn)));
+    });
+  });
+
+  // ── surface recipes ─────────────────────────────────────────────────────
+  const stagePanel = document.getElementById('stage-panel');
+  const stageCaption = document.getElementById('stage-caption');
+  const SURFACE_COPY = {
+    '': 'Glass: <code>rgba(255,255,255,0.5)</code> + <code>blur(18px) saturate(1.35)</code>, ' +
+      '1px white border, <code>0 6px 24px rgba(40,38,30,0.08)</code>.',
+    'is-paper': 'Paper: <code>rgba(252,251,247,0.94)</code>, no filter, ' +
+      '<code>0 8px 24px rgba(33,53,40,0.14)</code> — legible over anything, and safe on a fixed panel.',
+  };
+  document.querySelectorAll('#surface-variants .pill').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const s = btn.dataset.s;
+      stagePanel.className = 'stage-panel ' + s;
+      stageCaption.innerHTML = SURFACE_COPY[s];
+      document.querySelectorAll('#surface-variants .pill').forEach((b) =>
+        b.setAttribute('aria-pressed', String(b === btn)));
+    });
+  });
+
+  // ── tooltip tip variants ────────────────────────────────────────────────
+  const tipStage = document.getElementById('tip-stage');
+  const tipVerdict = document.getElementById('tip-verdict');
+  const tipText = document.getElementById('tip-verdict-text');
+  const TIP_COPY = {
+    '': ['good', 'Rule', 'A rotated square with its outer corner rounded to the box’s ' +
+      'own 2px, tucked 7px back in, painting above the content.'],
+    'legacy-tip': ['bad', 'Default', 'MapLibre’s border triangle: 10px long and ' +
+      'geometrically incapable of a radius, so a rounded box ends in a hard point.'],
+    'tip-under': ['bad', 'Shipped', 'The same rotated square, but painted under the content: ' +
+      'the box’s own drop shadow lands on it and greys it out. Only an 8× zoom found this.'],
+  };
+  document.querySelectorAll('#tip-variants .pill').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const t = btn.dataset.t;
+      tipStage.className = 'tip-stage ' + t;
+      const [kind, tag, text] = TIP_COPY[t];
+      tipVerdict.className = 'verdict ' + kind;
+      tipVerdict.querySelector('.tag').textContent = tag;
+      tipText.textContent = text;
+      document.querySelectorAll('#tip-variants .pill').forEach((b) =>
+        b.setAttribute('aria-pressed', String(b === btn)));
+    });
+  });
+</script>
