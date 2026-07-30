@@ -20,11 +20,12 @@ const VN_LABEL_LAYER = 'vn-country-label-l'
 /** The Archive's own water tones. Land and vegetation come from
  *  `mapConfig.theme`; water is overridden here because the explorer wants a
  *  cooler, quieter sea than the story's. */
-export const WATER_FILL = '#ddeaf2'
-export const WATER_LINE = '#ccdce7'
-/** Layers `quietBasemap` recolours or hides, exposed so a tuner can reach the
- *  same sets without re-deriving them. `building` is deliberately absent from
- *  the vegetation pattern — it is hidden for its own reasons. */
+export const WATER_FILL = '#d1dee6'
+export const WATER_LINE = '#c0d0db'
+/** The layer sets the basemap treatment works on, exported so a tuner can
+ *  reach exactly the same ones without re-deriving them. `building` is
+ *  deliberately absent from the vegetation pattern — it is hidden outright,
+ *  and a tuner must not revive it while colouring the greenery. */
 export const WATER_FILL_RE = /water|sea|ocean|river|lake/
 export const WATER_LINE_RE = /water|river|lake/
 export const VEGETATION_RE = /wood|forest|park|grass|green|landcover|landuse|vegetation/
@@ -280,14 +281,19 @@ export function stampEventColors(spray: SprayDataset, colors: string[], groupOf?
 }
 
 
-/** CF-style quiet basemap for the explorer: vegetation and buildings off,
- *  water a shade paler, town-and-below labels gone, remaining labels set
- *  as small tracked grey caps so the data owns the page. */
+/** CF-style quiet basemap for the explorer: buildings off, water carrying its
+ *  own blue, town-and-below labels gone, remaining labels set as small tracked
+ *  grey caps so the data owns the page. */
 export function quietBasemap(map: maplibregl.Map) {
   for (const layer of map.getStyle().layers ?? []) {
     const id = layer.id
     try {
-      if (VEGETATION_RE.test(id) || /building/.test(id)) {
+      // Buildings go; vegetation stays. Footprints are noise at every zoom
+      // this map opens at, but the green cover is geography the record is
+      // *about* — where the canopy was is the point. `applyMapTheme` has
+      // already put it at mapConfig.theme.greenspace (#e1e5d7, 1.14:1 against
+      // the land), quiet enough to sit behind the circles.
+      if (/building/.test(id)) {
         map.setLayoutProperty(id, 'visibility', 'none')
         continue
       }
@@ -295,7 +301,7 @@ export function quietBasemap(map: maplibregl.Map) {
       // near-neutral #e9edea only read as water because the land under it was
       // warm — it sat just +1 apart in blue-minus-red, so the moment land
       // lightened the sea stopped reading as sea. This blue is +27 cooler
-      // than the land, and at 1.09:1 luminance it is still quiet enough that
+      // than the land, and at 1.22:1 luminance it is still quiet enough that
       // the basemap recedes behind the data: the sea reads by hue, not by
       // lightness. The river line is the same hue two steps down so
       // waterways stay legible against land instead of against the sea.

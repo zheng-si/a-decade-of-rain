@@ -30,9 +30,9 @@ const DEFAULTS: Tune = {
   land: mapConfig.theme.land,
   water: WATER_FILL,
   veg: mapConfig.theme.greenspace,
-  // The explorer hides vegetation entirely; the tuner has to switch it back on
-  // before a colour means anything.
-  vegOn: false,
+  // The explorer draws vegetation; the checkbox is here so it can be taken
+  // away again to see what the map looks like without it.
+  vegOn: true,
 }
 
 const clampByte = (n: number) => Math.max(0, Math.min(255, n))
@@ -50,7 +50,7 @@ const rgbToHex = (c: [number, number, number]) =>
 
 /** Rivers sit two steps down from the sea in the same hue, so a waterway reads
  *  against the land it crosses rather than against the sea it flows into. Same
- *  offset the committed pair uses (#ddeaf2 → #ccdce7). */
+ *  offset the committed pair uses (#d1dee6 → #c0d0db). */
 function deriveLine(waterHex: string): string {
   const c = hexToRgb(waterHex)
   if (!c) return waterHex
@@ -228,7 +228,7 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
           checked={tune.vegOn}
           onChange={(e) => setTune((t) => ({ ...t, vegOn: e.target.checked }))}
         />
-        <span>Show vegetation (off in the shipped explorer)</span>
+        <span>Show vegetation (on in the shipped explorer)</span>
       </label>
 
       <dl className="tuner-read">
