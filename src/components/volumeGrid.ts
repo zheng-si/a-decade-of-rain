@@ -29,10 +29,11 @@ export function agentIndexColors(spray: SprayDataset): string[] {
   return spray.agents.map((a) => byCode[a.code] ?? other)
 }
 
-/** Grey for de-emphasised (non-selected) volume. Zero-saturation on purpose —
- *  the old value was a faint olive tint that shared land's own hue family
- *  and read as barely-there instead of neutral. */
-const DIM = '#808080'
+/** Grey for de-emphasised (non-selected) volume. A neutral #808080 was tried
+ *  and read too heavy — de-emphasised volume competed with the selection —
+ *  so this stays the original soft green-grey and leans on the raised
+ *  circle-opacity (0.72) for its legibility instead of a darker value. */
+const DIM = '#c9cdc4'
 
 /** Bin events up to `day` into a grid. With a selection, each cell emits a
  *  grey feature for the other agents' volume UNDER a tinted feature for the
@@ -276,12 +277,17 @@ export function quietBasemap(map: maplibregl.Map) {
         map.setLayoutProperty(id, 'visibility', 'none')
         continue
       }
+      // Water carries its own cool tint rather than borrowing one. The old
+      // near-neutral #e9edea only read as water because the land under it
+      // was warm cream; once land lightened, the two temperatures converged
+      // and the sea stopped reading as sea. This is still quiet (1.15:1
+      // against land) but cool on its own terms.
       if (layer.type === 'fill' && /water|sea|ocean|river|lake/.test(id)) {
-        map.setPaintProperty(id, 'fill-color', '#e9edea')
+        map.setPaintProperty(id, 'fill-color', '#e3eaee')
         continue
       }
       if (layer.type === 'line' && /water|river|lake/.test(id)) {
-        map.setPaintProperty(id, 'line-color', '#dde4e0')
+        map.setPaintProperty(id, 'line-color', '#d3dee4')
         continue
       }
       if (layer.type === 'line' && /highway|road|street|bridge|tunnel|transportation/.test(id)) {
@@ -342,9 +348,12 @@ export function quietBasemap(map: maplibregl.Map) {
         map.setLayoutProperty(id, 'text-font', ['Cuprum'])
         // Flat tiered sizes, well under the basemap defaults.
         const size = /country/.test(id) ? 15 : 12
-        if (!/country/.test(id)) {
+        if (!/country/.test(id) && !isWater) {
           // Settlements only appear once the reader starts zooming in; the
-          // full-country overview stays clear for the data.
+          // full-country overview stays clear for the data. Water names are
+          // exempt: they are not settlements, and the overview is exactly
+          // where naming the East Sea earns its keep — the old rule caught
+          // them by accident and hid every sea label at the default zoom.
           map.setLayerZoomRange(id, 6.4, 22)
         }
         map.setLayoutProperty(id, 'text-size', size)

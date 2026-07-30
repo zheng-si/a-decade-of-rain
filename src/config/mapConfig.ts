@@ -126,12 +126,14 @@ export const mapConfig: MapConfig = {
 
   // Muted cartographic palette matching the Figma redesign: warm near-white
   // paper, soft desaturated sage land, pale cool sea, hairline borders.
-  // Land is pure white rather than the original warm cream: WCAG contrast is
-  // luminance-only, so pushing land toward black would have moved it closer
-  // to the data hues before separating again; white is the lighter of the
-  // two in every pairing, so it's the only direction that helps monotonically.
+  // Land sits halfway between the original warm cream (#f4f2ea) and pure
+  // white: lightening land raises contrast against every data hue (WCAG is
+  // luminance-only and land is the lighter side of every pairing), but pure
+  // white also stripped the warm reference that made the near-neutral water
+  // fill read as water at all. The midpoint keeps most of the contrast gain
+  // and leaves the basemap enough warmth to stay legible as cartography.
   theme: {
-    land: '#ffffff',
+    land: '#faf9f5',
     /* Water/vegetation at half strength (mixed 50% toward the land tone) so
        the basemap sits further behind the data. */
     water: '#e9ece7',
