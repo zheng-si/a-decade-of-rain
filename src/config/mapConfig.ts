@@ -132,8 +132,10 @@ export const mapConfig: MapConfig = {
   // two in every pairing, so it's the only direction that helps monotonically.
   theme: {
     land: '#ffffff',
-    water: '#dde6e4',
-    greenspace: '#cdd8c3',
+    /* Water/vegetation at half strength (mixed 50% toward the land tone) so
+       the basemap sits further behind the data. */
+    water: '#e9ece7',
+    greenspace: '#e1e5d7',
     building: '#e9e3d6',
     road: '#ffffff',
     boundary: '#6b6e66',
@@ -155,7 +157,7 @@ export const mapConfig: MapConfig = {
   agents: [
     { key: 'O', label: 'Orange', codes: ['O'], color: '#ef7d1a' },
     // Slate-blue silver: blue-leaning so an isolated White stays clearly
-    // apart from the green-leaning context grey (#c9cdc4) on the map.
+    // apart from the neutral context grey (DIM in volumeGrid.ts) on the map.
     { key: 'W', label: 'White', codes: ['W'], color: '#93a1b3' },
     { key: 'B', label: 'Blue', codes: ['B'], color: '#5aa6e0' },
     { key: 'other', label: 'Other', codes: ['P', 'U', 'K', 'D', 'T'], color: '#9a6cc4' },
