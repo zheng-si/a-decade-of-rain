@@ -13,7 +13,6 @@ import {
   setHillshade,
   addMilitaryRegions,
   addIslandMarks,
-  HILLSHADE_LAYER,
 } from './mapTheme'
 import {
   addVolumeLayers,
@@ -35,6 +34,9 @@ import { applyLabelCuration } from './labelLayers'
 
 const SPRAY_SOURCE = 'spray'
 const DEM_SOURCE = 'terrain-dem'
+/** Relief strength: a whisper on the flat map, deeper once the map tilts. */
+const RELIEF_FLAT = 0.28
+const RELIEF_TILTED = 0.6
 
 // Target wall-clock duration for a full 1961→1971 play-through.
 const PLAY_DURATION_MS = 28_000
@@ -168,7 +170,11 @@ function applyView(map: maplibregl.Map, next: boolean, animate = true) {
     map.setTerrain(
       next ? { source: DEM_SOURCE, exaggeration: mapConfig.terrain.exaggeration } : null,
     )
-    setHillshade(map, next) // shaded relief makes the elevation visible
+    // The relief stays visible in BOTH views — it is the flat map's ground,
+    // not a 3D-only decoration. Toggling it off on the way back to flat is
+    // what made the shading disappear for good after one 3D round-trip.
+    // Only its strength changes: soft on the flat map, deeper under tilt.
+    setHillshade(map, true, next ? RELIEF_TILTED : RELIEF_FLAT)
   }
   // Tilt; when entering 3D also zoom in a touch — terrain reads as 3D far
   // better up close than at the full-country overview.
@@ -281,8 +287,7 @@ export default function MapView() {
           })
           addHillshade(map, DEM_SOURCE)
           // CF-style ground: soft relief always on, not just in the 3D view.
-          map.setLayoutProperty(HILLSHADE_LAYER, 'visibility', 'visible')
-          map.setPaintProperty(HILLSHADE_LAYER, 'hillshade-exaggeration', 0.28)
+          setHillshade(map, true, RELIEF_FLAT)
         }
 
         const agentChoices = buildAgentChoices(spray.agents)

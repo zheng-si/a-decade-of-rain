@@ -135,12 +135,16 @@
 }
 
 /* ── shared panel surface (frosted glass) ─────────────────────────────── */
+/* Frosted glass over the map. The white is carried high (0.82) because the
+   basemap is warm paper at almost the same lightness — at the old 0.5 the
+   panel dissolved into it. The blur still does its job: the map's own
+   texture and the spray symbols stay legible through the glass. */
 .intro-card,
 .explorer-panel {
-  background: rgba(255, 255, 255, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 4px;
-  box-shadow: 0 6px 24px rgba(40, 38, 30, 0.08);
+  box-shadow: 0 6px 24px rgba(40, 38, 30, 0.1);
   -webkit-backdrop-filter: blur(18px) saturate(1.35);
   backdrop-filter: blur(18px) saturate(1.35);
 }
@@ -561,10 +565,15 @@
   z-index: 5;
   width: 172px;
   padding: 11px 13px 16px;
-  background: rgba(252, 251, 247, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  /* Same glass as the left panel — this one sits over the map too, so the
+     "near-opaque paper, no filter" recipe (which exists because a fixed
+     panel over a SCROLLING page flickers) does not apply here. */
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 4px;
   box-shadow: 0 8px 24px rgba(33, 53, 40, 0.14);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  backdrop-filter: blur(18px) saturate(1.35);
   font-family: var(--font-sans);
 }
 
@@ -850,13 +859,20 @@
 }
 
 /* ── MapLibre popups, restyled to the card language ───────────────────── */
+/* Glass, but carried higher than the panels (0.92) for a reason: the rounded
+   tip below is a rotated square tucked INTO the content, so wherever they
+   overlap the alpha compounds. At 0.82 that patch reads ~7/255 denser — a
+   visible seam; at 0.92 it is ~4/255, which is not. Tip and content must keep
+   the identical fill for the join to disappear. */
 .adr-popup .maplibregl-popup-content {
   padding: 10px 13px 11px;
   font-family: var(--font-sans);
-  background: var(--paper-solid);
+  background: rgba(255, 255, 255, 0.92);
   border: 1px solid var(--rule);
   border-radius: 4px;
   box-shadow: 0 8px 24px rgba(33, 53, 40, 0.16);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
 }
 
 /* Hover tooltip: no border, so no seam where the tip meets the box; the
@@ -876,7 +892,10 @@
   width: 11px;
   height: 11px;
   border: none;
-  background: var(--paper-solid);
+  /* Must match .adr-popup .maplibregl-popup-content exactly — see the note
+     there. No backdrop-filter of its own: over the content its backdrop IS
+     the content, which would blur twice. */
+  background: rgba(255, 255, 255, 0.92);
   transform: rotate(45deg);
   z-index: 2;
 }

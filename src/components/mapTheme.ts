@@ -149,9 +149,13 @@ export function addHillshade(map: maplibregl.Map, demSource: string) {
   )
 }
 
-export function setHillshade(map: maplibregl.Map, on: boolean) {
-  if (map.getLayer(HILLSHADE_LAYER)) {
-    map.setLayoutProperty(HILLSHADE_LAYER, 'visibility', on ? 'visible' : 'none')
+/** Toggle the relief, optionally restrengthening it in the same call. The
+ *  layer-existence check lives here so callers never have to guard. */
+export function setHillshade(map: maplibregl.Map, on: boolean, exaggeration?: number) {
+  if (!map.getLayer(HILLSHADE_LAYER)) return
+  map.setLayoutProperty(HILLSHADE_LAYER, 'visibility', on ? 'visible' : 'none')
+  if (exaggeration != null) {
+    map.setPaintProperty(HILLSHADE_LAYER, 'hillshade-exaggeration', exaggeration)
   }
 }
 
@@ -228,25 +232,20 @@ export function addMilitaryRegions(
 const ISLANDS_FC = {
   type: 'FeatureCollection',
   features: [
-    { type: 'Feature', properties: { name: 'Paracel Is. (Hoàng Sa) · disputed' }, geometry: { type: 'Point', coordinates: [112.0, 16.5] } },
-    { type: 'Feature', properties: { name: 'Spratly Is. (Trường Sa) · disputed' }, geometry: { type: 'Point', coordinates: [114.0, 9.8] } },
+    // "disputed" sits on its own line rather than after an interpunct: the
+    // house rule is that `·` joins phrases of equal rank, and a name with a
+    // parenthetical already carries internal hierarchy.
+    { type: 'Feature', properties: { name: 'Paracel Is. (Hoàng Sa)\ndisputed' }, geometry: { type: 'Point', coordinates: [112.0, 16.5] } },
+    { type: 'Feature', properties: { name: 'Spratly Is. (Trường Sa)\ndisputed' }, geometry: { type: 'Point', coordinates: [114.0, 9.8] } },
   ],
 } as GeoJSON.FeatureCollection
 
 export function addIslandMarks(map: maplibregl.Map) {
-  if (map.getLayer('island-dot')) return
+  if (map.getLayer('island-label')) return
   map.addSource('islands', { type: 'geojson', data: ISLANDS_FC })
-  map.addLayer({
-    id: 'island-dot',
-    type: 'circle',
-    source: 'islands',
-    paint: {
-      'circle-radius': 4,
-      'circle-color': 'rgba(0,0,0,0)',
-      'circle-stroke-color': '#8a8d85',
-      'circle-stroke-width': 1.2,
-    },
-  })
+  // Text only — no marker ring. These are notes about sovereignty, not data
+  // points, and an outlined circle read as one more symbol on a map whose
+  // whole visual language is "a circle is sprayed volume".
   map.addLayer({
     id: 'island-label',
     type: 'symbol',
@@ -255,8 +254,7 @@ export function addIslandMarks(map: maplibregl.Map) {
       'text-field': ['get', 'name'],
       'text-font': ['Public Sans Medium'],
       'text-size': 10,
-      'text-offset': [0, 1.1],
-      'text-anchor': 'top',
+      'text-anchor': 'center',
       'text-max-width': 9,
     },
     paint: { 'text-color': '#8a8d85', 'text-halo-color': '#ffffff', 'text-halo-width': 1 },

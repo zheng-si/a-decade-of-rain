@@ -277,17 +277,18 @@ export function quietBasemap(map: maplibregl.Map) {
         map.setLayoutProperty(id, 'visibility', 'none')
         continue
       }
-      // Water carries its own cool tint rather than borrowing one. The old
-      // near-neutral #e9edea only read as water because the land under it
-      // was warm cream; once land lightened, the two temperatures converged
-      // and the sea stopped reading as sea. This is still quiet (1.15:1
-      // against land) but cool on its own terms.
+      // Water carries its own blue rather than borrowing one. The old
+      // near-neutral #e9edea only read as water because the land under it was
+      // warm — it sat just +1 apart in blue-minus-red, so the moment land
+      // lightened the sea stopped reading as sea. This is +23 cooler than
+      // land, while staying luminance-quiet (1.03:1) so the basemap still
+      // recedes behind the data: water reads by hue here, not by lightness.
       if (layer.type === 'fill' && /water|sea|ocean|river|lake/.test(id)) {
-        map.setPaintProperty(id, 'fill-color', '#e3eaee')
+        map.setPaintProperty(id, 'fill-color', '#e5eff6')
         continue
       }
       if (layer.type === 'line' && /water|river|lake/.test(id)) {
-        map.setPaintProperty(id, 'line-color', '#d3dee4')
+        map.setPaintProperty(id, 'line-color', '#d5dee5')
         continue
       }
       if (layer.type === 'line' && /highway|road|street|bridge|tunnel|transportation/.test(id)) {
