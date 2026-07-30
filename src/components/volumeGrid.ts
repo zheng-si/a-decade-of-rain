@@ -14,6 +14,8 @@ export const VOL_FINE_SOURCE = 'vol-fine'
 export const VOL_RAW_LAYER = 'vol-raw'
 export const VOL_COARSE_LAYER = 'vol-coarse-l'
 export const VOL_FINE_LAYER = 'vol-fine-l'
+const VN_LABEL_SOURCE = 'vn-country-label'
+const VN_LABEL_LAYER = 'vn-country-label-l'
 
 const COARSE_DEG = 0.12
 const FINE_DEG = 0.03
@@ -280,15 +282,17 @@ export function quietBasemap(map: maplibregl.Map) {
       // Water carries its own blue rather than borrowing one. The old
       // near-neutral #e9edea only read as water because the land under it was
       // warm — it sat just +1 apart in blue-minus-red, so the moment land
-      // lightened the sea stopped reading as sea. This is +23 cooler than
-      // land, while staying luminance-quiet (1.03:1) so the basemap still
-      // recedes behind the data: water reads by hue here, not by lightness.
+      // lightened the sea stopped reading as sea. This blue is +41 cooler
+      // than the land, and at 1.19:1 luminance it is still quiet enough that
+      // the basemap recedes behind the data: the sea reads by hue, not by
+      // lightness. The river line is the same hue two steps down so
+      // waterways stay legible against land instead of against the sea.
       if (layer.type === 'fill' && /water|sea|ocean|river|lake/.test(id)) {
-        map.setPaintProperty(id, 'fill-color', '#e5eff6')
+        map.setPaintProperty(id, 'fill-color', '#cee2f1')
         continue
       }
       if (layer.type === 'line' && /water|river|lake/.test(id)) {
-        map.setPaintProperty(id, 'line-color', '#d5dee5')
+        map.setPaintProperty(id, 'line-color', '#bdd4e6')
         continue
       }
       if (layer.type === 'line' && /highway|road|street|bridge|tunnel|transportation/.test(id)) {
@@ -321,6 +325,20 @@ export function quietBasemap(map: maplibregl.Map) {
         map.setFilter(id, (existing ? ['all', existing, levelF] : levelF) as never)
         continue
       }
+      // Basemap point markers go, in all three shapes positron can draw them:
+      // a `circle` layer, an icon-only symbol layer, or an icon riding along
+      // inside a label layer (handled below). A settlement dot next to a name
+      // is redundant here — the name already marks the place — and on a map
+      // whose entire visual language is "a filled circle is sprayed volume"
+      // it reads as data that was never sprayed.
+      if (layer.type === 'circle') {
+        map.setLayoutProperty(id, 'visibility', 'none')
+        continue
+      }
+      if (layer.type === 'symbol' && map.getLayoutProperty(id, 'text-field') == null) {
+        map.setLayoutProperty(id, 'visibility', 'none')
+        continue
+      }
       if (layer.type === 'symbol' && map.getLayoutProperty(id, 'text-field') != null) {
         if (/village|hamlet|suburb|neighbourhood|quarter|town/.test(id)) {
           map.setLayoutProperty(id, 'visibility', 'none')
@@ -347,6 +365,16 @@ export function quietBasemap(map: maplibregl.Map) {
         map.setLayoutProperty(id, 'text-transform', 'uppercase')
         map.setLayoutProperty(id, 'text-letter-spacing', 0.2)
         map.setLayoutProperty(id, 'text-font', ['Cuprum'])
+        // Drop any dot the label layer carries with it, and re-centre the
+        // text on the point it names — positron parks the name above the
+        // icon, so without this the label floats clear of its own location.
+        try {
+          map.setLayoutProperty(id, 'icon-image', undefined)
+        } catch {
+          map.setPaintProperty(id, 'icon-opacity', 0)
+        }
+        map.setLayoutProperty(id, 'text-anchor', 'center')
+        map.setLayoutProperty(id, 'text-offset', [0, 0])
         // Flat tiered sizes, well under the basemap defaults.
         const size = /country/.test(id) ? 15 : 12
         if (!/country/.test(id) && !isWater) {
@@ -363,4 +391,99 @@ export function quietBasemap(map: maplibregl.Map) {
       /* layer doesn't support the property — skip */
     }
   }
+}
+
+/** Country-label styling, matched to what `quietBasemap` does to the basemap's
+ *  own country layers so ours cannot drift away from LAOS / THAILAND /
+ *  CAMBODIA. Kept as one object because two places set it. */
+const COUNTRY_TEXT = {
+  font: ['Cuprum'],
+  size: 15,
+  color: '#6f7568',
+  halo: 'rgba(250,249,244,0.92)',
+  haloWidth: 1.1,
+  /** Same z0–9 window positron gives `label_country_1/2/3`. */
+  maxzoom: 9,
+} as const
+
+/** Names positron may carry on the Vietnam country node, depending on which
+ *  name field the tile serves. */
+const VIETNAM_NAMES = ['Vietnam', 'Viet Nam', 'Việt Nam']
+
+/**
+ * Vietnam's own name on a map of Vietnam — the one country label the basemap
+ * never manages to draw.
+ *
+ * Why it goes missing: MapLibre places symbols from the top of the layer stack
+ * downwards (`PauseablePlacement` starts at `order.length - 1`), so whatever
+ * sits highest wins a collision. `mr-label` is added above the basemap's
+ * labels, and OSM puts the Vietnam place node at ~16.0°N 108.0°E — directly
+ * under MILITARY REGION I. The country label loses every time.
+ *
+ * Letting it win instead is worse: it would land mid-coast, on top of our own
+ * annotation and the densest part of the spray. So we place the name where a
+ * cartographer would — the country's northern waist, clear of the record — and
+ * drop Vietnam from the basemap's country layers so the two can never both
+ * appear in the z8.5–9 window where `mr-label` has already faded out.
+ *
+ * Call this AFTER the volume layers. It goes in just under the basemap's own
+ * labels, which puts it above the circles in draw order but *below* them in
+ * placement order — so it can never suppress a city name, and at the overview,
+ * where settlements are not drawn at all, nothing competes with it.
+ */
+export function addVietnamLabel(map: maplibregl.Map) {
+  if (map.getLayer(VN_LABEL_LAYER)) return
+
+  for (const layer of map.getStyle().layers ?? []) {
+    if (layer.type !== 'symbol' || !/country/.test(layer.id)) continue
+    try {
+      const drop = [
+        '!',
+        ['in', ['coalesce', ['get', 'name:en'], ['get', 'name_en'], ['get', 'name'], ''], ['literal', VIETNAM_NAMES]],
+      ]
+      const existing = map.getFilter(layer.id)
+      map.setFilter(layer.id, (existing ? ['all', existing, drop] : drop) as never)
+    } catch {
+      /* filter not settable — a duplicate at z8.5–9 is the worst case */
+    }
+  }
+
+  map.addSource(VN_LABEL_SOURCE, {
+    type: 'geojson',
+    data: {
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          properties: { name: 'Viet Nam' },
+          // The northern waist (~Thanh Hóa): inside the country, north of
+          // where the record begins (~17.5°N), ~1.2° clear of the LAOS label,
+          // and far enough below 23°N to stay on screen at the default view
+          // even on a short laptop viewport.
+          geometry: { type: 'Point', coordinates: [105.5, 19.9] },
+        },
+      ],
+    } as GeoJSON.FeatureCollection,
+  })
+  map.addLayer(
+    {
+      id: VN_LABEL_LAYER,
+      type: 'symbol',
+      source: VN_LABEL_SOURCE,
+      maxzoom: COUNTRY_TEXT.maxzoom,
+      layout: {
+        'text-field': ['get', 'name'],
+        'text-font': [...COUNTRY_TEXT.font],
+        'text-size': COUNTRY_TEXT.size,
+        'text-transform': 'uppercase',
+        'text-letter-spacing': 0.2,
+      },
+      paint: {
+        'text-color': COUNTRY_TEXT.color,
+        'text-halo-color': COUNTRY_TEXT.halo,
+        'text-halo-width': COUNTRY_TEXT.haloWidth,
+      },
+    },
+    firstLabelLayerId(map),
+  )
 }

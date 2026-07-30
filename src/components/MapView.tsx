@@ -20,6 +20,7 @@ import {
   agentIndexColors,
   stampEventColors,
   quietBasemap,
+  addVietnamLabel,
   cellDegAt,
   VOL_COARSE_LAYER,
   VOL_FINE_LAYER,
@@ -303,6 +304,11 @@ export default function MapView() {
         stampEventColors(spray, colors, groupOf)
         map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
         const bottomLayer = addVolumeLayers(map, SPRAY_SOURCE)
+        // The one country label positron cannot place for itself (see
+        // addVietnamLabel). Must follow the circles to draw above them, and
+        // stays under the basemap's labels so it never costs a city its name.
+        // Story does not carry this yet.
+        addVietnamLabel(map)
 
         // ── M3 · hover + click ────────────────────────────────────────────
         // One tooltip follows the pointer over any symbol tier; clicking a
