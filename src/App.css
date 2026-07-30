@@ -713,9 +713,10 @@
   color: var(--ink-soft);
 }
 
+/* Same serif tier as the panel's playhead date — the two anchor figures. */
 .inspect-figure strong {
   font-family: var(--font-serif-display);
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 500;
   color: var(--accent-deep);
 }
@@ -855,6 +856,14 @@
   font-weight: 600;
   font-size: 13px;
   margin: 0 0 2px;
+}
+
+/* Figures carry the house red; words stay ink. (display: inline undoes the
+   generic .adr-popup span block rule for these nested number spans.) */
+.adr-popup.adr-hover strong .n {
+  display: inline;
+  max-width: none;
+  color: var(--accent-deep);
 }
 
 .adr-popup strong {

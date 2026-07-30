@@ -323,11 +323,11 @@ export default function MapView() {
           let html: string
           if (p.gt != null) {
             html =
-              `<strong>${fmtGallons(p.gt)} gallons · ${p.rt.toLocaleString()} runs</strong>` +
+              `<strong><span class="n">${fmtGallons(p.gt)}</span> Gallons · <span class="n">${p.rt.toLocaleString()}</span> Runs</strong>` +
               `<span>Mostly ${groupLabels[p.dom] ?? '?'} · ${monthLabel(p.d0)} – ${monthLabel(p.d1)}</span>`
           } else {
             html =
-              `<strong>${p.gallons > 0 ? `${fmtGallons(p.gallons)} gallons` : 'Continuation leg'}</strong>` +
+              `<strong>${p.gallons > 0 ? `<span class="n">${fmtGallons(p.gallons)}</span> Gallons` : 'Continuation Leg'}</strong>` +
               `<span>${groupLabels[p.gi] ?? 'Unknown'} · ${dayLabel(p.day)}</span>`
           }
           hover.setLngLat(e.lngLat).setHTML(html).addTo(map)
