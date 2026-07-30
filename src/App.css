@@ -868,12 +868,15 @@
   color: var(--ink-soft);
 }
 
-/* (display: inline undoes the generic .adr-popup span block rule for these
-   nested number spans.) */
+/* Figures differ from their labels by colour alone — same size, same weight.
+   (The generic .adr-popup span rule below would otherwise force these
+   nested spans to block layout at 11.5px, half a step under the line.) */
 .adr-popup.adr-hover strong .n {
   display: inline;
   max-width: none;
-  font-weight: 600;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
   color: var(--accent-deep);
 }
 
@@ -881,6 +884,8 @@
   display: inline-block;
   width: 12px;
   max-width: none;
+  font-size: inherit;
+  line-height: inherit;
 }
 
 .adr-popup strong {

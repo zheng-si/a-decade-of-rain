@@ -65,7 +65,9 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
 
       {data.kind === 'cell' ? (
         <>
-          <p className="inspect-kicker">Grid Cell · ≈ {data.cellKm} km</p>
+          {/* Reads as a parallel noun phrase to 'Single Spray Run' — no
+              interpunct, and the round number carries the approximation. */}
+          <p className="inspect-kicker">{data.cellKm} km Grid Cell</p>
           <p className="inspect-coords">{fmtCoords(data.center)}</p>
           <p className="inspect-figure">
             <strong>{fmtGallons(data.gallons)}</strong>
