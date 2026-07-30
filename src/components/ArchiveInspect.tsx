@@ -69,8 +69,8 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
           <p className="inspect-coords">{fmtCoords(data.center)}</p>
           <p className="inspect-figure">
             <strong>{fmtGallons(data.gallons)}</strong>
+            <span className="inspect-figure-unit">Gallons</span>
           </p>
-          <p className="inspect-figure-label">Gallons</p>
           <p className="inspect-sub">
             <strong>{data.missions.toLocaleString()}</strong> Missions ·{' '}
             <strong>{data.runs.toLocaleString()}</strong> Runs
@@ -124,9 +124,15 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
           <p className="inspect-kicker">Single Spray Run</p>
           <p className="inspect-coords">{fmtCoords(data.coords)}</p>
           <p className="inspect-figure">
-            {data.gallons > 0 ? <strong>{fmtGallons(data.gallons)}</strong> : 'Continuation leg'}
+            {data.gallons > 0 ? (
+              <>
+                <strong>{fmtGallons(data.gallons)}</strong>
+                <span className="inspect-figure-unit">Gallons</span>
+              </>
+            ) : (
+              'Continuation leg'
+            )}
           </p>
-          {data.gallons > 0 && <p className="inspect-figure-label">Gallons</p>}
           <p className="inspect-sub">
             <span
               className="inspect-dot"

@@ -413,34 +413,41 @@
   color: var(--ink-faint);
 }
 
-/* Curated map bookmarks: quiet text buttons in one small row. */
+/* Curated map bookmarks: a kicker label + small ghost pills, so the row
+   reads as controls rather than another line of caption text. */
 .explorer-flyto {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px 10px;
-  margin: 12px 0 0;
-  font-size: 11px;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 0 0;
 }
 
 .explorer-flyto .flyto-label {
+  flex-basis: 100%;
+  margin-bottom: 2px;
+  font-size: 10px;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--ink-faint);
 }
 
 .explorer-flyto button {
-  border: none;
-  background: none;
-  padding: 0;
+  border: 1px solid var(--rule);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 4px 10px;
+  border-radius: 999px;
   font-family: inherit;
   font-size: 11px;
   font-weight: 500;
   color: var(--ink-soft);
   cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
 }
 
 .explorer-flyto button:hover {
+  border-color: var(--accent-deep);
   color: var(--accent-deep);
 }
 
@@ -698,19 +705,23 @@
   color: var(--ink-faint);
 }
 
+/* Figure and its unit share one line, meeting on the text baseline. */
 .inspect-figure {
-  margin: 0;
-  line-height: 1.2;
+  margin: 0 0 12px;
+  line-height: 1.1;
+  font-size: 11px;
+  color: var(--ink-soft);
 }
 
 .inspect-figure strong {
+  font-family: var(--font-serif-display);
   font-size: 20px;
   font-weight: 500;
   color: var(--accent-deep);
 }
 
-.inspect-figure-label {
-  margin: 2px 0 12px;
+.inspect-figure-unit {
+  margin-left: 4px;
   font-size: 11px;
   color: var(--ink-soft);
 }
@@ -796,6 +807,8 @@
   margin: 14px 0 0;
   padding-top: 14px;
   border-top: 1px solid var(--rule);
+  /* Baseline axis under the year bars, same weight as the main chart's. */
+  border-bottom: 1px solid rgba(33, 53, 40, 0.28);
 }
 
 .inspect-year-col {
@@ -816,7 +829,7 @@
 .inspect-year-labels {
   display: flex;
   justify-content: space-between;
-  margin-top: 3px;
+  margin-top: 5px;
   font-size: 10px;
   color: var(--ink-faint);
 }
