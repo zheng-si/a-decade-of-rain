@@ -323,7 +323,7 @@ export default function MapView() {
           let html: string
           if (p.gt != null) {
             html =
-              `<strong><span class="n">${fmtGallons(p.gt)}</span> Gallons · <span class="n">${p.rt.toLocaleString()}</span> Runs</strong>` +
+              `<strong><span class="n">${fmtGallons(p.gt)}</span> Gallons<span class="gap"></span><span class="n">${p.rt.toLocaleString()}</span> Runs</strong>` +
               `<span>Mostly ${groupLabels[p.dom] ?? '?'} · ${monthLabel(p.d0)} – ${monthLabel(p.d1)}</span>`
           } else {
             html =

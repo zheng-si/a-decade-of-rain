@@ -71,9 +71,13 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
             <strong>{fmtGallons(data.gallons)}</strong>
             <span className="inspect-figure-unit">Gallons</span>
           </p>
-          <p className="inspect-sub">
-            <strong>{data.missions.toLocaleString()}</strong> Missions ·{' '}
-            <strong>{data.runs.toLocaleString()}</strong> Runs
+          <p className="inspect-sub is-stats">
+            <span className="stat-pair">
+              <strong>{data.missions.toLocaleString()}</strong> Missions
+            </span>
+            <span className="stat-pair">
+              <strong>{data.runs.toLocaleString()}</strong> Runs
+            </span>
           </p>
           <p className="inspect-sub">
             {month(data.firstDay)} – {month(data.lastDay)}

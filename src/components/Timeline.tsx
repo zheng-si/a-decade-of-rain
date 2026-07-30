@@ -166,9 +166,15 @@ export default function Timeline({
 
       {volume && (
         <p className="explorer-statline">
-          <strong style={statStyle}>{missionCount.toLocaleString()}</strong> <span>Missions</span>{' '}
-          · <strong style={statStyle}>{runCount.toLocaleString()}</strong> <span>Runs</span> ·{' '}
-          <strong style={statStyle}>{fmtGallons(gallons)}</strong> <span>Gallons</span>
+          <span className="stat-pair">
+            <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Missions
+          </span>
+          <span className="stat-pair">
+            <strong style={statStyle}>{runCount.toLocaleString()}</strong> Runs
+          </span>
+          <span className="stat-pair">
+            <strong style={statStyle}>{fmtGallons(gallons)}</strong> Gallons
+          </span>
         </p>
       )}
 
