@@ -863,6 +863,56 @@
    headline line is utility text (13px sans), per the serif-for-display rule. */
 .adr-hover .maplibregl-popup-content {
   border: none;
+  position: relative;
+  z-index: 1;
+}
+
+/* Rounded, shorter tip: MapLibre's default is a border triangle, which
+   can't take a radius — this is a rotated square with its outer corner
+   rounded to the box's radius, tucked 7px back into the content. It paints
+   ABOVE the content (same fill, no border, so the join is seamless);
+   underneath, the content's drop shadow would grey it out. */
+.adr-hover .maplibregl-popup-tip {
+  width: 11px;
+  height: 11px;
+  border: none;
+  background: var(--paper-solid);
+  transform: rotate(45deg);
+  z-index: 2;
+}
+
+.adr-hover.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  margin-top: -7px;
+  border-bottom-right-radius: 2px;
+}
+
+.adr-hover.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+  margin-bottom: -7px;
+  border-top-left-radius: 2px;
+}
+
+.adr-hover.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  margin-right: -7px;
+  border-bottom-left-radius: 2px;
+}
+
+.adr-hover.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  margin-left: -7px;
+  border-top-right-radius: 2px;
+}
+
+/* Corner anchors would point the square the wrong way; the rounded box
+   reads fine on its own there. */
+.adr-hover.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.adr-hover.maplibregl-popup-anchor-top-right .maplibregl-popup-tip,
+.adr-hover.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.adr-hover.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+  display: none;
+}
+
+/* …so keep every corner rounded when the tip is gone. */
+.adr-hover .maplibregl-popup-content {
+  border-radius: 4px;
 }
 
 /* Second line joins the 11px annotation tier (the generic popup span rule
