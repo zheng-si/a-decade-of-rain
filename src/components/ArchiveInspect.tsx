@@ -65,13 +65,15 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
 
       {data.kind === 'cell' ? (
         <>
-          <p className="inspect-kicker">Grid Cell · ≈{data.cellKm} km</p>
+          <p className="inspect-kicker">Grid Cell · ≈ {data.cellKm} km</p>
           <p className="inspect-coords">{fmtCoords(data.center)}</p>
           <p className="inspect-figure">
-            <strong>{fmtGallons(data.gallons)}</strong> gallons
+            <strong>{fmtGallons(data.gallons)}</strong>
           </p>
+          <p className="inspect-figure-label">Gallons</p>
           <p className="inspect-sub">
-            {data.missions.toLocaleString()} missions · {data.runs.toLocaleString()} runs
+            <strong>{data.missions.toLocaleString()}</strong> Missions ·{' '}
+            <strong>{data.runs.toLocaleString()}</strong> Runs
           </p>
           <p className="inspect-sub">
             {month(data.firstDay)} – {month(data.lastDay)}
@@ -85,7 +87,6 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
                 if (!v) return null
                 return (
                   <div key={g.label} className="inspect-group-row">
-                    <span className="inspect-dot" style={{ background: g.color }} />
                     <span className="inspect-group-label">{g.label}</span>
                     <span className="inspect-bar-track">
                       <span
@@ -123,14 +124,9 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
           <p className="inspect-kicker">Single Spray Run</p>
           <p className="inspect-coords">{fmtCoords(data.coords)}</p>
           <p className="inspect-figure">
-            {data.gallons > 0 ? (
-              <>
-                <strong>{fmtGallons(data.gallons)}</strong> gallons
-              </>
-            ) : (
-              'Continuation leg'
-            )}
+            {data.gallons > 0 ? <strong>{fmtGallons(data.gallons)}</strong> : 'Continuation leg'}
           </p>
+          {data.gallons > 0 && <p className="inspect-figure-label">Gallons</p>}
           <p className="inspect-sub">
             <span
               className="inspect-dot"

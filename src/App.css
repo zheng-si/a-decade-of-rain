@@ -216,13 +216,14 @@
 }
 
 .explorer-statline strong {
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 500;
   color: var(--accent-deep);
 }
 
 .explorer-statline span {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0.02em;
   color: var(--ink-faint);
 }
@@ -581,8 +582,12 @@
 /* The scale row's rule is not needed here — legend rows follow directly. */
 .archive-key .map-key-top {
   border-bottom: none;
-  padding-bottom: 6px;
-  margin-bottom: 4px;
+  padding-bottom: 8px;
+  margin-bottom: 6px;
+}
+
+.archive-key .map-key-list {
+  gap: 8px;
 }
 
 .archive-key .map-key-scale-label {
@@ -638,8 +643,8 @@
    bottom section of the map key panel. */
 .archive-inspect {
   position: relative;
-  margin-top: 10px;
-  padding-top: 10px;
+  margin-top: 14px;
+  padding-top: 14px;
   border-top: 1px solid var(--rule);
   font-family: var(--font-sans);
 }
@@ -661,7 +666,7 @@
 }
 
 .inspect-kicker {
-  margin: 0 0 2px;
+  margin: 0 0 4px;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.06em;
@@ -670,30 +675,38 @@
 }
 
 .inspect-coords {
-  margin: 0 0 8px;
-  font-size: 10px;
+  margin: 0 0 12px;
+  font-size: 8px;
+  letter-spacing: 0.02em;
   color: var(--ink-faint);
 }
 
 .inspect-figure {
-  margin: 0 0 3px;
-  font-size: 12px;
-  color: var(--ink-soft);
+  margin: 0;
+  line-height: 1.2;
 }
 
 .inspect-figure strong {
-  font-size: 17px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 500;
   color: var(--accent-deep);
 }
 
-.inspect-sub {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin: 0 0 3px;
+.inspect-figure-label {
+  margin: 2px 0 12px;
   font-size: 11px;
   color: var(--ink-soft);
+}
+
+.inspect-sub {
+  margin: 0 0 4px;
+  font-size: 10px;
+  color: var(--ink-soft);
+}
+
+.inspect-sub strong {
+  font-weight: 400;
+  color: var(--accent-deep);
 }
 
 .inspect-note {
@@ -707,30 +720,31 @@
   display: inline-block;
   width: 8px;
   height: 8px;
+  margin-right: 2px;
   border-radius: 50%;
-  flex: none;
+  vertical-align: -1px;
 }
 
-/* Agent mix: dot · label · bar · value. */
+/* Agent mix: label · tinted bar · value (the bar itself carries the hue). */
 .inspect-groups {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin: 9px 0 0;
-  padding-top: 9px;
+  gap: 9px;
+  margin: 14px 0 0;
+  padding-top: 14px;
   border-top: 1px solid var(--rule);
 }
 
 .inspect-group-row {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: 10px;
   color: var(--ink-soft);
 }
 
 .inspect-group-label {
-  width: 40px;
+  width: 42px;
   flex: none;
 }
 
@@ -761,9 +775,9 @@
   display: flex;
   align-items: flex-end;
   gap: 2px;
-  height: 34px;
-  margin: 10px 0 0;
-  padding-top: 9px;
+  height: 46px;
+  margin: 14px 0 0;
+  padding-top: 14px;
   border-top: 1px solid var(--rule);
 }
 
