@@ -96,7 +96,6 @@ export default function ArchiveKey({
           <span className="map-key-scale-label">{scale.label}</span>
         </div>
         <div className="map-key-compass" title="North">
-          <span className="map-key-compass-n">N</span>
           <span className="map-key-compass-dial">
             <span className="map-key-compass-needle" />
           </span>

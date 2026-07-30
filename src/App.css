@@ -209,7 +209,7 @@
 
 /* Cumulative counters as one editorial line: red figures, quiet labels. */
 .explorer-statline {
-  margin: 24px 0 12px;
+  margin: 14px 0 12px;
   font-size: 13px;
   line-height: 1.3;
   color: var(--ink-faint);
@@ -676,7 +676,7 @@
 
 .inspect-coords {
   margin: 0 0 12px;
-  font-size: 8px;
+  font-size: 10px;
   letter-spacing: 0.02em;
   color: var(--ink-faint);
 }
@@ -700,7 +700,7 @@
 
 .inspect-sub {
   margin: 0 0 4px;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--ink-soft);
 }
 
@@ -729,7 +729,7 @@
 .inspect-groups {
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 7px;
   margin: 14px 0 0;
   padding-top: 14px;
   border-top: 1px solid var(--rule);
@@ -738,13 +738,13 @@
 .inspect-group-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-size: 10px;
   color: var(--ink-soft);
 }
 
 .inspect-group-label {
-  width: 42px;
+  width: 40px;
   flex: none;
 }
 
