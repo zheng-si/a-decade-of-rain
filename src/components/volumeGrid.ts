@@ -17,6 +17,18 @@ export const VOL_FINE_LAYER = 'vol-fine-l'
 const VN_LABEL_SOURCE = 'vn-country-label'
 const VN_LABEL_LAYER = 'vn-country-label-l'
 
+/** The Archive's own water tones. Land and vegetation come from
+ *  `mapConfig.theme`; water is overridden here because the explorer wants a
+ *  cooler, quieter sea than the story's. */
+export const WATER_FILL = '#ddeaf2'
+export const WATER_LINE = '#ccdce7'
+/** Layers `quietBasemap` recolours or hides, exposed so a tuner can reach the
+ *  same sets without re-deriving them. `building` is deliberately absent from
+ *  the vegetation pattern — it is hidden for its own reasons. */
+export const WATER_FILL_RE = /water|sea|ocean|river|lake/
+export const WATER_LINE_RE = /water|river|lake/
+export const VEGETATION_RE = /wood|forest|park|grass|green|landcover|landuse|vegetation/
+
 const COARSE_DEG = 0.12
 const FINE_DEG = 0.03
 // Hand-off zooms between the tiers.
@@ -275,24 +287,24 @@ export function quietBasemap(map: maplibregl.Map) {
   for (const layer of map.getStyle().layers ?? []) {
     const id = layer.id
     try {
-      if (/wood|forest|park|grass|green|landcover|landuse|vegetation|building/.test(id)) {
+      if (VEGETATION_RE.test(id) || /building/.test(id)) {
         map.setLayoutProperty(id, 'visibility', 'none')
         continue
       }
       // Water carries its own blue rather than borrowing one. The old
       // near-neutral #e9edea only read as water because the land under it was
       // warm — it sat just +1 apart in blue-minus-red, so the moment land
-      // lightened the sea stopped reading as sea. This blue is +41 cooler
-      // than the land, and at 1.19:1 luminance it is still quiet enough that
+      // lightened the sea stopped reading as sea. This blue is +27 cooler
+      // than the land, and at 1.09:1 luminance it is still quiet enough that
       // the basemap recedes behind the data: the sea reads by hue, not by
       // lightness. The river line is the same hue two steps down so
       // waterways stay legible against land instead of against the sea.
-      if (layer.type === 'fill' && /water|sea|ocean|river|lake/.test(id)) {
-        map.setPaintProperty(id, 'fill-color', '#cee2f1')
+      if (layer.type === 'fill' && WATER_FILL_RE.test(id)) {
+        map.setPaintProperty(id, 'fill-color', WATER_FILL)
         continue
       }
-      if (layer.type === 'line' && /water|river|lake/.test(id)) {
-        map.setPaintProperty(id, 'line-color', '#bdd4e6')
+      if (layer.type === 'line' && WATER_LINE_RE.test(id)) {
+        map.setPaintProperty(id, 'line-color', WATER_LINE)
         continue
       }
       if (layer.type === 'line' && /highway|road|street|bridge|tunnel|transportation/.test(id)) {

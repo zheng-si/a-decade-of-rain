@@ -1,0 +1,171 @@
+/* TEMPORARY — styles for the basemap colour tuner. Delete with MapTuner.tsx. */
+
+.tuner-tab,
+.tuner {
+  position: fixed;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+  font-family: var(--font-ui, system-ui, sans-serif);
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 6px 24px rgba(40, 38, 30, 0.14);
+  backdrop-filter: blur(18px) saturate(1.35);
+  border-radius: 0.5rem;
+}
+
+.tuner-tab {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #4a4d46;
+  cursor: pointer;
+}
+
+.tuner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 19rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.75rem 0.85rem 0.7rem;
+  color: #3f423c;
+  font-size: 0.78rem;
+}
+
+.tuner-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tuner-title {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7b7f76;
+}
+
+.tuner-x {
+  border: 0;
+  background: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: #7b7f76;
+  cursor: pointer;
+}
+
+.tuner-row {
+  display: grid;
+  grid-template-columns: 5.5rem 2rem 1fr;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tuner-label {
+  color: #5b5e57;
+}
+
+.tuner-swatch {
+  /* Native colour inputs default to a chunky bordered button; strip it back to
+     a plain swatch. `height` needs a block box to take effect. */
+  display: block;
+  width: 2rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: none;
+  cursor: pointer;
+}
+
+.tuner-swatch::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.tuner-swatch::-webkit-color-swatch {
+  border: 0;
+  border-radius: 0.15rem;
+}
+
+.tuner-hex {
+  width: 100%;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: #3f423c;
+}
+
+.tuner-check {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #5b5e57;
+  font-size: 0.72rem;
+}
+
+.tuner-read {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0.1rem 0 0;
+  padding-top: 0.45rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 0.72rem;
+}
+
+.tuner-read > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tuner-read dt {
+  color: #7b7f76;
+}
+
+.tuner-read dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.tuner-foot {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.tuner-foot button {
+  flex: 1;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.25rem;
+  background: rgba(255, 255, 255, 0.65);
+  font-size: 0.72rem;
+  color: #4a4d46;
+  cursor: pointer;
+}
+
+.tuner-foot button:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.tuner-note {
+  margin: 0;
+  color: #8a8d85;
+  font-size: 0.66rem;
+  line-height: 1.4;
+}
+
+.tuner-tab:focus-visible,
+.tuner-x:focus-visible,
+.tuner-hex:focus-visible,
+.tuner-swatch:focus-visible,
+.tuner-foot button:focus-visible {
+  outline: 2px solid #cf3720;
+  outline-offset: 2px;
+}

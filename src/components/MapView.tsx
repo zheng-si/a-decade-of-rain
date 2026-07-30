@@ -32,6 +32,8 @@ import ArchiveInspect, {
   type CellInspect,
 } from './ArchiveInspect'
 import { applyLabelCuration } from './labelLayers'
+// TEMPORARY — basemap colour tuner. See the header of MapTuner.tsx.
+import MapTuner from './MapTuner'
 
 const SPRAY_SOURCE = 'spray'
 const DEM_SOURCE = 'terrain-dem'
@@ -510,6 +512,9 @@ export default function MapView() {
           )}
         </ArchiveKey>
       )}
+      {/* TEMPORARY basemap colour tuner — remove this element, the import, and
+          MapTuner.tsx/.css when the palette is settled. */}
+      {ready && <MapTuner map={mapRef.current} />}
       {ready && (
         <Timeline
           day={day}
