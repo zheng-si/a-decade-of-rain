@@ -16,11 +16,12 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..')
 
 // Latin subsets only: the page's copy is English, and the vietnamese and
 // latin-ext subsets would roughly triple the payload for glyphs it never sets.
+// Gambarino is retired from --font-serif (see src/fonts.css) and this page
+// never renders it, so it is deliberately not embedded here.
 const FACES = [
   ['Public Sans', 300, 'public/fonts/ui/PublicSans-Light.woff2'],
   ['Public Sans', 400, 'public/fonts/ui/PublicSans-Regular.woff2'],
   ['Public Sans', 500, 'public/fonts/ui/PublicSans-Medium.woff2'],
-  ['Gambarino', 400, 'public/fonts/ui/Gambarino-Regular.woff2'],
   ['Playfair Display', 400, 'public/fonts/serif/playfair-display-latin-400-normal.woff2'],
   ['Playfair Display', 500, 'public/fonts/serif/playfair-display-latin-500-normal.woff2'],
 ]

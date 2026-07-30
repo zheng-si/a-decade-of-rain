@@ -2,9 +2,11 @@
    coverage, so UI text and map glyphs share ONE face with no fallback
    mixing) — UI, body, and map labels.
 
-   The editorial serif is Playfair Display (SIL OFL, native Vietnamese).
-   The face is switched in ONE line — the `--font-serif` token at the
-   bottom. Only the family named there is actually fetched by the browser. */
+   The editorial serif is Playfair Display (SIL OFL, native Vietnamese) —
+   ONE face for the Story and the Archive, no per-surface split. Gambarino
+   is retired: kept declared below only so the headline face can be rolled
+   back in one line if needed. Only the family named in `--font-serif` is
+   actually fetched by the browser. */
 
 @font-face {
   font-family: 'Public Sans';
@@ -28,8 +30,8 @@
   src: url('/fonts/ui/PublicSans-Medium.woff2') format('woff2');
 }
 
-/* Gambarino — retired from the serif slot (no Vietnamese glyphs); kept
-   declared for a one-line rollback. */
+/* Gambarino — retired from the serif slot; kept declared for a one-line
+   rollback (see --font-serif). Not referenced by any component. */
 @font-face {
   font-family: 'Gambarino';
   font-style: normal;
@@ -40,11 +42,9 @@
     url('/fonts/ui/Gambarino-Regular.woff') format('woff');
 }
 
-/* Playfair Display — THE editorial serif. Self-subset from the official
-   variable fonts (latin + latin-ext + vietnamese in one file, ALL OpenType
-   features kept — the previous fontsource subsets dropped `lnum`, which is
-   why lining-nums silently did nothing). Figures sit on the baseline via
-   the body-level lining-nums rule in index.css. */
+/* Playfair Display — THE editorial serif, site-wide. Three subsets (latin,
+   latin-ext, vietnamese) at the two weights the serif uses (400, and 500
+   for stat figures / anchor figures). */
 @font-face {
   font-family: 'Playfair Display';
   font-style: normal;
@@ -62,8 +62,6 @@
 
 :root {
   --font-sans: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  /* SWITCH: use 'Playfair Display' here to swap in the Didone headline face. */
-  --font-serif: 'Gambarino', Georgia, 'Times New Roman', serif;
-  /* The Archive's headline face (per the Figma design) — the story keeps Gambarino. */
-  --font-serif-display: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  /* SWITCH: 'Gambarino' is still declared above for a one-line rollback. */
+  --font-serif: 'Playfair Display', Georgia, 'Times New Roman', serif;
 }

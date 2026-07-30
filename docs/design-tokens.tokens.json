@@ -46,10 +46,9 @@
     }
   },
   "fontFamilies": {
-    "sans":         { "value": "Public Sans", "type": "fontFamilies", "description": "Body, UI, map glyph fallback. Ships 300/400/500 ONLY — anything bolder is faux bold" },
-    "serif":        { "value": "Gambarino", "type": "fontFamilies", "description": "The Story's display face" },
-    "serifDisplay": { "value": "Playfair Display", "type": "fontFamilies", "description": "The Archive's display face" },
-    "map":          { "value": "Cuprum", "type": "fontFamilies", "description": "Basemap labels (tracked caps); needs a built glyph stack" }
+    "sans":  { "value": "Public Sans", "type": "fontFamilies", "description": "Body, UI, map glyph fallback. Ships 300/400/500 ONLY — anything bolder is faux bold" },
+    "serif": { "value": "Playfair Display", "type": "fontFamilies", "description": "THE editorial serif, site-wide — Story and Archive both. Gambarino is retired, kept declared only for a one-line rollback" },
+    "map":   { "value": "Cuprum", "type": "fontFamilies", "description": "Basemap labels (tracked caps); needs a built glyph stack" }
   },
   "fontWeights": {
     "light":    { "value": "300", "type": "fontWeights", "description": "Body copy" },
@@ -93,22 +92,22 @@
   },
   "typography": {
     "h1": {
-      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "72", "lineHeight": "102%", "letterSpacing": "0.5%" },
+      "value": { "fontFamily": "Playfair Display", "fontWeight": "400", "fontSize": "72", "lineHeight": "102%", "letterSpacing": "0.5%" },
       "type": "typography",
       "description": "Masthead · clamp(40,6.5vw,72) in code; 72 = the max"
     },
     "cardTitle": {
-      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "24", "lineHeight": "114%" },
+      "value": { "fontFamily": "Playfair Display", "fontWeight": "400", "fontSize": "24", "lineHeight": "114%" },
       "type": "typography",
-      "description": "Story-card title; Archive panel title (serifDisplay)"
+      "description": "Story-card title; Archive panel title"
     },
     "cardYear": {
-      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "24" },
+      "value": { "fontFamily": "Playfair Display", "fontWeight": "400", "fontSize": "24" },
       "type": "typography",
       "description": "Card period / year eyebrow — same tier as the title, in accentDeep"
     },
     "subtitle": {
-      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "17", "lineHeight": "130%" },
+      "value": { "fontFamily": "Playfair Display", "fontWeight": "400", "fontSize": "17", "lineHeight": "130%" },
       "type": "typography",
       "description": "Card dek / panel subtitle (serif)"
     },
@@ -118,7 +117,7 @@
       "description": "The one display figure per surface (playhead date, inspect figure) — serif is a DISPLAY role: 17px and up only"
     },
     "quote": {
-      "value": { "fontFamily": "Gambarino", "fontWeight": "400", "fontSize": "17", "lineHeight": "135%" },
+      "value": { "fontFamily": "Playfair Display", "fontWeight": "400", "fontSize": "17", "lineHeight": "135%" },
       "type": "typography",
       "description": "Pull quotes"
     },

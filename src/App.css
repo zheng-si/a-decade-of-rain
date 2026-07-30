@@ -2,7 +2,7 @@
    DESIGN TOKENS — the single sheet to edit for colours and type.
    Full spec + contrast table: docs/design-system.md
    (fonts are declared in src/fonts.css: --font-sans Public Sans, --font-serif
-   Gambarino)
+   Playfair Display)
    ══════════════════════════════════════════════════════════════════════════ */
 :root {
   /* ── surfaces ─────────────────────────────────────────────────────────── */
@@ -162,7 +162,7 @@
 /* Year eyebrow sits on the same serif tier as the title (story-card rule). */
 .explorer-eyebrow {
   margin: 0 0 14px;
-  font-family: var(--font-serif-display);
+  font-family: var(--font-serif);
   font-weight: 400;
   font-size: 24px;
   line-height: 1.05;
@@ -171,7 +171,7 @@
 
 .explorer-title {
   margin: 0 0 14px;
-  font-family: var(--font-serif-display);
+  font-family: var(--font-serif);
   font-weight: 400;
   font-size: 24px;
   line-height: 1.1;
@@ -180,7 +180,7 @@
 
 .explorer-subtitle {
   margin: 0 0 16px;
-  font-family: var(--font-serif-display);
+  font-family: var(--font-serif);
   font-weight: 400;
   font-size: 17px;
   line-height: 1.3;
@@ -306,7 +306,7 @@
 /* The playhead date, in the display serif beside the transport. */
 .explorer-date {
   margin: 0;
-  font-family: var(--font-serif-display);
+  font-family: var(--font-serif);
   font-weight: 400;
   font-size: 19px;
   line-height: 1.2;
@@ -723,7 +723,7 @@
 
 /* Same serif tier as the panel's playhead date — the two anchor figures. */
 .inspect-figure strong {
-  font-family: var(--font-serif-display);
+  font-family: var(--font-serif);
   font-size: 19px;
   font-weight: 500;
   color: var(--accent-deep);

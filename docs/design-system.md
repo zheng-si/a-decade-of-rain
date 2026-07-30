@@ -9,7 +9,7 @@ orange accent family — orange draws, forest speaks.**
 |---|---|
 | `src/index.css` | the root scale (one density dial) + the numerals rule |
 | `src/App.css` `:root` | colour and type tokens; all shell/panel styles |
-| `src/fonts.css` | the three faces and the two serif switches |
+| `src/fonts.css` | the two live faces (Public Sans, Playfair Display) + the retired Gambarino rollback |
 | `src/pages/Story.css` | the story's own components (cards, charts, map key) |
 | `docs/design-tokens.tokens.json` | the same tokens for Tokens Studio → Figma |
 
@@ -30,10 +30,14 @@ to *new* work without re-deriving it from review.
 
 > **State note.** §2–§4 and §7 describe the system as of the Explorer branch
 > (`claude/archive-v1`) plus the merged master passes (#153 editorial, #154
-> palette, #155 density). The Explorer branch is still based on pre-#155 master,
-> so it has not yet inherited the rem root scale or the current type tokens;
+> palette, #155 density). The Explorer branch is still based on pre-#155 master
+> and has not inherited the rem root scale (#155) or the palette pass (#154);
 > rebasing it is the one outstanding task before these two halves are literally
-> the same code. Values below are the canonical ones.
+> the same code. The one piece of #153 that couldn't wait — retiring Gambarino
+> in favour of a single site-wide `--font-serif: Playfair Display` — was ported
+> onto this branch directly rather than left stale, since a design system that
+> still shows a retired face is worse than no preview at all. Values below are
+> the canonical ones.
 
 ---
 
@@ -184,7 +188,7 @@ are in fact the rule working:
 - So can a figure (`81K` at 19px anchors the inspect card; `24,604` at 11px sits
   in a stat line).
 
-The physical reason is Playfair/Gambarino are high-contrast Didones: their thin
+The physical reason is Playfair Display's high stroke contrast: its thin
 strokes disintegrate below ~15px. A "serif = data" rule would force serif onto
 10–11px table values and break them.
 
@@ -193,8 +197,13 @@ Faces:
 | Token | Face | Where |
 |---|---|---|
 | `--font-sans` | Public Sans (300/400/500 only) | body, UI, map glyph fallback |
-| `--font-serif` | Gambarino | the Story's display |
-| `--font-serif-display` | Playfair Display | the Archive's display |
+| `--font-serif` | Playfair Display | the display face, site-wide — Story and Archive both |
+
+There is **one** serif token, not one per surface. Gambarino was the Story's
+original headline face; it lost that slot in #153 (see the state note above)
+and is only still declared in `src/fonts.css` for a one-line rollback — it is
+not referenced by any component and should never appear rendered on the site
+or in this document.
 
 **Public Sans ships 300/400/500 — there is no 600 or 700 face.** Anything bolder
 is a synthesised faux-bold; use 500 and let colour or size carry the rest. (The
@@ -319,12 +328,12 @@ between 9, 10 and 16 in the same stack is not.
 | Element | Spec |
 |---|---|
 | surface | glass, radius 6, `min(400px, 100vw − 48px)`, 24px padding, docked 24/24 |
-| year eyebrow | serif-display **24** / `--accent-deep` |
-| title | serif-display **24** / lh 1.1 / `--ink` |
-| subtitle | serif-display **17** / lh 1.3 / `--ink` |
+| year eyebrow | serif **24** / `--accent-deep` |
+| title | serif **24** / lh 1.1 / `--ink` |
+| subtitle | serif **17** / lh 1.3 / `--ink` |
 | dek | sans **13**/300 / lh 1.65 / `--ink-soft`; inline link underlined, warms to accent on hover |
 | transport | play/pause toggle = 32px `--forest` circle; reset = 32px white circle, Material `refresh` glyph mirrored |
-| playhead date | serif-display **19** / `--ink` — the panel's anchor |
+| playhead date | serif **19** / `--ink` — the panel's anchor |
 | stat line | §3.2, 12px gaps |
 | chart | 104px; bars `--accent` @0.85, future months @0.22; playhead 1px `--ink`; 1px baseline `rgba(33,53,40,0.28)` |
 | axis | ruler: **major tick per year** (7px @0.45) + **minor per quarter** (4px @0.3); labels every second year, 11/400/`--ink-faint` |
@@ -350,7 +359,7 @@ floating card.
 | legend rows | 11/400/`--ink-soft`, 20px swatch column, 8px row gap |
 | inspect kicker | 10/600/`--track-caps`/`--ink` |
 | coordinates | 10/400/`--ink-faint` |
-| figure | serif-display **19**/500/`--accent-deep` + unit 11/`--ink-soft` on the same baseline |
+| figure | serif **19**/500/`--accent-deep` + unit 11/`--ink-soft` on the same baseline |
 | counts | §3.2 at 11px |
 | agent mix | label 40px · 5px track (`rgba(33,53,40,0.07)`) · bar in the series hue @0.85 · value 34px right-aligned |
 | year sparkline | 46px, bars `--accent` @0.9, 1px baseline axis, 10px end labels |
