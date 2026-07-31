@@ -145,6 +145,7 @@ function readUrlState(): UrlState {
  *  flat) are omitted so the canonical URL stays clean. */
 function buildSearch(
   map: maplibregl.Map | null,
+  home: Home | null,
   day: number,
   dayMax: number,
   agentKey: string,
@@ -155,15 +156,79 @@ function buildSearch(
   if (agentKey !== 'all') q.set('agent', agentKey)
   if (map) {
     const c = map.getCenter()
-    const v = mapConfig.view
+    // The home camera is viewport-derived, so "unmoved" has to be measured
+    // against the camera we actually applied — not against the fallback.
+    const h = home ?? { center: mapConfig.view.center, zoom: mapConfig.view.zoom }
     const moved =
-      Math.abs(c.lng - v.center[0]) > 0.02 ||
-      Math.abs(c.lat - v.center[1]) > 0.02 ||
-      Math.abs(map.getZoom() - v.zoom) > 0.05
+      Math.abs(c.lng - h.center[0]) > 0.02 ||
+      Math.abs(c.lat - h.center[1]) > 0.02 ||
+      Math.abs(map.getZoom() - h.zoom) > 0.05
     if (moved) q.set('cam', `${c.lng.toFixed(3)},${c.lat.toFixed(3)},${map.getZoom().toFixed(2)}`)
   }
   if (is3D) q.set('view', '3d')
   return q.toString()
+}
+
+interface Home {
+  center: [number, number]
+  zoom: number
+}
+
+/**
+ * The camera that frames the record in THIS viewport.
+ *
+ * A fixed center/zoom cannot do this: the record's box is 6.0° wide by 9.4°
+ * tall, so a phone needs to pull out to ~z5.3 while a desktop can push in to
+ * ~z6.2 and still hold all of it. Deriving the camera also gives us an honest
+ * zoom floor — "as far out as the record needs" rather than a number someone
+ * once typed.
+ */
+function homeCamera(map: maplibregl.Map): Home {
+  const { recordBounds, center, zoom } = mapConfig.view
+  try {
+    const cam = map.cameraForBounds(recordBounds, { padding: fitPaddingFor(map) })
+    if (cam?.center && cam.zoom != null) {
+      const c = maplibregl.LngLat.convert(cam.center)
+      return { center: [c.lng, c.lat], zoom: cam.zoom }
+    }
+  } catch {
+    /* transform not ready — fall through to the declared fallback */
+  }
+  return { center, zoom }
+}
+
+/**
+ * Fit padding that accounts for the panel sitting on top of the map.
+ *
+ * `cameraForBounds` centres on the whole canvas, but the explorer panel covers
+ * the left ~450px of it — so a record centred on the canvas ends up tucked
+ * under the panel with empty sea to its right. Reserving the panel's width on
+ * the left centres the record in the part of the map the reader can actually
+ * see. Skipped once the panel takes more than half the width (narrow screens),
+ * where there is no clear area left to centre anything in.
+ */
+function fitPaddingFor(map: maplibregl.Map): maplibregl.PaddingOptions {
+  const pad = mapConfig.view.fitPadding
+  const box = { top: pad, bottom: pad, left: pad, right: pad }
+  const panel = document.querySelector('.explorer-panel')
+  if (!panel) return box
+  const w = panel.getBoundingClientRect().width
+  const canvas = map.getContainer().clientWidth
+  if (!w || !canvas || w > canvas * 0.5) return box
+  // 24px is the panel's own left offset; the rest is its width.
+  return { ...box, left: pad + w + 24 }
+}
+
+/** Is the camera still sitting where we put it? Used to decide whether a
+ *  viewport change may re-frame: re-framing is a correction when the reader
+ *  has not moved, and theft of their position when they have. */
+function isAtHome(map: maplibregl.Map, home: Home): boolean {
+  const c = map.getCenter()
+  return (
+    Math.abs(c.lng - home.center[0]) < 0.05 &&
+    Math.abs(c.lat - home.center[1]) < 0.05 &&
+    Math.abs(map.getZoom() - home.zoom) < 0.05
+  )
 }
 
 /** Enter/leave the tilted 3D terrain view (shared by the toggle button and the
@@ -234,6 +299,17 @@ export default function MapView() {
   const appliedKeyRef = useRef('')
 
   // Refs mirror state for the animation loop to avoid stale closures.
+  const homeRef = useRef<Home | null>(null)
+  const refitRef = useRef<((animate: boolean) => void) | null>(null)
+
+  // The first fit happens before the panel exists — Timeline renders it behind
+  // the `ready` gate — so the reserved left margin has nothing to measure yet.
+  // Re-fit once the chrome is up. A reader restored from a `cam` URL is not at
+  // home, so applyHome leaves them alone.
+  useEffect(() => {
+    if (ready) refitRef.current?.(false)
+  }, [ready])
+
   const dayRef = useRef(0)
   const colorsRef = useRef<string[] | null>(null)
   const playingRef = useRef(false)
@@ -260,6 +336,30 @@ export default function MapView() {
         attributionControl: { compact: true },
       })
       mapRef.current = map
+
+      // Re-frame on the record now that the container has a real size, and set
+      // the zoom floor from the same fit so "furthest out" means "the whole
+      // record" instead of a hard-coded 5.6 that clipped the Mekong delta on
+      // every laptop.
+      const applyHome = (animate: boolean) => {
+        const prev = homeRef.current
+        const next = homeCamera(map)
+        homeRef.current = next
+        map.setMinZoom(next.zoom - mapConfig.view.minZoomMargin)
+        // Only re-frame a reader who has not gone anywhere.
+        if (prev && !isAtHome(map, prev)) return
+        if (animate) map.easeTo({ ...next, duration: 300 })
+        else map.jumpTo(next)
+      }
+      refitRef.current = applyHome
+      applyHome(false)
+
+      // A viewport change makes the old fit wrong, not stale — recompute it.
+      let resizeTimer = 0
+      map.on('resize', () => {
+        window.clearTimeout(resizeTimer)
+        resizeTimer = window.setTimeout(() => applyHome(true), 120)
+      })
       // bottom-right keeps the top-right clear for the site nav.
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
       map.on('moveend', () => setCamTick((t) => t + 1))
@@ -467,7 +567,7 @@ export default function MapView() {
   useEffect(() => {
     if (!ready) return
     const id = window.setTimeout(() => {
-      const search = buildSearch(mapRef.current, day, bounds.max, agentKey, is3D)
+      const search = buildSearch(mapRef.current, homeRef.current, day, bounds.max, agentKey, is3D)
       window.history.replaceState(null, '', `${window.location.pathname}${search ? `?${search}` : ''}`)
     }, 300)
     return () => window.clearTimeout(id)
@@ -475,7 +575,7 @@ export default function MapView() {
 
   // Copy the canonical URL for the current view.
   function shareView() {
-    const search = buildSearch(mapRef.current, dayRef.current, bounds.max, agentKey, is3D)
+    const search = buildSearch(mapRef.current, homeRef.current, dayRef.current, bounds.max, agentKey, is3D)
     const url = `${window.location.origin}${window.location.pathname}${search ? `?${search}` : ''}`
     navigator.clipboard
       ?.writeText(url)

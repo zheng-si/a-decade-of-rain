@@ -3,7 +3,7 @@
 // herbicide shows in its own colour.
 import type maplibregl from 'maplibre-gl'
 import type { ExpressionSpecification } from 'maplibre-gl'
-import { mapConfig, LABEL_FONT, type MapTheme } from '../config/mapConfig'
+import { mapConfig, LABEL_FONT, Z_NEAR, type MapTheme } from '../config/mapConfig'
 import type { AgentChoice } from './agentChoices'
 
 /** Resolve the map style: a URL, or the style JSON with a custom glyph endpoint
@@ -213,7 +213,10 @@ export function addMilitaryRegions(
     id: 'mr-label',
     type: 'symbol',
     source: 'military-region-labels',
-    maxzoom: 8.5,
+    // Pinned to the second hand-off rather than its own 8.5, so the map has
+    // two zoom events instead of five. The tags stay through the whole mid
+    // range — that is where a reader is comparing one region against another.
+    maxzoom: Z_NEAR,
     layout: {
       'text-field': ['get', 'name'],
       'text-font': [LABEL_FONT],

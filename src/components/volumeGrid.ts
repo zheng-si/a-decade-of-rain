@@ -6,9 +6,8 @@
 
 import type maplibregl from 'maplibre-gl'
 import type { SprayDataset } from '../data/spray'
-import { mapConfig } from '../config/mapConfig'
+import { mapConfig, LABEL_FONT, Z_MID, Z_NEAR } from '../config/mapConfig'
 import { firstLabelLayerId } from './mapTheme'
-import { LABEL_FONT } from '../config/mapConfig'
 
 export const VOL_COARSE_SOURCE = 'vol-coarse'
 export const VOL_FINE_SOURCE = 'vol-fine'
@@ -33,9 +32,9 @@ export const VEGETATION_RE = /wood|forest|park|grass|green|landcover|landuse|veg
 
 const COARSE_DEG = 0.12
 const FINE_DEG = 0.03
-// Hand-off zooms between the tiers.
-const Z_FAR_TO_MID = 7.0
-const Z_MID_TO_NEAR = 9.2
+// Both hand-off zooms are declared in mapConfig — see the note there.
+const Z_FAR_TO_MID = Z_MID
+const Z_MID_TO_NEAR = Z_NEAR
 
 /** Per-agent-index colour, resolved once from the dataset's agent table. */
 export function agentIndexColors(spray: SprayDataset): string[] {
@@ -359,7 +358,11 @@ export function quietBasemap(map: maplibregl.Map) {
         continue
       }
       if (layer.type === 'symbol' && map.getLayoutProperty(id, 'text-field') != null) {
-        if (/village|hamlet|suburb|neighbourhood|quarter|town/.test(id)) {
+        // Wards, hamlets and quarters stay gone at every zoom — post-reform
+        // OSM names them things like "P.9" and they are noise here. Provinces
+        // too: the military regions already divide the country for us, and two
+        // competing partitions read as one confused one.
+        if (/village|hamlet|suburb|neighbourhood|quarter/.test(id)) {
           map.setLayoutProperty(id, 'visibility', 'none')
           continue
         }
@@ -398,16 +401,32 @@ export function quietBasemap(map: maplibregl.Map) {
         }
         map.setLayoutProperty(id, 'text-anchor', 'center')
         map.setLayoutProperty(id, 'text-offset', [0, 0])
-        // Flat tiered sizes, well under the basemap defaults.
-        const size = /country/.test(id) ? 15 : 12
-        if (!/country/.test(id) && !isWater) {
-          // Settlements only appear once the reader starts zooming in; the
-          // full-country overview stays clear for the data. Water names are
-          // exempt: they are not settlements, and the overview is exactly
-          // where naming the East Sea earns its keep — the old rule caught
-          // them by accident and hid every sea label at the default zoom.
-          map.setLayerZoomRange(id, 6.4, 22)
+        // Which name survives a collision is now a rule rather than an
+        // accident of tile order: OpenMapTiles ranks places with 1 as the most
+        // important, and MapLibre places the lowest sort key first. Anything
+        // without a rank sorts last.
+        map.setLayoutProperty(id, 'symbol-sort-key', [
+          'case',
+          ['has', 'rank'],
+          ['to-number', ['get', 'rank']],
+          100,
+        ])
+
+        // Staged rollout, restored. A single z6.4 gate used to drop every
+        // settlement onto the map at once, replacing positron's own tiering
+        // with one cliff. Cities anchor the record from the opening view;
+        // towns wait for the first hand-off; the country name steps aside at
+        // the same moment, its job done once the places inside it are named.
+        const isCountry = /country/.test(id)
+        const size = isCountry ? 15 : 12
+        if (isCountry) {
+          map.setLayerZoomRange(id, 0, Z_FAR_TO_MID)
+        } else if (/town/.test(id)) {
+          map.setLayerZoomRange(id, Z_FAR_TO_MID, 22)
         }
+        // Cities and water names carry no clamp at all: both earn their place
+        // at the overview, and the sea names in particular are the only thing
+        // labelling two-fifths of the frame.
         map.setLayoutProperty(id, 'text-size', size)
       }
     } catch {
@@ -425,8 +444,8 @@ const COUNTRY_TEXT = {
   color: '#4b5a50',
   halo: 'rgba(250,249,244,0.92)',
   haloWidth: 1.1,
-  /** Same z0–9 window positron gives `label_country_1/2/3`. */
-  maxzoom: 9,
+  /** Steps aside at the first hand-off, with the basemap's country tier. */
+  maxzoom: Z_FAR_TO_MID,
 } as const
 
 /** Names positron may carry on the Vietnam country node, depending on which
@@ -479,11 +498,13 @@ export function addVietnamLabel(map: maplibregl.Map) {
         {
           type: 'Feature',
           properties: { name: 'Viet Nam' },
-          // The northern waist (~Thanh Hóa): inside the country, north of
-          // where the record begins (~17.5°N), ~1.2° clear of the LAOS label,
-          // and far enough below 23°N to stay on screen at the default view
-          // even on a short laptop viewport.
-          geometry: { type: 'Point', coordinates: [105.5, 19.9] },
+          // Moved south with the framing. The home camera now fits the
+          // RECORD (to ~17.7°N), not the country, so the old northern-waist
+          // anchor at 19.9°N sits off the top of the map entirely. This is
+          // Quảng Bình: inside Vietnam, inside the frame, and 1.3° clear of
+          // the MILITARY REGION I tag at 15.98°N — which is the collision
+          // that hid the basemap's own country label in the first place.
+          geometry: { type: 'Point', coordinates: [106.4, 17.25] },
         },
       ],
     } as GeoJSON.FeatureCollection,
