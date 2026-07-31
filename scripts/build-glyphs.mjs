@@ -32,7 +32,18 @@ const FONTS = [
   { file: 'fonts/DanhDa-Bold.otf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Danh Da' },
   { file: 'fonts/FamiljenGrotesk-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Familjen Grotesk' },
   { file: 'fonts/Cuprum-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Cuprum' },
+  // TEMPORARY — map-label candidates being compared in the basemap tuner. All
+  // four cover Vietnamese natively (verified against ầ ư Đ ễ ợ ắ ộ), so a
+  // place name renders in one face rather than half-composited from Noto.
+  // Delete the losers here and under public/fonts/ once one is chosen.
+  { file: 'fonts/FiraSans-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Fira Sans' },
+  { file: 'fonts/RobotoCondensed-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Roboto Condensed' },
+  { file: 'fonts/Geist-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Geist' },
+  { file: 'fonts/IBMPlexSans-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'IBM Plex Sans' },
 ]
+
+// Only rebuild these stacks when given as args: `npm run build:glyphs -- Geist`
+const ONLY = process.argv.slice(2)
 
 const LAST_RANGE = 32 // ranges 0..32 → codepoints 0–8447 (Latin + Vietnamese)
 
@@ -116,7 +127,7 @@ function composite(primaryBuf, fallbackBuf) {
 }
 
 async function main() {
-  for (const { file, fallback, stack } of FONTS) {
+  for (const { file, fallback, stack } of FONTS.filter((f) => !ONLY.length || ONLY.includes(f.stack))) {
     const buf = await readFile(join(__dirname, file))
     const fbBuf = await readFile(join(__dirname, fallback))
     const outDir = join(ROOT, 'public', 'fonts', stack)

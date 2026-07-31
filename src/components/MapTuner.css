@@ -169,3 +169,21 @@
   outline: 2px solid #cf3720;
   outline-offset: 2px;
 }
+
+.tuner-font {
+  grid-column: 2 / -1;
+  width: 100%;
+  padding: 0.2rem 0.3rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.7);
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: #3f423c;
+  cursor: pointer;
+}
+
+.tuner-font:focus-visible {
+  outline: 2px solid #cf3720;
+  outline-offset: 2px;
+}

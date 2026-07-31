@@ -24,7 +24,24 @@ interface Tune {
   water: string
   veg: string
   vegOn: boolean
+  font: string
 }
+
+/** Label faces with self-hosted SDF glyphs under public/fonts/. A name not in
+ *  this list has no glyphs to fetch and every label on the map disappears, so
+ *  this is a closed list, not free text. Every one covers Vietnamese natively
+ *  (checked against ầ ư Đ ễ ợ ắ ộ) — a face that didn't would render place
+ *  names half in itself and half in the Noto fallback. */
+const FONTS = [
+  'Cuprum',
+  'Public Sans Medium',
+  'Fira Sans',
+  'Roboto Condensed',
+  'Geist',
+  'IBM Plex Sans',
+]
+
+type ColorKey = 'land' | 'water' | 'veg'
 
 const DEFAULTS: Tune = {
   land: mapConfig.theme.land,
@@ -33,6 +50,7 @@ const DEFAULTS: Tune = {
   // The explorer draws vegetation; the checkbox is here so it can be taken
   // away again to see what the map looks like without it.
   vegOn: true,
+  font: 'Cuprum',
 }
 
 const clampByte = (n: number) => Math.max(0, Math.min(255, n))
@@ -97,12 +115,12 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
   const [tune, setTune] = useState<Tune>(readStore)
   const [copied, setCopied] = useState(false)
   // Text fields hold whatever is being typed, including half-finished hexes;
-  // only a valid value is pushed to the map.
-  const [draft, setDraft] = useState<Record<keyof Tune & string, string>>({
+  // only a valid value is pushed to the map. Colour keys only — the checkbox
+  // and the font picker have no intermediate state to hold.
+  const [draft, setDraft] = useState<Record<ColorKey, string>>({
     land: tune.land,
     water: tune.water,
     veg: tune.veg,
-    vegOn: '',
   })
   const mapRef = useRef(map)
   mapRef.current = map
@@ -134,6 +152,12 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
               m.setPaintProperty(id, 'fill-color', tune.veg)
             }
           }
+          // Every text layer, ours included: the military-region tags and the
+          // island notes are map labels too, so a comparison that left them in
+          // the old face would not show what the map actually becomes.
+          if (layer.type === 'symbol' && m.getLayoutProperty(id, 'text-field') != null) {
+            m.setLayoutProperty(id, 'text-font', [tune.font])
+          }
         } catch {
           /* layer doesn't take this property — skip */
         }
@@ -154,20 +178,21 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
     }
   }, [tune, map])
 
-  const set = (key: 'land' | 'water' | 'veg', value: string) => {
+  const set = (key: ColorKey, value: string) => {
     setDraft((d) => ({ ...d, [key]: value }))
     if (hexToRgb(value)) setTune((t) => ({ ...t, [key]: value.startsWith('#') ? value : '#' + value }))
   }
 
   const reset = () => {
     setTune(DEFAULTS)
-    setDraft({ land: DEFAULTS.land, water: DEFAULTS.water, veg: DEFAULTS.veg, vegOn: '' })
+    setDraft({ land: DEFAULTS.land, water: DEFAULTS.water, veg: DEFAULTS.veg })
   }
 
   const summary =
     `land ${tune.land}\n` +
     `water ${tune.water}  (river line ${deriveLine(tune.water)})\n` +
-    `vegetation ${tune.veg}${tune.vegOn ? '' : '  (hidden)'}`
+    `vegetation ${tune.veg}${tune.vegOn ? '' : '  (hidden)'}\n` +
+    `label font ${tune.font}`
 
   const copy = () => {
     navigator.clipboard?.writeText(summary).then(
@@ -187,7 +212,7 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
     )
   }
 
-  const rows: { key: 'land' | 'water' | 'veg'; label: string }[] = [
+  const rows: { key: ColorKey; label: string }[] = [
     { key: 'land', label: 'Land' },
     { key: 'water', label: 'Water' },
     { key: 'veg', label: 'Vegetation' },
@@ -221,6 +246,21 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
           />
         </label>
       ))}
+
+      <label className="tuner-row">
+        <span className="tuner-label">Label font</span>
+        <select
+          className="tuner-font"
+          value={tune.font}
+          onChange={(e) => setTune((t) => ({ ...t, font: e.target.value }))}
+        >
+          {FONTS.map((f) => (
+            <option key={f} value={f}>
+              {f}
+            </option>
+          ))}
+        </select>
+      </label>
 
       <label className="tuner-check">
         <input
