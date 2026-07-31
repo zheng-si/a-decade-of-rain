@@ -32,14 +32,7 @@ interface Tune {
  *  this is a closed list, not free text. Every one covers Vietnamese natively
  *  (checked against ầ ư Đ ễ ợ ắ ộ) — a face that didn't would render place
  *  names half in itself and half in the Noto fallback. */
-const FONTS = [
-  'Cuprum',
-  'Public Sans Medium',
-  'Fira Sans',
-  'Roboto Condensed',
-  'Geist',
-  'IBM Plex Sans',
-]
+const FONTS = ['Roboto Condensed', 'Cuprum', 'Public Sans Medium']
 
 type ColorKey = 'land' | 'water' | 'veg'
 
@@ -50,7 +43,7 @@ const DEFAULTS: Tune = {
   // The explorer draws vegetation; the checkbox is here so it can be taken
   // away again to see what the map looks like without it.
   vegOn: true,
-  font: 'Cuprum',
+  font: 'Roboto Condensed',
 }
 
 const clampByte = (n: number) => Math.max(0, Math.min(255, n))

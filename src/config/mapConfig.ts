@@ -90,6 +90,21 @@ export interface MapConfig {
   }
 }
 
+/**
+ * The map-label face — one name, used by every text layer on both maps.
+ *
+ * Condensed is a deliberate choice, not a style preference: Vietnamese place
+ * names run long ("Buôn Ma Thuột", "Bà Rịa – Vũng Tàu"), and a narrower face
+ * fits more of them on screen before MapLibre's collision detection starts
+ * dropping names outright. It covers Vietnamese natively, so a name renders in
+ * one face instead of being half-composited from the Noto fallback.
+ *
+ * Must match a self-hosted glyph stack under public/fonts/ — see
+ * scripts/build-glyphs.mjs. A name with no stack on disk does not fall back;
+ * every label on the map disappears.
+ */
+export const LABEL_FONT = 'Roboto Condensed'
+
 export const mapConfig: MapConfig = {
   baseStyleUrl: 'https://tiles.openfreemap.org/styles/positron',
 
@@ -148,9 +163,7 @@ export const mapConfig: MapConfig = {
       halo: '#ffffff',
       haloWidth: 1.3,
       sizeScale: 1,
-      // Must match a self-hosted glyph stack (public/fonts/<name>/). See
-      // scripts/build-glyphs.mjs to add more fonts/weights.
-      font: ['Public Sans Medium'],
+      font: [LABEL_FONT],
     },
   },
 

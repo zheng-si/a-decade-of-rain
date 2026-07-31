@@ -8,6 +8,7 @@ import type maplibregl from 'maplibre-gl'
 import type { SprayDataset } from '../data/spray'
 import { mapConfig } from '../config/mapConfig'
 import { firstLabelLayerId } from './mapTheme'
+import { LABEL_FONT } from '../config/mapConfig'
 
 export const VOL_COARSE_SOURCE = 'vol-coarse'
 export const VOL_FINE_SOURCE = 'vol-fine'
@@ -386,7 +387,7 @@ export function quietBasemap(map: maplibregl.Map) {
         map.setPaintProperty(id, 'text-halo-width', 1.1)
         map.setLayoutProperty(id, 'text-transform', 'uppercase')
         map.setLayoutProperty(id, 'text-letter-spacing', 0.2)
-        map.setLayoutProperty(id, 'text-font', ['Cuprum'])
+        map.setLayoutProperty(id, 'text-font', [LABEL_FONT])
         // Drop any dot the label layer carries with it, and re-centre the
         // text on the point it names — positron parks the name above the
         // icon, so without this the label floats clear of its own location.
@@ -419,7 +420,7 @@ export function quietBasemap(map: maplibregl.Map) {
  *  own country layers so ours cannot drift away from LAOS / THAILAND /
  *  CAMBODIA. Kept as one object because two places set it. */
 const COUNTRY_TEXT = {
-  font: ['Cuprum'],
+  font: [LABEL_FONT],
   size: 15,
   color: '#4b5a50',
   halo: 'rgba(250,249,244,0.92)',

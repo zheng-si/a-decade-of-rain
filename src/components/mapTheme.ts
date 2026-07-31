@@ -3,7 +3,7 @@
 // herbicide shows in its own colour.
 import type maplibregl from 'maplibre-gl'
 import type { ExpressionSpecification } from 'maplibre-gl'
-import { mapConfig, type MapTheme } from '../config/mapConfig'
+import { mapConfig, LABEL_FONT, type MapTheme } from '../config/mapConfig'
 import type { AgentChoice } from './agentChoices'
 
 /** Resolve the map style: a URL, or the style JSON with a custom glyph endpoint
@@ -216,7 +216,7 @@ export function addMilitaryRegions(
     maxzoom: 8.5,
     layout: {
       'text-field': ['get', 'name'],
-      'text-font': ['Cuprum'],
+      'text-font': [LABEL_FONT],
       'text-size': 14,
       'text-transform': 'uppercase',
       'text-letter-spacing': 0.1,
@@ -252,7 +252,7 @@ export function addIslandMarks(map: maplibregl.Map) {
     source: 'islands',
     layout: {
       'text-field': ['get', 'name'],
-      'text-font': ['Public Sans Medium'],
+      'text-font': [LABEL_FONT],
       'text-size': 10,
       'text-anchor': 'center',
       'text-max-width': 9,

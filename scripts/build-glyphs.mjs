@@ -32,14 +32,12 @@ const FONTS = [
   { file: 'fonts/DanhDa-Bold.otf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Danh Da' },
   { file: 'fonts/FamiljenGrotesk-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Familjen Grotesk' },
   { file: 'fonts/Cuprum-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Cuprum' },
-  // TEMPORARY — map-label candidates being compared in the basemap tuner. All
-  // four cover Vietnamese natively (verified against ầ ư Đ ễ ợ ắ ộ), so a
-  // place name renders in one face rather than half-composited from Noto.
-  // Delete the losers here and under public/fonts/ once one is chosen.
-  { file: 'fonts/FiraSans-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Fira Sans' },
+  // The map-label face. Condensed earns its place here: Vietnamese place names
+  // run long ("Buôn Ma Thuột", "Bà Rịa – Vũng Tàu") and a narrower face fits
+  // more of them before the collision detector starts dropping names. Covers
+  // Vietnamese natively (verified against ầ ư Đ ễ ợ ắ ộ), so a name renders in
+  // one face rather than half-composited from Noto.
   { file: 'fonts/RobotoCondensed-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Roboto Condensed' },
-  { file: 'fonts/Geist-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Geist' },
-  { file: 'fonts/IBMPlexSans-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'IBM Plex Sans' },
 ]
 
 // Only rebuild these stacks when given as args: `npm run build:glyphs -- Geist`
