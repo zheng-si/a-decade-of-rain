@@ -141,7 +141,10 @@ export const mapConfig: MapConfig = {
     road: '#ffffff',
     boundary: '#6b6e66',
     label: {
-      color: '#5b5e57',
+      // Same tertiary ink the UI captions use (--ink-faint), so map and page
+      // read as one text system. 6.5:1 on the land — a full step darker than
+      // the old #5b5e57 (5.9:1), which sat too close to the paper.
+      color: '#4b5a50',
       halo: '#ffffff',
       haloWidth: 1.3,
       sizeScale: 1,

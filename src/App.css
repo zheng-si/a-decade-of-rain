@@ -11,11 +11,21 @@
   --forest: #213528; /* dark surface: story cards, stat pills */
   --forest-2: #2c3730; /* raised dark surface (stat pill bg) */
 
-  /* ── ink (text on paper) ──────────────────────────────────────────────── */
-  --ink: #213528; /* headings & primary text · 12.4:1 on paper */
-  --ink-soft: #4e6355; /* secondary text, UI labels · 6.2:1 */
-  --ink-faint: #647468; /* captions, smallest text · 4.7:1 (AA floor for small) */
+  /* ── ink (text on paper) ──────────────────────────────────────────────────
+     One ramp, one hue (~145°, low chroma): the green cast that ties the text
+     to the map's land and vegetation, carried from near-black down through two
+     grey tiers. The old ramp bottomed out near the AA floor, which read as
+     washed-out on a warm paper — every tier here is a full step darker, and
+     the gaps between them are wide enough to be seen as tiers rather than as
+     three attempts at the same grey. */
+  --ink: #101a14; /* headings & primary text · 16.9:1 on paper — reads as black */
+  --ink-soft: #33443a; /* secondary text, UI labels · 9.8:1 */
+  --ink-faint: #4b5a50; /* captions, smallest text · 6.9:1 */
   --rule: #dfe3d9; /* hairline dividers */
+  /* Decorative 3px card accents, kept at the old --ink-faint. They are rules,
+     not text: darkening them with the ink ramp would restyle the story cards
+     rather than make anything more readable. */
+  --rule-strong: #647468;
 
   /* ── text on forest (dark cards) ──────────────────────────────────────── */
   --forest-text: #e8ece6; /* primary · 11.0:1 */

@@ -257,7 +257,10 @@ export function addIslandMarks(map: maplibregl.Map) {
       'text-anchor': 'center',
       'text-max-width': 9,
     },
-    paint: { 'text-color': '#8a8d85', 'text-halo-color': '#ffffff', 'text-halo-width': 1 },
+    // Deliberately the quietest tier on the map (4.4:1): these are notes about
+    // sovereignty, not geography, and they should sit a step behind the place
+    // names. Still a clear step darker than the old #8a8d85 (3.0:1).
+    paint: { 'text-color': '#6b7268', 'text-halo-color': '#ffffff', 'text-halo-width': 1 },
   })
 }
 

@@ -377,7 +377,11 @@ export function quietBasemap(map: maplibregl.Map) {
             ['get', 'name'],
           ])
         }
-        map.setPaintProperty(id, 'text-color', isWater ? '#7d9ba1' : '#6f7568')
+        // Place names take the UI's tertiary ink (6.5:1 on the land); sea
+        // names take its cool sibling, matched in luminance (6.6:1) so the two
+        // read as one tier that happens to differ in temperature. Both were
+        // far too pale before — the old sea grey sat at 2.6:1, barely there.
+        map.setPaintProperty(id, 'text-color', isWater ? '#44585e' : '#4b5a50')
         map.setPaintProperty(id, 'text-halo-color', 'rgba(250,249,244,0.92)')
         map.setPaintProperty(id, 'text-halo-width', 1.1)
         map.setLayoutProperty(id, 'text-transform', 'uppercase')
@@ -417,7 +421,7 @@ export function quietBasemap(map: maplibregl.Map) {
 const COUNTRY_TEXT = {
   font: ['Cuprum'],
   size: 15,
-  color: '#6f7568',
+  color: '#4b5a50',
   halo: 'rgba(250,249,244,0.92)',
   haloWidth: 1.1,
   /** Same z0–9 window positron gives `label_country_1/2/3`. */

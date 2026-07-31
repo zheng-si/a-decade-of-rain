@@ -2211,7 +2211,7 @@
   cursor: pointer;
   background: var(--paper-solid);
   border: 1px solid var(--rule);
-  border-top: 3px solid var(--ink-faint);
+  border-top: 3px solid var(--rule-strong);
   border-radius: 0.3125rem;
   cursor: pointer;
   transition: box-shadow 0.2s;
@@ -2491,7 +2491,7 @@
   padding: 0.6875rem 1.125rem 0.75rem;
   background: var(--paper-solid);
   border: 1px solid var(--rule);
-  border-top: 3px solid var(--ink-faint);
+  border-top: 3px solid var(--rule-strong);
   border-radius: 0.3125rem;
   transition: background 0.3s, border-color 0.3s;
 }
@@ -2616,7 +2616,7 @@
   font-size: 0.75rem;
   font-weight: 700;
   line-height: 1.3;
-  color: #58615a;
+  color: var(--ink-soft);
 }
 .alt-axis-title.is-co2 {
   flex: 0 0 var(--alt-gutter-r);
@@ -2648,7 +2648,7 @@
 .alt-axis span {
   position: absolute;
   transform: translateY(50%);
-  color: #58615a;
+  color: var(--ink-soft);
 }
 .alt-axis.is-cost span {
   right: 0.75rem;
@@ -2731,7 +2731,7 @@
   font-size: 0.75rem;
   line-height: 1.4;
   text-align: center;
-  color: #444844;
+  color: var(--ink-soft);
   border-right: 1px solid #e3eae4;
 }
 .alt-xlabel:last-child {
