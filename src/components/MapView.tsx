@@ -64,14 +64,6 @@ const dayLabel = (day: number) =>
     timeZone: 'UTC',
   })
 
-// Curated "Jump To" views — places the story dwells on, one ease away.
-const PRESETS: { label: string; center: [number, number]; zoom: number }[] = [
-  { label: 'A Sầu Valley', center: [107.3, 16.13], zoom: 10 },
-  { label: 'Biên Hòa', center: [106.818, 10.972], zoom: 10.8 },
-  { label: 'Đà Nẵng', center: [108.199, 16.044], zoom: 10.8 },
-  { label: 'Phù Cát', center: [109.043, 13.952], zoom: 10.8 },
-]
-
 /** Full-record aggregates for one grid cell (ignores the playhead — the
  *  inspect card tells the place's whole story). */
 function aggregateCell(
@@ -295,8 +287,6 @@ export default function MapView() {
   const [inspect, setInspect] = useState<Inspect | null>(null)
   // Bumped on moveend so the URL mirror below sees camera changes.
   const [camTick, setCamTick] = useState(0)
-  const [shared, setShared] = useState(false)
-  const shareTimerRef = useRef(0)
 
   // Throttle key for the map filter: only re-apply when the day-bucket or the
   // agent selection actually changes.
@@ -577,20 +567,6 @@ export default function MapView() {
     return () => window.clearTimeout(id)
   }, [ready, day, agentKey, is3D, camTick, bounds.max])
 
-  // Copy the canonical URL for the current view.
-  function shareView() {
-    const search = buildSearch(mapRef.current, homeRef.current, dayRef.current, bounds.max, agentKey, is3D)
-    const url = `${window.location.origin}${window.location.pathname}${search ? `?${search}` : ''}`
-    navigator.clipboard
-      ?.writeText(url)
-      .then(() => {
-        setShared(true)
-        window.clearTimeout(shareTimerRef.current)
-        shareTimerRef.current = window.setTimeout(() => setShared(false), 1800)
-      })
-      .catch(() => window.prompt('Copy this link:', url))
-  }
-
   return (
     <div className="map-wrap">
       <div ref={containerRef} className="map-root" />
@@ -600,8 +576,6 @@ export default function MapView() {
           ready={ready}
           is3D={is3D}
           onToggle3D={toggleView}
-          onShare={shareView}
-          shared={shared}
           tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
           filtered={agentKey !== 'all'}
         >
@@ -643,11 +617,6 @@ export default function MapView() {
             setDay(bounds.min)
           }}
           onSelectAgent={setAgentKey}
-          flyToLabels={PRESETS.map((p) => p.label)}
-          onFlyTo={(i) => {
-            const p = PRESETS[i]
-            mapRef.current?.easeTo({ center: p.center, zoom: p.zoom, duration: 1800 })
-          }}
         />
       )}
     </div>

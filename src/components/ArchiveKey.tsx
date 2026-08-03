@@ -12,8 +12,6 @@ interface Props {
   ready: boolean
   is3D: boolean
   onToggle3D: () => void
-  onShare: () => void
-  shared: boolean
   /** Colour of the current selection (an agent colour, or the brand red). */
   tint: string
   /** Whether an agent is isolated (shows the grey-context legend row). */
@@ -47,8 +45,6 @@ export default function ArchiveKey({
   ready,
   is3D,
   onToggle3D,
-  onShare,
-  shared,
   tint,
   filtered,
   children,
@@ -86,10 +82,6 @@ export default function ArchiveKey({
           3D
         </button>
       </div>
-      <button type="button" className="archive-key-share" onClick={onShare} aria-live="polite">
-        {shared ? '✓ Link Copied' : 'Share This View'}
-      </button>
-
       <div className="map-key-top" aria-hidden="true">
         <div className="map-key-scale">
           <div className="map-key-scale-bar" style={{ width: `${scale.w}px` }} />
