@@ -125,6 +125,31 @@ export function firstLabelLayerId(map: maplibregl.Map): string | undefined {
   return undefined
 }
 
+// ── label type scale ──────────────────────────────────────────────────────
+// The zoom at which the ramp starts. Every viewport's zoom floor lands near
+// here (the fitted home is ~5.3 on a phone and ~6.2 on a desktop, minus the
+// 0.35 margin), so this is the size a reader meets the map at.
+const Z_TYPE_FLOOR = 5
+/** …and the far end, the map's maxZoom. */
+const Z_TYPE_TOP = 12
+
+/**
+ * Label size as a function of zoom.
+ *
+ * Labels used to sit at one flat number at every zoom, which made them shout
+ * at the overview — the one view where the data should be doing the talking —
+ * and left nothing for zooming in to reveal. A place name is not a UI chip: it
+ * belongs to the ground, so it should grow as the ground does.
+ *
+ * A straight line between the two ends, deliberately: extra stops would imply
+ * a rhythm the type does not actually have, and the two things that DO change
+ * gear (Z_MID, Z_NEAR) already change what is on screen rather than how big it
+ * is.
+ */
+export function textSizeRamp(atFloor: number, atTop: number): ExpressionSpecification {
+  return ['interpolate', ['linear'], ['zoom'], Z_TYPE_FLOOR, atFloor, Z_TYPE_TOP, atTop]
+}
+
 export const HILLSHADE_LAYER = 'hillshade'
 
 /** Add a hillshade layer (hidden until 3D) that shades the DEM relief, so the
@@ -220,7 +245,9 @@ export function addMilitaryRegions(
     layout: {
       'text-field': ['get', 'name'],
       'text-font': [LABEL_FONT],
-      'text-size': 14,
+      // Reads as a heading over the region it names, so it sits a little above
+      // the place-name ramp at both ends.
+      'text-size': textSizeRamp(12, 16),
       'text-transform': 'uppercase',
       'text-letter-spacing': 0.1,
     },
@@ -256,7 +283,8 @@ export function addIslandMarks(map: maplibregl.Map) {
     layout: {
       'text-field': ['get', 'name'],
       'text-font': [LABEL_FONT],
-      'text-size': 10,
+      // The quietest thing on the map, at every zoom.
+      'text-size': textSizeRamp(8.5, 11),
       'text-anchor': 'center',
       'text-max-width': 9,
     },

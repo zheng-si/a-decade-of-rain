@@ -7,7 +7,7 @@
 import type maplibregl from 'maplibre-gl'
 import type { SprayDataset } from '../data/spray'
 import { mapConfig, LABEL_FONT, Z_MID, Z_NEAR } from '../config/mapConfig'
-import { firstLabelLayerId } from './mapTheme'
+import { firstLabelLayerId, textSizeRamp } from './mapTheme'
 
 export const VOL_COARSE_SOURCE = 'vol-coarse'
 export const VOL_FINE_SOURCE = 'vol-fine'
@@ -418,7 +418,9 @@ export function quietBasemap(map: maplibregl.Map) {
         // towns wait for the first hand-off; the country name steps aside at
         // the same moment, its job done once the places inside it are named.
         const isCountry = /country/.test(id)
-        const size = isCountry ? 15 : 12
+        // Smaller at the overview than the old flat 12/15 — that view is the
+        // record's, not the basemap's — and growing from there.
+        const size = isCountry ? textSizeRamp(12.5, 15) : textSizeRamp(9.5, 14)
         if (isCountry) {
           map.setLayerZoomRange(id, 0, Z_FAR_TO_MID)
         } else if (/town/.test(id)) {
@@ -440,7 +442,7 @@ export function quietBasemap(map: maplibregl.Map) {
  *  CAMBODIA. Kept as one object because two places set it. */
 const COUNTRY_TEXT = {
   font: [LABEL_FONT],
-  size: 15,
+  size: textSizeRamp(12.5, 15),
   color: '#4b5a50',
   halo: 'rgba(250,249,244,0.92)',
   haloWidth: 1.1,
