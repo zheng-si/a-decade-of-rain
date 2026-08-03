@@ -165,6 +165,9 @@ export default function Timeline({
       </div>
 
       {volume && (
+        <p className="explorer-section-label">Spraying Volume</p>
+      )}
+      {volume && (
         <p className="explorer-statline">
           <span className="stat-pair">
             <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Missions
@@ -271,6 +274,7 @@ export default function Timeline({
         </div>
       )}
 
+      <p className="explorer-section-label">Spraying Agents</p>
       <div className="explorer-agents">
         {agentChoices.map((c) => {
           const active = c.key === activeAgentKey

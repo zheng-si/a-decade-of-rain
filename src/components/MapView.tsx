@@ -34,6 +34,10 @@ import ArchiveInspect, {
 import { applyLabelCuration } from './labelLayers'
 // TEMPORARY — basemap colour tuner. See the header of MapTuner.tsx.
 import MapTuner from './MapTuner'
+// SPIKE — Archive UI v2 (Geist, no radii, no strokes, near-flat shadows).
+// Scoped under .map-wrap; delete both imports and the two files to revert.
+import '../fontsGeist.css'
+import '../ArchiveSkinV2.css'
 
 const SPRAY_SOURCE = 'spray'
 const DEM_SOURCE = 'terrain-dem'

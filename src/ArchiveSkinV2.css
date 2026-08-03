@@ -1,0 +1,261 @@
+/* ═════════════════════════════════════════════════════════════════════════
+   Archive UI v2 — a spike, not the design system.
+
+   Ported from the Figma "A Decade of Rain · Archive UI" frame. Four moves,
+   all of them subtractive:
+
+     1. ONE typeface. Geist everywhere; the serif/sans pairing is gone.
+     2. NO corner radii. Panels, buttons, chips and the view switch are
+        rectangles. Round stays only where roundness is meaning — the agent
+        dots, the compass dial, the map's own circles.
+     3. NO strokes, almost. Panel borders go; the two hairline RULES that
+        separate blocks stay, because they divide rather than outline.
+     4. Shadows drop from 0.10 alpha to 0.02 — present as depth, absent as
+        decoration.
+
+   Scoped entirely under `.map-wrap`, so the story is untouched and the whole
+   experiment is one file plus one import. If it survives, its values move
+   into the tokens in App.css and this file disappears.
+
+   Where the Figma and the stated intent disagree, the intent wins — noted
+   inline at each spot.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.map-wrap {
+  /* One family for everything inside the explorer. --font-serif is
+     deliberately pointed at Geist too, so any rule still reaching for the
+     serif tier gets the sans instead of silently keeping Playfair. */
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: var(--font-sans);
+
+  /* Depth without decoration: the same shadow on every floating surface. */
+  --v2-shadow: 0 8px 28px rgba(40, 38, 30, 0.02);
+  /* Panel glass. The Figma has the left panel at 0.65 and the key at 0.62 —
+     close enough that the difference reads as drift, so both take 0.65. */
+  --v2-panel: rgba(255, 255, 255, 0.65);
+  --v2-blur: blur(8px);
+
+  /* Redefining --font-sans is not enough on its own. `body` declares
+     `font-family: var(--font-sans)` and resolves it in the ROOT scope, so
+     every element that merely inherits its font — the dek, the Jump To
+     buttons, the legend — kept Public Sans while only the handful of rules
+     that name the token directly switched. Declaring the family here gives
+     the whole subtree something Geist to inherit. */
+  font-family: var(--font-sans);
+}
+
+/* ── surfaces ──────────────────────────────────────────────────────────── */
+.map-wrap .explorer-panel,
+.map-wrap .archive-key {
+  background: var(--v2-panel);
+  border: none;
+  border-radius: 0;
+  box-shadow: var(--v2-shadow);
+  -webkit-backdrop-filter: var(--v2-blur);
+  backdrop-filter: var(--v2-blur);
+}
+
+/* ── the identity block ────────────────────────────────────────────────── */
+.map-wrap .explorer-eyebrow {
+  margin: 0 0 12px;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.1;
+}
+
+.map-wrap .explorer-title {
+  margin: 0 0 12px;
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1.1;
+}
+
+.map-wrap .explorer-subtitle {
+  margin: 0 0 16px;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+/* Light 12px is the quietest text in the panel — it is the one paragraph a
+   reader can skip once they know what the map does. */
+.map-wrap .explorer-dek {
+  font-weight: 300;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+/* ── transport ─────────────────────────────────────────────────────────── */
+/* A rule, not an outline: this line divides the identity block from the
+   controls, so it survives the no-strokes pass. */
+.map-wrap .explorer-transport {
+  gap: 14px;
+  padding-top: 24px;
+}
+
+/* The two buttons butt together into one 60×30 block rather than floating as
+   separate circles — squares with a gap would read as two unrelated things. */
+.map-wrap .transport-buttons {
+  gap: 0;
+  box-shadow: var(--v2-shadow);
+}
+
+.map-wrap .transport-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 0;
+}
+
+.map-wrap .transport-btn.is-ghost {
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: none;
+}
+
+.map-wrap .transport-btn.is-ghost:hover:not(:disabled) {
+  background: #fff;
+}
+
+.map-wrap .explorer-date {
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+/* ── section labels ────────────────────────────────────────────────────── */
+/* v2 gives the panel's blocks explicit headings (SPRAYING VOLUME / SPRAYING
+   AGENTS) where v1 relied on spacing alone. Same 10px uppercase tier the
+   Jump To label already used, so this is a promotion of an existing rung
+   rather than a new one. */
+/* The block gap the Figma expresses as a 24px flex gap. v1's panel spaces its
+   blocks with margins instead, and the label is a NEW element sitting between
+   two of them — so it has to carry that gap itself, or it collides with the
+   readout above it. */
+.map-wrap .explorer-section-label {
+  margin: 24px 0 8px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* ── stat line ─────────────────────────────────────────────────────────── */
+/* Its 14px top margin was the gap to the transport; the section label owns
+   that job now, so the statline sits tight under its own heading. */
+.map-wrap .explorer-statline {
+  margin-top: 0;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.map-wrap .explorer-statline strong {
+  /* The Figma leaves these on Public Sans SemiBold — the one place the old
+     pairing survives. Treated as a leftover, not an exception. */
+  font-family: inherit;
+  font-weight: 600;
+}
+
+.map-wrap .explorer-axis {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* ── agent chips ───────────────────────────────────────────────────────── */
+/* The capsule that held the chips is gone: with square chips there is nothing
+   for a rounded track to align to, and the track was only ever there to give
+   the pills something to sit in. */
+.map-wrap .explorer-agents {
+  justify-content: flex-start;
+  gap: 0;
+  margin-top: 0;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.map-wrap .agent-chip {
+  gap: 4px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 0;
+  font-weight: 600;
+}
+
+/* Inactive chips keep the rounded pill in the Figma; that contradicts the
+   no-radii rule the same file applies to every other control, so it is read
+   as a leftover and squared off with the rest. */
+.map-wrap .agent-chip:not(.is-active) {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.map-wrap .agent-chip:hover:not(.is-active) {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+/* ── jump-to row ───────────────────────────────────────────────────────── */
+.map-wrap .explorer-flyto button {
+  border: none;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.6);
+  padding: 5px 10px;
+}
+
+.map-wrap .explorer-flyto button:hover {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--accent-deep);
+}
+
+.map-wrap .explorer-links {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* ── the key ───────────────────────────────────────────────────────────── */
+.map-wrap .archive-key .map-key-view,
+.map-wrap .archive-key .map-key-view-btn {
+  border-radius: 0;
+}
+
+.map-wrap .archive-key .map-key-view-btn {
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.map-wrap .archive-key-share {
+  border: none;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: none;
+}
+
+.map-wrap .archive-key-share:hover {
+  background: #fff;
+}
+
+/* ── inspect card + map tooltip ────────────────────────────────────────── */
+.map-wrap .adr-popup .maplibregl-popup-content {
+  border-radius: 0;
+  box-shadow: var(--v2-shadow);
+}
+
+/* The rounded tip was a rotated square faking a radius on the callout. With
+   the callout square, the tip is just a rotated square — same trick, one less
+   reason for it. */
+.map-wrap .adr-popup .maplibregl-popup-tip {
+  border-radius: 0;
+}
+
+.map-wrap .inspect-figure,
+.map-wrap .adr-popup strong {
+  font-weight: 600;
+}
+
+/* MapLibre's own controls are part of the surface too. */
+.map-wrap .maplibregl-ctrl-group,
+.map-wrap .maplibregl-ctrl-group button {
+  border-radius: 0;
+  box-shadow: var(--v2-shadow);
+}
