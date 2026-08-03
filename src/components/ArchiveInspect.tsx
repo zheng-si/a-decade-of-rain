@@ -120,6 +120,13 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
               ))
             })()}
           </div>
+          {/* One tick per year, so the two ends are read off a ruler rather
+              than guessed at from two labels. */}
+          <div className="inspect-year-ticks" aria-hidden="true">
+            {data.byYear.map((_, i) => (
+              <span key={i} className="inspect-year-tick" />
+            ))}
+          </div>
           <div className="inspect-year-labels" aria-hidden="true">
             <span>1961</span>
             <span>1971</span>

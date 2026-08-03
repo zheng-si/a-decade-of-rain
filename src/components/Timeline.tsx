@@ -157,25 +157,29 @@ export default function Timeline({
             </svg>
           </button>
         </div>
-        <p className="explorer-date">{dateLabel}</p>
+        {/* The buttons sit beside a two-line readout: what is being counted
+            and when, then the counts themselves. Heading and date share a
+            line because together they name one thing — this month's volume. */}
+        <div className="transport-readout">
+          <p className="transport-head">
+            {volume && <span className="explorer-section-label">Spraying Volume</span>}
+            <span className="explorer-date">{dateLabel}</span>
+          </p>
+          {volume && (
+            <span className="explorer-statline">
+              <span className="stat-pair">
+                <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Missions
+              </span>
+              <span className="stat-pair">
+                <strong style={statStyle}>{runCount.toLocaleString()}</strong> Runs
+              </span>
+              <span className="stat-pair">
+                <strong style={statStyle}>{fmtGallons(gallons)}</strong> Gallons
+              </span>
+            </span>
+          )}
+        </div>
       </div>
-
-      {volume && (
-        <p className="explorer-section-label">Spraying Volume</p>
-      )}
-      {volume && (
-        <p className="explorer-statline">
-          <span className="stat-pair">
-            <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Missions
-          </span>
-          <span className="stat-pair">
-            <strong style={statStyle}>{runCount.toLocaleString()}</strong> Runs
-          </span>
-          <span className="stat-pair">
-            <strong style={statStyle}>{fmtGallons(gallons)}</strong> Gallons
-          </span>
-        </p>
-      )}
 
       {volume && (
         <div className="explorer-chart">

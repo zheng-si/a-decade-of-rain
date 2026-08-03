@@ -74,7 +74,7 @@
 
 .map-wrap .explorer-title {
   margin: 0 0 8px;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 20px;
   line-height: 1.1;
 }
@@ -87,8 +87,11 @@
 }
 
 /* Light 12px is the quietest text in the panel — it is the one paragraph a
-   reader can skip once they know what the map does. */
+   reader can skip once they know what the map does. The bottom margin matches
+   the transport's padding-top, so the rule sits exactly between the prose and
+   the controls instead of 24 above and 16 below. */
 .map-wrap .explorer-dek {
+  margin-bottom: 16px;
   font-weight: 300;
   font-size: 12px;
   line-height: 20px;
@@ -98,8 +101,38 @@
 /* A rule, not an outline: this line divides the identity block from the
    controls, so it survives the no-strokes pass. */
 .map-wrap .explorer-transport {
+  align-items: center;
   gap: 14px;
   padding-top: 16px;
+}
+
+/* Two lines beside the buttons: what is counted and when, then the counts. */
+.map-wrap .transport-readout {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+/* Heading and date are one compound label, so they share a size and a case
+   rather than the date keeping its own 16px display tier — at that size it
+   competed with the panel title two blocks up. */
+.map-wrap .transport-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0;
+}
+
+.map-wrap .transport-head .explorer-section-label,
+.map-wrap .transport-head .explorer-date {
+  margin: 0;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
 }
 
 /* The two buttons butt together into one 60×30 block rather than floating as
@@ -147,6 +180,7 @@
    readout above it. */
 .map-wrap .explorer-section-label {
   margin: 16px 0 8px;
+  display: block;
   font-size: 10px;
   font-weight: 600;
   line-height: 1.2;
@@ -162,7 +196,7 @@
    the same three things and had been shouting on one side and speaking on the
    other. */
 .map-wrap .explorer-statline {
-  margin-top: 0;
+  margin: 0;
   font-size: 10px;
   text-transform: none;
   letter-spacing: 0;
@@ -258,6 +292,17 @@
 }
 
 /* ── inspect card + map tooltip ────────────────────────────────────────── */
+/* The figures line was 15px (13 on the hover variant) over an 11px sub — a
+   size jump inside a two-line box. Both lines sit at 11 now; colour and
+   weight still mark the numbers. .adr-hover is named explicitly because
+   App.css's .adr-popup.adr-hover strong ties this rule on specificity and
+   wins on source order. */
+.map-wrap .adr-popup strong,
+.map-wrap .adr-popup.adr-hover strong {
+  font-size: 11px;
+  line-height: 1.5;
+}
+
 .map-wrap .adr-popup .maplibregl-popup-content {
   padding: 6px 9px 7px;
   border-radius: 0;
@@ -269,6 +314,13 @@
    reason for it. */
 .map-wrap .adr-popup .maplibregl-popup-tip {
   border-radius: 0;
+}
+
+/* Tighter above and below: at 12/12 the figure floated free of both the
+   coordinates that locate it and the counts that break it down. */
+.map-wrap .inspect-coords,
+.map-wrap .inspect-figure {
+  margin-bottom: 6px;
 }
 
 /* Figure and unit stay the same size as each other — the number is marked by
@@ -285,7 +337,8 @@
 }
 
 .map-wrap .inspect-figure,
-.map-wrap .adr-popup strong {
+.map-wrap .adr-popup strong,
+.map-wrap .adr-popup.adr-hover strong {
   font-weight: 600;
 }
 
@@ -293,6 +346,48 @@
 .map-wrap .inspect-bar-track,
 .map-wrap .inspect-bar {
   border-radius: 0;
+}
+
+/* ── rulers ────────────────────────────────────────────────────────────── */
+/* Half height, both tiers. A tick only has to say "here"; at 4/7px the ruler
+   was competing with the bars it measures. The year labels come up to match,
+   or they float away from the marks they belong to. */
+.map-wrap .axis-tick {
+  height: 2px;
+}
+
+.map-wrap .axis-tick.is-major {
+  height: 3.5px;
+}
+
+.map-wrap .axis-year {
+  top: 6px;
+}
+
+/* The inspect card's mini chart gets a ruler of its own — one tick per year,
+   so its two labels read as the ends of a scale rather than a pair of dates.
+   Same flex geometry as the bars above, so tick and column line up. */
+.map-wrap .inspect-year-ticks {
+  display: flex;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.map-wrap .inspect-year-tick {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.map-wrap .inspect-year-tick::before {
+  content: '';
+  width: 1px;
+  height: 3.5px;
+  background: rgba(33, 53, 40, 0.45);
+}
+
+.map-wrap .inspect-year-labels {
+  margin-top: 3px;
 }
 
 /* MapLibre's own controls are part of the surface too. */
