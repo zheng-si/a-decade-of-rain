@@ -65,10 +65,15 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
 
       {data.kind === 'cell' ? (
         <>
-          {/* Reads as a parallel noun phrase to 'Single Spray Run' — no
-              interpunct, and the round number carries the approximation. */}
-          <p className="inspect-kicker">{data.cellKm} km Grid Cell</p>
-          <p className="inspect-coords">{fmtCoords(data.center)}</p>
+          {/* The card's subject, not its geometry. '13 km Grid Cell' named the
+              container and left the reader to infer the contents — and worse,
+              left them to guess the span, since the panel opposite is showing
+              one month. The title says both: everything, all years. The cell
+              size is an attribute of the place, so it joins the coordinates. */}
+          <p className="inspect-kicker">Total Sprayed Here</p>
+          <p className="inspect-coords">
+            {fmtCoords(data.center)} · {data.cellKm} km cell
+          </p>
           <p className="inspect-figure">
             <strong>{fmtGallons(data.gallons)}</strong>
             <span className="inspect-figure-unit">Gallons</span>
@@ -85,6 +90,11 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
             {month(data.firstDay)} – {month(data.lastDay)}
           </p>
 
+          {/* Two headings the card did without: the bars and the sparkline were
+              unlabelled, so what they broke the total down BY had to be
+              inferred from the row names. Same 10px tier as the panel's own
+              SPRAYING VOLUME / SPRAYING AGENTS. */}
+          <p className="inspect-section-label">By Agent</p>
           <div className="inspect-groups">
             {(() => {
               const max = Math.max(1, ...data.byGroup)
@@ -107,6 +117,7 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
             })()}
           </div>
 
+          <p className="inspect-section-label">By Year</p>
           <div className="inspect-years" aria-hidden="true">
             {(() => {
               const max = Math.max(1, ...data.byYear)

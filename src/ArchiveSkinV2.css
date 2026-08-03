@@ -33,7 +33,7 @@
      problem: white on white, with no border left to help, so it needs a tight
      close one to stop dissolving into the surface it floats on. */
   --v2-shadow: 0 8px 28px rgba(40, 38, 30, 0.02);
-  --v2-shadow-control: 0 1px 3px rgba(40, 38, 30, 0.1);
+  --v2-shadow-control: 0 1px 3px rgba(40, 38, 30, 0.07);
 
   /* One dark. The play button, the active Flat/3D tab and the All-agents chip
      are the same kind of thing — the selected state of a control — so they get
@@ -54,6 +54,16 @@
 }
 
 /* ── surfaces ──────────────────────────────────────────────────────────── */
+/* 360, not 400. The width never changed from v1 — what changed is that the
+   body text dropped 13→12px, so the same 352px measure started carrying ~60
+   characters a line and the panel began to read as a wide slab. 360 puts the
+   content box at 312, which is exactly the agent row's natural width: the
+   widest fixed-width thing in the panel now sets the panel, so nothing has to
+   stretch to fill and the measure lands near 55 characters. */
+.map-wrap .explorer-panel {
+  width: min(360px, calc(100vw - 48px));
+}
+
 .map-wrap .explorer-panel,
 .map-wrap .archive-key {
   background: var(--v2-panel);
@@ -79,8 +89,11 @@
   line-height: 1.1;
 }
 
+/* 12, not 16. The subtitle and the paragraph under it are one thought — the
+   deck expands the line above it — so they sit closer than the 16 that
+   separates the identity block from the controls. */
 .map-wrap .explorer-subtitle {
-  margin: 0 0 16px;
+  margin: 0 0 12px;
   font-weight: 500;
   font-size: 14px;
   line-height: 1.3;
@@ -197,9 +210,18 @@
    other. */
 .map-wrap .explorer-statline {
   margin: 0;
+  gap: 10px;
   font-size: 10px;
   text-transform: none;
   letter-spacing: 0;
+}
+
+/* At 360 the readout has 238px beside the buttons, and three pairs need ~228 —
+   close enough that without this each pair broke between its figure and its
+   word and the row became a 3×2 grid. The pairs are atoms; they wrap as
+   wholes or not at all. */
+.map-wrap .explorer-statline .stat-pair {
+  white-space: nowrap;
 }
 
 .map-wrap .explorer-statline strong {
@@ -207,6 +229,13 @@
      pairing survives. Treated as a leftover, not an exception. */
   font-family: inherit;
   font-weight: 600;
+}
+
+/* The counts moved up into the transport last round, and they had been the
+   only thing holding the chart off the row above it — the tallest bars were
+   landing straight against the Gallons figure. The chart owns that gap now. */
+.map-wrap .explorer-chart {
+  margin-top: 14px;
 }
 
 .map-wrap .explorer-axis {
@@ -234,12 +263,14 @@
   box-shadow: var(--v2-shadow-control);
 }
 
+/* Medium, not SemiBold. These are switches, not headings — at 600 the whole
+   row read as a title bar. Same call on the Flat/3D pair below. */
 .map-wrap .agent-chip {
   gap: 4px;
   padding: 6px 12px;
   border: none;
   border-radius: 0;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* Only the neutral "All" chip reaches this — the per-agent chips carry their
@@ -288,7 +319,7 @@
 
 .map-wrap .archive-key .map-key-view-btn {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 /* ── inspect card + map tooltip ────────────────────────────────────────── */
@@ -323,23 +354,76 @@
   margin-bottom: 6px;
 }
 
-/* Figure and unit stay the same size as each other — the number is marked by
-   colour and weight, not scale — but the pair sits one step above the body so
-   the card has something to land on. */
+/* The cell size joined this line, and at the widest coordinate the result
+   measured 146.6 in a 146px card — a hairline wrap. The 0.02em tracking was
+   there to open up an all-caps-ish string of digits; at 11px it buys nothing
+   and costs ~6px. */
+.map-wrap .inspect-coords {
+  letter-spacing: 0;
+}
+
+/* ONE SIZE for every piece of data in the card. It had been carrying four
+   (10 coords / 11 counts / 13 figure / 10 bar rows) inside 312px, which is
+   what made it read as a stack of unrelated fragments rather than one record.
+   Hierarchy comes from weight and colour instead: 600 + accent for figures,
+   400 + ink-soft for the words they attach to, 400 + ink-faint for the
+   locating line. Only the uppercase headings stay a step down at 10, because
+   uppercase at 11 sits visually taller than lowercase at 11 anyway. */
+.map-wrap .inspect-coords,
 .map-wrap .inspect-figure,
 .map-wrap .inspect-figure strong,
-.map-wrap .inspect-figure-unit {
-  font-size: 13px;
+.map-wrap .inspect-figure-unit,
+.map-wrap .inspect-sub,
+.map-wrap .inspect-group-row,
+.map-wrap .inspect-year-labels,
+.map-wrap .inspect-note {
+  font-size: 11px;
 }
 
-.map-wrap .inspect-figure strong {
-  font-weight: 600;
-}
-
-.map-wrap .inspect-figure,
+/* With size gone, weight is the only rank left, so it has to do the whole job.
+   Three tiers: the answer (the total, 600 + accent, and its unit at 500 so the
+   line reads heavy as a line), how it accumulated (500 + accent — same red
+   grammar, one step quieter), and everything that locates or breaks it down
+   (400). */
+.map-wrap .inspect-figure strong,
 .map-wrap .adr-popup strong,
 .map-wrap .adr-popup.adr-hover strong {
   font-weight: 600;
+}
+
+.map-wrap .inspect-figure-unit {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.map-wrap .inspect-sub strong {
+  font-weight: 500;
+}
+
+.map-wrap .inspect-figure {
+  font-weight: 400;
+}
+
+/* Headings for the two breakdowns. Same 10px tier as the panel's own section
+   labels, and each one takes over the rule that used to sit on top of the
+   block it heads — otherwise the label would float above its own divider. */
+.map-wrap .inspect-section-label {
+  margin: 12px 0 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.map-wrap .inspect-groups,
+.map-wrap .inspect-years {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
 }
 
 /* The per-agent bars kept their 2px radius through the no-radii pass. */
