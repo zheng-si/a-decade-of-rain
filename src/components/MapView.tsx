@@ -203,7 +203,9 @@ function homeCamera(map: maplibregl.Map): Home {
  * see. Skipped once the panel takes more than half the width (narrow screens),
  * where there is no clear area left to centre anything in.
  */
-function fitPaddingFor(map: maplibregl.Map): maplibregl.PaddingOptions {
+type Padding = { top: number; right: number; bottom: number; left: number }
+
+function fitPaddingFor(map: maplibregl.Map): Padding {
   const pad = mapConfig.view.fitPadding
   const box = { top: pad, bottom: pad, left: pad, right: pad }
   const panel = document.querySelector('.explorer-panel')
@@ -229,7 +231,7 @@ function isAtHome(map: maplibregl.Map, home: Home): boolean {
 
 /** Enter/leave the tilted 3D terrain view (shared by the toggle button and the
  *  URL restore, which applies it without the fly-in). */
-function applyView(map: maplibregl.Map, next: boolean, animate = true) {
+function applyView(map: maplibregl.Map, next: boolean, home: Home | null, animate = true) {
   if (mapConfig.terrain && map.getSource(DEM_SOURCE)) {
     map.setTerrain(
       next ? { source: DEM_SOURCE, exaggeration: mapConfig.terrain.exaggeration } : null,
@@ -240,13 +242,23 @@ function applyView(map: maplibregl.Map, next: boolean, animate = true) {
     // Only its strength changes: soft on the flat map, deeper under tilt.
     setHillshade(map, true, next ? RELIEF_TILTED : RELIEF_FLAT)
   }
-  // Tilt; when entering 3D also zoom in a touch — terrain reads as 3D far
-  // better up close than at the full-country overview.
-  map.easeTo({
-    pitch: next ? mapConfig.view.pitch3d : 0,
-    ...(next && map.getZoom() < 6.6 ? { zoom: 6.6 } : {}),
-    duration: animate ? 1000 : 0,
-  })
+  // Tilt only. Entering 3D used to also force zoom 6.6 — "terrain reads
+  // better up close" — and THAT is what cut the bottom off the record: at
+  // z6.6 the frame's south edge sits at 9.27°N, well north of the delta tip
+  // and Cà Mau at 8.3°N, which is the densest sprayed ground on the map.
+  //
+  // The tilt itself was not the cause, which is the opposite of what it looks
+  // like. Pitch only ever ADDS ground coverage: measured on 1512×900 at the
+  // same z5.94, the south edge sits at 7.98°N flat, 7.06°N at 55°, and 5.62°N
+  // at 68°. Leaning the camera back shows more of the world, not less — so
+  // holding the home zoom through the toggle is the whole fix.
+  const pitch = next ? mapConfig.view.pitch3d : 0
+  if (home && isAtHome(map, home)) {
+    map.easeTo({ ...home, pitch, duration: animate ? 1000 : 0 })
+  } else {
+    // A reader who has gone somewhere keeps their place; only the tilt moves.
+    map.easeTo({ pitch, duration: animate ? 1000 : 0 })
+  }
 }
 
 /** Cumulative missions, runs and gallons up to `day`, restricted to `indices`.
@@ -483,7 +495,7 @@ export default function MapView() {
         )
         if (urlState.is3D) {
           setIs3D(true)
-          applyView(map, true, false)
+          applyView(map, true, homeRef.current, false)
         }
         setReady(true)
       })
@@ -553,7 +565,7 @@ export default function MapView() {
     if (!map) return
     const next = !is3D
     setIs3D(next)
-    applyView(map, next)
+    applyView(map, next, homeRef.current)
   }
 
   // Mirror the current view into the query string, debounced. During playback

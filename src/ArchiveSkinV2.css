@@ -33,7 +33,7 @@
      problem: white on white, with no border left to help, so it needs a tight
      close one to stop dissolving into the surface it floats on. */
   --v2-shadow: 0 8px 28px rgba(40, 38, 30, 0.02);
-  --v2-shadow-control: 0 1px 3px rgba(40, 38, 30, 0.13);
+  --v2-shadow-control: 0 1px 3px rgba(40, 38, 30, 0.1);
 
   /* One dark. The play button, the active Flat/3D tab and the All-agents chip
      are the same kind of thing — the selected state of a control — so they get
@@ -74,16 +74,16 @@
 
 .map-wrap .explorer-title {
   margin: 0 0 8px;
-  font-weight: 500;
-  font-size: 24px;
+  font-weight: 600;
+  font-size: 20px;
   line-height: 1.1;
 }
 
 .map-wrap .explorer-subtitle {
   margin: 0 0 16px;
-  font-weight: 400;
-  font-size: 16px;
-  line-height: 1.2;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 1.3;
 }
 
 /* Light 12px is the quietest text in the panel — it is the one paragraph a
@@ -158,11 +158,14 @@
 /* ── stat line ─────────────────────────────────────────────────────────── */
 /* Its 14px top margin was the gap to the transport; the section label owns
    that job now, so the statline sits tight under its own heading. */
+/* Initial caps, matching the inspect card on the right. The two panels count
+   the same three things and had been shouting on one side and speaking on the
+   other. */
 .map-wrap .explorer-statline {
   margin-top: 0;
   font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .map-wrap .explorer-statline strong {
@@ -181,14 +184,20 @@
 /* The capsule that held the chips is gone: with square chips there is nothing
    for a rounded track to align to, and the track was only ever there to give
    the pills something to sit in. */
+/* The row casts the shadow, not each chip. Per-chip shadows bled into the
+   seams between buttons and drew four vertical lines through what is meant to
+   read as one control. `fit-content` keeps the shadow on the chips instead of
+   stretching it across the empty rest of the panel. */
 .map-wrap .explorer-agents {
+  display: inline-flex;
+  width: fit-content;
   justify-content: flex-start;
   gap: 0;
   margin-top: 0;
   padding: 0;
   background: none;
   border-radius: 0;
-  box-shadow: none;
+  box-shadow: var(--v2-shadow-control);
 }
 
 .map-wrap .agent-chip {
@@ -197,7 +206,6 @@
   border: none;
   border-radius: 0;
   font-weight: 600;
-  box-shadow: var(--v2-shadow-control);
 }
 
 /* Only the neutral "All" chip reaches this — the per-agent chips carry their
@@ -263,11 +271,16 @@
   border-radius: 0;
 }
 
-/* The headline figure drops to the size of its own unit. At 19px it was
-   shouting a number the reader has not asked for yet; the card's job is the
-   breakdown underneath. Colour and weight still mark it as the figure. */
+/* Figure and unit stay the same size as each other — the number is marked by
+   colour and weight, not scale — but the pair sits one step above the body so
+   the card has something to land on. */
+.map-wrap .inspect-figure,
+.map-wrap .inspect-figure strong,
+.map-wrap .inspect-figure-unit {
+  font-size: 13px;
+}
+
 .map-wrap .inspect-figure strong {
-  font-size: 11px;
   font-weight: 600;
 }
 
