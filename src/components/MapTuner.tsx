@@ -49,6 +49,12 @@ interface Tier {
   color: string
   halo: string
   haloWidth: number
+  /** Glyph stack. WEIGHT IS A STACK in MapLibre — there is no numeric
+   *  text-font-weight, so Bold means a different set of SDF glyphs, built by
+   *  scripts/build-glyphs.mjs. Empty = inherit the panel-wide face. */
+  font: string
+  /** `text-letter-spacing`, in ems. */
+  tracking: number
 }
 
 interface Tune {
@@ -74,6 +80,11 @@ interface Tune {
   typeFloor: number
   typeTop: number
   tiers: Record<TierKey, Tier>
+  /** How much smaller the least important settlement is than the most.
+   *  0 = every place the same size (what the map does today); 0.4 = a rank-10
+   *  place renders at 60% of a rank-1 one. OpenMapTiles ships `rank` on the
+   *  place layer and we were only using it to break collisions. */
+  rankSpread: number
   // ── per-layer overrides ──
   /** Basemap symbol layers forced off, by id. Seeded from what quietBasemap
    *  already hides, so the ticks describe the shipped map rather than
@@ -93,7 +104,28 @@ interface Tune {
  *  this is a closed list, not free text. Every one covers Vietnamese natively
  *  (checked against ầ ư Đ ễ ợ ắ ộ) — a face that didn't would render place
  *  names half in itself and half in the Noto fallback. */
-const FONTS = ['Roboto Condensed', 'Cuprum', 'Public Sans Medium']
+const FONTS = [
+  'Roboto Condensed Light',
+  'Roboto Condensed Regular',
+  'Roboto Condensed',
+  'Roboto Condensed Bold',
+  'Cuprum',
+  'Public Sans Medium',
+  'Familjen Grotesk',
+  'Westgate',
+  'Danh Da',
+]
+
+/** Shown next to a stack name so "which of these is the weight I want" does not
+ *  have to be inferred from the name. 'Roboto Condensed' IS the medium — it
+ *  predates the other three and keeps its bare name so no committed style
+ *  breaks. */
+const FONT_NOTE: Record<string, string> = {
+  'Roboto Condensed Light': '300',
+  'Roboto Condensed Regular': '400',
+  'Roboto Condensed': '500 · default',
+  'Roboto Condensed Bold': '700',
+}
 
 type ColorKey = 'land' | 'water' | 'veg'
 type TierKey = 'place' | 'waterName' | 'country' | 'mr' | 'island'
@@ -118,12 +150,13 @@ const DEFAULTS: Tune = {
   // Read off quietBasemap / mapTheme as committed, so "Reset" really is the
   // shipped map rather than a second opinion about it.
   tiers: {
-    place: { size: [8, 12], color: '#646464', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1 },
-    waterName: { size: [8, 12], color: '#338199', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1 },
-    country: { size: [10, 15], color: '#646464', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1 },
-    mr: { size: [8, 14], color: '#cf3720', halo: 'rgba(250,249,244,0.95)', haloWidth: 2 },
-    island: { size: [8.5, 11], color: '#6b7268', halo: '#ffffff', haloWidth: 1 },
+    place: { size: [8, 12], color: '#646464', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1, font: '', tracking: 0.2 },
+    waterName: { size: [8, 12], color: '#338199', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1, font: '', tracking: 0.2 },
+    country: { size: [10, 15], color: '#646464', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1, font: '', tracking: 0.2 },
+    mr: { size: [8, 14], color: '#cf3720', halo: 'rgba(250,249,244,0.95)', haloWidth: 2, font: '', tracking: 0.1 },
+    island: { size: [8.5, 11], color: '#6b7268', halo: '#ffffff', haloWidth: 1, font: '', tracking: 0 },
   },
+  rankSpread: 0,
   hidden: [],
   seeded: false,
   zoomRanges: {},
@@ -229,9 +262,11 @@ function tunerEnabled(): boolean {
   }
 }
 
-/** Our own annotation layers, which are not part of the basemap and must not
- *  appear in its visibility list — hiding `mr-label` from here would look like
- *  a basemap decision and be impossible to find again. */
+/** Our own annotation layers. They ARE in the visibility list — the military
+ *  region tags and their dashed borders are exactly the kind of thing you want
+ *  to switch off and look without — but they are marked, so a reader of the
+ *  list can tell which switches touch the record's own annotation rather than
+ *  positron's basemap. */
 const OWN_LAYERS = new Set(['mr-label', 'island-label', VN_LABEL_LAYER])
 
 export default function MapTuner({
@@ -252,7 +287,16 @@ export default function MapTuner({
   const [labelsOnly, setLabelsOnly] = useState(true)
   /** Every layer in the style with the facts the panel shows about it. */
   const [allLayers, setAllLayers] = useState<
-    { id: string; type: string; isLabel: boolean; minzoom: number; maxzoom: number }[]
+    {
+      id: string
+      type: string
+      isLabel: boolean
+      /** Ours, not positron's — worth marking so a reader of the list knows
+       *  which switches change the record's own annotation. */
+      ours: boolean
+      minzoom: number
+      maxzoom: number
+    }[]
   >([])
   /** What quietBasemap already hides, read once from the live style. Kept apart
    *  from `tune.hidden` so the copy block can tell "you turned this off" from
@@ -294,13 +338,14 @@ export default function MapTuner({
       const rows: typeof allLayers = []
       const offNow: string[] = []
       for (const l of map.getStyle().layers ?? []) {
-        if (OWN_LAYERS.has(l.id) || l.type === 'background') continue
+        if (l.type === 'background') continue
         try {
           const isLabel = l.type === 'symbol' && map.getLayoutProperty(l.id, 'text-field') != null
           rows.push({
             id: l.id,
             type: l.type,
             isLabel,
+            ours: OWN_LAYERS.has(l.id) || l.id === 'mr-borders' || l.id.startsWith('vol-'),
             minzoom: l.minzoom ?? 0,
             maxzoom: l.maxzoom ?? 24,
           })
@@ -332,8 +377,33 @@ export default function MapTuner({
       /* private mode — the tune just won't persist */
     }
 
-    const ramp = (r: Ramp) =>
-      ['interpolate', ['linear'], ['zoom'], tune.typeFloor, r[0], tune.typeTop, r[1]] as never
+    /** Size as a function of zoom, and — for settlements — of importance.
+     *
+     *  OpenMapTiles ships `rank` on the place layer (1 = most important) and we
+     *  were spending it only on collision order, so Hồ Chí Minh City and a
+     *  district seat rendered at exactly the same size. `spread` reintroduces
+     *  the hierarchy: 0 keeps today's flat scale, 0.4 puts a rank-10 place at
+     *  60% of a rank-1 one. The zoom interpolate has to stay OUTERMOST, so the
+     *  rank factor multiplies inside each stop. */
+    const ramp = (r: Ramp, spread = 0) => {
+      if (!spread) {
+        return ['interpolate', ['linear'], ['zoom'], tune.typeFloor, r[0], tune.typeTop, r[1]] as never
+      }
+      const mul = [
+        '-',
+        1,
+        ['*', spread, ['/', ['-', ['min', ['coalesce', ['to-number', ['get', 'rank']], 10], 10], 1], 9]],
+      ]
+      return [
+        'interpolate',
+        ['linear'],
+        ['zoom'],
+        tune.typeFloor,
+        ['*', r[0], mul],
+        tune.typeTop,
+        ['*', r[1], mul],
+      ] as never
+    }
 
     /** Which tier a label layer belongs to. Same order of tests quietBasemap
      *  uses, so the tuner cannot classify a layer differently than the shipped
@@ -383,7 +453,7 @@ export default function MapTuner({
           // Visibility and zoom range apply to EVERY layer, not only labels —
           // hiding a fill or clamping a road is as much a map decision as
           // hiding a place name, and used to be unreachable from here.
-          if (!OWN_LAYERS.has(id) && layer.type !== 'background') {
+          if (layer.type !== 'background') {
             m.setLayoutProperty(id, 'visibility', tune.hidden.includes(id) ? 'none' : 'visible')
             const ov = tune.zoomRanges[id]
             if (ov && (ov[0] != null || ov[1] != null)) {
@@ -407,9 +477,15 @@ export default function MapTuner({
           // island notes are map labels too, so a comparison that left them in
           // the old face would not show what the map actually becomes.
           if (layer.type === 'symbol' && m.getLayoutProperty(id, 'text-field') != null) {
-            const tier = tune.tiers[tierFor(id)]
-            m.setLayoutProperty(id, 'text-font', [tune.font])
-            m.setLayoutProperty(id, 'text-size', ramp(tier.size))
+            const key = tierFor(id)
+            const tier = tune.tiers[key]
+            // Rank only exists on the settlement layers, so the spread only
+            // reaches the tier that has it. Applying it to sea names would
+            // silently shrink every one of them to the `coalesce` default.
+            const spread = key === 'place' ? tune.rankSpread : 0
+            m.setLayoutProperty(id, 'text-font', [tier.font || tune.font])
+            m.setLayoutProperty(id, 'text-size', ramp(tier.size, spread))
+            m.setLayoutProperty(id, 'text-letter-spacing', tier.tracking)
             m.setPaintProperty(id, 'text-color', tier.color)
             m.setPaintProperty(id, 'text-halo-color', tier.halo)
             m.setPaintProperty(id, 'text-halo-width', tier.haloWidth)
@@ -453,7 +529,8 @@ export default function MapTuner({
       | 'typeFloor'
       | 'typeTop'
       | 'coarseDeg'
-      | 'fineDeg',
+      | 'fineDeg'
+      | 'rankSpread',
     v: number,
   ) => setTune((t) => ({ ...t, [key]: v }))
 
@@ -530,6 +607,8 @@ export default function MapTuner({
         const b = DEFAULTS.tiers[k]
         const bits: string[] = []
         if (changed(a.size, b.size)) bits.push(`text-size ${r(a.size)}`)
+        if (a.font !== b.font) bits.push(`text-font ['${a.font || tune.font}']`)
+        if (a.tracking !== b.tracking) bits.push(`text-letter-spacing ${a.tracking}`)
         if (a.color !== b.color) bits.push(`text-color '${a.color}'`)
         if (a.halo !== b.halo) bits.push(`text-halo-color '${a.halo}'`)
         if (a.haloWidth !== b.haloWidth) bits.push(`text-halo-width ${a.haloWidth}`)
@@ -538,6 +617,12 @@ export default function MapTuner({
       return out
     }
     vol.push(...tierLines(['place', 'waterName', 'country']))
+    if (tune.rankSpread !== DEFAULTS.rankSpread) {
+      vol.push(
+        `quietBasemap places — scale text-size by rank, spread ${tune.rankSpread} ` +
+          `(1 − ${tune.rankSpread}·(min(rank,10)−1)/9)`,
+      )
+    }
     // Places and sea names share one `size` in quietBasemap today; if they have
     // been pulled apart, that is a code change, not just a value change.
     if (changed(tune.tiers.place.size, tune.tiers.waterName.size)) {
@@ -600,7 +685,8 @@ export default function MapTuner({
       | 'typeFloor'
       | 'typeTop'
       | 'coarseDeg'
-      | 'fineDeg',
+      | 'fineDeg'
+      | 'rankSpread',
     min: number,
     max: number,
     step: number,
@@ -810,6 +896,34 @@ export default function MapTuner({
                   ))}
                 </div>
                 <div className="tuner-ramp-ends tuner-ramp-paint">
+                  <label className="tuner-ramp-font">
+                    <span>face</span>
+                    <select
+                      value={tier.font}
+                      onChange={(e) => setTier(key, { font: e.target.value })}
+                    >
+                      <option value="">inherit ({tune.font})</option>
+                      {FONTS.map((f) => (
+                        <option key={f} value={f}>
+                          {f}
+                          {FONT_NOTE[f] ? ` · ${FONT_NOTE[f]}` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    <span>track</span>
+                    <input
+                      type="number"
+                      min={-0.1}
+                      max={0.6}
+                      step={0.02}
+                      value={tier.tracking}
+                      onChange={(e) => setTier(key, { tracking: Number(e.target.value) })}
+                    />
+                  </label>
+                </div>
+                <div className="tuner-ramp-ends tuner-ramp-paint">
                   <label>
                     <span>colour</span>
                     <input
@@ -840,6 +954,25 @@ export default function MapTuner({
                 <p className="tuner-tier-read">
                   {contrast(tier.color, tune.land).toFixed(2)}:1 on land
                 </p>
+                {key === 'place' && (
+                  <label className="tuner-slider tuner-rank">
+                    <span>
+                      City rank spread <strong>{tune.rankSpread}</strong>
+                    </span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={0.6}
+                      step={0.05}
+                      value={tune.rankSpread}
+                      onChange={(e) => setNum('rankSpread', Number(e.target.value))}
+                    />
+                    <em>
+                      0 = every place the same size (today). 0.4 puts a rank-10 place at 60% of a
+                      rank-1 one, using the `rank` OpenMapTiles already ships.
+                    </em>
+                  </label>
+                )}
               </div>
             )
           })}
@@ -872,6 +1005,7 @@ export default function MapTuner({
                   <span>
                     {l.id}
                     <em>{l.type}</em>
+                    {l.ours && <em className="is-ours">ours</em>}
                   </span>
                 </label>
                 <span className="tuner-layer-z">

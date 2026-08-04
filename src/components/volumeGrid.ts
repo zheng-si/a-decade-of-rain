@@ -393,14 +393,17 @@ export function quietBasemap(map: maplibregl.Map) {
         // a map whose subject is a spraying campaign the town tier was naming
         // places the record has nothing to say about, and crowding the cities
         // that anchor it. Cities and sea names now carry the whole basemap.
-        if (/village|hamlet|suburb|neighbourhood|quarter|town/.test(id)) {
-          map.setLayoutProperty(id, 'visibility', 'none')
-          continue
-        }
-        if (/state|province/.test(id)) {
-          map.setLayoutProperty(id, 'visibility', 'none')
-          continue
-        }
+        //
+        // DECIDED here, ACTED ON at the end of the block. These layers used to
+        // `continue` straight past the treatment below, which meant they kept
+        // positron's own casing, tracking, anchor and settlement dot — so the
+        // moment one was switched back on (from the tuner, or by editing this
+        // list) it arrived lowercase, unspaced and floating above its point
+        // while every other label was uppercase, tracked and centred. Styling
+        // something you are about to hide costs nothing; having it come back
+        // wrong costs an afternoon.
+        const hide =
+          /village|hamlet|suburb|neighbourhood|quarter|town/.test(id) || /state|province/.test(id)
         const isWater = /water|sea|ocean|marine|river|lake|bay/.test(id)
         if (isWater) {
           // Open-sea names read in English (the site's language); coalesce
@@ -459,6 +462,9 @@ export function quietBasemap(map: maplibregl.Map) {
         // at the overview, and the sea names in particular are the only thing
         // labelling two-fifths of the frame.
         map.setLayoutProperty(id, 'text-size', size)
+
+        // Last, now that the layer looks like the rest of the map.
+        map.setLayoutProperty(id, 'visibility', hide ? 'none' : 'visible')
       }
     } catch {
       /* layer doesn't support the property — skip */

@@ -429,3 +429,30 @@
   font-size: 0.62rem;
   font-variant-numeric: tabular-nums;
 }
+
+.tuner-ramp-font {
+  flex: 2;
+}
+
+.tuner-ramp-font select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.12rem 0.2rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 0.63rem;
+  cursor: pointer;
+}
+
+.tuner-rank {
+  margin-top: 0.4rem;
+}
+
+.tuner-layer-row em.is-ours {
+  margin-left: 0.25rem;
+  padding: 0 0.2rem;
+  background: rgba(207, 55, 32, 0.12);
+  color: #a8412b;
+}
