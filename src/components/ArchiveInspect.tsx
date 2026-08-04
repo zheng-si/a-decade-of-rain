@@ -71,8 +71,16 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
               one month. The title says both: everything, all years. The cell
               size is an attribute of the place, so it joins the coordinates. */}
           <p className="inspect-kicker">Total Sprayed Here</p>
+          {/* Where and when first, then how much. The span used to trail the
+              figures, which made it read as a footnote to the counts rather
+              than as the other half of the question the title asks — the
+              reader needs to know it is a decade's worth BEFORE the number,
+              not after. */}
           <p className="inspect-coords">
-            {fmtCoords(data.center)} · {data.cellKm} km cell
+            {fmtCoords(data.center)} · {data.cellKm} km Cell
+          </p>
+          <p className="inspect-coords is-span">
+            {month(data.firstDay)} – {month(data.lastDay)}
           </p>
           <p className="inspect-figure">
             <strong>{fmtGallons(data.gallons)}</strong>
@@ -85,9 +93,6 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
             <span className="stat-pair">
               <strong>{data.runs.toLocaleString()}</strong> Runs
             </span>
-          </p>
-          <p className="inspect-sub">
-            {month(data.firstDay)} – {month(data.lastDay)}
           </p>
 
           {/* Two headings the card did without: the bars and the sparkline were

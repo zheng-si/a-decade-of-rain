@@ -54,14 +54,18 @@
 }
 
 /* ── surfaces ──────────────────────────────────────────────────────────── */
-/* 360, not 400. The width never changed from v1 — what changed is that the
-   body text dropped 13→12px, so the same 352px measure started carrying ~60
-   characters a line and the panel began to read as a wide slab. 360 puts the
-   content box at 312, which is exactly the agent row's natural width: the
-   widest fixed-width thing in the panel now sets the panel, so nothing has to
-   stretch to fill and the measure lands near 55 characters. */
+/* 372, not the old 400. The width never changed from v1 — what changed is that
+   the body text dropped 13→12px, so the same 352px measure started carrying
+   ~60 characters a line and the panel began to read as a wide slab.
+
+   372 puts the content box at 324 against an agent row that measures 308.7.
+   Sizing the panel to the row EXACTLY (360/312) left 3.3px, and App.css puts
+   `flex-wrap: wrap` on that row — so the first machine whose subpixel rounding
+   went the other way broke 'Other' onto its own line. The row is the thing the
+   panel is sized to; it must never be the thing that reflows. Hence both the
+   headroom and the nowrap below. */
 .map-wrap .explorer-panel {
-  width: min(360px, calc(100vw - 48px));
+  width: min(372px, calc(100vw - 48px));
 }
 
 .map-wrap .explorer-panel,
@@ -99,13 +103,14 @@
   line-height: 1.3;
 }
 
-/* Light 12px is the quietest text in the panel — it is the one paragraph a
-   reader can skip once they know what the map does. The bottom margin matches
-   the transport's padding-top, so the rule sits exactly between the prose and
-   the controls instead of 24 above and 16 below. */
+/* Regular 12px. Light was too thin to hold at 12 against a Medium title and
+   subtitle — the panel had three weights where it needs two: Medium names
+   things, Regular says them. The bottom margin matches the transport's
+   padding-top, so the rule sits exactly between the prose and the controls
+   instead of 24 above and 16 below. */
 .map-wrap .explorer-dek {
   margin-bottom: 16px;
-  font-weight: 300;
+  font-weight: 400;
   font-size: 12px;
   line-height: 20px;
 }
@@ -253,6 +258,7 @@
    stretching it across the empty rest of the panel. */
 .map-wrap .explorer-agents {
   display: inline-flex;
+  flex-wrap: nowrap;
   width: fit-content;
   justify-content: flex-start;
   gap: 0;
@@ -266,11 +272,33 @@
 /* Medium, not SemiBold. These are switches, not headings — at 600 the whole
    row read as a title bar. Same call on the Flat/3D pair below. */
 .map-wrap .agent-chip {
+  position: relative;
   gap: 4px;
   padding: 6px 12px;
   border: none;
   border-radius: 0;
   font-weight: 500;
+}
+
+/* With the gap at 0 and no per-chip borders, the five buttons ran together as
+   one white bar and only the dots said where one ended. A short hairline —
+   inset from the top and bottom so it divides rather than outlines — restores
+   the seams without giving anything back its stroke. It is suppressed on both
+   sides of the active chip, whose fill already draws its own edges. */
+.map-wrap .agent-chip + .agent-chip::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 14px;
+  background: rgba(33, 53, 40, 0.14);
+}
+
+.map-wrap .agent-chip.is-active::before,
+.map-wrap .agent-chip.is-active + .agent-chip::before {
+  display: none;
 }
 
 /* Only the neutral "All" chip reaches this — the per-agent chips carry their
@@ -352,6 +380,16 @@
 .map-wrap .inspect-coords,
 .map-wrap .inspect-figure {
   margin-bottom: 6px;
+}
+
+/* Coordinates and span are one block — the place and its dates — so they sit
+   tight, and the block carries the gap to the figures below it. */
+.map-wrap .inspect-coords {
+  margin-bottom: 2px;
+}
+
+.map-wrap .inspect-coords.is-span {
+  margin-bottom: 12px;
 }
 
 /* The cell size joined this line, and at the widest coordinate the result
