@@ -58,8 +58,13 @@ interface Tune {
   mr: Ramp
   island: Ramp
   // ── per-layer overrides ──
-  /** Basemap symbol layers forced off, by id. */
+  /** Basemap symbol layers forced off, by id. Seeded from what quietBasemap
+   *  already hides, so the ticks describe the shipped map rather than
+   *  overriding it — see the read effect. */
   hidden: string[]
+  /** Has `hidden` been seeded from the live style yet? Stored, so a tune saved
+   *  before this existed still gets seeded once on the next load. */
+  seeded: boolean
 }
 
 /** Label faces with self-hosted SDF glyphs under public/fonts/. A name not in
@@ -88,6 +93,7 @@ const DEFAULTS: Tune = {
   mr: [12, 16],
   island: [8.5, 11],
   hidden: [],
+  seeded: false,
 }
 
 const RAMP_ROWS: { key: RampKey; label: string; where: string }[] = [
@@ -176,6 +182,10 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
   const [tune, setTune] = useState<Tune>(readStore)
   const [copied, setCopied] = useState(false)
   const [symbolLayers, setSymbolLayers] = useState<string[]>([])
+  /** What quietBasemap already hides, read once from the live style. Kept apart
+   *  from `tune.hidden` so the copy block can tell "you turned this off" from
+   *  "it was already off". */
+  const [baselineHidden, setBaselineHidden] = useState<string[]>([])
   // Text fields hold whatever is being typed, including half-finished hexes;
   // only a valid value is pushed to the map.
   const [draft, setDraft] = useState<Record<ColorKey, string>>({
@@ -189,20 +199,34 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
   // Which basemap symbol layers exist is ASKED, never assumed. Hardcoding a
   // list is what produced findings §7.1/§7.3 in docs/map-zoom-and-labels.md,
   // and then the same bug again in the Mapbox spike.
+  //
+  // The visibility SEED matters as much as the list. quietBasemap has already
+  // hidden three of these (label_village, label_state, and — by accident —
+  // highway-shield-us-interstate). The first version wrote `visible` to every
+  // layer the user had not ticked off, which un-hid all three the moment the
+  // panel mounted: the map gained labels it does not ship with, and the ticks
+  // claimed a state that was not true. So the shipped visibility is read once
+  // and folded into `hidden`, and the checkboxes start out honest.
   useEffect(() => {
     if (!map || !enabled) return
     const read = () => {
-      const ids = (map.getStyle().layers ?? [])
-        .filter((l) => l.type === 'symbol' && !OWN_LAYERS.has(l.id))
-        .map((l) => l.id)
-        .filter((id) => {
-          try {
-            return map.getLayoutProperty(id, 'text-field') != null
-          } catch {
-            return false
-          }
-        })
+      const ids: string[] = []
+      const offNow: string[] = []
+      for (const l of map.getStyle().layers ?? []) {
+        if (l.type !== 'symbol' || OWN_LAYERS.has(l.id)) continue
+        try {
+          if (map.getLayoutProperty(l.id, 'text-field') == null) continue
+          ids.push(l.id)
+          if (map.getLayoutProperty(l.id, 'visibility') === 'none') offNow.push(l.id)
+        } catch {
+          /* layer doesn't answer — leave it out */
+        }
+      }
       setSymbolLayers(ids)
+      setBaselineHidden(offNow)
+      setTune((t) =>
+        t.seeded ? t : { ...t, seeded: true, hidden: [...new Set([...t.hidden, ...offNow])] },
+      )
     }
     if (map.isStyleLoaded()) read()
     else map.once('idle', read)
@@ -348,8 +372,15 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
     }
     if (changed(tune.place, DEFAULTS.place)) vol.push(`quietBasemap places → ${r(tune.place)}`)
     if (changed(tune.country, DEFAULTS.country)) vol.push(`COUNTRY_TEXT.size → ${r(tune.country)}`)
-    if (tune.hidden.length) {
-      vol.push(`quietBasemap — also hide: ${tune.hidden.join(', ')}`)
+    // Only layers the reader turned off ON TOP of what quietBasemap already
+    // hides are a change; listing the pre-hidden ones would read as work to do.
+    const newlyHidden = tune.hidden.filter((id) => !baselineHidden.includes(id))
+    if (newlyHidden.length) {
+      vol.push(`quietBasemap — also hide: ${newlyHidden.join(', ')}`)
+    }
+    const unhidden = baselineHidden.filter((id) => !tune.hidden.includes(id))
+    if (unhidden.length) {
+      vol.push(`quietBasemap — STOP hiding: ${unhidden.join(', ')}`)
     }
     if (!tune.vegOn) vol.push('quietBasemap — hide vegetation entirely')
     push('src/components/volumeGrid.ts', vol)
@@ -362,7 +393,7 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
     push('src/components/mapTheme.ts', theme)
 
     return out.length ? out.join('\n').trimEnd() : 'Nothing changed from the committed values.'
-  }, [tune])
+  }, [tune, baselineHidden])
 
   const copy = () => {
     navigator.clipboard?.writeText(summary).then(
