@@ -344,5 +344,9 @@ ink ramp, the accent's four jobs, the two shadows, the stat grammar.
 | Label sizes | 9.5 → 14 | 8 → 12 |
 | Hand-offs | 7.0 / 9.2, ceiling 12 | 7.5 / 10.5, ceiling 11 |
 
-The serif variant of this document is `design-system-v3-serif.md` on the
-`claude/ds-v3-playfair` branch — identical but for §2 and §11.
+The serif variant of this document is [`design-system-v3-serif.md`](./design-system-v3-serif.md),
+implemented on the `claude/ds-v3-playfair` branch. It is written as a **delta**
+that replaces §2 *Family* and §11 rather than as a full copy: the two readings
+agree on all but a dozen of these four hundred lines, and a duplicate would
+start drifting the first time either one was edited. Everything from §3 to §10
+applies to both branches unchanged.
