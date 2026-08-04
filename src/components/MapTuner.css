@@ -187,3 +187,155 @@
   outline: 2px solid #cf3720;
   outline-offset: 2px;
 }
+
+/* ── expanded console ────────────────────────────────────────────────────
+   The panel grew from three colour rows into four tabs, so it needs a width
+   and a scroll bound. Everything below is additive — the colour rows above
+   are untouched. */
+
+.tuner.is-wide {
+  width: 20rem;
+  max-height: min(78vh, 44rem);
+  overflow-y: auto;
+}
+
+.tuner-tabs {
+  display: flex;
+  gap: 1px;
+  margin-bottom: 0.7rem;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.tuner-tabs button {
+  flex: 1;
+  padding: 0.3rem 0;
+  border: none;
+  background: rgba(255, 255, 255, 0.75);
+  font: inherit;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b6e66;
+  cursor: pointer;
+}
+
+.tuner-tabs button.is-active {
+  background: #213528;
+  color: #fff;
+}
+
+.tuner-tabs button:focus-visible {
+  outline: 2px solid #cf3720;
+  outline-offset: -2px;
+}
+
+.tuner-slider {
+  display: block;
+  margin-bottom: 0.7rem;
+}
+
+.tuner-slider > span {
+  display: block;
+  margin-bottom: 0.15rem;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tuner-slider strong {
+  color: #cf3720;
+}
+
+.tuner-slider input[type='range'] {
+  width: 100%;
+}
+
+.tuner-slider em {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.63rem;
+  font-style: normal;
+  color: #6b6e66;
+}
+
+.tuner-ramp {
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.tuner-ramp-name {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.72rem;
+}
+
+.tuner-ramp-name em {
+  display: block;
+  font-size: 0.6rem;
+  font-style: normal;
+  color: #8a8d85;
+}
+
+.tuner-ramp-ends {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tuner-ramp-ends label {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.63rem;
+  color: #6b6e66;
+}
+
+/* "at floor" was breaking across two lines and knocking the two ends out of
+   alignment with each other. */
+.tuner-ramp-ends label > span {
+  flex: none;
+  white-space: nowrap;
+}
+
+.tuner-ramp-ends input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.15rem 0.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tuner-layers {
+  max-height: 14rem;
+  overflow-y: auto;
+  margin-bottom: 0.6rem;
+}
+
+.tuner-layers label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.12rem 0;
+  font-size: 0.68rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #3f423c;
+  cursor: pointer;
+}
+
+.tuner-out {
+  max-height: 11rem;
+  margin: 0 0 0.6rem;
+  padding: 0.5rem;
+  overflow: auto;
+  background: rgba(33, 53, 40, 0.055);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.63rem;
+  line-height: 1.5;
+  white-space: pre;
+  color: #3f423c;
+}

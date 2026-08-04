@@ -15,7 +15,10 @@ export const VOL_RAW_LAYER = 'vol-raw'
 export const VOL_COARSE_LAYER = 'vol-coarse-l'
 export const VOL_FINE_LAYER = 'vol-fine-l'
 const VN_LABEL_SOURCE = 'vn-country-label'
-const VN_LABEL_LAYER = 'vn-country-label-l'
+/** Exported so the tuner can put this on the same size ramp as the basemap's
+ *  own country tier — the whole point of COUNTRY_TEXT is that the two cannot
+ *  drift, and a tuner that moved one would break that. */
+export const VN_LABEL_LAYER = 'vn-country-label-l'
 
 /** The Archive's own water tones. Land and vegetation come from
  *  `mapConfig.theme`; water is overridden here because the explorer wants a
