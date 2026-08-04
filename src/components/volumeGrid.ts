@@ -300,6 +300,15 @@ export function quietBasemap(map: maplibregl.Map) {
         map.setLayoutProperty(id, 'visibility', 'none')
         continue
       }
+      // Vegetation goes too. It was kept because "where the canopy was is the
+      // point" — but positron's green is TODAY's cover, half a century after
+      // the record, and reading it as the forest that was sprayed is exactly
+      // the wrong inference to invite. Without it the land is one tone and the
+      // circles have it to themselves.
+      if (VEGETATION_RE.test(id)) {
+        map.setLayoutProperty(id, 'visibility', 'none')
+        continue
+      }
       // Water carries its own blue rather than borrowing one. The old
       // near-neutral #e9edea only read as water because the land under it was
       // warm — it sat just +1 apart in blue-minus-red, so the moment land
@@ -365,7 +374,12 @@ export function quietBasemap(map: maplibregl.Map) {
         // OSM names them things like "P.9" and they are noise here. Provinces
         // too: the military regions already divide the country for us, and two
         // competing partitions read as one confused one.
-        if (/village|hamlet|suburb|neighbourhood|quarter/.test(id)) {
+        //
+        // Towns joined them. They used to arrive at the first hand-off, but on
+        // a map whose subject is a spraying campaign the town tier was naming
+        // places the record has nothing to say about, and crowding the cities
+        // that anchor it. Cities and sea names now carry the whole basemap.
+        if (/village|hamlet|suburb|neighbourhood|quarter|town/.test(id)) {
           map.setLayoutProperty(id, 'visibility', 'none')
           continue
         }
@@ -388,7 +402,7 @@ export function quietBasemap(map: maplibregl.Map) {
         // names take its cool sibling, matched in luminance (6.6:1) so the two
         // read as one tier that happens to differ in temperature. Both were
         // far too pale before — the old sea grey sat at 2.6:1, barely there.
-        map.setPaintProperty(id, 'text-color', isWater ? '#44585e' : '#4b5a50')
+        map.setPaintProperty(id, 'text-color', isWater ? '#338199' : '#646464')
         map.setPaintProperty(id, 'text-halo-color', 'rgba(250,249,244,0.92)')
         map.setPaintProperty(id, 'text-halo-width', 1.1)
         map.setLayoutProperty(id, 'text-transform', 'uppercase')
@@ -423,11 +437,9 @@ export function quietBasemap(map: maplibregl.Map) {
         const isCountry = /country/.test(id)
         // Smaller at the overview than the old flat 12/15 — that view is the
         // record's, not the basemap's — and growing from there.
-        const size = isCountry ? textSizeRamp(12.5, 15) : textSizeRamp(9.5, 14)
+        const size = isCountry ? textSizeRamp(10, 15) : textSizeRamp(8, 12)
         if (isCountry) {
           map.setLayerZoomRange(id, 0, Z_FAR_TO_MID)
-        } else if (/town/.test(id)) {
-          map.setLayerZoomRange(id, Z_FAR_TO_MID, 22)
         }
         // Cities and water names carry no clamp at all: both earn their place
         // at the overview, and the sea names in particular are the only thing
@@ -445,7 +457,7 @@ export function quietBasemap(map: maplibregl.Map) {
  *  CAMBODIA. Kept as one object because two places set it. */
 const COUNTRY_TEXT = {
   font: [LABEL_FONT],
-  size: textSizeRamp(12.5, 15),
+  size: textSizeRamp(10, 15),
   color: '#4b5a50',
   halo: 'rgba(250,249,244,0.92)',
   haloWidth: 1.1,

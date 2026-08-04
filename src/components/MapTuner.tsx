@@ -92,21 +92,24 @@ const DEFAULTS: Tune = {
   land: mapConfig.theme.land,
   water: WATER_FILL,
   veg: mapConfig.theme.greenspace,
-  vegOn: true,
+  // False, matching quietBasemap: vegetation is hidden outright now. A default
+  // of `true` here would make "Reset" reveal layers the map does not ship with
+  // — the same class of lie the layer-visibility seeding just fixed.
+  vegOn: false,
   font: 'Roboto Condensed',
   zMid: Z_MID,
   zNear: Z_NEAR,
   maxZoom: mapConfig.view.maxZoom,
   minZoomMargin: mapConfig.view.minZoomMargin,
   typeFloor: 5,
-  typeTop: 12,
+  typeTop: 11,
   // Read off quietBasemap / mapTheme as committed, so "Reset" really is the
   // shipped map rather than a second opinion about it.
   tiers: {
-    place: { size: [9.5, 14], color: '#4b5a50', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1 },
-    waterName: { size: [9.5, 14], color: '#44585e', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1 },
-    country: { size: [12.5, 15], color: '#4b5a50', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1 },
-    mr: { size: [12, 16], color: '#cf3720', halo: 'rgba(250,249,244,0.95)', haloWidth: 2 },
+    place: { size: [8, 12], color: '#646464', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1 },
+    waterName: { size: [8, 12], color: '#338199', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1 },
+    country: { size: [10, 15], color: '#646464', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1 },
+    mr: { size: [8, 14], color: '#cf3720', halo: 'rgba(250,249,244,0.95)', haloWidth: 2 },
     island: { size: [8.5, 11], color: '#6b7268', halo: '#ffffff', haloWidth: 1 },
   },
   hidden: [],

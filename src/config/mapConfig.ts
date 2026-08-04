@@ -126,15 +126,19 @@ export const LABEL_FONT = 'Roboto Condensed'
  * could trip three separate reflows. One coordinated change reads as the map
  * shifting gear; three unaligned ones read as twitching.
  *
- *   Z_MID   coarse grid → fine grid · town names in · country name out
+ *   Z_MID   coarse grid → fine grid · country name out
  *   Z_NEAR  fine grid → raw events  · military-region tags out
+ *
+ * Z_MID used to bring town names in as well. Towns are hidden outright now, so
+ * that half of its job is gone — the comment says so rather than describing a
+ * map we stopped drawing.
  *
  * They live here rather than in volumeGrid because mapTheme needs them too,
  * and volumeGrid already imports from mapTheme — the other direction would
  * close an import cycle.
  */
-export const Z_MID = 7.0
-export const Z_NEAR = 9.2
+export const Z_MID = 7.5
+export const Z_NEAR = 10.5
 
 export const mapConfig: MapConfig = {
   baseStyleUrl: 'https://tiles.openfreemap.org/styles/positron',
@@ -172,7 +176,7 @@ export const mapConfig: MapConfig = {
     // Stops where the data does. HERBS records flight runs; past z12 a dot
     // carries no more information, and letting the reader keep going implies a
     // precision the record does not have. (CF caps its equivalent map at 9.)
-    maxZoom: 12,
+    maxZoom: 11,
     // Still a loose leash, but half the old width: wide enough that an
     // ultrawide viewport at the zoom floor never fights the clamp, tight enough
     // that the map cannot drift to India or the Philippines. It has to contain
@@ -201,11 +205,11 @@ export const mapConfig: MapConfig = {
   // it flattened the warm/cool difference the water depends on. Water now
   // carries its own blue instead, so land does not have to compensate.
   theme: {
-    land: '#f3f1ed',
+    land: '#f4f2f1',
     /* Water/vegetation at half strength (mixed 50% toward the land tone) so
        the basemap sits further behind the data. */
     water: '#e9ece7',
-    greenspace: '#e1e5d7',
+    greenspace: '#eceee7',
     building: '#e9e3d6',
     road: '#ffffff',
     boundary: '#6b6e66',

@@ -131,7 +131,7 @@ export function firstLabelLayerId(map: maplibregl.Map): string | undefined {
 // 0.35 margin), so this is the size a reader meets the map at.
 const Z_TYPE_FLOOR = 5
 /** …and the far end, the map's maxZoom. */
-const Z_TYPE_TOP = 12
+const Z_TYPE_TOP = 11
 
 /**
  * Label size as a function of zoom.
@@ -247,7 +247,7 @@ export function addMilitaryRegions(
       'text-font': [LABEL_FONT],
       // Reads as a heading over the region it names, so it sits a little above
       // the place-name ramp at both ends.
-      'text-size': textSizeRamp(12, 16),
+      'text-size': textSizeRamp(8, 14),
       'text-transform': 'uppercase',
       'text-letter-spacing': 0.1,
     },
