@@ -80,6 +80,23 @@
   color: var(--ink-faint, #4b5a50);
 }
 
+.mbx-check {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.mbx-check input {
+  margin-right: 6px;
+}
+
+.mbx-check em {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  font-style: normal;
+  color: var(--ink-faint, #4b5a50);
+}
+
 .mbx-layers {
   margin-bottom: 12px;
   font-size: 10px;
@@ -90,6 +107,19 @@
   margin: 6px 0 0;
   padding-left: 16px;
   overflow-y: auto;
+}
+
+.mbx-layers li.is-dialled {
+  color: var(--accent-deep, #cf3720);
+}
+
+.mbx-tag {
+  margin-left: 6px;
+  padding: 0 4px;
+  background: rgba(207, 55, 32, 0.12);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .mbx-note {

@@ -37,12 +37,21 @@ import './MapboxSpike.css'
 const SPRAY_SOURCE = 'spray'
 const SPRAY_LAYER = 'spray-raw'
 
-/** Mapbox Streets v8 label layers we want to reach. Names are stable across
- *  the mapbox/* styles; if a style renames one, the guard below skips it
- *  rather than throwing. */
-const SETTLEMENT_LAYER = 'settlement-label'
-const SETTLEMENT_MINOR = 'settlement-minor-label'
-const SETTLEMENT_MAJOR = 'settlement-major-label'
+/**
+ * Which layers the density dials reach is DISCOVERED, not hardcoded.
+ *
+ * The first version named three layers by hand — `settlement-label`,
+ * `-minor-`, `-major-`. In light-v11 the first does not exist and there is a
+ * fourth, `settlement-subdivision-label`, carrying every neighbourhood name on
+ * the map. So the dials silently governed two layers out of three while the
+ * busiest tier ran unfiltered, which made Mapbox's density control look far
+ * weaker than it is — exactly the wrong way to mislead an evaluation.
+ *
+ * Same mistake as finding §7.1 in map-zoom-and-labels.md (a regex guessing at
+ * layer IDs), so it gets the same fix: ask the style what it actually has.
+ */
+const isSettlementLayer = (id: string) => id.startsWith('settlement')
+const isPoiLayer = (id: string) => id === 'poi-label'
 
 /**
  * Where the token comes from, in order.
@@ -75,6 +84,7 @@ export default function MapboxSpike() {
   const [symbolrank, setSymbolrank] = useState(SETTLEMENT_DEFAULTS.maxSymbolrank)
   const [filterrank, setFilterrank] = useState(SETTLEMENT_DEFAULTS.maxFilterrank)
   const [labelLayers, setLabelLayers] = useState<string[]>([])
+  const [showPois, setShowPois] = useState(false)
   const [token, setToken] = useState(() => (hasMapboxToken ? MAPBOX_TOKEN : readStoredToken()))
   const [draft, setDraft] = useState('')
   const [tokenError, setTokenError] = useState('')
@@ -174,7 +184,8 @@ export default function MapboxSpike() {
   }, [token, usable])
 
   // The dial OpenMapTiles cannot offer: settlement density as one continuous
-  // filter instead of four on/off layers.
+  // filter instead of four on/off layers. Applied to every settlement tier the
+  // style actually has (see isSettlementLayer), not to a hardcoded guess.
   useEffect(() => {
     const map = mapRef.current
     if (!map || !ready) return
@@ -183,10 +194,22 @@ export default function MapboxSpike() {
       ['<=', ['coalesce', ['get', 'symbolrank'], 20], symbolrank],
       ['<=', ['coalesce', ['get', 'filterrank'], 5], filterrank],
     ] as never
-    for (const id of [SETTLEMENT_LAYER, SETTLEMENT_MINOR, SETTLEMENT_MAJOR]) {
+    for (const id of labelLayers.filter(isSettlementLayer)) {
       if (map.getLayer(id)) map.setFilter(id, filter)
     }
-  }, [ready, symbolrank, filterrank])
+  }, [ready, symbolrank, filterrank, labelLayers])
+
+  // POIs are the other half of the clutter and are a plain on/off, so they get
+  // a checkbox rather than a dial. Ours hides them outright today (the `circle`
+  // and icon-only rules in quietBasemap), so leaving them on would compare two
+  // different editorial decisions rather than two basemaps.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    for (const id of labelLayers.filter(isPoiLayer)) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', showPois ? 'visible' : 'none')
+    }
+  }, [ready, showPois, labelLayers])
 
   if (!usable) {
     return (
@@ -276,11 +299,28 @@ export default function MapboxSpike() {
           <em>Density gate, 1–5. This is the dial we do not have today.</em>
         </label>
 
+        <label className="mbx-check">
+          <input
+            type="checkbox"
+            checked={showPois}
+            onChange={(e) => setShowPois(e.target.checked)}
+          />
+          <span>Show POI labels</span>
+          <em>Off by default — the Archive hides them, so leaving them on would compare two
+          editorial decisions rather than two basemaps.</em>
+        </label>
+
+        {/* Which layers the dials govern, marked. The first version filtered a
+            hardcoded list that missed the busiest tier, and nothing on screen
+            said so. */}
         <details className="mbx-layers">
-          <summary>{labelLayers.length} symbol layers in this style</summary>
+          <summary>{labelLayers.length} symbol layers · {labelLayers.filter(isSettlementLayer).length} on the dials</summary>
           <ul>
             {labelLayers.map((id) => (
-              <li key={id}>{id}</li>
+              <li key={id} className={isSettlementLayer(id) ? 'is-dialled' : undefined}>
+                {id}
+                {isSettlementLayer(id) && <span className="mbx-tag">dialled</span>}
+              </li>
             ))}
           </ul>
         </details>
