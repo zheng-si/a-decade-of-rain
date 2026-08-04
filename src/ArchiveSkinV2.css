@@ -436,23 +436,32 @@
   font-size: 11px;
 }
 
-/* The total and the counts are ONE grammar, not two ranks — 12K Gallons and
-   5 Missions 9 Runs say the same kind of thing about the same place, and the
-   half-step that separated them (600/500 on the figures, ink vs ink-soft on
-   the words) was reading as an error rather than as hierarchy. Every figure in
-   the block is 600 accent; every word attached to one is 500 ink. What sets
-   the total apart is that it comes first, which is enough. */
+/* ONE stat grammar on all three surfaces that carry counts — the panel's
+   readout, the inspect card, and the hover tooltip. 12K Gallons / 5 Missions
+   9 Runs / 39K Gallons 13 Runs all say the same kind of thing about the same
+   place, and they had drifted into three renderings of it. FIGURES are 600
+   accent; the WORDS attached to them are 500 ink. What sets the card's total
+   apart is that it comes first, which is enough.
+
+   The tooltip had this exactly inverted — its <strong> wraps figure AND word
+   together, so the 600 landed on 'Gallons' while the .n spans inside pulled
+   the numbers down to 500. The strong is the word tier here; .n is the figure
+   tier, and it has to out-specify App.css's own .adr-popup.adr-hover strong .n
+   to say so. */
 .map-wrap .inspect-figure strong,
 .map-wrap .inspect-sub.is-stats strong,
-.map-wrap .adr-popup strong,
-.map-wrap .adr-popup.adr-hover strong {
+.map-wrap .adr-popup strong .n,
+.map-wrap .adr-popup.adr-hover strong .n {
   font-weight: 600;
+  color: var(--accent-deep);
 }
 
 .map-wrap .inspect-figure,
 .map-wrap .inspect-figure-unit,
 .map-wrap .inspect-sub.is-stats,
-.map-wrap .inspect-sub.is-stats .stat-pair {
+.map-wrap .inspect-sub.is-stats .stat-pair,
+.map-wrap .adr-popup strong,
+.map-wrap .adr-popup.adr-hover strong {
   font-weight: 500;
   color: var(--ink);
 }
