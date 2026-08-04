@@ -39,6 +39,16 @@ const STORE_KEY = 'adr-map-tuner'
 /** A size ramp: [size at Z_TYPE_FLOOR, size at Z_TYPE_TOP]. */
 type Ramp = [number, number]
 
+/** Everything the map says about ONE tier of label. Sizes, colour and halo
+ *  travel together because they are judged together — a colour that works at
+ *  9.5px stops working at 14. */
+interface Tier {
+  size: Ramp
+  color: string
+  halo: string
+  haloWidth: number
+}
+
 interface Tune {
   // ── palette ──
   land: string
@@ -50,13 +60,14 @@ interface Tune {
   zMid: number
   zNear: number
   maxZoom: number
+  /** How far below the fitted home camera the reader may still pull out. The
+   *  floor itself is derived per viewport, so this margin is the only part of
+   *  it that is a decision rather than a measurement. */
+  minZoomMargin: number
   // ── type scale ──
   typeFloor: number
   typeTop: number
-  place: Ramp
-  country: Ramp
-  mr: Ramp
-  island: Ramp
+  tiers: Record<TierKey, Tier>
   // ── per-layer overrides ──
   /** Basemap symbol layers forced off, by id. Seeded from what quietBasemap
    *  already hides, so the ticks describe the shipped map rather than
@@ -75,7 +86,7 @@ interface Tune {
 const FONTS = ['Roboto Condensed', 'Cuprum', 'Public Sans Medium']
 
 type ColorKey = 'land' | 'water' | 'veg'
-type RampKey = 'place' | 'country' | 'mr' | 'island'
+type TierKey = 'place' | 'waterName' | 'country' | 'mr' | 'island'
 
 const DEFAULTS: Tune = {
   land: mapConfig.theme.land,
@@ -86,22 +97,32 @@ const DEFAULTS: Tune = {
   zMid: Z_MID,
   zNear: Z_NEAR,
   maxZoom: mapConfig.view.maxZoom,
+  minZoomMargin: mapConfig.view.minZoomMargin,
   typeFloor: 5,
   typeTop: 12,
-  place: [9.5, 14],
-  country: [12.5, 15],
-  mr: [12, 16],
-  island: [8.5, 11],
+  // Read off quietBasemap / mapTheme as committed, so "Reset" really is the
+  // shipped map rather than a second opinion about it.
+  tiers: {
+    place: { size: [9.5, 14], color: '#4b5a50', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1 },
+    waterName: { size: [9.5, 14], color: '#44585e', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1 },
+    country: { size: [12.5, 15], color: '#4b5a50', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1 },
+    mr: { size: [12, 16], color: '#cf3720', halo: 'rgba(250,249,244,0.95)', haloWidth: 2 },
+    island: { size: [8.5, 11], color: '#6b7268', halo: '#ffffff', haloWidth: 1 },
+  },
   hidden: [],
   seeded: false,
 }
 
-const RAMP_ROWS: { key: RampKey; label: string; where: string }[] = [
-  { key: 'place', label: 'Places · water', where: 'volumeGrid quietBasemap' },
-  { key: 'country', label: 'Country · VIET NAM', where: 'volumeGrid COUNTRY_TEXT.size' },
+const TIER_ROWS: { key: TierKey; label: string; where: string }[] = [
+  { key: 'place', label: 'Places', where: 'volumeGrid quietBasemap' },
+  { key: 'waterName', label: 'Sea · river names', where: 'volumeGrid quietBasemap (isWater)' },
+  { key: 'country', label: 'Country · VIET NAM', where: 'volumeGrid COUNTRY_TEXT' },
   { key: 'mr', label: 'Military region', where: 'mapTheme addMilitaryRegions' },
   { key: 'island', label: 'Island notes', where: 'mapTheme addIslandMarks' },
 ]
+
+/** Same test quietBasemap uses to decide a label is a water name. */
+const WATER_NAME_RE = /water|sea|ocean|marine|river|lake|bay/
 
 const clampByte = (n: number) => Math.max(0, Math.min(255, n))
 
@@ -154,7 +175,29 @@ function readStore(): Tune {
   try {
     const raw = localStorage.getItem(STORE_KEY)
     if (!raw) return DEFAULTS
-    return { ...DEFAULTS, ...(JSON.parse(raw) as Partial<Tune>) }
+    const parsed = JSON.parse(raw) as Partial<Tune> & Record<string, unknown>
+    const t: Tune = { ...DEFAULTS, ...parsed }
+    // Tiers deep-merge, so a stored tune written before a field existed keeps
+    // the rest of its work instead of being thrown away wholesale.
+    t.tiers = { ...DEFAULTS.tiers }
+    for (const k of Object.keys(DEFAULTS.tiers) as TierKey[]) {
+      const stored = (parsed.tiers as Record<string, Partial<Tier>> | undefined)?.[k]
+      if (stored) t.tiers[k] = { ...DEFAULTS.tiers[k], ...stored }
+    }
+    // v1 kept four bare ramps at the top level. Carry them across rather than
+    // silently discarding whatever was already tuned into them.
+    for (const [old, key] of [
+      ['place', 'place'],
+      ['country', 'country'],
+      ['mr', 'mr'],
+      ['island', 'island'],
+    ] as [string, TierKey][]) {
+      const legacy = parsed[old]
+      if (Array.isArray(legacy) && legacy.length === 2) {
+        t.tiers[key] = { ...t.tiers[key], size: [Number(legacy[0]), Number(legacy[1])] }
+      }
+    }
+    return t
   } catch {
     return DEFAULTS
   }
@@ -195,6 +238,11 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
   })
   const mapRef = useRef(map)
   mapRef.current = map
+  /** The fit-derived home zoom, recovered once from the floor MapView set
+   *  (`home − minZoomMargin`). Captured BEFORE the tuner touches minZoom,
+   *  otherwise each apply would re-derive from its own last output and the
+   *  floor would walk away on every slider tick. */
+  const homeZoomRef = useRef<number | null>(null)
 
   // Which basemap symbol layers exist is ASKED, never assumed. Hardcoding a
   // list is what produced findings §7.1/§7.3 in docs/map-zoom-and-labels.md,
@@ -222,6 +270,9 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
           /* layer doesn't answer — leave it out */
         }
       }
+      if (homeZoomRef.current == null) {
+        homeZoomRef.current = map.getMinZoom() + DEFAULTS.minZoomMargin
+      }
       setSymbolLayers(ids)
       setBaselineHidden(offNow)
       setTune((t) =>
@@ -245,16 +296,26 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
     const ramp = (r: Ramp) =>
       ['interpolate', ['linear'], ['zoom'], tune.typeFloor, r[0], tune.typeTop, r[1]] as never
 
-    const rampFor = (id: string): Ramp => {
-      if (/country/.test(id) || id === VN_LABEL_LAYER) return tune.country
-      if (id === 'mr-label') return tune.mr
-      if (id === 'island-label') return tune.island
-      return tune.place
+    /** Which tier a label layer belongs to. Same order of tests quietBasemap
+     *  uses, so the tuner cannot classify a layer differently than the shipped
+     *  code does — that would make it a tuner for a map we do not have. */
+    const tierFor = (id: string): TierKey => {
+      if (/country/.test(id) || id === VN_LABEL_LAYER) return 'country'
+      if (id === 'mr-label') return 'mr'
+      if (id === 'island-label') return 'island'
+      if (WATER_NAME_RE.test(id)) return 'waterName'
+      return 'place'
     }
 
     const apply = () => {
       const line = deriveLine(tune.water)
       m.setMaxZoom(tune.maxZoom)
+      // The floor is fit-derived per viewport, so the tuner must not invent a
+      // number for it — it recovers the home zoom from the floor MapView set
+      // (home − committed margin) and re-derives from there.
+      if (homeZoomRef.current != null) {
+        m.setMinZoom(homeZoomRef.current - tune.minZoomMargin)
+      }
 
       // The two hand-off zooms, applied everywhere they are wired.
       const setRange = (id: string, min: number, max: number) => {
@@ -290,8 +351,12 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
           // island notes are map labels too, so a comparison that left them in
           // the old face would not show what the map actually becomes.
           if (layer.type === 'symbol' && m.getLayoutProperty(id, 'text-field') != null) {
+            const tier = tune.tiers[tierFor(id)]
             m.setLayoutProperty(id, 'text-font', [tune.font])
-            m.setLayoutProperty(id, 'text-size', ramp(rampFor(id)))
+            m.setLayoutProperty(id, 'text-size', ramp(tier.size))
+            m.setPaintProperty(id, 'text-color', tier.color)
+            m.setPaintProperty(id, 'text-halo-color', tier.halo)
+            m.setPaintProperty(id, 'text-halo-width', tier.haloWidth)
             if (!OWN_LAYERS.has(id)) {
               m.setLayoutProperty(id, 'visibility', tune.hidden.includes(id) ? 'none' : 'visible')
             }
@@ -325,14 +390,19 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
     if (hexToRgb(value)) setTune((t) => ({ ...t, [key]: value.startsWith('#') ? value : '#' + value }))
   }
 
-  const setNum = (key: 'zMid' | 'zNear' | 'maxZoom' | 'typeFloor' | 'typeTop', v: number) =>
-    setTune((t) => ({ ...t, [key]: v }))
+  const setNum = (
+    key: 'zMid' | 'zNear' | 'maxZoom' | 'minZoomMargin' | 'typeFloor' | 'typeTop',
+    v: number,
+  ) => setTune((t) => ({ ...t, [key]: v }))
 
-  const setRampEnd = (key: RampKey, end: 0 | 1, v: number) =>
+  const setTier = (key: TierKey, patch: Partial<Tier>) =>
+    setTune((t) => ({ ...t, tiers: { ...t.tiers, [key]: { ...t.tiers[key], ...patch } } }))
+
+  const setRampEnd = (key: TierKey, end: 0 | 1, v: number) =>
     setTune((t) => {
-      const next: Ramp = [...t[key]] as Ramp
+      const next: Ramp = [...t.tiers[key].size] as Ramp
       next[end] = v
-      return { ...t, [key]: next }
+      return { ...t, tiers: { ...t.tiers, [key]: { ...t.tiers[key], size: next } } }
     })
 
   const toggleLayer = (id: string) =>
@@ -364,14 +434,34 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
     if (tune.zMid !== DEFAULTS.zMid) cfg.push(`Z_MID = ${tune.zMid}`)
     if (tune.zNear !== DEFAULTS.zNear) cfg.push(`Z_NEAR = ${tune.zNear}`)
     if (tune.maxZoom !== DEFAULTS.maxZoom) cfg.push(`view.maxZoom: ${tune.maxZoom},`)
+    if (tune.minZoomMargin !== DEFAULTS.minZoomMargin)
+      cfg.push(`view.minZoomMargin: ${tune.minZoomMargin},`)
     push('src/config/mapConfig.ts', cfg)
 
     const vol: string[] = []
     if (tune.water !== DEFAULTS.water) {
       vol.push(`WATER_FILL = '${tune.water}'`, `WATER_LINE = '${deriveLine(tune.water)}'`)
     }
-    if (changed(tune.place, DEFAULTS.place)) vol.push(`quietBasemap places → ${r(tune.place)}`)
-    if (changed(tune.country, DEFAULTS.country)) vol.push(`COUNTRY_TEXT.size → ${r(tune.country)}`)
+    const tierLines = (keys: TierKey[]) => {
+      const out: string[] = []
+      for (const k of keys) {
+        const a = tune.tiers[k]
+        const b = DEFAULTS.tiers[k]
+        const bits: string[] = []
+        if (changed(a.size, b.size)) bits.push(`text-size ${r(a.size)}`)
+        if (a.color !== b.color) bits.push(`text-color '${a.color}'`)
+        if (a.halo !== b.halo) bits.push(`text-halo-color '${a.halo}'`)
+        if (a.haloWidth !== b.haloWidth) bits.push(`text-halo-width ${a.haloWidth}`)
+        if (bits.length) out.push(`${TIER_ROWS.find((t) => t.key === k)!.label}: ${bits.join(' · ')}`)
+      }
+      return out
+    }
+    vol.push(...tierLines(['place', 'waterName', 'country']))
+    // Places and sea names share one `size` in quietBasemap today; if they have
+    // been pulled apart, that is a code change, not just a value change.
+    if (changed(tune.tiers.place.size, tune.tiers.waterName.size)) {
+      vol.push('NOTE places and sea names now need SEPARATE size ramps (one `size` today)')
+    }
     // Only layers the reader turned off ON TOP of what quietBasemap already
     // hides are a change; listing the pre-hidden ones would read as work to do.
     const newlyHidden = tune.hidden.filter((id) => !baselineHidden.includes(id))
@@ -388,8 +478,7 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
     const theme: string[] = []
     if (tune.typeFloor !== DEFAULTS.typeFloor) theme.push(`Z_TYPE_FLOOR = ${tune.typeFloor}`)
     if (tune.typeTop !== DEFAULTS.typeTop) theme.push(`Z_TYPE_TOP = ${tune.typeTop}`)
-    if (changed(tune.mr, DEFAULTS.mr)) theme.push(`mr-label text-size → ${r(tune.mr)}`)
-    if (changed(tune.island, DEFAULTS.island)) theme.push(`island-label text-size → ${r(tune.island)}`)
+    theme.push(...tierLines(['mr', 'island']))
     push('src/components/mapTheme.ts', theme)
 
     return out.length ? out.join('\n').trimEnd() : 'Nothing changed from the committed values.'
@@ -417,7 +506,7 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
 
   const num = (
     label: string,
-    key: 'zMid' | 'zNear' | 'maxZoom' | 'typeFloor' | 'typeTop',
+    key: 'zMid' | 'zNear' | 'maxZoom' | 'minZoomMargin' | 'typeFloor' | 'typeTop',
     min: number,
     max: number,
     step: number,
@@ -538,9 +627,31 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
           {num('First hand-off · Z_MID', 'zMid', 5, 11, 0.1, 'coarse grid → fine · towns in · country out')}
           {num('Second hand-off · Z_NEAR', 'zNear', 6, 12, 0.1, 'fine grid → raw runs · region tags out')}
           {num('Zoom ceiling · maxZoom', 'maxZoom', 9, 16, 0.5, 'the record stops carrying detail past ~12')}
+          {num(
+            'Zoom floor margin · minZoomMargin',
+            'minZoomMargin',
+            0,
+            2,
+            0.05,
+            'how far below the fitted record you may still pull out',
+          )}
+          <dl className="tuner-read">
+            <div>
+              <dt>Fitted home (this viewport)</dt>
+              <dd>{homeZoomRef.current != null ? homeZoomRef.current.toFixed(2) : '—'}</dd>
+            </div>
+            <div>
+              <dt>Resulting floor</dt>
+              <dd>
+                {homeZoomRef.current != null
+                  ? (homeZoomRef.current - tune.minZoomMargin).toFixed(2)
+                  : '—'}
+              </dd>
+            </div>
+          </dl>
           <p className="tuner-note">
-            The zoom FLOOR is derived per viewport from recordBounds, not set here — a single number
-            is wrong at both ends (5.29 on a phone, 6.65 on a 27&quot;).
+            The floor itself is DERIVED per viewport by fitting recordBounds — 5.29 on a phone, 6.65
+            on a 27&quot;. Only the margin below it is a decision, so only the margin is a knob.
           </p>
         </>
       )}
@@ -549,28 +660,62 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
         <>
           {num('Ramp floor · Z_TYPE_FLOOR', 'typeFloor', 3, 8, 0.1)}
           {num('Ramp top · Z_TYPE_TOP', 'typeTop', 9, 16, 0.5)}
-          {RAMP_ROWS.map(({ key, label, where }) => (
-            <div className="tuner-ramp" key={key}>
-              <span className="tuner-ramp-name">
-                {label} <em>{where}</em>
-              </span>
-              <div className="tuner-ramp-ends">
-                {([0, 1] as const).map((end) => (
-                  <label key={end}>
-                    <span>{end === 0 ? 'at floor' : 'at top'}</span>
+          {TIER_ROWS.map(({ key, label, where }) => {
+            const tier = tune.tiers[key]
+            return (
+              <div className="tuner-ramp" key={key}>
+                <span className="tuner-ramp-name">
+                  {label} <em>{where}</em>
+                </span>
+                <div className="tuner-ramp-ends">
+                  {([0, 1] as const).map((end) => (
+                    <label key={end}>
+                      <span>{end === 0 ? 'at floor' : 'at top'}</span>
+                      <input
+                        type="number"
+                        min={4}
+                        max={40}
+                        step={0.5}
+                        value={tier.size[end]}
+                        onChange={(e) => setRampEnd(key, end, Number(e.target.value))}
+                      />
+                    </label>
+                  ))}
+                </div>
+                <div className="tuner-ramp-ends tuner-ramp-paint">
+                  <label>
+                    <span>colour</span>
                     <input
-                      type="number"
-                      min={4}
-                      max={40}
-                      step={0.5}
-                      value={tune[key][end]}
-                      onChange={(e) => setRampEnd(key, end, Number(e.target.value))}
+                      className="tuner-swatch"
+                      type="color"
+                      value={tier.color}
+                      onChange={(e) => setTier(key, { color: e.target.value })}
+                    />
+                    <input
+                      type="text"
+                      spellCheck={false}
+                      value={tier.color}
+                      onChange={(e) => setTier(key, { color: e.target.value })}
                     />
                   </label>
-                ))}
+                  <label>
+                    <span>halo</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={4}
+                      step={0.1}
+                      value={tier.haloWidth}
+                      onChange={(e) => setTier(key, { haloWidth: Number(e.target.value) })}
+                    />
+                  </label>
+                </div>
+                <p className="tuner-tier-read">
+                  {contrast(tier.color, tune.land).toFixed(2)}:1 on land
+                </p>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </>
       )}
 

@@ -1,11 +1,14 @@
 /* TEMPORARY — styles for the basemap colour tuner. Delete with MapTuner.tsx. */
 
+/* Bottom-RIGHT, clear of MapLibre's own zoom buttons, which live in the same
+   corner (`addControl(..., 'bottom-right')` in MapView). 5.5rem is the pair of
+   32px buttons plus their 10px margin plus air; anything less and the panel
+   sits on top of the controls it is meant to be tuned alongside. */
 .tuner-tab,
 .tuner {
   position: fixed;
-  bottom: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 1rem;
+  bottom: 5.5rem;
   z-index: 40;
   font-family: var(--font-ui, system-ui, sans-serif);
   background: rgba(255, 255, 255, 0.88);
@@ -338,4 +341,37 @@
   line-height: 1.5;
   white-space: pre;
   color: #3f423c;
+}
+
+/* Per-tier paint row: swatch + hex + halo width, under the two size ends. */
+.tuner-ramp-paint {
+  margin-top: 0.35rem;
+}
+
+.tuner-ramp-paint input[type='text'] {
+  min-width: 0;
+  padding: 0.15rem 0.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.7);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.66rem;
+}
+
+.tuner-ramp-paint .tuner-swatch {
+  flex: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: none;
+  cursor: pointer;
+}
+
+.tuner-tier-read {
+  margin: 0.25rem 0 0;
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  color: #8a8d85;
 }
