@@ -41,11 +41,13 @@
   --v2-fill: var(--forest);
   /* Panel glass. The Figma has the left panel at 0.65 and the key at 0.62 —
      close enough that the difference reads as drift, so both take one value.
-     0.80, not the Figma's 0.65: at 0.65 the spray field showing through was
+     0.90, not the Figma's 0.65: at 0.65 the spray field showing through was
      competing with the panel's own chart, and the two reddest things on screen
-     were reading as one. */
-  --v2-panel: rgba(255, 255, 255, 0.8);
-  --v2-blur: blur(8px);
+     were reading as one. The blur goes up with the alpha rather than down —
+     at 8px the little that still came through arrived as recognisable DOTS,
+     which is exactly the thing that competed; at 20 it arrives as tone. */
+  --v2-panel: rgba(255, 255, 255, 0.9);
+  --v2-blur: blur(20px);
 
   /* Redefining --font-sans is not enough on its own. `body` declares
      `font-family: var(--font-sans)` and resolves it in the ROOT scope, so
@@ -216,12 +218,26 @@
 /* Initial caps, matching the inspect card on the right. The two panels count
    the same three things and had been shouting on one side and speaking on the
    other. */
+/* Same block as the inspect card's figures, so the same grammar: 11/600/accent
+   for the figures, 11/500/ink for the words attached to them. The two had
+   drifted to 400/ink-soft on the words here and 500/ink there — one idea
+   rendered two ways on two halves of the same screen.
+
+   11 on the container, not the 10 that used to sit here: App.css sizes
+   .stat-pair and strong directly at 11, so the container's value only ever
+   applied to whitespace between the pairs. It rendered at 11 and declared 10,
+   which is the kind of gap that makes the next person mistrust the file. */
 .map-wrap .explorer-statline {
   margin: 0;
   gap: 10px;
-  font-size: 10px;
+  font-size: 11px;
   text-transform: none;
   letter-spacing: 0;
+}
+
+.map-wrap .explorer-statline .stat-pair {
+  font-weight: 500;
+  color: var(--ink);
 }
 
 /* At 360 the readout has 238px beside the buttons, and three pairs need ~228 —
@@ -388,7 +404,7 @@
    0.02em tracking was there to open up an all-caps-ish string of digits; at
    this size it buys nothing and costs ~6px. */
 .map-wrap .inspect-coords {
-  margin-bottom: 2px;
+  margin-bottom: 4px;
   font-size: 10px;
   letter-spacing: 0;
 }
@@ -397,11 +413,11 @@
   margin-bottom: 12px;
 }
 
-/* 2px, not 6. The total and the counts that decompose it are one statement —
+/* 4px, not 6. The total and the counts that decompose it are one statement —
    'this much, arriving like this' — so they set as one block, and the card's
    real gaps are the ones between blocks. */
 .map-wrap .inspect-figure {
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 /* ONE SIZE for every piece of data in the card. It had been carrying four
