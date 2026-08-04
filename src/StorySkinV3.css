@@ -195,6 +195,60 @@
   border-top: none;
 }
 
+/* §3 removes a stroke; it does not remove the surface the stroke was drawing.
+   Four of these were defined by their outline and nothing else — three sat on
+   a 0.6 white that only read as a chip because a 1px rule closed it, and
+   `.eco-est` had no background at all, so without its border it stopped being
+   a tag and became loose grey words. Each one gets the fill the stroke was
+   standing in for. This is the same move as .alt-reveal-btn below, and the
+   reason the audit for pass 2 looked at rest states and not just shape.
+
+   `:not()` is load-bearing here, not tidiness. Story.css sets the selected
+   fills with `.method-tab.is-on` and `.rainbow-chip.is-active` — two classes,
+   the same specificity as a bare `.story .method-tab`. This file loads second,
+   so a plain rule would TIE and win, silently erasing the selected state of
+   both controls. Excluding the selected case is what keeps that from
+   happening. */
+.story .rainbow-chip:not(.is-active),
+.story .method-tab:not(.is-on) {
+  background: #fff;
+}
+
+.story .rainbow-chip:not(.is-active):hover,
+.story .method-tab:not(.is-on):hover {
+  background: #f0eee7;
+}
+
+/* No `.is-active` rule for the chips. RainbowHerbicides.tsx sets the selected
+   chip's fill INLINE to the agent's own colour, so the selected state already
+   says which agent — the same category-carrying fill as .method-tab.is-on, and
+   it stays for the same reason. --ink is only ever the "All agents" chip,
+   where neutral is the correct answer because no single agent is chosen. */
+
+.story .eco-est {
+  background: rgba(40, 38, 30, 0.05);
+}
+
+/* On the dark closing section the same problem runs the other way: 0.05 white
+   over forest was a border's worth of surface, not a fill's. Raised so the
+   card still reads, and the hover step raised with it — hover used to be
+   carried mostly by the border going 0.24 → 0.44, which is now a no-op. */
+.story .close-action {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.story .close-action:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.story .close-top {
+  background: rgba(255, 255, 255, 0.13);
+}
+
+.story .close-top:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
 /* The reveal button's green outline was the only thing marking it as an
    action. With the stroke gone it needs the fill instead. */
 .story .alt-reveal-btn {
@@ -279,16 +333,15 @@
   box-shadow: var(--v3-shadow-control);
 }
 
-/* Selected state is --forest everywhere it carries no other meaning. The
-   rainbow chips are in this list because their selected fill was --ink, a
-   second selected-colour for no reason — the agent's own colour already lives
-   in the chip's dot. `.method-tab.is-on` is NOT here: its fill is --mth, green
-   for landfill and red for thermal, which says WHICH method. That is the same
-   category-carrying colour as the coloured card tops, and it stays. */
+/* Selected state is --forest ONLY where it carries no other meaning — these
+   three are view switches (flat/3D, accumulation/each year, sort order), and
+   which side is chosen is not a category. The two controls that look like they
+   belong here and do not are `.method-tab.is-on` and `.rainbow-chip.is-active`:
+   both paint the selected state in the colour of the THING selected, which is
+   information, and both keep it. See the note above the chip rules. */
 .story .map-key-view-btn.is-active,
 .story .rainbow-mode-btn.is-active,
-.story .eco-sort-btn.is-active,
-.story .rainbow-chip.is-active {
+.story .eco-sort-btn.is-active {
   background: var(--forest);
   color: var(--forest-text);
 }
