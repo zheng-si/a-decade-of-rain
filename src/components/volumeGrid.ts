@@ -33,8 +33,22 @@ export const WATER_FILL_RE = /water|sea|ocean|river|lake/
 export const WATER_LINE_RE = /water|river|lake/
 export const VEGETATION_RE = /wood|forest|park|grass|green|landcover|landuse|vegetation/
 
-const COARSE_DEG = 0.12
-const FINE_DEG = 0.03
+/** Grid cell sizes, in degrees. Mutable ONLY so the tuner can try other values
+ *  on the running map — nothing in the app writes them. The committed numbers
+ *  are the two below; `setGridDegrees` is dev tooling and is not called from
+ *  any shipping path. */
+let COARSE_DEG = 0.12
+let FINE_DEG = 0.03
+
+/** Live cell sizes, for a readout. */
+export const gridDegrees = () => ({ coarse: COARSE_DEG, fine: FINE_DEG })
+
+/** Tuner hook. The caller must re-run `updateVolume` afterwards — this only
+ *  changes what the next bin will use, it does not re-bin by itself. */
+export function setGridDegrees(next: { coarse?: number; fine?: number }) {
+  if (next.coarse && next.coarse > 0) COARSE_DEG = next.coarse
+  if (next.fine && next.fine > 0) FINE_DEG = next.fine
+}
 // Both hand-off zooms are declared in mapConfig — see the note there.
 const Z_FAR_TO_MID = Z_MID
 const Z_MID_TO_NEAR = Z_NEAR

@@ -31,6 +31,8 @@ import {
   VOL_COARSE_LAYER,
   VOL_FINE_LAYER,
   VOL_RAW_LAYER,
+  gridDegrees,
+  setGridDegrees,
 } from './volumeGrid'
 import './MapTuner.css'
 
@@ -64,6 +66,10 @@ interface Tune {
    *  floor itself is derived per viewport, so this margin is the only part of
    *  it that is a decision rather than a measurement. */
   minZoomMargin: number
+  /** Aggregation cell sizes in degrees — the SIZE of the grid squares, which
+   *  is a separate decision from the zoom at which one hands off to the next. */
+  coarseDeg: number
+  fineDeg: number
   // ── type scale ──
   typeFloor: number
   typeTop: number
@@ -76,6 +82,10 @@ interface Tune {
   /** Has `hidden` been seeded from the live style yet? Stored, so a tune saved
    *  before this existed still gets seeded once on the next load. */
   seeded: boolean
+  /** Per-layer [minzoom, maxzoom] overrides. `null` in a slot means "leave the
+   *  layer's own value alone" — an override of 0 is a real instruction and must
+   *  not be confused with "unset". */
+  zoomRanges: Record<string, [number | null, number | null]>
 }
 
 /** Label faces with self-hosted SDF glyphs under public/fonts/. A name not in
@@ -101,6 +111,8 @@ const DEFAULTS: Tune = {
   zNear: Z_NEAR,
   maxZoom: mapConfig.view.maxZoom,
   minZoomMargin: mapConfig.view.minZoomMargin,
+  coarseDeg: gridDegrees().coarse,
+  fineDeg: gridDegrees().fine,
   typeFloor: 5,
   typeTop: 11,
   // Read off quietBasemap / mapTheme as committed, so "Reset" really is the
@@ -114,6 +126,7 @@ const DEFAULTS: Tune = {
   },
   hidden: [],
   seeded: false,
+  zoomRanges: {},
 }
 
 const TIER_ROWS: { key: TierKey; label: string; where: string }[] = [
@@ -221,13 +234,26 @@ function tunerEnabled(): boolean {
  *  a basemap decision and be impossible to find again. */
 const OWN_LAYERS = new Set(['mr-label', 'island-label', VN_LABEL_LAYER])
 
-export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
+export default function MapTuner({
+  map,
+  onRegrid,
+}: {
+  map: maplibregl.Map | null
+  /** Ask MapView to re-bin. Changing a cell size only changes what the NEXT
+   *  bin uses; without this the new value would not reach the screen until the
+   *  reader happened to scrub the timeline. */
+  onRegrid?: () => void
+}) {
   const enabled = useMemo(tunerEnabled, [])
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'palette' | 'zoom' | 'type' | 'layers'>('palette')
   const [tune, setTune] = useState<Tune>(readStore)
   const [copied, setCopied] = useState(false)
-  const [symbolLayers, setSymbolLayers] = useState<string[]>([])
+  const [labelsOnly, setLabelsOnly] = useState(true)
+  /** Every layer in the style with the facts the panel shows about it. */
+  const [allLayers, setAllLayers] = useState<
+    { id: string; type: string; isLabel: boolean; minzoom: number; maxzoom: number }[]
+  >([])
   /** What quietBasemap already hides, read once from the live style. Kept apart
    *  from `tune.hidden` so the copy block can tell "you turned this off" from
    *  "it was already off". */
@@ -246,6 +272,10 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
    *  otherwise each apply would re-derive from its own last output and the
    *  floor would walk away on every slider tick. */
   const homeZoomRef = useRef<number | null>(null)
+  // Held in a ref so `apply` does not have to list it as a dependency and
+  // re-run every time MapView re-creates the callback.
+  const onRegridRef = useRef(onRegrid)
+  onRegridRef.current = onRegrid
 
   // Which basemap symbol layers exist is ASKED, never assumed. Hardcoding a
   // list is what produced findings §7.1/§7.3 in docs/map-zoom-and-labels.md,
@@ -261,13 +291,19 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
   useEffect(() => {
     if (!map || !enabled) return
     const read = () => {
-      const ids: string[] = []
+      const rows: typeof allLayers = []
       const offNow: string[] = []
       for (const l of map.getStyle().layers ?? []) {
-        if (l.type !== 'symbol' || OWN_LAYERS.has(l.id)) continue
+        if (OWN_LAYERS.has(l.id) || l.type === 'background') continue
         try {
-          if (map.getLayoutProperty(l.id, 'text-field') == null) continue
-          ids.push(l.id)
+          const isLabel = l.type === 'symbol' && map.getLayoutProperty(l.id, 'text-field') != null
+          rows.push({
+            id: l.id,
+            type: l.type,
+            isLabel,
+            minzoom: l.minzoom ?? 0,
+            maxzoom: l.maxzoom ?? 24,
+          })
           if (map.getLayoutProperty(l.id, 'visibility') === 'none') offNow.push(l.id)
         } catch {
           /* layer doesn't answer — leave it out */
@@ -276,7 +312,7 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
       if (homeZoomRef.current == null) {
         homeZoomRef.current = map.getMinZoom() + DEFAULTS.minZoomMargin
       }
-      setSymbolLayers(ids)
+      setAllLayers(rows)
       setBaselineHidden(offNow)
       setTune((t) =>
         t.seeded ? t : { ...t, seeded: true, hidden: [...new Set([...t.hidden, ...offNow])] },
@@ -328,6 +364,13 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
           /* layer gone — skip */
         }
       }
+      // Cell sizes go in before the ranges, so a re-bin triggered below sees
+      // the new values.
+      const live = gridDegrees()
+      if (live.coarse !== tune.coarseDeg || live.fine !== tune.fineDeg) {
+        setGridDegrees({ coarse: tune.coarseDeg, fine: tune.fineDeg })
+        onRegridRef.current?.()
+      }
       setRange(VOL_COARSE_LAYER, 0, tune.zMid)
       setRange(VOL_FINE_LAYER, tune.zMid, tune.zNear)
       setRange(VOL_RAW_LAYER, tune.zNear, 24)
@@ -337,6 +380,16 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
       for (const layer of m.getStyle().layers ?? []) {
         const id = layer.id
         try {
+          // Visibility and zoom range apply to EVERY layer, not only labels —
+          // hiding a fill or clamping a road is as much a map decision as
+          // hiding a place name, and used to be unreachable from here.
+          if (!OWN_LAYERS.has(id) && layer.type !== 'background') {
+            m.setLayoutProperty(id, 'visibility', tune.hidden.includes(id) ? 'none' : 'visible')
+            const ov = tune.zoomRanges[id]
+            if (ov && (ov[0] != null || ov[1] != null)) {
+              setRange(id, ov[0] ?? 0, ov[1] ?? 24)
+            }
+          }
           if (id === 'background') {
             m.setPaintProperty(id, 'background-color', tune.land)
           } else if (layer.type === 'fill' && WATER_FILL_RE.test(id)) {
@@ -360,9 +413,7 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
             m.setPaintProperty(id, 'text-color', tier.color)
             m.setPaintProperty(id, 'text-halo-color', tier.halo)
             m.setPaintProperty(id, 'text-halo-width', tier.haloWidth)
-            if (!OWN_LAYERS.has(id)) {
-              m.setLayoutProperty(id, 'visibility', tune.hidden.includes(id) ? 'none' : 'visible')
-            }
+
             // The country tier steps aside at the first hand-off, same as the
             // shipped rule — otherwise moving zMid would leave it behind.
             if (/country/.test(id)) setRange(id, 0, tune.zMid)
@@ -394,7 +445,15 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
   }
 
   const setNum = (
-    key: 'zMid' | 'zNear' | 'maxZoom' | 'minZoomMargin' | 'typeFloor' | 'typeTop',
+    key:
+      | 'zMid'
+      | 'zNear'
+      | 'maxZoom'
+      | 'minZoomMargin'
+      | 'typeFloor'
+      | 'typeTop'
+      | 'coarseDeg'
+      | 'fineDeg',
     v: number,
   ) => setTune((t) => ({ ...t, [key]: v }))
 
@@ -406,6 +465,23 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
       const next: Ramp = [...t.tiers[key].size] as Ramp
       next[end] = v
       return { ...t, tiers: { ...t.tiers, [key]: { ...t.tiers[key], size: next } } }
+    })
+
+  const shownLayers = useMemo(
+    () => (labelsOnly ? allLayers.filter((l) => l.isLabel) : allLayers),
+    [allLayers, labelsOnly],
+  )
+
+  const setLayerZoom = (id: string, end: 0 | 1, raw: string) =>
+    setTune((t) => {
+      const cur = t.zoomRanges[id] ?? [null, null]
+      const next: [number | null, number | null] = [cur[0], cur[1]]
+      next[end] = raw === '' ? null : Number(raw)
+      const cleared = next[0] == null && next[1] == null
+      const ranges = { ...t.zoomRanges }
+      if (cleared) delete ranges[id]
+      else ranges[id] = next
+      return { ...t, zoomRanges: ranges }
     })
 
   const toggleLayer = (id: string) =>
@@ -442,6 +518,8 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
     push('src/config/mapConfig.ts', cfg)
 
     const vol: string[] = []
+    if (tune.coarseDeg !== DEFAULTS.coarseDeg) vol.push(`COARSE_DEG = ${tune.coarseDeg}`)
+    if (tune.fineDeg !== DEFAULTS.fineDeg) vol.push(`FINE_DEG = ${tune.fineDeg}`)
     if (tune.water !== DEFAULTS.water) {
       vol.push(`WATER_FILL = '${tune.water}'`, `WATER_LINE = '${deriveLine(tune.water)}'`)
     }
@@ -474,6 +552,11 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
     const unhidden = baselineHidden.filter((id) => !tune.hidden.includes(id))
     if (unhidden.length) {
       vol.push(`quietBasemap — STOP hiding: ${unhidden.join(', ')}`)
+    }
+    for (const [id, ov] of Object.entries(tune.zoomRanges)) {
+      vol.push(
+        `quietBasemap — setLayerZoomRange('${id}', ${ov[0] ?? 0}, ${ov[1] ?? 24})`,
+      )
     }
     if (!tune.vegOn) vol.push('quietBasemap — hide vegetation entirely')
     push('src/components/volumeGrid.ts', vol)
@@ -509,7 +592,15 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
 
   const num = (
     label: string,
-    key: 'zMid' | 'zNear' | 'maxZoom' | 'minZoomMargin' | 'typeFloor' | 'typeTop',
+    key:
+      | 'zMid'
+      | 'zNear'
+      | 'maxZoom'
+      | 'minZoomMargin'
+      | 'typeFloor'
+      | 'typeTop'
+      | 'coarseDeg'
+      | 'fineDeg',
     min: number,
     max: number,
     step: number,
@@ -656,6 +747,39 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
             The floor itself is DERIVED per viewport by fitting recordBounds — 5.29 on a phone, 6.65
             on a 27&quot;. Only the margin below it is a decision, so only the margin is a knob.
           </p>
+          <div className="tuner-ramp">
+            <span className="tuner-ramp-name">
+              Grid cell size <em>volumeGrid COARSE_DEG / FINE_DEG</em>
+            </span>
+            <div className="tuner-ramp-ends">
+              <label>
+                <span>coarse</span>
+                <input
+                  type="number"
+                  min={0.01}
+                  max={1}
+                  step={0.01}
+                  value={tune.coarseDeg}
+                  onChange={(e) => setNum('coarseDeg', Number(e.target.value))}
+                />
+              </label>
+              <label>
+                <span>fine</span>
+                <input
+                  type="number"
+                  min={0.005}
+                  max={0.5}
+                  step={0.005}
+                  value={tune.fineDeg}
+                  onChange={(e) => setNum('fineDeg', Number(e.target.value))}
+                />
+              </label>
+            </div>
+            <p className="tuner-tier-read">
+              ≈ {Math.round(tune.coarseDeg * 111)} km · {Math.round(tune.fineDeg * 111)} km at this
+              latitude. How BIG a square is, separate from where one hands off to the next.
+            </p>
+          </div>
         </>
       )}
 
@@ -724,20 +848,53 @@ export default function MapTuner({ map }: { map: maplibregl.Map | null }) {
 
       {tab === 'layers' && (
         <>
+          <label className="tuner-check">
+            <input
+              type="checkbox"
+              checked={labelsOnly}
+              onChange={(e) => setLabelsOnly(e.target.checked)}
+            />
+            <span>Label layers only</span>
+          </label>
           <p className="tuner-note">
-            {symbolLayers.length} basemap label layers, read from the live style. Unticking one is a
-            candidate for a `visibility: none` in quietBasemap — it shows up in the copy block.
+            {shownLayers.length} of {allLayers.length} layers, read from the live style. The two
+            boxes on the right are that layer&apos;s own minzoom / maxzoom — blank means unclamped.
           </p>
-          <div className="tuner-layers">
-            {symbolLayers.map((id) => (
-              <label key={id}>
-                <input
-                  type="checkbox"
-                  checked={!tune.hidden.includes(id)}
-                  onChange={() => toggleLayer(id)}
-                />
-                <span>{id}</span>
-              </label>
+          <div className="tuner-layers is-detailed">
+            {shownLayers.map((l) => (
+              <div className="tuner-layer-row" key={l.id}>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={!tune.hidden.includes(l.id)}
+                    onChange={() => toggleLayer(l.id)}
+                  />
+                  <span>
+                    {l.id}
+                    <em>{l.type}</em>
+                  </span>
+                </label>
+                <span className="tuner-layer-z">
+                  <input
+                    type="number"
+                    min={0}
+                    max={24}
+                    step={0.5}
+                    value={tune.zoomRanges[l.id]?.[0] ?? ''}
+                    placeholder={String(l.minzoom)}
+                    onChange={(e) => setLayerZoom(l.id, 0, e.target.value)}
+                  />
+                  <input
+                    type="number"
+                    min={0}
+                    max={24}
+                    step={0.5}
+                    value={tune.zoomRanges[l.id]?.[1] ?? ''}
+                    placeholder={String(l.maxzoom)}
+                    onChange={(e) => setLayerZoom(l.id, 1, e.target.value)}
+                  />
+                </span>
+              </div>
             ))}
           </div>
         </>

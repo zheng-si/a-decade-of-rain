@@ -375,3 +375,57 @@
   font-variant-numeric: tabular-nums;
   color: #8a8d85;
 }
+
+/* Layer rows carry an id, a type and two zoom boxes, so they need a grid
+   rather than the flat checkbox list they started as. */
+.tuner-layers.is-detailed {
+  max-height: 18rem;
+}
+
+.tuner-layer-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.1rem 0;
+}
+
+.tuner-layer-row > label {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+}
+
+.tuner-layer-row > label > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tuner-layer-row em {
+  margin-left: 0.35rem;
+  font-family: var(--font-ui, system-ui, sans-serif);
+  font-size: 0.58rem;
+  font-style: normal;
+  color: #a3a69e;
+}
+
+.tuner-layer-z {
+  display: flex;
+  flex: none;
+  gap: 0.2rem;
+}
+
+.tuner-layer-z input {
+  width: 2.6rem;
+  padding: 0.1rem 0.2rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+}

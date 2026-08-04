@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { loadSpray, dayToDate, dateToDay, type SprayDataset } from '../data/spray'
@@ -526,6 +526,23 @@ export default function MapView() {
     if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
   }, [ready, day, agentKey, activeIndices, choices, bounds.max])
 
+  // TEMPORARY — lets the tuner force a re-bin after changing a cell size. The
+  // effect above short-circuits on an unchanged throttle key, so clearing the
+  // key is the whole trick; without it a new cell size would sit in the module
+  // and not reach the screen until the reader scrubbed the timeline.
+  const regrid = useCallback(() => {
+    const map = mapRef.current
+    if (!map || !dataRef.current) return
+    appliedKeyRef.current = ''
+    updateVolume(
+      map,
+      dataRef.current,
+      day,
+      activeIndices,
+      choices.find((c) => c.key === agentKey)?.color ?? null,
+    )
+  }, [day, activeIndices, choices, agentKey])
+
   // Agent selection re-bins the grids and re-filters the raw tier (the
   // throttle key includes agentKey, so the day effect above handles it).
 
@@ -604,7 +621,7 @@ export default function MapView() {
       )}
       {/* TEMPORARY basemap colour tuner — remove this element, the import, and
           MapTuner.tsx/.css when the palette is settled. */}
-      {ready && <MapTuner map={mapRef.current} />}
+      {ready && <MapTuner map={mapRef.current} onRegrid={regrid} />}
       {ready && (
         <Timeline
           day={day}
