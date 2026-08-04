@@ -40,8 +40,11 @@
      the same fill. They had drifted to two different darks. */
   --v2-fill: var(--forest);
   /* Panel glass. The Figma has the left panel at 0.65 and the key at 0.62 —
-     close enough that the difference reads as drift, so both take 0.65. */
-  --v2-panel: rgba(255, 255, 255, 0.65);
+     close enough that the difference reads as drift, so both take one value.
+     0.80, not the Figma's 0.65: at 0.65 the spray field showing through was
+     competing with the panel's own chart, and the two reddest things on screen
+     were reading as one. */
+  --v2-panel: rgba(255, 255, 255, 0.8);
   --v2-blur: blur(8px);
 
   /* Redefining --font-sans is not enough on its own. `body` declares
@@ -375,39 +378,38 @@
   border-radius: 0;
 }
 
-/* Tighter above and below: at 12/12 the figure floated free of both the
-   coordinates that locate it and the counts that break it down. */
-.map-wrap .inspect-coords,
-.map-wrap .inspect-figure {
-  margin-bottom: 6px;
-}
+/* The locating block — coordinates, cell size, span. One step below the data
+   at 10px, because it says WHERE and WHEN the record was taken, not what it
+   says; at 11 it was competing with the answer. Its two lines sit tight
+   together and the block carries the gap down to the figures.
 
-/* Coordinates and span are one block — the place and its dates — so they sit
-   tight, and the block carries the gap to the figures below it. */
+   letter-spacing 0: the cell size joined this line, and at the widest
+   coordinate the result measured 146.6 in a 146px card — a hairline wrap. The
+   0.02em tracking was there to open up an all-caps-ish string of digits; at
+   this size it buys nothing and costs ~6px. */
 .map-wrap .inspect-coords {
   margin-bottom: 2px;
+  font-size: 10px;
+  letter-spacing: 0;
 }
 
 .map-wrap .inspect-coords.is-span {
   margin-bottom: 12px;
 }
 
-/* The cell size joined this line, and at the widest coordinate the result
-   measured 146.6 in a 146px card — a hairline wrap. The 0.02em tracking was
-   there to open up an all-caps-ish string of digits; at 11px it buys nothing
-   and costs ~6px. */
-.map-wrap .inspect-coords {
-  letter-spacing: 0;
+/* 2px, not 6. The total and the counts that decompose it are one statement —
+   'this much, arriving like this' — so they set as one block, and the card's
+   real gaps are the ones between blocks. */
+.map-wrap .inspect-figure {
+  margin-bottom: 2px;
 }
 
 /* ONE SIZE for every piece of data in the card. It had been carrying four
-   (10 coords / 11 counts / 13 figure / 10 bar rows) inside 312px, which is
+   (10 coords / 11 counts / 13 figure / 10 bar rows) inside 146px, which is
    what made it read as a stack of unrelated fragments rather than one record.
-   Hierarchy comes from weight and colour instead: 600 + accent for figures,
-   400 + ink-soft for the words they attach to, 400 + ink-faint for the
-   locating line. Only the uppercase headings stay a step down at 10, because
-   uppercase at 11 sits visually taller than lowercase at 11 anyway. */
-.map-wrap .inspect-coords,
+   Hierarchy comes from weight and colour instead. Two tiers now, not three:
+   the DATA at 11 and the LABELS (uppercase headings, the locating block) at
+   10 — uppercase at 11 sits visually taller than lowercase at 11 anyway. */
 .map-wrap .inspect-figure,
 .map-wrap .inspect-figure strong,
 .map-wrap .inspect-figure-unit,
@@ -418,28 +420,25 @@
   font-size: 11px;
 }
 
-/* With size gone, weight is the only rank left, so it has to do the whole job.
-   Three tiers: the answer (the total, 600 + accent, and its unit at 500 so the
-   line reads heavy as a line), how it accumulated (500 + accent — same red
-   grammar, one step quieter), and everything that locates or breaks it down
-   (400). */
+/* The total and the counts are ONE grammar, not two ranks — 12K Gallons and
+   5 Missions 9 Runs say the same kind of thing about the same place, and the
+   half-step that separated them (600/500 on the figures, ink vs ink-soft on
+   the words) was reading as an error rather than as hierarchy. Every figure in
+   the block is 600 accent; every word attached to one is 500 ink. What sets
+   the total apart is that it comes first, which is enough. */
 .map-wrap .inspect-figure strong,
+.map-wrap .inspect-sub.is-stats strong,
 .map-wrap .adr-popup strong,
 .map-wrap .adr-popup.adr-hover strong {
   font-weight: 600;
 }
 
-.map-wrap .inspect-figure-unit {
+.map-wrap .inspect-figure,
+.map-wrap .inspect-figure-unit,
+.map-wrap .inspect-sub.is-stats,
+.map-wrap .inspect-sub.is-stats .stat-pair {
   font-weight: 500;
   color: var(--ink);
-}
-
-.map-wrap .inspect-sub strong {
-  font-weight: 500;
-}
-
-.map-wrap .inspect-figure {
-  font-weight: 400;
 }
 
 /* Headings for the two breakdowns. Same 10px tier as the panel's own section
