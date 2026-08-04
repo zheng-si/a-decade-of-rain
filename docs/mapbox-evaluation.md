@@ -125,14 +125,21 @@ fetches.
 
 ### Running it
 
-1. `cp .env.example .env.local`, put the token in `VITE_MAPBOX_TOKEN`.
-2. `npm run dev`, open `/archive-mapbox`.
-3. For the Vercel preview: add `VITE_MAPBOX_TOKEN` in the project's environment
-   variables. Restrict the token by URL in the Mapbox account first — it ships
-   in the bundle.
+Open `/archive-mapbox` and **paste a public (`pk.`) token into the field**. It is
+kept in that browser's localStorage and nowhere else — not the repo, not the
+build, not other visitors. Secret `sk.` tokens are refused rather than stored.
 
-Without a token the route renders instructions instead of a map, and the Story
-and Archive are unaffected either way.
+The env var route still works and takes priority: `VITE_MAPBOX_TOKEN` in
+`.env.local`, or in the Vercel project's environment variables to share the
+spike on a preview URL. That path inlines the token into the bundle for every
+visitor, so restrict it by URL in the Mapbox account first. Pasting it in the
+page does not.
+
+The in-page field exists because the env var alone meant a settings change and
+a redeploy before you could look at anything — a bad loop for a throwaway.
+
+Without a token the route renders the field instead of a map, and the Story and
+Archive are unaffected either way.
 
 ### Removing it
 

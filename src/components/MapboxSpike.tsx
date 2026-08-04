@@ -44,6 +44,29 @@ const SETTLEMENT_LAYER = 'settlement-label'
 const SETTLEMENT_MINOR = 'settlement-minor-label'
 const SETTLEMENT_MAJOR = 'settlement-major-label'
 
+/**
+ * Where the token comes from, in order.
+ *
+ * The env var was the only source at first, which meant filling it in required
+ * a Vercel settings change and a redeploy before you could look at anything —
+ * a terrible loop for a throwaway spike. So the page takes one directly and
+ * keeps it in localStorage.
+ *
+ * This is also the SAFER of the two: a token pasted here lives in one browser
+ * and never enters the repo or the shipped bundle, where a VITE_ variable is
+ * inlined for every visitor. The env var stays supported as the path for
+ * promoting the spike to a shared preview, and wins if both are present.
+ */
+const TOKEN_KEY = 'adr.mapboxToken'
+
+function readStoredToken(): string {
+  try {
+    return localStorage.getItem(TOKEN_KEY) ?? ''
+  } catch {
+    return '' // private mode / storage disabled
+  }
+}
+
 export default function MapboxSpike() {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<mapboxgl.Map | null>(null)
@@ -52,10 +75,44 @@ export default function MapboxSpike() {
   const [symbolrank, setSymbolrank] = useState(SETTLEMENT_DEFAULTS.maxSymbolrank)
   const [filterrank, setFilterrank] = useState(SETTLEMENT_DEFAULTS.maxFilterrank)
   const [labelLayers, setLabelLayers] = useState<string[]>([])
+  const [token, setToken] = useState(() => (hasMapboxToken ? MAPBOX_TOKEN : readStoredToken()))
+  const [draft, setDraft] = useState('')
+  const [tokenError, setTokenError] = useState('')
+
+  const usable = token.startsWith('pk.')
+
+  const saveToken = (value: string) => {
+    const v = value.trim()
+    if (!v.startsWith('pk.')) {
+      setTokenError('A Mapbox public token starts with "pk.". Secret "sk." tokens must not go in a browser.')
+      return
+    }
+    try {
+      localStorage.setItem(TOKEN_KEY, v)
+    } catch {
+      /* not fatal — the map still works for this session */
+    }
+    setTokenError('')
+    setToken(v)
+  }
+
+  const clearToken = () => {
+    try {
+      localStorage.removeItem(TOKEN_KEY)
+    } catch {
+      /* ignore */
+    }
+    setToken('')
+    setDraft('')
+    // The map was built with the old token; drop it so a new one starts clean.
+    mapRef.current?.remove()
+    mapRef.current = null
+    setReady(false)
+  }
 
   useEffect(() => {
-    if (!containerRef.current || mapRef.current || !hasMapboxToken) return
-    mapboxgl.accessToken = MAPBOX_TOKEN
+    if (!containerRef.current || mapRef.current || !usable) return
+    mapboxgl.accessToken = token
 
     const map = new mapboxgl.Map({
       container: containerRef.current,
@@ -114,7 +171,7 @@ export default function MapboxSpike() {
       map.remove()
       mapRef.current = null
     }
-  }, [])
+  }, [token, usable])
 
   // The dial OpenMapTiles cannot offer: settlement density as one continuous
   // filter instead of four on/off layers.
@@ -131,17 +188,44 @@ export default function MapboxSpike() {
     }
   }, [ready, symbolrank, filterrank])
 
-  if (!hasMapboxToken) {
+  if (!usable) {
     return (
       <div className="mbx-missing">
         <h1>Mapbox spike</h1>
         <p>
-          No token. Put <code>VITE_MAPBOX_TOKEN=pk.…</code> in <code>.env.local</code> (local) or in
-          the Vercel project&apos;s environment variables (preview/production), then reload.
+          Paste a Mapbox <strong>public</strong> token (it starts with <code>pk.</code>) to load the
+          map. It is kept in this browser&apos;s localStorage only — it never reaches the repo, the
+          build, or anyone else.
         </p>
-        <p>
-          The token is inlined into the client bundle by Vite, so it is public by construction —
-          restrict it by URL in the Mapbox account rather than treating it as a secret.
+        <form
+          className="mbx-token-form"
+          onSubmit={(e) => {
+            e.preventDefault()
+            saveToken(draft)
+          }}
+        >
+          <input
+            type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder="pk.eyJ1Ijoi…"
+            autoComplete="off"
+            spellCheck={false}
+            aria-label="Mapbox public token"
+          />
+          <button type="submit">Load map</button>
+        </form>
+        {tokenError && <p className="mbx-token-error">{tokenError}</p>}
+        <p className="mbx-fineprint">
+          Get one at <code>account.mapbox.com/access-tokens</code>. Use a public
+          (<code>pk.</code>) token — a secret <code>sk.</code> token grants account write access and
+          must never go in a browser.
+        </p>
+        <p className="mbx-fineprint">
+          Alternative, for sharing the spike on a preview URL: set{' '}
+          <code>VITE_MAPBOX_TOKEN</code> in <code>.env.local</code> or the Vercel project&apos;s
+          environment variables. That path bakes the token into the bundle for every visitor, so
+          restrict it by URL in the Mapbox account first. Pasting it here does not.
         </p>
       </div>
     )
@@ -205,6 +289,11 @@ export default function MapboxSpike() {
           Compare against <a href="/archive">/archive</a>. Judge the basemap, not the UI — the panel
           here is throwaway.
         </p>
+        {!hasMapboxToken && (
+          <button type="button" className="mbx-clear" onClick={clearToken}>
+            Forget token
+          </button>
+        )}
       </aside>
     </div>
   )
