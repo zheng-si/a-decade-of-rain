@@ -25,3 +25,8 @@ scripts/.cache
 *.njsproj
 *.sln
 *.sw?
+
+# Local env (tokens). The *.local rule above already covers .env.local;
+# spelled out so it is obvious that secrets do not belong in the repo.
+.env.local
+.env*.local
