@@ -3,6 +3,8 @@
 A per-item audit of everything that changes with zoom on the Archive map, with
 the Climate Mobility (CF) explorer alongside as a reference point.
 
+中文版：[`map-zoom-and-labels.zh.md`](./map-zoom-and-labels.zh.md)
+
 **How to read the provenance marks.** Every CF row is one of:
 
 - ● **read from their code** — a literal value decompiled out of the shipped
