@@ -1,0 +1,325 @@
+/* ═════════════════════════════════════════════════════════════════════════
+   Story skin v3 — design-system-v3.md applied to the scrollytelling page.
+
+   Same architecture as ArchiveSkinV2.css and for the same reasons: one file
+   scoped under `.story`, one import, `Story.css` untouched. The experiment
+   reads as a single diff, reverts by deleting two lines, and if it survives
+   its values move into Story.css rather than being re-derived.
+
+   The four subtractive moves (§1 of the doc) applied to CHROME only — cards,
+   panels, chips, buttons, rules. §10 is explicit that the narrative art is not
+   chrome: the rain, the pulse rings, the map dots and their shadows are the
+   subject, and subtracting from them would be subtracting from the story.
+
+   WHAT IS DELIBERATELY LEFT ALONE, so the next reader does not "fix" it:
+     · 9 border-radius: 50% — dots, the compass dial, colour swatches. Round
+       is the meaning there, which is the one exception §5 names.
+     · .act2-chip::after — those `border` declarations are CSS triangles, the
+       speech-bubble tails on the map pins. Not strokes.
+     · .map-key-compass-dial / -scale-bar borders — the instrument IS its line.
+       .eco-scale-bar is the same case: its outline is drawn in --accent-line,
+       the same colour as the unit-segment dividers inside it, so the outline is
+       the track's extent. Remove it and the segments float in nothing.
+     · Coloured 3px card tops (--agent, --tlc). They encode category; removing
+       them removes information, not decoration. The NEUTRAL ones go.
+     · .maplibregl-ctrl-attrib-button — MapLibre's own round "i" badge. Left at
+       the vendor default here for the same reason the Archive leaves it: the
+       two pages should meet the map with the same chrome, and changing it in
+       one place only would make them differ.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.story {
+  /* One family. --font-serif points at the sans too, so all 28 rules that
+     still reach for the serif tier get Geist rather than silently keeping
+     Playfair. Those rules DECLARE the token, so redefining it here reaches
+     them — unlike `body`'s font-family, which resolves in the root scope and
+     needed the explicit declaration below. */
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: var(--font-sans);
+
+  /* The two shadows of §6. Same values as the Archive: a surface against the
+     map, and a control sitting ON that surface. */
+  --v3-shadow: 0 8px 28px rgba(40, 38, 30, 0.02);
+  --v3-shadow-control: 0 1px 3px rgba(40, 38, 30, 0.07);
+  /* A dark card on a bright map is the one case neither token covers — it has
+     to lift off a photograph, not off paper. Still far below the 0.42 it was. */
+  --v3-shadow-dark: 0 10px 32px rgba(16, 26, 20, 0.16);
+
+  font-family: var(--font-sans);
+}
+
+/* ── type ─────────────────────────────────────────────────────────────────
+   Geist at 400 reads flatter than Playfair at 400 did — a high-contrast serif
+   carries its own emphasis in the letterforms, and a neutral sans has to get
+   it from weight. So everything that was a serif HEADING moves to 500, and
+   everything that was serif RUNNING TEXT stays at 400. That split is the
+   whole translation; sizes are left where they are. */
+
+.story .story-hook-title,
+.story .story-hook-sub,
+.story .story-eyebrow,
+.story .story-name,
+.story .fs-title,
+.story .eco-headline strong,
+.story .wall-value,
+.story .wall-stat-v,
+.story .close-statement,
+.story .rainbow-stat strong,
+.story .timeline-scan-num,
+.story .story-rail-act,
+.story .rainbow-card-name,
+.story .act2-card-name,
+.story .alt-family h3,
+.story .method-rest-copy h3,
+.story .method-copy h3,
+.story .tl-card-year,
+.story .close-action-name,
+.story .story-quote p {
+  font-weight: 500;
+}
+
+/* The display tier is the one place the swap changes apparent size as well as
+   colour: at 4.5rem a sans sets visibly wider and heavier than the serif it
+   replaces, and the hook title started overrunning its measure. Tightened at
+   the top of the clamp only — the small end is already right. */
+.story .story-hook-title {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  letter-spacing: -0.015em;
+}
+
+.story .close-statement,
+.story .eco-headline strong {
+  letter-spacing: -0.01em;
+}
+
+.story .wall-value {
+  letter-spacing: -0.02em;
+}
+
+/* Running text that happened to be serif stays at 400 — listed rather than
+   left implicit, because "the ones I did not name" is not a rule anyone can
+   check against later. */
+.story .story-dek,
+.story .wall-label,
+.story .method-side,
+.story .act2-closing,
+.story .wall-stat-l,
+.story .story-rail-mark span,
+.story .close-mark span {
+  font-weight: 400;
+}
+
+/* ── shape · §5 ───────────────────────────────────────────────────────────
+   Every pill and every rounded rectangle to 0. The 50% circles are absent
+   from this list on purpose (see the header). */
+.story .story-hook-cta,
+.story .map-key-view,
+.story .map-key-view-btn,
+.story .rainbow-mode,
+.story .rainbow-mode-btn,
+.story .rainbow-chip,
+.story .eco-sort,
+.story .eco-sort-btn,
+.story .wall-consent-btn,
+.story .method-tab,
+.story .close-top,
+.story .map-dot-label,
+.story .timeline-scan-vol,
+.story .story-card,
+.story .story-stat,
+.story .map-key,
+.story .map-key-heat-bar,
+.story .key-veg,
+.story .key-water,
+.story .key-area,
+.story .rainbow-card,
+.story .eco-scale-bar,
+.story .eco-type,
+.story .eco-est,
+.story .eco-bar-track,
+.story .act2-chip,
+.story .act2-volbar,
+.story .act2-volbar i,
+.story .act2-card,
+.story .act2-badge,
+.story .alt-family,
+.story .alt-reveal-btn,
+.story .alt-verdict-chip,
+.story .method-panel,
+.story .tl-band,
+.story .tl-card,
+.story .timeline-scan-line,
+.story .close-action,
+.story .maplibregl-ctrl-group,
+.story .maplibregl-ctrl-group button {
+  border-radius: 0;
+}
+
+/* ── strokes · §3 ─────────────────────────────────────────────────────────
+   Outlines go. A rule divides; a border encloses; only the second is being
+   removed here. */
+.story .story-hook-cta,
+.story .story-card,
+.story .story-stat,
+.story .map-key,
+.story .rainbow-chip,
+.story .rainbow-card,
+.story .eco-est,
+.story .method-tab,
+.story .method-panel,
+.story .close-action,
+.story .close-top {
+  border: none;
+}
+
+/* The timeline card carries BOTH: a neutral 1px enclosure and a 3px --tlc top
+   that says which base the card is about. Only the enclosure goes. */
+.story .tl-card {
+  border: none;
+  border-top: 3px solid var(--tlc);
+}
+
+/* The running-total chip is a filled accent rectangle with a white outline on
+   top of it — an enclosure drawn in a colour that carries nothing. Its accent
+   glow stays: that belongs to the scan line's own signal, which §10 keeps. */
+.story .timeline-scan-vol {
+  border: none;
+}
+
+/* Neutral 3px card tops encode nothing — they are the accent bar that turns up
+   on every generic card. The COLOURED ones (--agent on rainbow, --tlc on the
+   timeline) stay: those carry the category. */
+.story .act2-card,
+.story .alt-family {
+  border: none;
+  border-top: none;
+}
+
+/* The reveal button's green outline was the only thing marking it as an
+   action. With the stroke gone it needs the fill instead. */
+.story .alt-reveal-btn {
+  border: none;
+  background: var(--forest);
+  color: var(--forest-text);
+}
+
+.story .alt-reveal-btn:hover {
+  background: var(--forest-2);
+}
+
+/* ── elevation · §6 ───────────────────────────────────────────────────────
+   Chrome takes the two tokens. Map geometry and narrative art keep what they
+   have — .map-dot-core, .map-dot-label, .act2-dot, .act2-pin, .timeline-scan-*
+   and .eco-swatch are all absent here on purpose. */
+.story .map-key,
+.story .rainbow-card,
+.story .method-panel,
+.story .tl-card,
+.story .close-action,
+.story .alt-family {
+  box-shadow: var(--v3-shadow);
+}
+
+.story .act2-chip,
+.story .alt-reveal-btn,
+.story .story-stat {
+  box-shadow: var(--v3-shadow-control);
+}
+
+.story .act2-pin:hover .act2-chip {
+  box-shadow: var(--v3-shadow-control);
+}
+
+/* The narrative card floats over a photograph rather than over paper, so it
+   keeps a shadow with some weight — but 0.42 alpha was a drop shadow doing a
+   scrim's job. */
+.story .story-card {
+  box-shadow: var(--v3-shadow-dark);
+}
+
+/* Active-state rings on the actions cards were 2px outlines in three greens
+   plus a coloured glow. The ring is the outline §3 removes; the state moves to
+   a left marker, which is a rule rather than an enclosure. */
+.story .act2-card.is-active.is-completed,
+.story .act2-card.is-active.is-ongoing,
+.story .act2-card.is-active.is-contained {
+  box-shadow: none;
+}
+
+.story .act2-card.is-active {
+  box-shadow: inset 3px 0 0 currentColor;
+}
+
+.story .act2-card.is-active.is-completed {
+  color: #3f8f5f;
+}
+
+.story .act2-card.is-active.is-ongoing {
+  color: var(--accent-deep);
+}
+
+.story .act2-card.is-active.is-contained {
+  color: #2c5a40;
+}
+
+/* ── controls · §8 ────────────────────────────────────────────────────────
+   The Archive's switch grammar: rectangles butted together, one shadow on the
+   group, the selected state in --forest.
+
+   THREE groups qualify, not four. `.method-tabs` looks like a fourth but is a
+   bare flex row of two independent toggles — no background, no border, nothing
+   for a group shadow to sit on. Putting one there drew a shadow across the
+   whole content width under nothing at all. It gets the button treatment
+   below and none of the container treatment. */
+.story .map-key-view,
+.story .rainbow-mode,
+.story .eco-sort {
+  gap: 0;
+  padding: 0;
+  box-shadow: var(--v3-shadow-control);
+}
+
+/* Selected state is --forest everywhere it carries no other meaning. The
+   rainbow chips are in this list because their selected fill was --ink, a
+   second selected-colour for no reason — the agent's own colour already lives
+   in the chip's dot. `.method-tab.is-on` is NOT here: its fill is --mth, green
+   for landfill and red for thermal, which says WHICH method. That is the same
+   category-carrying colour as the coloured card tops, and it stays. */
+.story .map-key-view-btn.is-active,
+.story .rainbow-mode-btn.is-active,
+.story .eco-sort-btn.is-active,
+.story .rainbow-chip.is-active {
+  background: var(--forest);
+  color: var(--forest-text);
+}
+
+.story .map-key-view-btn,
+.story .rainbow-mode-btn,
+.story .eco-sort-btn,
+.story .rainbow-chip,
+.story .method-tab {
+  font-weight: 500;
+}
+
+/* The hook's call to action was an outlined pill. Filled rectangle, same
+   grammar as every other primary control on the site. */
+.story .story-hook-cta {
+  background: var(--forest);
+  color: var(--forest-text);
+  font-weight: 500;
+}
+
+.story .story-hook-cta:hover {
+  background: var(--forest-2);
+}
+
+/* ── labels · §2 ──────────────────────────────────────────────────────────
+   The 10px uppercase tier, matched to the Archive's so a reader moving between
+   the two pages meets one label system rather than two. */
+.story .story-eyebrow,
+.story .rainbow-card-agent,
+.story .act2-badge,
+.story .alt-verdict-chip,
+.story .close-mark span {
+  letter-spacing: 0.04em;
+}

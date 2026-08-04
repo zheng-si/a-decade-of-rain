@@ -35,6 +35,10 @@ import CloseSection from '../components/CloseSection'
 import StoryNav from '../components/StoryNav'
 import { applyLabelCuration } from '../components/labelLayers'
 import './Story.css'
+// v3 skin — one scoped file over Story.css. See the header of StorySkinV3.css.
+import '../StorySkinV3.css'
+// Geist @font-face declarations (shared with the Archive spike).
+import '../fontsGeist.css'
 
 const SPRAY_SOURCE = 'spray'
 const LANDMARK_SOURCE = 'landmark-boundary'
