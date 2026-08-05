@@ -1,8 +1,13 @@
 // ── Spike A · the record drawn as lines ───────────────────────────────────
-// A spray run is a track. This module draws it as one, at every zoom, with no
-// aggregation tier at all — which is not a simplification but the point: the
-// grid tiers exist to make a cloud of points legible, and a cloud of points is
-// not what the record is. See scripts/build-spray-tracks.mjs.
+// A spray run is a track. See scripts/build-spray-tracks.mjs for the evidence.
+//
+// HYBRID, not replacement. The tracks own the NEAR tier only; the two grid
+// tiers keep their dots, because at those zooms the data on screen is an
+// aggregate and a cell total is a different kind of statement from a run. What
+// changes is where the aggregate comes from: trackGrid bins the LINES, so a
+// run's gallons land in every cell it crossed instead of piling into the one
+// holding its first waypoint. Dots for summaries, tracks for events, and both
+// telling the truth about position.
 //
 // WHAT ENCODES WHAT
 //
@@ -26,11 +31,12 @@
 // in MapView, and delete public/data/spray-tracks.json with its build script.
 import type maplibregl from 'maplibre-gl'
 import type { TrackDataset } from '../data/tracks'
-import { Z_FAR } from '../config/mapConfig'
+import { Z_FAR, Z_NEAR } from '../config/mapConfig'
 import { firstLabelLayerId } from './mapTheme'
 
 export const TRACK_SOURCE = 'spray-tracks'
 export const TRACK_MARK_SOURCE = 'spray-track-marks'
+export const TRACK_END_SOURCE = 'spray-track-ends'
 /** Sprayed segments, width by gallons per km. */
 export const TRACK_LAYER = 'spray-track'
 /** Segments of runs with no recorded volume — the same fact the hollow rings
@@ -38,6 +44,13 @@ export const TRACK_LAYER = 'spray-track'
 export const TRACK_NIL_LAYER = 'spray-track-nil'
 /** Runs recorded at a single grid reference: no line exists to draw. */
 export const TRACK_MARK_LAYER = 'spray-track-mark'
+/** The ends of each track.
+ *
+ *  Cosmetic and deliberate: butt-capped lines end in a hard rectangle, and
+ *  8,753 of them at 50% alpha read as scratches on the paper rather than as
+ *  flight. Round caps fix the end itself; a dot at each end gives the stroke
+ *  somewhere to resolve, the way a route diagram does. */
+export const TRACK_END_LAYER = 'spray-track-end'
 
 /** Zoom anchors for the width ramp. One span, because there is one tier. */
 const Z_TOP = 11
@@ -63,6 +76,15 @@ const WIDTH = {
  *  ground reads as darker. This is the whole reason not to draw them opaque. */
 const TRACK_OPACITY = 0.5
 
+/** A hair of feathering. The dots got 0.25 of their radius; a line is thin
+ *  enough that the equivalent is a fraction of a pixel, and it is what stops
+ *  a 1 px track looking like a scratch. In px, unlike circle-blur. */
+const TRACK_BLUR = 0.4
+
+/** Endpoint dot radius, as a multiple of the line's own half-width, so the
+ *  cap always belongs to its line instead of being a fixed bead stuck on it. */
+const END_SCALE = 0.75
+
 const dayFilter = (day: number) =>
   ['<=', ['get', 'day'], day] as unknown as maplibregl.FilterSpecification
 const sprayed = (day: number) =>
@@ -83,7 +105,20 @@ function widthRamp(): maplibregl.ExpressionSpecification {
   ] as unknown as maplibregl.ExpressionSpecification
 }
 
-/** Add the three track layers under the basemap's labels. Returns the bottom
+/** Endpoint radius: half the line's own width at this zoom, scaled. Derived
+ *  from the same numbers rather than typed again, so a wider line always gets
+ *  a proportionate cap and the two can never drift apart. */
+function endRamp(): maplibregl.ExpressionSpecification {
+  const at = (w: { k: number; cap: number }) =>
+    ['*', END_SCALE / 2, ['min', ['*', w.k, ['get', 'gpk']], w.cap]]
+  return [
+    'interpolate', ['linear'], ['zoom'],
+    Z_FAR, at(WIDTH.far),
+    Z_TOP, at(WIDTH.near),
+  ] as unknown as maplibregl.ExpressionSpecification
+}
+
+/** Add the track layers under the basemap's labels. Returns the bottom
  *  layer id, matching addVolumeLayers' contract. */
 export function addTrackLayers(
   map: maplibregl.Map,
@@ -94,6 +129,7 @@ export function addTrackLayers(
   const labelId = firstLabelLayerId(map)
   map.addSource(TRACK_SOURCE, { type: 'geojson', data: data.lines })
   map.addSource(TRACK_MARK_SOURCE, { type: 'geojson', data: data.marks })
+  map.addSource(TRACK_END_SOURCE, { type: 'geojson', data: data.ends })
 
   // Unsprayed tracks first, so a real spray line always draws over the record
   // of a pass that carried nothing.
@@ -102,8 +138,11 @@ export function addTrackLayers(
       id: TRACK_NIL_LAYER,
       type: 'line',
       source: TRACK_SOURCE,
+      // The near band only — the grids above it are dots, binned from these
+      // same lines by trackGrid.
+      minzoom: Z_NEAR,
       filter: unsprayed(day),
-      layout: { 'line-cap': 'butt', 'line-join': 'round' },
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
         'line-color': tint,
         'line-width': 0.6,
@@ -121,12 +160,16 @@ export function addTrackLayers(
       id: TRACK_LAYER,
       type: 'line',
       source: TRACK_SOURCE,
+      // The near band only — the grids above it are dots, binned from these
+      // same lines by trackGrid.
+      minzoom: Z_NEAR,
       filter: sprayed(day),
-      layout: { 'line-cap': 'butt', 'line-join': 'round' },
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
         'line-color': tint,
         'line-width': widthRamp(),
         'line-opacity': TRACK_OPACITY,
+        'line-blur': TRACK_BLUR,
       },
     },
     labelId,
@@ -137,6 +180,7 @@ export function addTrackLayers(
       id: TRACK_MARK_LAYER,
       type: 'circle',
       source: TRACK_MARK_SOURCE,
+      minzoom: Z_NEAR,
       filter: dayFilter(day),
       paint: {
         'circle-color': tint,
@@ -154,6 +198,25 @@ export function addTrackLayers(
     },
     labelId,
   )
+  // Endpoint caps last, so they sit on top of the stroke they belong to.
+  map.addLayer(
+    {
+      id: TRACK_END_LAYER,
+      type: 'circle',
+      source: TRACK_END_SOURCE,
+      minzoom: Z_NEAR,
+      filter: sprayed(day),
+      paint: {
+        'circle-color': tint,
+        'circle-opacity': TRACK_OPACITY,
+        'circle-blur': 0.3,
+        'circle-pitch-alignment': 'map',
+        'circle-pitch-scale': 'map',
+        'circle-radius': endRamp(),
+      },
+    },
+    labelId,
+  )
   return TRACK_NIL_LAYER
 }
 
@@ -162,6 +225,7 @@ export function addTrackLayers(
 export function setTrackTime(map: maplibregl.Map, day: number) {
   if (map.getLayer(TRACK_NIL_LAYER)) map.setFilter(TRACK_NIL_LAYER, unsprayed(day))
   if (map.getLayer(TRACK_LAYER)) map.setFilter(TRACK_LAYER, sprayed(day))
+  if (map.getLayer(TRACK_END_LAYER)) map.setFilter(TRACK_END_LAYER, sprayed(day))
   if (map.getLayer(TRACK_MARK_LAYER)) map.setFilter(TRACK_MARK_LAYER, dayFilter(day))
 }
 
@@ -184,8 +248,8 @@ export function setTrackAgents(
   for (const id of [TRACK_LAYER, TRACK_NIL_LAYER]) {
     if (map.getLayer(id)) map.setPaintProperty(id, 'line-color', colour)
   }
-  if (map.getLayer(TRACK_MARK_LAYER)) {
-    map.setPaintProperty(TRACK_MARK_LAYER, 'circle-color', colour)
+  for (const id of [TRACK_MARK_LAYER, TRACK_END_LAYER]) {
+    if (map.getLayer(id)) map.setPaintProperty(id, 'circle-color', colour)
   }
 }
 

@@ -13,6 +13,11 @@ export interface TrackDataset {
   lines: GeoJSON.FeatureCollection<GeoJSON.LineString, TrackProps>
   /** Runs recorded at a single grid reference — no line to draw. */
   marks: GeoJSON.FeatureCollection<GeoJSON.Point, TrackProps>
+  /** First and last point of each track, for the endpoint caps. Built here
+   *  rather than in the layer module because it is a fact about the data, not
+   *  about how it is painted, and because doing it once at load beats doing it
+   *  on every style change. */
+  ends: GeoJSON.FeatureCollection<GeoJSON.Point, TrackProps>
   agents: string[]
   dayMin: number
   dayMax: number
@@ -102,10 +107,20 @@ export async function loadTracks(
     },
   )
 
+  const ends: GeoJSON.Feature<GeoJSON.Point, TrackProps>[] = []
+  for (const f of lines) {
+    const c = f.geometry.coordinates
+    if (c.length < 2) continue
+    for (const pt of [c[0], c[c.length - 1]]) {
+      ends.push({ type: 'Feature', geometry: { type: 'Point', coordinates: pt }, properties: f.properties })
+    }
+  }
+
   gpkSorted.sort((a, b) => a - b)
   return {
     lines: { type: 'FeatureCollection', features: lines },
     marks: { type: 'FeatureCollection', features: marks },
+    ends: { type: 'FeatureCollection', features: ends },
     agents: raw.agents,
     dayMin,
     dayMax,

@@ -130,8 +130,10 @@ export default function Timeline({
           recorded volume, logged as 24,604 track points.{' '}
           {tracks ? (
             <>
-              Each run is drawn as the line it was flown, its thickness the gallons laid down per
-              kilometre — so where the aircraft turned and came back, the ink stacks.
+              Zoomed out, each dot is a grid cell&apos;s total, counted along every run that
+              crossed it. Zoom past a spray run&apos;s own scale and the dots give way to the
+              lines themselves, drawn at the gallons laid down per kilometre — so where the
+              aircraft turned and came back, the ink stacks.
             </>
           ) : (
             <>

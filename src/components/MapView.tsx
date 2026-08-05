@@ -25,6 +25,9 @@ import {
   VOL_COARSE_LAYER,
   VOL_FINE_LAYER,
   VOL_RAW_LAYER,
+  VOL_COARSE_SOURCE,
+  VOL_FINE_SOURCE,
+  gridDegrees,
   DOTS,
 } from './volumeGrid'
 import {
@@ -34,6 +37,7 @@ import {
   setLayersVisible,
 } from './trackLayers'
 import { loadTracks, type TrackDataset } from '../data/tracks'
+import { binTracks } from './trackGrid'
 import ArchiveInspect, {
   fmtGallons,
   type Inspect,
@@ -351,6 +355,12 @@ export default function MapView() {
   }, [ready])
 
   const tracksRef = useRef<TrackDataset | null>(null)
+  /** Flips once the track file has landed. The day effect short-circuits on an
+   *  unchanged throttle key, so without a dep that changes when the tracks
+   *  arrive the grids would keep the point-binned data until the reader
+   *  happened to scrub — the same class of "correct code, never runs" bug the
+   *  tuner's once('idle') had. */
+  const [tracksReady, setTracksReady] = useState(false)
   const dayRef = useRef(0)
   const colorsRef = useRef<string[] | null>(null)
   const playingRef = useRef(false)
@@ -455,7 +465,12 @@ export default function MapView() {
             .then((t) => {
               tracksRef.current = t
               addTrackLayers(map, t, dayRef.current, DOTS.tint)
-              setLayersVisible(map, [VOL_COARSE_LAYER, VOL_FINE_LAYER, VOL_RAW_LAYER], false)
+              // Only the RAW dot tier steps aside — the two grid tiers keep
+              // their dots and get re-binned from the lines below, so the
+              // aggregate views gain the corrected geography without losing
+              // the mark that suits an aggregate.
+              setLayersVisible(map, [VOL_RAW_LAYER], false)
+              setTracksReady(true)
             })
             .catch((e) => console.error('tracks failed to load', e))
         }
@@ -568,15 +583,23 @@ export default function MapView() {
     const map = mapRef.current
     if (!ready || !map) return
     const atEnd = day >= bounds.max
-    const key = `${Math.floor(day / FILTER_STEP_DAYS)}|${agentKey}|${atEnd}`
+    const key = `${Math.floor(day / FILTER_STEP_DAYS)}|${agentKey}|${atEnd}|${tracksReady}`
     if (key === appliedKeyRef.current) return
     appliedKeyRef.current = key
     if (dataRef.current)
       updateVolume(map, dataRef.current, day, activeIndices, choices.find((c) => c.key === agentKey)?.color ?? null)
-    // The tracks need no re-bin — the playhead is a filter and the selection is
-    // a paint expression, so both are applied unconditionally and cheaply
-    // rather than behind the grid tiers' throttle key.
+    // The track LAYERS need no re-bin — the playhead is a filter and the
+    // selection is a paint expression. The two grid tiers do, and now from the
+    // lines rather than from the points.
     if (TRACKS && tracksRef.current) {
+      // The grids are re-binned from the TRACKS, so a run's gallons land in
+      // every cell it crossed. Same feature shape as binGrid, same layers.
+      const c = choices.find((x) => x.key === agentKey)?.color ?? DOTS.tint
+      const coarse = map.getSource(VOL_COARSE_SOURCE) as maplibregl.GeoJSONSource | undefined
+      const fine = map.getSource(VOL_FINE_SOURCE) as maplibregl.GeoJSONSource | undefined
+      const deg = gridDegrees()
+      coarse?.setData(binTracks(tracksRef.current, day, activeIndices, deg.coarse, c))
+      fine?.setData(binTracks(tracksRef.current, day, activeIndices, deg.fine, c))
       setTrackTime(map, day)
       setTrackAgents(
         map,
@@ -586,7 +609,7 @@ export default function MapView() {
       )
     }
     if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
-  }, [ready, day, agentKey, activeIndices, choices, bounds.max])
+  }, [ready, day, agentKey, activeIndices, choices, bounds.max, tracksReady])
 
   // Lets the tuner force a re-bin after changing something the bins bake in —
   // a cell size, or either of the two dot colours. The effect above

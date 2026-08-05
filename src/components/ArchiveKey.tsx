@@ -100,19 +100,27 @@ export default function ArchiveKey({
       </div>
 
       <ul className="map-key-list" aria-hidden="true">
+        {/* The hybrid draws BOTH marks — dots where the data on screen is a
+            cell total, tracks where it is one run — so with tracks on the key
+            has to carry both and say which is which. Listing only the line
+            would leave the far view's dots unexplained, which is the same
+            fault as the ring had. */}
         <li>
           <span className="key-swatch">
-            {tracks ? (
-              <span className="key-line" style={{ background: tint }} />
-            ) : (
-              <span className="key-dot" style={{ background: tint }} />
-            )}
+            <span className="key-dot" style={{ background: tint }} />
           </span>
-          {/* On the track map the width is gallons per KM, not gallons — the
-              only quantity comparable between a 2 km run and a 40 km one, and
-              a different claim from the dot map's. */}
-          {tracks ? 'Gallons per km' : 'Sprayed Volume'}
+          Sprayed Volume{tracks ? ' · per cell' : ''}
         </li>
+        {tracks && (
+          <li>
+            <span className="key-swatch">
+              <span className="key-line" style={{ background: tint }} />
+            </span>
+            {/* Width is gallons per KM, not gallons — the only quantity
+                comparable between a 2 km run and a 40 km one. */}
+            Single Run · gal/km
+          </li>
+        )}
         {filtered && (
           <li>
             <span className="key-swatch">
