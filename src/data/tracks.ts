@@ -39,6 +39,15 @@ export interface TrackProps {
   c: string
   /** Agent group index, for the dominant-agent readouts. */
   gi: number
+  /** Endpoint features only: 0 = head, 1 = tail.
+   *
+   *  "Head" means leg 1A — the first row of the run and the one HERBS books
+   *  the gallons against. Whether the aircraft physically flew 1A→1B or the
+   *  clerk listed them in some other order is NOT in the record; the letters
+   *  are the only ordering it gives, so they are the only ordering to use, and
+   *  a reader should be told the arrow means "first waypoint on file", not
+   *  "direction of flight, verified". */
+  end?: 0 | 1
 }
 
 interface RawTracks {
@@ -111,9 +120,16 @@ export async function loadTracks(
   for (const f of lines) {
     const c = f.geometry.coordinates
     if (c.length < 2) continue
-    for (const pt of [c[0], c[c.length - 1]]) {
-      ends.push({ type: 'Feature', geometry: { type: 'Point', coordinates: pt }, properties: f.properties })
-    }
+    ends.push({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: c[0] },
+      properties: { ...f.properties, end: 0 },
+    })
+    ends.push({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: c[c.length - 1] },
+      properties: { ...f.properties, end: 1 },
+    })
   }
 
   gpkSorted.sort((a, b) => a - b)

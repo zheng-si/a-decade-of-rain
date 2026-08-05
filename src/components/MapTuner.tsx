@@ -21,7 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type maplibregl from 'maplibre-gl'
-import { mapConfig, Z_MID, Z_NEAR } from '../config/mapConfig'
+import { mapConfig, Z_FAR, Z_MID, Z_NEAR } from '../config/mapConfig'
 import {
   WATER_FILL,
   VEGETATION_RE,
@@ -40,6 +40,16 @@ import {
   type DotStyle,
   type DotRamp,
 } from './volumeGrid'
+import {
+  TRACKS,
+  setTracks,
+  applyTracks,
+  TRACK_LAYER,
+  TRACK_NIL_LAYER,
+  TRACK_END_LAYER,
+  TRACK_MARK_LAYER,
+  type TrackStyle,
+} from './trackLayers'
 import {
   LABEL_TIERS,
   LABEL_GROUPS,
@@ -122,6 +132,10 @@ interface Tune {
    *  reason the tiers are: a second copy is how a panel starts describing a
    *  map we do not have. */
   dots: DotStyle
+  /** SPIKE A — the line encoding. Only reachable with ?tracks=1, and the tab
+   *  hides itself otherwise: a console offering controls for layers that are
+   *  not on the map is the same lie as a legend naming a mark it cannot draw. */
+  tracks: TrackStyle
   // ── type scale ──
   typeFloor: number
   typeTop: number
@@ -198,6 +212,7 @@ const DEFAULTS: Tune = {
   coarseDeg: gridDegrees().coarse,
   fineDeg: gridDegrees().fine,
   dots: JSON.parse(JSON.stringify(DOTS)) as DotStyle,
+  tracks: JSON.parse(JSON.stringify(TRACKS)) as TrackStyle,
   typeFloor: 5,
   typeTop: 11,
   // Read off quietBasemap / mapTheme as committed, so "Reset" really is the
@@ -273,6 +288,14 @@ function readStore(): Tune {
       t.dots[k] = { ...DEFAULTS.dots[k], ...(parsed.dots?.[k] ?? {}) }
     }
     t.dots.zero = { ...DEFAULTS.dots.zero, ...(parsed.dots?.zero ?? {}) }
+    // Same nested merge for the tracks, so a tune stored before this tab
+    // existed loads with real numbers instead of undefined.
+    t.tracks = { ...DEFAULTS.tracks, ...(parsed.tracks ?? {}) }
+    t.tracks.far = { ...DEFAULTS.tracks.far, ...(parsed.tracks?.far ?? {}) }
+    t.tracks.near = { ...DEFAULTS.tracks.near, ...(parsed.tracks?.near ?? {}) }
+    t.tracks.ends = { ...DEFAULTS.tracks.ends, ...(parsed.tracks?.ends ?? {}) }
+    t.tracks.nil = { ...DEFAULTS.tracks.nil, ...(parsed.tracks?.nil ?? {}) }
+    t.tracks.marks = { ...DEFAULTS.tracks.marks, ...(parsed.tracks?.marks ?? {}) }
     // Tiers deep-merge, so a stored tune written before a field existed keeps
     // the rest of its work instead of being thrown away wholesale.
     t.tiers = { ...DEFAULTS.tiers }
@@ -329,6 +352,16 @@ function tunerEnabled(): boolean {
  *  positron's basemap. */
 const OWN_LAYERS = new Set(['mr-label', 'island-label', VN_LABEL_LAYER])
 
+/** Is the line encoding on this page load? Read once, the same way
+ *  MapView reads it — the tab must not offer controls for absent layers. */
+const TRACKS_ON = (() => {
+  try {
+    return new URLSearchParams(window.location.search).has('tracks')
+  } catch {
+    return false
+  }
+})()
+
 export default function MapTuner({
   map,
   onRegrid,
@@ -341,7 +374,7 @@ export default function MapTuner({
 }) {
   const enabled = useMemo(tunerEnabled, [])
   const [open, setOpen] = useState(false)
-  const [tab, setTab] = useState<'palette' | 'dots' | 'zoom' | 'type' | 'layers'>('palette')
+  const [tab, setTab] = useState<'palette' | 'dots' | 'tracks' | 'zoom' | 'type' | 'layers'>('palette')
   const [tune, setTune] = useState<Tune>(readStore)
   const [copied, setCopied] = useState(false)
   const [labelsOnly, setLabelsOnly] = useState(true)
@@ -523,6 +556,10 @@ export default function MapTuner({
       // features rather than into paint, so they ask for a re-bin.
       if (setDots(tune.dots)) regrid = true
       applyDots(m)
+      // The tracks go through their own module's setter and apply, for exactly
+      // the reason the dots do: one path from a value to the screen.
+      setTracks(tune.tracks)
+      applyTracks(m)
       if (regrid) onRegridRef.current?.()
       setRange(VOL_COARSE_LAYER, 0, tune.zMid)
       setRange(VOL_FINE_LAYER, tune.zMid, tune.zNear)
@@ -530,13 +567,25 @@ export default function MapTuner({
       setRange('mr-label', 0, tune.zNear)
       setRange(VN_LABEL_LAYER, 0, tune.zMid)
 
+      // Layers whose visibility belongs to someone else.
+      //
+      // The sweep below writes `visible` to every layer not ticked off in
+      // `hidden`, which quietly undid two other owners: the TRACKS tab's own
+      // show/hide checkboxes, and MapView hiding the raw dot tier when the
+      // lines take over that band. Both looked like dead controls — the beads
+      // checkbox did nothing, and vol-raw drew its dots straight over the
+      // tracks. One fact, one owner: these five are theirs.
+      const spikeOwned = TRACKS_ON
+        ? new Set<string>([TRACK_LAYER, TRACK_NIL_LAYER, TRACK_END_LAYER, TRACK_MARK_LAYER, VOL_RAW_LAYER])
+        : new Set<string>()
+
       for (const layer of m.getStyle().layers ?? []) {
         const id = layer.id
         try {
           // Visibility and zoom range apply to EVERY layer, not only labels —
           // hiding a fill or clamping a road is as much a map decision as
           // hiding a place name, and used to be unreachable from here.
-          if (layer.type !== 'background') {
+          if (layer.type !== 'background' && !spikeOwned.has(id)) {
             m.setLayoutProperty(id, 'visibility', tune.hidden.includes(id) ? 'none' : 'visible')
             const ov = tune.zoomRanges[id]
             if (ov && (ov[0] != null || ov[1] != null)) {
@@ -620,6 +669,9 @@ export default function MapTuner({
 
   const setDot = (patch: Partial<DotStyle>) =>
     setTune((t) => ({ ...t, dots: { ...t.dots, ...patch } }))
+
+  const setTrk = (patch: Partial<TrackStyle>) =>
+    setTune((t) => ({ ...t, tracks: { ...t.tracks, ...patch } }))
 
   const setDotRamp = (tier: 'coarse' | 'fine' | 'raw', patch: Partial<DotRamp>) =>
     setTune((t) => ({ ...t, dots: { ...t.dots, [tier]: { ...t.dots[tier], ...patch } } }))
@@ -762,6 +814,35 @@ export default function MapTuner({
       vol.push(
         `DOTS.zero: { radius: [${d.zero.radius[0]}, ${d.zero.radius[1]}], stroke: ${d.zero.stroke}, opacity: ${d.zero.opacity} },`,
       )
+    }
+    // The tracks print into their own file, and only when they are on screen —
+    // emitting them from a page that is not drawing lines would be quoting a
+    // config nobody was looking at.
+    if (TRACKS_ON) {
+      const t = tune.tracks
+      const td = DEFAULTS.tracks
+      const trk: string[] = []
+      if (changed(t.far, td.far)) trk.push(`TRACKS.far: { k: ${t.far.k}, cap: ${t.far.cap} },`)
+      if (changed(t.near, td.near)) trk.push(`TRACKS.near: { k: ${t.near.k}, cap: ${t.near.cap} },`)
+      if (t.opacity !== td.opacity) trk.push(`TRACKS.opacity: ${t.opacity},`)
+      if (t.blur !== td.blur) trk.push(`TRACKS.blur: ${t.blur},`)
+      if (t.cap !== td.cap) trk.push(`TRACKS.cap: '${t.cap}',`)
+      if (changed(t.ends, td.ends)) {
+        trk.push(
+          `TRACKS.ends: { head: ${t.ends.head}, tail: ${t.ends.tail}, opacity: ${t.ends.opacity}, blur: ${t.ends.blur}, shown: ${t.ends.shown} },`,
+        )
+      }
+      if (changed(t.nil, td.nil)) {
+        trk.push(
+          `TRACKS.nil: { width: ${t.nil.width}, opacity: ${t.nil.opacity}, dash: [${t.nil.dash[0]}, ${t.nil.dash[1]}], shown: ${t.nil.shown} },`,
+        )
+      }
+      if (changed(t.marks, td.marks)) {
+        trk.push(
+          `TRACKS.marks: { kFar: ${t.marks.kFar}, kNear: ${t.marks.kNear}, cap: ${t.marks.cap}, shown: ${t.marks.shown} },`,
+        )
+      }
+      push('src/components/trackLayers.ts', trk)
     }
     if (d.tint !== dd.tint) vol.push(`DOTS.tint: '${d.tint}',`)
     if (d.dim !== dd.dim) vol.push(`DOTS.dim: '${d.dim}',`)
@@ -912,7 +993,9 @@ export default function MapTuner({
       </div>
 
       <div className="tuner-tabs" role="tablist">
-        {(['palette', 'dots', 'zoom', 'type', 'layers'] as const).map((t) => (
+        {(
+          ['palette', 'dots', ...(TRACKS_ON ? (['tracks'] as const) : []), 'zoom', 'type', 'layers'] as const
+        ).map((t) => (
           <button
             key={t}
             role="tab"
@@ -1249,6 +1332,325 @@ export default function MapTuner({
             rather than into paint, so changing one re-bins the grid — it takes a beat, and that is
             the work, not a stall.
           </p>
+        </>
+      )}
+
+      {tab === 'tracks' && (
+        <>
+          <p className="tuner-note">
+            The near tier draws each spray run as the line it was flown, width by gallons per km.
+            These controls reach only that band — the two grid tiers above it are dots, and they
+            live under DOTS.
+          </p>
+
+          <div className="tuner-ramp">
+            <span className="tuner-ramp-name">
+              Stroke width <em>TRACKS.far / near · z{Z_FAR}→11</em>
+            </span>
+            <div className="tuner-ramp-ends is-dots">
+              <label>
+                <span>px per 162 gal/km, far</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={20}
+                  step={0.1}
+                  value={Number((tune.tracks.far.k * 162).toFixed(2))}
+                  onChange={(e) =>
+                    setTrk({ far: { ...tune.tracks.far, k: Number(e.target.value) / 162 } })
+                  }
+                />
+              </label>
+              <label>
+                <span>px per 162, near</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={20}
+                  step={0.1}
+                  value={Number((tune.tracks.near.k * 162).toFixed(2))}
+                  onChange={(e) =>
+                    setTrk({ near: { ...tune.tracks.near, k: Number(e.target.value) / 162 } })
+                  }
+                />
+              </label>
+              <label>
+                <span>cap px, near</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={60}
+                  step={1}
+                  value={tune.tracks.near.cap}
+                  onChange={(e) =>
+                    setTrk({ near: { ...tune.tracks.near, cap: Number(e.target.value) } })
+                  }
+                />
+              </label>
+            </div>
+            <p className="tuner-tier-read">
+              Typed as the width of a MEDIAN segment (162 gal/km) rather than as the raw k, because
+              nobody can picture 0.0185. The {tune.tracks.near.cap} px cap bites above{' '}
+              {Math.round(tune.tracks.near.cap / tune.tracks.near.k).toLocaleString()} gal/km at the
+              ceiling — past that, every stroke is the same weight.
+            </p>
+          </div>
+
+          <label className="tuner-slider">
+            <span>
+              Stroke alpha <strong>{tune.tracks.opacity}</strong>
+            </span>
+            <input
+              type="range"
+              min={0.05}
+              max={1}
+              step={0.05}
+              value={tune.tracks.opacity}
+              onChange={(e) => setTrk({ opacity: Number(e.target.value) })}
+            />
+            <em>low enough that crossing tracks read as crossing, and repeated ground darkens</em>
+          </label>
+
+          <label className="tuner-slider">
+            <span>
+              Stroke feather · px <strong>{tune.tracks.blur}</strong>
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={3}
+              step={0.1}
+              value={tune.tracks.blur}
+              onChange={(e) => setTrk({ blur: Number(e.target.value) })}
+            />
+          </label>
+
+          <label className="tuner-row">
+            <span className="tuner-label">Cap style</span>
+            <select
+              value={tune.tracks.cap}
+              onChange={(e) => setTrk({ cap: e.target.value as 'round' | 'butt' })}
+            >
+              <option value="round">round</option>
+              <option value="butt">butt</option>
+            </select>
+          </label>
+
+          {/* ── direction ── */}
+          <div className="tuner-ramp">
+            <span className="tuner-ramp-name">
+              Head &amp; tail <em>TRACKS.ends · direction</em>
+            </span>
+            <div className="tuner-ramp-ends is-dots">
+              <label>
+                <span>head ×</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={6}
+                  step={0.1}
+                  value={tune.tracks.ends.head}
+                  onChange={(e) =>
+                    setTrk({ ends: { ...tune.tracks.ends, head: Number(e.target.value) } })
+                  }
+                />
+              </label>
+              <label>
+                <span>tail ×</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={6}
+                  step={0.1}
+                  value={tune.tracks.ends.tail}
+                  onChange={(e) =>
+                    setTrk({ ends: { ...tune.tracks.ends, tail: Number(e.target.value) } })
+                  }
+                />
+              </label>
+              <label>
+                <span>feather px</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={3}
+                  step={0.1}
+                  value={tune.tracks.ends.blur}
+                  onChange={(e) =>
+                    setTrk({ ends: { ...tune.tracks.ends, blur: Number(e.target.value) } })
+                  }
+                />
+              </label>
+            </div>
+            <label className="tuner-slider">
+              <span>
+                Bead alpha <strong>{tune.tracks.ends.opacity}</strong>
+              </span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={tune.tracks.ends.opacity}
+                onChange={(e) =>
+                  setTrk({ ends: { ...tune.tracks.ends, opacity: Number(e.target.value) } })
+                }
+              />
+            </label>
+            <label className="tuner-check">
+              <input
+                type="checkbox"
+                checked={tune.tracks.ends.shown}
+                onChange={(e) =>
+                  setTrk({ ends: { ...tune.tracks.ends, shown: e.target.checked } })
+                }
+              />
+              <span>show beads</span>
+            </label>
+            <p className="tuner-tier-read">
+              Multiples of the stroke&apos;s own half-width, so a bead always belongs to its line.
+              Head bigger than tail makes every track an arrow without drawing an arrowhead — at
+              8,753 strokes a glyph would be unreadable. HEAD IS LEG 1A: the run&apos;s first row
+              on file and the one the gallons are booked against. The record carries no bearing, so
+              this is &ldquo;first waypoint recorded&rdquo;, not &ldquo;direction of flight&rdquo;.
+            </p>
+          </div>
+
+          {/* ── the other two marks ── */}
+          <div className="tuner-ramp">
+            <span className="tuner-ramp-name">
+              Flown, no volume <em>TRACKS.nil · dashed</em>
+            </span>
+            <div className="tuner-ramp-ends is-dots">
+              <label>
+                <span>width px</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={6}
+                  step={0.1}
+                  value={tune.tracks.nil.width}
+                  onChange={(e) =>
+                    setTrk({ nil: { ...tune.tracks.nil, width: Number(e.target.value) } })
+                  }
+                />
+              </label>
+              <label>
+                <span>dash</span>
+                <input
+                  type="number"
+                  min={0.5}
+                  max={12}
+                  step={0.5}
+                  value={tune.tracks.nil.dash[0]}
+                  onChange={(e) =>
+                    setTrk({
+                      nil: { ...tune.tracks.nil, dash: [Number(e.target.value), tune.tracks.nil.dash[1]] },
+                    })
+                  }
+                />
+              </label>
+              <label>
+                <span>gap</span>
+                <input
+                  type="number"
+                  min={0.5}
+                  max={12}
+                  step={0.5}
+                  value={tune.tracks.nil.dash[1]}
+                  onChange={(e) =>
+                    setTrk({
+                      nil: { ...tune.tracks.nil, dash: [tune.tracks.nil.dash[0], Number(e.target.value)] },
+                    })
+                  }
+                />
+              </label>
+            </div>
+            <label className="tuner-slider">
+              <span>
+                Alpha <strong>{tune.tracks.nil.opacity}</strong>
+              </span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={tune.tracks.nil.opacity}
+                onChange={(e) =>
+                  setTrk({ nil: { ...tune.tracks.nil, opacity: Number(e.target.value) } })
+                }
+              />
+            </label>
+            <label className="tuner-check">
+              <input
+                type="checkbox"
+                checked={tune.tracks.nil.shown}
+                onChange={(e) => setTrk({ nil: { ...tune.tracks.nil, shown: e.target.checked } })}
+              />
+              <span>show them</span>
+            </label>
+          </div>
+
+          <div className="tuner-ramp">
+            <span className="tuner-ramp-name">
+              Single-point runs <em>TRACKS.marks · 2,829 of 11,273</em>
+            </span>
+            <div className="tuner-ramp-ends is-dots">
+              <label>
+                <span>k far</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.005}
+                  value={tune.tracks.marks.kFar}
+                  onChange={(e) =>
+                    setTrk({ marks: { ...tune.tracks.marks, kFar: Number(e.target.value) } })
+                  }
+                />
+              </label>
+              <label>
+                <span>k near</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={1}
+                  step={0.005}
+                  value={tune.tracks.marks.kNear}
+                  onChange={(e) =>
+                    setTrk({ marks: { ...tune.tracks.marks, kNear: Number(e.target.value) } })
+                  }
+                />
+              </label>
+              <label>
+                <span>cap px</span>
+                <input
+                  type="number"
+                  min={1}
+                  max={40}
+                  step={1}
+                  value={tune.tracks.marks.cap}
+                  onChange={(e) =>
+                    setTrk({ marks: { ...tune.tracks.marks, cap: Number(e.target.value) } })
+                  }
+                />
+              </label>
+            </div>
+            <label className="tuner-check">
+              <input
+                type="checkbox"
+                checked={tune.tracks.marks.shown}
+                onChange={(e) =>
+                  setTrk({ marks: { ...tune.tracks.marks, shown: e.target.checked } })
+                }
+              />
+              <span>show them</span>
+            </label>
+            <p className="tuner-tier-read">
+              k·√gallons, the dot map&apos;s own encoding — a run recorded at one grid reference IS
+              a point, so it gets a point.
+            </p>
+          </div>
         </>
       )}
 

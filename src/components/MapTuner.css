@@ -599,3 +599,15 @@
 .tuner-ramp-ends.is-dots.is-two {
   grid-template-columns: repeat(2, 1fr);
 }
+
+/* The cap-style dropdown — the panel's only select, so it needs its own line
+   to stop the browser default from towering over the rest of the furniture. */
+.tuner-row select {
+  padding: 0.12rem 0.3rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 0.63rem;
+  color: #3c3f38;
+}

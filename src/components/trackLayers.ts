@@ -55,35 +55,77 @@ export const TRACK_END_LAYER = 'spray-track-end'
 /** Zoom anchors for the width ramp. One span, because there is one tier. */
 const Z_TOP = 11
 
-/**
- * Width in px at the two anchors, and the ceiling at each.
- *
- * Chosen against the real distribution of gallons per km, not by eye:
- *
- *   p25 36 · p50 162 · p75 288 · p90 442 · p99 1143 · max 9074
- *
- * `k` puts the median segment at 0.8 px when the whole record is on screen and
- * 3 px at the zoom ceiling; the cap bites above ~760 gal/km, which is 2.7% of
- * segments. Without a cap the top of the tail is 56 px wide and stops being a
- * line at all.
- */
-const WIDTH = {
-  far: { k: 0.8 / 162, cap: 4 },
-  near: { k: 3 / 162, cap: 14 },
+/** Per-anchor width: k·gallons-per-km, capped in px. */
+export interface TrackRamp {
+  k: number
+  cap: number
 }
 
-/** Alpha low enough that crossing tracks read as crossing, and repeated
- *  ground reads as darker. This is the whole reason not to draw them opaque. */
-const TRACK_OPACITY = 0.5
+/**
+ * Everything that decides what a track LOOKS like, in one table.
+ *
+ * Same shape and same reason as DOTS in volumeGrid: a console cannot offer a
+ * full set of controls over values it has to go and find, and two copies of a
+ * number are how a panel starts describing a map we do not have.
+ */
+export interface TrackStyle {
+  /** Width in px at the far and near zoom anchors.
+   *
+   *  Set against the real distribution of gallons per km — p25 36, p50 162,
+   *  p75 288, p90 442, p99 1143, max 9074 — so the median segment is 0.8 px
+   *  with the record on screen and 3 px at the ceiling, and the cap bites
+   *  above ~760 gal/km, which is 2.7% of segments. Without a cap the top of
+   *  the tail is 56 px and stops being a line at all. */
+  far: TrackRamp
+  near: TrackRamp
+  opacity: number
+  /** Feathering in PX, unlike circle-blur's fraction-of-radius. */
+  blur: number
+  /** Round caps stop 8,753 strokes reading as scratches. `butt` is here to
+   *  make that comparison, not because it is a real option. */
+  cap: 'round' | 'butt'
+  /** The endpoint beads, and the only thing on this map that carries
+   *  DIRECTION.
+   *
+   *  head and tail are multiples of the line's own half-width, so a bead always
+   *  belongs to its stroke instead of being a fixed dot stuck on it. Making
+   *  head bigger than tail turns every track into an arrow without drawing an
+   *  arrowhead — the taper does the work that a glyph would, and at 8,753
+   *  strokes a glyph would be unreadable anyway.
+   *
+   *  What the direction MEANS is worth being careful about: head is leg 1A,
+   *  the run's first row and the one the gallons are booked against. The
+   *  record gives no flight bearing, so this is "first waypoint on file", not
+   *  "verified direction of travel". */
+  ends: { head: number; tail: number; opacity: number; blur: number; shown: boolean }
+  /** The dashed track of a run with no recorded volume. */
+  nil: { width: number; opacity: number; dash: [number, number]; shown: boolean }
+  /** Runs recorded at a single grid reference — a point, drawn as one. */
+  marks: { kFar: number; kNear: number; cap: number; shown: boolean }
+}
 
-/** A hair of feathering. The dots got 0.25 of their radius; a line is thin
- *  enough that the equivalent is a fraction of a pixel, and it is what stops
- *  a 1 px track looking like a scratch. In px, unlike circle-blur. */
-const TRACK_BLUR = 0.4
+/** Shipped track appearance. Mutable ONLY through `setTracks`. */
+export const TRACKS: TrackStyle = {
+  far: { k: 0.8 / 162, cap: 4 },
+  near: { k: 3 / 162, cap: 14 },
+  opacity: 0.5,
+  blur: 0.4,
+  cap: 'round',
+  ends: { head: 1.1, tail: 0.5, opacity: 0.6, blur: 0.3, shown: true },
+  nil: { width: 0.6, opacity: 0.35, dash: [2, 2], shown: true },
+  marks: { kFar: 0.02, kNear: 0.09, cap: 14, shown: true },
+}
 
-/** Endpoint dot radius, as a multiple of the line's own half-width, so the
- *  cap always belongs to its line instead of being a fixed bead stuck on it. */
-const END_SCALE = 0.75
+/** Console hook. Merges in place so TRACKS stays one object; the nested
+ *  groups are deep-copied for the same aliasing reason as setDots. */
+export function setTracks(next: Partial<TrackStyle>) {
+  Object.assign(TRACKS, next)
+  if (next.far) TRACKS.far = { ...next.far }
+  if (next.near) TRACKS.near = { ...next.near }
+  if (next.ends) TRACKS.ends = { ...next.ends }
+  if (next.nil) TRACKS.nil = { ...next.nil, dash: [next.nil.dash[0], next.nil.dash[1]] }
+  if (next.marks) TRACKS.marks = { ...next.marks }
+}
 
 const dayFilter = (day: number) =>
   ['<=', ['get', 'day'], day] as unknown as maplibregl.FilterSpecification
@@ -96,26 +138,74 @@ const unsprayed = (day: number) =>
  *  outermost expression, so the cap goes inside each stop — the same shape as
  *  the dots' radius ramp, for the same MapLibre reason. */
 function widthRamp(): maplibregl.ExpressionSpecification {
-  const at = (w: { k: number; cap: number }) =>
-    ['min', ['*', w.k, ['get', 'gpk']], w.cap]
+  const at = (w: TrackRamp) => ['min', ['*', w.k, ['get', 'gpk']], w.cap]
   return [
     'interpolate', ['linear'], ['zoom'],
-    Z_FAR, at(WIDTH.far),
-    Z_TOP, at(WIDTH.near),
+    Z_FAR, at(TRACKS.far),
+    Z_TOP, at(TRACKS.near),
   ] as unknown as maplibregl.ExpressionSpecification
 }
 
-/** Endpoint radius: half the line's own width at this zoom, scaled. Derived
- *  from the same numbers rather than typed again, so a wider line always gets
- *  a proportionate cap and the two can never drift apart. */
+/** Endpoint radius: half the line's own width at this zoom, times head or tail.
+ *
+ *  Derived from the same numbers as the stroke rather than typed again, so a
+ *  wider line always gets a proportionate bead. The head/tail choice goes
+ *  INSIDE each zoom stop, because MapLibre needs the zoom interpolate to be
+ *  the outermost expression — the same constraint the dot radius ramp has. */
 function endRamp(): maplibregl.ExpressionSpecification {
-  const at = (w: { k: number; cap: number }) =>
-    ['*', END_SCALE / 2, ['min', ['*', w.k, ['get', 'gpk']], w.cap]]
+  const at = (w: TrackRamp) => [
+    '*',
+    0.5,
+    ['min', ['*', w.k, ['get', 'gpk']], w.cap],
+    ['case', ['==', ['get', 'end'], 0], TRACKS.ends.head, TRACKS.ends.tail],
+  ]
   return [
     'interpolate', ['linear'], ['zoom'],
-    Z_FAR, at(WIDTH.far),
-    Z_TOP, at(WIDTH.near),
+    Z_FAR, at(TRACKS.far),
+    Z_TOP, at(TRACKS.near),
   ] as unknown as maplibregl.ExpressionSpecification
+}
+
+/** Single-point runs: k·√gallons, the dot map's own encoding, because a run
+ *  recorded at one grid reference IS a point. */
+function markRamp(): maplibregl.ExpressionSpecification {
+  const m = TRACKS.marks
+  return [
+    'interpolate', ['linear'], ['zoom'],
+    Z_FAR, ['min', ['*', m.kFar, ['sqrt', ['get', 'gallons']]], m.cap],
+    Z_TOP, ['min', ['*', m.kNear, ['sqrt', ['get', 'gallons']]], m.cap],
+  ] as unknown as maplibregl.ExpressionSpecification
+}
+
+/** Push the current TRACKS onto a live map — one function that knows how a
+ *  track parameter reaches the screen, called at creation and by the console. */
+export function applyTracks(map: maplibregl.Map) {
+  const vis = (id: string, on: boolean) => {
+    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
+  }
+  if (map.getLayer(TRACK_LAYER)) {
+    map.setPaintProperty(TRACK_LAYER, 'line-width', widthRamp() as never)
+    map.setPaintProperty(TRACK_LAYER, 'line-opacity', TRACKS.opacity)
+    map.setPaintProperty(TRACK_LAYER, 'line-blur', TRACKS.blur)
+    map.setLayoutProperty(TRACK_LAYER, 'line-cap', TRACKS.cap)
+  }
+  if (map.getLayer(TRACK_END_LAYER)) {
+    map.setPaintProperty(TRACK_END_LAYER, 'circle-radius', endRamp() as never)
+    map.setPaintProperty(TRACK_END_LAYER, 'circle-opacity', TRACKS.ends.opacity)
+    map.setPaintProperty(TRACK_END_LAYER, 'circle-blur', TRACKS.ends.blur)
+    vis(TRACK_END_LAYER, TRACKS.ends.shown)
+  }
+  if (map.getLayer(TRACK_NIL_LAYER)) {
+    map.setPaintProperty(TRACK_NIL_LAYER, 'line-width', TRACKS.nil.width)
+    map.setPaintProperty(TRACK_NIL_LAYER, 'line-opacity', TRACKS.nil.opacity)
+    map.setPaintProperty(TRACK_NIL_LAYER, 'line-dasharray', TRACKS.nil.dash as never)
+    vis(TRACK_NIL_LAYER, TRACKS.nil.shown)
+  }
+  if (map.getLayer(TRACK_MARK_LAYER)) {
+    map.setPaintProperty(TRACK_MARK_LAYER, 'circle-radius', markRamp() as never)
+    map.setPaintProperty(TRACK_MARK_LAYER, 'circle-opacity', TRACKS.opacity)
+    vis(TRACK_MARK_LAYER, TRACKS.marks.shown)
+  }
 }
 
 /** Add the track layers under the basemap's labels. Returns the bottom
@@ -145,11 +235,11 @@ export function addTrackLayers(
       layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
         'line-color': tint,
-        'line-width': 0.6,
-        'line-opacity': 0.35,
+        'line-width': TRACKS.nil.width,
+        'line-opacity': TRACKS.nil.opacity,
         // Dashed for the same reason the zero-volume dots are hollow: it is a
         // different KIND of mark, not a thinner amount of the same one.
-        'line-dasharray': [2, 2],
+        'line-dasharray': TRACKS.nil.dash,
       },
     },
     labelId,
@@ -164,12 +254,12 @@ export function addTrackLayers(
       // same lines by trackGrid.
       minzoom: Z_NEAR,
       filter: sprayed(day),
-      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      layout: { 'line-cap': TRACKS.cap, 'line-join': 'round' },
       paint: {
         'line-color': tint,
         'line-width': widthRamp(),
-        'line-opacity': TRACK_OPACITY,
-        'line-blur': TRACK_BLUR,
+        'line-opacity': TRACKS.opacity,
+        'line-blur': TRACKS.blur,
       },
     },
     labelId,
@@ -184,16 +274,10 @@ export function addTrackLayers(
       filter: dayFilter(day),
       paint: {
         'circle-color': tint,
-        'circle-opacity': TRACK_OPACITY,
+        'circle-opacity': TRACKS.opacity,
         'circle-pitch-alignment': 'map',
         'circle-pitch-scale': 'map',
-        // Same k·√gallons as the dot map's near tier — a single-point run IS a
-        // point, so the point encoding is the right one for it.
-        'circle-radius': [
-          'interpolate', ['linear'], ['zoom'],
-          Z_FAR, ['min', ['*', 0.02, ['sqrt', ['get', 'gallons']]], 6],
-          Z_TOP, ['min', ['*', 0.09, ['sqrt', ['get', 'gallons']]], 14],
-        ] as unknown as maplibregl.ExpressionSpecification,
+        'circle-radius': markRamp(),
       },
     },
     labelId,
@@ -208,8 +292,8 @@ export function addTrackLayers(
       filter: sprayed(day),
       paint: {
         'circle-color': tint,
-        'circle-opacity': TRACK_OPACITY,
-        'circle-blur': 0.3,
+        'circle-opacity': TRACKS.ends.opacity,
+        'circle-blur': TRACKS.ends.blur,
         'circle-pitch-alignment': 'map',
         'circle-pitch-scale': 'map',
         'circle-radius': endRamp(),
