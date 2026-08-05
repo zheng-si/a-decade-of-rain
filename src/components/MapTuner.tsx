@@ -585,6 +585,15 @@ export default function MapTuner({
       return { ...t, tiers: { ...t.tiers, [key]: { ...t.tiers[key], size: next } } }
     })
 
+  /** Drop every per-layer override on a tier's layers, so the tier's own
+   *  settings are the only thing left speaking. */
+  const clearOverrides = (layerIds: string[]) =>
+    setTune((t) => {
+      const zoomRanges = { ...t.zoomRanges }
+      for (const id of layerIds) delete zoomRanges[id]
+      return { ...t, zoomRanges, hidden: t.hidden.filter((id) => !layerIds.includes(id)) }
+    })
+
   const setStageEnd = (key: TierKey, end: 0 | 1, v: number) =>
     setTune((t) => {
       const next: Ramp = [...t.tiers[key].zoom] as Ramp
@@ -1077,6 +1086,32 @@ export default function MapTuner({
                 <p className="tuner-tier-read">
                   {contrast(tier.color, tune.land).toFixed(2)}:1 on land
                 </p>
+                {/* Visibility has three possible owners — this tier, a per-layer
+                    tick, and a per-layer zoom override — and the panel used to
+                    show only the first. A tier reading "shown, from z0" while
+                    its layer was ticked off in LAYERS looked identical to one
+                    that simply was not drawing. That is a panel that lies. */}
+                {(() => {
+                  const mine = ids[key] ?? []
+                  const off = mine.filter((id) => tune.hidden.includes(id))
+                  const zov = mine.filter((id) => tune.zoomRanges[id])
+                  if (!off.length && !zov.length) return null
+                  return (
+                    <p className="tuner-conflict">
+                      <strong>Overridden per layer — this beats the settings above.</strong>
+                      {off.length > 0 && <> Hidden in LAYERS: {off.join(', ')}.</>}
+                      {zov.map((id) => (
+                        <span key={id}>
+                          {' '}{id} clamped to z{tune.zoomRanges[id][0] ?? 0}–
+                          {tune.zoomRanges[id][1] ?? 24}.
+                        </span>
+                      ))}{' '}
+                      <button type="button" onClick={() => clearOverrides(mine)}>
+                        Clear override
+                      </button>
+                    </p>
+                  )
+                })()}
                 {RANKED.has(key) && (
                     <label className="tuner-slider tuner-rank">
                       <span>
