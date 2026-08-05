@@ -122,24 +122,34 @@ export interface DotStyle {
    *  absent from the map. */
   floor: [number, number]
 
-  /** How a run with NO recorded volume is drawn: a small open ring.
+  /** How a TRACK POINT is drawn: a small open ring.
    *
-   *  16,244 of the 24,604 recorded runs carry zero gallons — a mission books
-   *  its volume against one leg and the rest of its legs read 0. k·√0 is 0, so
-   *  two thirds of the record did not draw at all, and the page that calls
-   *  itself the complete record quietly claimed those sorties never happened.
-   *  (The story's heatmap has always handled this: WEIGHT_FLOOR in spray.ts,
-   *  "so the many mission-legs recorded with 0 gallons still faintly mark a
-   *  spray location".)
+   *  16,244 of the source's 24,604 rows carry zero gallons, and they are not
+   *  runs with a missing figure — they are the waypoints of a run. Checked
+   *  against the source (andrewstellman/hea-v @ cb5948b, data/herbs.json):
    *
-   *  A ring rather than a small filled dot, because these are a different KIND
-   *  of fact, not a smaller quantity of the same one — a filled dot of any size
-   *  reads on a scale that says "this much fell here", and for these runs the
-   *  honest statement is "a pass is on file, the volume is not". Hollow says
-   *  that without needing a number. Only the raw tier can hold them; binGrid
-   *  never emits an empty cell.
+   *    · every row has a `Leg` of the form 1A, 1B, 2A … (100% of 24,604)
+   *    · grouped by Mission + Run there are 11,273 runs, 8,582 of them with
+   *      more than one row, and the rows chain end to end
+   *    · ALL 19,490,690 gallons sit on leg 1A; every other leg sums to 0
+   *    · the median run traces an 11.4 km polyline (p90 19.9 km)
    *
-   *  Set `stroke` to 0 to take them off the map again. */
+   *  So a run is a LINE and its whole volume is booked at one end of it. Our
+   *  ETL drops Mission, Run and Leg, which is what leaves the line looking like
+   *  a heap of unrelated points.
+   *
+   *  A ring rather than a small filled dot, because a filled dot of any size
+   *  reads on a scale that says "this much fell here", and a waypoint is not a
+   *  small quantity — it is a different kind of fact. Hollow says that without
+   *  needing a number. Only the raw tier can hold them; binGrid never emits an
+   *  empty cell.
+   *
+   *  This does NOT fix the underlying distortion: a run's gallons still land
+   *  entirely in the grid cell containing leg 1A, when they were laid down
+   *  along a line several cells long. Fixing that means distributing the volume
+   *  along the track in the ETL, which is a data change, not a paint one.
+   *
+   *  Set `stroke` to 0 to take the waypoints off the map again. */
   zero: {
     /** Ring radius in px at [low anchor, high anchor]. Kept under the median
      *  filled dot so the ring stays subordinate to real volume. */

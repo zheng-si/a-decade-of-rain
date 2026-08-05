@@ -265,9 +265,17 @@ function applyView(map: maplibregl.Map, next: boolean, home: Home | null, animat
   }
 }
 
-/** Cumulative missions, runs and gallons up to `day`, restricted to `indices`.
- *  HERBS records gallons at mission level (continuation legs read 0), so the
- *  gallons-bearing records double as the mission count. */
+/** Cumulative spray runs, track points and gallons up to `day`, restricted to
+ *  `indices`.
+ *
+ *  HERBS records a spray run as a LINE — leg 1A, 1B, 1C … — and books the run's
+ *  whole volume against 1A, so every later waypoint reads 0. That is why the
+ *  gallons-bearing records double as the run count: one non-zero row per run.
+ *
+ *  It undercounts slightly, and knowingly: 2,913 of the source's 11,273 runs
+ *  carry no volume anywhere, and with Mission/Run/Leg dropped by our ETL there
+ *  is nothing in spray.json to group by, so those runs cannot be counted at
+ *  all. Fixing that means re-running the ETL, not renaming a variable. */
 function cumulative(data: SprayDataset, day: number, indices: number[] | null) {
   let missions = 0
   let runs = 0

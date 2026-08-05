@@ -159,7 +159,7 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
                 <span className="inspect-figure-unit">Gallons</span>
               </>
             ) : (
-              'Continuation leg'
+              'Flight path point'
             )}
           </p>
           <p className="inspect-sub">
@@ -171,7 +171,8 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
           </p>
           {data.gallons === 0 && (
             <p className="inspect-note">
-              Gallons are recorded on a mission&apos;s first leg; this run continues one.
+              A waypoint on a spray run&apos;s track. HERBS records the run as a line — leg 1A, 1B,
+              1C — and books its whole volume against 1A, so every later waypoint reads zero.
             </p>
           )}
         </>

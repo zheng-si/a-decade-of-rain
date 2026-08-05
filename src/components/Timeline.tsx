@@ -122,11 +122,12 @@ export default function Timeline({
           >
             HERBS record
           </a>{' '}
-          behind Stellman et&nbsp;al. (2003): 8,360 missions of
-          Operation Ranch Hand, flown as 24,604 recorded spray runs, each dot&apos;s area
-          proportional to the gallons that fell there. Press play to watch the decade fall month
-          by month, isolate an agent to grey out the rest, or tilt the terrain into 3D. Every
-          view is shareable straight from its URL.
+          behind Stellman et&nbsp;al. (2003): 8,360 Operation Ranch Hand spray runs carrying a
+          recorded volume, logged as 24,604 track points. HERBS records each run as a line and
+          books its whole volume against the line&apos;s first point, so a filled dot&apos;s area
+          is the gallons for an entire run and the rings mark the rest of its track. Press play
+          to watch the decade fall month by month, isolate an agent to grey out the rest, or tilt
+          the terrain into 3D. Every view is shareable straight from its URL.
         </p>
       </header>
 
@@ -168,10 +169,10 @@ export default function Timeline({
           {volume && (
             <span className="explorer-statline">
               <span className="stat-pair">
-                <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Missions
+                <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Spray Runs
               </span>
               <span className="stat-pair">
-                <strong style={statStyle}>{runCount.toLocaleString()}</strong> Runs
+                <strong style={statStyle}>{runCount.toLocaleString()}</strong> Track Points
               </span>
               <span className="stat-pair">
                 <strong style={statStyle}>{fmtGallons(gallons)}</strong> Gallons

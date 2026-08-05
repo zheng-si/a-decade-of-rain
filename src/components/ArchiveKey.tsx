@@ -109,18 +109,18 @@ export default function ArchiveKey({
             Other Agents
           </li>
         )}
-        {/* Two thirds of the 24,604 runs carry no gallons — a mission books
-            its volume against one leg and the rest read 0 — and they are drawn
-            as open rings rather than small dots, because they are a different
-            kind of fact and not a smaller quantity of the same one. The legend
-            has to say so: an unexplained second mark is worse than none, and
-            without this line a reader would take the rings for very small
-            spraying. */}
+        {/* These rings are the WAYPOINTS of a spray run, not runs whose volume
+            went unrecorded — see the note on DotStyle.zero in volumeGrid. HERBS
+            gives each run a track (leg 1A → 1B → …) and books the whole run's
+            gallons against 1A, so every other waypoint reads 0. This row said
+            "No Volume Recorded" first, which described the record as having a
+            gap in it; the record has no gap, we were reading a line as a heap
+            of points. */}
         <li>
           <span className="key-swatch">
             <span className="key-ring" style={{ borderColor: tint }} />
           </span>
-          No Volume Recorded
+          Flight Path Point
         </li>
         {/* No military-region row: the Archive no longer draws them (see
             SHOW_MILITARY_REGIONS in MapView). A legend that names something
