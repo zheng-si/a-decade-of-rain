@@ -105,7 +105,7 @@ live positron style JSON (55 layers). "native z" is positron's own range.
 | `landcover_glacier` | fill | 0–8 | → greenspace (moot in VN) |
 | `landuse_residential` | fill | 0–16 | → greenspace ⚠️ see §7.5 |
 | `landcover_wood` | fill | 10–24 | → greenspace |
-| `waterway` | line | 0–24 | → #c0d0db |
+| `waterway` | line | 0–24 | → #d1dee6 — the SAME tone as the sea, see below |
 | `building` | fill | 12–24 | **hidden** |
 | `tunnel_motorway_*` | line | 6–24 | kept, hairline 0.4→2 px |
 | `aeroway-taxiway` | line | 12–24 | **untouched** ⚠️ |
@@ -159,7 +159,7 @@ This is the table to go through line by line.
 
 > **The "Size ramp" column above predates the tuning pass and is stale** — it
 > reads 9.5 → 14 everywhere, which is no longer any tier's value. Live numbers
-> are in `BASEMAP_TIERS` (below) and in §6. The column is left as written rather
+> are in `LABEL_TIERS` (below) and in §6. The column is left as written rather
 > than quietly corrected, because the rest of the table is a survey of what
 > positron ships and that part is still accurate.
 
@@ -172,8 +172,10 @@ writing one appearance across all of them erased the distinction before it
 reached the screen. `label_city_capital` ships as **Noto Sans Bold** at a larger
 ramp; we overwrote it with the map's medium.
 
-The tiers now come from one table, `BASEMAP_TIERS` in `volumeGrid.ts`, with one
-classifier (`basemapTier`) that the tuner calls rather than copies:
+The tiers now come from one table, `LABEL_TIERS` in `mapTaxonomy.ts`, with one
+classifier (`labelTierOf`) that the tuner calls rather than copies. That table
+has since grown to 16 tiers in 6 groups — the seven below are the settlement and
+water subset; see the module for the rest:
 
 | Tier | Layer(s) | Face | Size | Colour | Shown |
 |---|---|---|---|---|---|
@@ -249,6 +251,60 @@ home zooms run 5.29–6.65. So the reader always meets the map 0.3–1.65 levels
 into the ramp, and `atFloor` is a value nobody sees. See §7.4.
 
 CF: ○ unknown — Studio-side.
+
+---
+
+## 6.5 · Four gates, not two rules
+
+Asked directly: does the basemap have its own label logic on top of ours, and
+do the two fight? They do not fight. There are FOUR stages, they compose as a
+chain that can only NARROW, and every one of them can silently take the result
+to zero.
+
+| # | Who | Decides | Ours to change |
+|---|---|---|---|
+| 1 | Tile generation (OpenMapTiles) | whether a feature EXISTS in the tile at zoom z, keyed on `rank` | no — a hard floor |
+| 2 | Basemap style (positron) | splits `place` into four layers by `class` / `capital`, each with a minzoom | minzoom yes (we overwrite), filters no (we must not) |
+| 3 | `LABEL_TIERS` | visibility, zoom range, size, colour, face, tracking, rank spread | all of it |
+| 4 | MapLibre placement | which of the survivors actually FIT, by `symbol-sort-key` and text size | only indirectly |
+
+**Stage 1 is the one that surprises.** Our zoom range can only narrow what the
+data offers, never widen it. A tier set to "shows from z0" whose features are
+not in the tile until z5 shows from z5 — no error, no warning, nothing in the
+panel. Two separate rounds of debugging were spent here.
+
+Measured, by decoding the real tiles and asking at which zoom each city first
+appears:
+
+| City | rank | first in tile |
+|---|---|---|
+| Hồ Chí Minh, Hà Nội | 3 | **z4** |
+| Đà Nẵng, Hải Phòng | 5 | **z4** |
+| Huế, Cần Thơ, Nha Trang, Pleiku, Cam Ranh, Đồng Hới | 6 | **z5** |
+| Buôn Ma Thuột, Vũng Tàu, Mỹ Tho | 7 | **z6** |
+
+**Stage 4 is the second silent filter.** Being in the data is not being drawn.
+We set `symbol-sort-key` to `rank`, so on a collision the more important name
+wins and the other is dropped with no trace. Measured over the record's extent:
+
+| zoom | in the data | rendered | dropped by collision |
+|---|---|---|---|
+| 5.0 | 37 | 33 | Đà Nẵng[r5], Cần Thơ[r6], … |
+| 6.0 | 60 | 54 | Đà Nẵng[r5], Cần Thơ[r6], Rạch Giá[r7] |
+| 7.0 | 51 | 48 | only r10 / r12 hamlets |
+
+Đà Nẵng is dropped at every zoom sampled — it sits beside the densest spraying
+in the record, so its label loses to the data around it.
+
+**So when a label does not appear, the tier is only one of four suspects.** The
+panel can show a conflict inside stage 3 (a tier switched on while one of its
+layers is individually hidden or clamped) and does. It cannot see stages 1 or
+4 at all. The working rule:
+
+- **rank ≤ 5 and below z4** → in the data, so it was a collision. Reachable:
+  smaller `size at z5`, larger `rank spread`, tighter `track`.
+- **rank ≥ 6 below z5, or rank ≥ 7 below z6** → not in the tile. Nothing in
+  this codebase can bring it forward; it needs a different tile source.
 
 ---
 

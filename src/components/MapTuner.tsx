@@ -187,8 +187,6 @@ const DEFAULTS: Tune = {
 }
 
 
-const clampByte = (n: number) => Math.max(0, Math.min(255, n))
-
 function hexToRgb(hex: string): [number, number, number] | null {
   const h = hex.trim().replace(/^#/, '')
   if (!/^([0-9a-f]{3}|[0-9a-f]{6})$/i.test(h)) return null
@@ -197,16 +195,18 @@ function hexToRgb(hex: string): [number, number, number] | null {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
 }
 
-const rgbToHex = (c: [number, number, number]) =>
-  '#' + c.map((v) => clampByte(Math.round(v)).toString(16).padStart(2, '0')).join('')
-
-/** Rivers sit two steps down from the sea in the same hue, so a waterway reads
- *  against the land it crosses rather than against the sea it flows into. Same
- *  offset the committed pair uses (#d1dee6 → #c0d0db). */
+/** The waterway line colour for a given sea colour.
+ *
+ *  It used to darken by (17, 14, 11), matching a committed pair of #d1dee6 →
+ *  #c0d0db. That pair is gone: WATER_LINE is now WATER_FILL, one tone for all
+ *  water, because a darker river through the Mekong delta competed with the
+ *  spray dots exactly where the record is densest.
+ *
+ *  Kept as a function rather than inlined, so that if the two are ever pulled
+ *  apart again there is one place to say how — and so the panel's readout and
+ *  the copy block cannot disagree about it. */
 function deriveLine(waterHex: string): string {
-  const c = hexToRgb(waterHex)
-  if (!c) return waterHex
-  return rgbToHex([c[0] - 17, c[1] - 14, c[2] - 11])
+  return waterHex
 }
 
 /** WCAG contrast, purely for the readout — it is the number that decides

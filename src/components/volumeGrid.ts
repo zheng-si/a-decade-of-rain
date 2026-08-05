@@ -25,7 +25,14 @@ export const VN_LABEL_LAYER = 'vn-country-label-l'
  *  `mapConfig.theme`; water is overridden here because the explorer wants a
  *  cooler, quieter sea than the story's. */
 export const WATER_FILL = '#d1dee6'
-export const WATER_LINE = '#c0d0db'
+/** Waterways read in the SAME tone as the sea, not two steps darker.
+ *
+ *  They used to be `#c0d0db`, on the argument that a river should read against
+ *  the land it crosses rather than against the sea it flows into. In practice
+ *  the Mekong delta is where the record is densest, and a darker river there
+ *  competed with the spray dots for the eye — the basemap has one job on this
+ *  page, which is to recede. One tone for all water. */
+export const WATER_LINE = WATER_FILL
 /** The layer sets the basemap treatment works on, exported so a tuner can
  *  reach exactly the same ones without re-deriving them. `building` is
  *  deliberately absent from the vegetation pattern — it is hidden outright,
