@@ -467,3 +467,48 @@
   background: rgba(207, 55, 32, 0.12);
   color: #a8412b;
 }
+
+/* Group heading inside the TYPE and LAYERS lists. Fifteen label tiers in a
+   flat list is a wall; grouped, it reads like a legend. */
+.tuner-group {
+  margin: 0.9rem 0 0.15rem;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8e9187;
+}
+
+.tuner-group em {
+  font-style: normal;
+  color: #b3b6ac;
+}
+
+/* The layer list a tier governs, printed on the row itself — "which layers is
+   this actually changing" is the question the old panel answered wrongly. */
+.tuner-ramp-name em {
+  display: block;
+  margin-top: 0.1rem;
+  font-style: normal;
+  font-size: 0.58rem;
+  line-height: 1.35;
+  color: #9a9d93;
+}
+
+.tuner-layer-sec {
+  display: contents;
+}
+
+/* The tier's own on/off. It sits on the row heading because a tier being off
+   is a fact about the tier, not about any one of its layers. */
+.tuner-ramp-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+.tuner-ramp-head input {
+  margin-top: 0.15rem;
+  flex: none;
+}

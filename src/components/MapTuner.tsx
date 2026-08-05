@@ -31,12 +31,23 @@ import {
   VOL_COARSE_LAYER,
   VOL_FINE_LAYER,
   VOL_RAW_LAYER,
-  BASEMAP_TIERS,
-  basemapTier,
-  isLabelHiddenByDefault,
   gridDegrees,
   setGridDegrees,
 } from './volumeGrid'
+import {
+  LABEL_TIERS,
+  LABEL_GROUPS,
+  LABEL_TIER_NAME,
+  RANKED,
+  labelTierOf,
+  geomGroupOf,
+  GEOM_NAME,
+  GEOM_GROUPS,
+  type LabelTier,
+  type GeomGroup,
+  type LabelStyle,
+  type LayerLike,
+} from './mapTaxonomy'
 import './MapTuner.css'
 
 const STORE_KEY = 'adr-map-tuner'
@@ -74,22 +85,7 @@ type Ramp = [number, number]
 /** Everything the map says about ONE tier of label. Sizes, colour and halo
  *  travel together because they are judged together — a colour that works at
  *  9.5px stops working at 14. */
-interface Tier {
-  size: Ramp
-  color: string
-  halo: string
-  haloWidth: number
-  /** Glyph stack. WEIGHT IS A STACK in MapLibre — there is no numeric
-   *  text-font-weight, so Bold means a different set of SDF glyphs, built by
-   *  scripts/build-glyphs.mjs. Empty = inherit the panel-wide face. */
-  font: string
-  /** `text-letter-spacing`, in ems. */
-  tracking: number
-  /** WHEN the tier is on screen — `[minzoom, maxzoom]`. Separate from `size`,
-   *  and the separation is the point: "at floor / at top" are the two ends of
-   *  the SIZE ramp and were being read as visibility staging. */
-  zoom: Ramp
-}
+type Tier = LabelStyle
 
 interface Tune {
   // ── palette ──
@@ -114,11 +110,6 @@ interface Tune {
   typeFloor: number
   typeTop: number
   tiers: Record<TierKey, Tier>
-  /** How much smaller the least important settlement is than the most.
-   *  0 = every place the same size (what the map does today); 0.4 = a rank-10
-   *  place renders at 60% of a rank-1 one. OpenMapTiles ships `rank` on the
-   *  place layer and we were only using it to break collisions. */
-  rankSpread: number
   // ── per-layer overrides ──
   /** Basemap symbol layers forced off, by id. Seeded from what quietBasemap
    *  already hides, so the ticks describe the shipped map rather than
@@ -165,7 +156,7 @@ type ColorKey = 'land' | 'water' | 'veg'
 /** The basemap's own tiers plus the two this project draws itself. `place` is
  *  gone: it used to cover capital, city, town and village at once, which is
  *  exactly why none of them could be styled apart. */
-type TierKey = keyof typeof BASEMAP_TIERS | 'mr' | 'island'
+type TierKey = LabelTier
 
 const DEFAULTS: Tune = {
   land: mapConfig.theme.land,
@@ -186,35 +177,15 @@ const DEFAULTS: Tune = {
   typeTop: 11,
   // Read off quietBasemap / mapTheme as committed, so "Reset" really is the
   // shipped map rather than a second opinion about it.
-  tiers: {
-    // The seven basemap tiers are SPREAD from the shipped table rather than
-    // retyped, so "Reset" cannot drift from the map by one edit. mr and island
-    // belong to mapTheme, which has no such table, so they stay literal.
-    ...(JSON.parse(JSON.stringify(BASEMAP_TIERS)) as Record<keyof typeof BASEMAP_TIERS, Tier>),
-    mr: { size: [8, 14], color: '#cf3720', halo: 'rgba(250,249,244,0.95)', haloWidth: 2, font: '', tracking: 0.1, zoom: [0, Z_NEAR] },
-    island: { size: [8.5, 11], color: '#6b7268', halo: '#ffffff', haloWidth: 1, font: '', tracking: 0, zoom: [0, 24] },
-  },
-  rankSpread: 0,
+  // Every tier SPREAD from the shipped table rather than retyped, so "Reset"
+  // cannot drift from the map by one edit. rankSpread now lives per tier, in
+  // that table, so there is no global copy of it here.
+  tiers: JSON.parse(JSON.stringify(LABEL_TIERS)) as Record<TierKey, Tier>,
   hidden: [],
   seeded: false,
   zoomRanges: {},
 }
 
-/** Settlement tiers, in importance order. They are the ones `rank` exists on,
- *  so they are also the only ones the size spread may touch. */
-const RANKED: TierKey[] = ['capital', 'city', 'town', 'village']
-
-const TIER_ROWS: { key: TierKey; label: string; where: string }[] = [
-  { key: 'capital', label: 'Capital · HÀ NỘI', where: 'label_city_capital · capital=2' },
-  { key: 'city', label: 'Cities', where: 'label_city · class=city' },
-  { key: 'town', label: 'Towns', where: 'label_town · class=town' },
-  { key: 'village', label: 'Villages · districts', where: 'label_village + suburb / quarter' },
-  { key: 'admin', label: 'Provinces · states', where: 'label_state · admin labels' },
-  { key: 'waterName', label: 'Sea · river names', where: 'volumeGrid quietBasemap (isWater)' },
-  { key: 'country', label: 'Country · VIET NAM', where: 'volumeGrid COUNTRY_TEXT' },
-  { key: 'mr', label: 'Military region', where: 'mapTheme addMilitaryRegions' },
-  { key: 'island', label: 'Island notes', where: 'mapTheme addIslandMarks' },
-]
 
 const clampByte = (n: number) => Math.max(0, Math.min(255, n))
 
@@ -276,36 +247,31 @@ function readStore(): Tune {
       const stored = (parsed.tiers as Record<string, Partial<Tier>> | undefined)?.[k]
       if (stored) t.tiers[k] = { ...DEFAULTS.tiers[k], ...stored }
     }
-    // v2 kept capital, city, town and village in ONE `place` tier. Splitting
-    // them would otherwise throw away whatever was tuned into it — and it is
-    // tuned live, so "your settings reset themselves" is the likely outcome of
-    // doing nothing here.
+    // Stored tunes carry two older shapes. Both are migrated rather than
+    // dropped, because the panel is tuned live and "my settings reset
+    // themselves" is the likely outcome of doing nothing.
     //
-    // `place` lands on `city` verbatim: that is the layer that was visible, so
-    // it is the one the tuning was done against. The capital takes the stored
-    // COLOUR decisions and keeps its own new face and size — inheriting the
-    // palette preserves the choice that was actually made, while inheriting
-    // the face would undo the distinction this change exists to add. Town and
-    // village stay at their new defaults; they were hidden, so there is no
-    // tuning to carry and assuming any would be inventing intent.
-    const storedPlace = (parsed.tiers as Record<string, Partial<Tier>> | undefined)?.place
+    //   v2  one `place` tier covering capital / city / town / village
+    //   v3  seven tiers, plus ONE global `rankSpread`
+    //
+    // `place` lands on `city`: that was the visible layer, so it is the one
+    // the tuning was done against. The capital inherits the stored COLOUR
+    // decisions only — inheriting the face would undo the weight split those
+    // tiers exist for. A v3 global rankSpread is copied onto the ranked tiers,
+    // which is where it now lives.
+    const storedTiers = parsed.tiers as Record<string, Partial<Tier>> | undefined
+    const storedPlace = storedTiers?.place
     if (storedPlace) {
       t.tiers.city = { ...t.tiers.city, ...storedPlace }
       const { color, halo, haloWidth } = { ...DEFAULTS.tiers.city, ...storedPlace }
       t.tiers.capital = { ...t.tiers.capital, color, halo, haloWidth }
     }
-    // v1 kept four bare ramps at the top level. Carry them across rather than
-    // silently discarding whatever was already tuned into them.
-    for (const [old, key] of [
-      ['place', 'city'],
-      ['country', 'country'],
-      ['mr', 'mr'],
-      ['island', 'island'],
-    ] as [string, TierKey][]) {
-      const legacy = parsed[old]
-      if (Array.isArray(legacy) && legacy.length === 2) {
-        t.tiers[key] = { ...t.tiers[key], size: [Number(legacy[0]), Number(legacy[1])] }
-      }
+    // v3 named the sea tier `waterName` and the province tier `admin`.
+    if (storedTiers?.waterName) t.tiers.sea = { ...t.tiers.sea, ...storedTiers.waterName }
+    if (storedTiers?.admin) t.tiers.province = { ...t.tiers.province, ...storedTiers.admin }
+    const legacySpread = (parsed as { rankSpread?: number }).rankSpread
+    if (typeof legacySpread === 'number' && legacySpread > 0) {
+      for (const k of RANKED) t.tiers[k] = { ...t.tiers[k], rankSpread: legacySpread }
     }
     return t
   } catch {
@@ -355,6 +321,12 @@ export default function MapTuner({
       /** Ours, not positron's — worth marking so a reader of the list knows
        *  which switches change the record's own annotation. */
       ours: boolean
+      /** Which label tier this layer belongs to (labels only), and which
+       *  geometry group (everything else). Stored at read time because the
+       *  classifier needs `source-layer`, which getLayer() does not return —
+       *  the whole reason the id-matching version got it wrong. */
+      tier: LabelTier | null
+      geom: GeomGroup | null
       minzoom: number
       maxzoom: number
     }[]
@@ -407,17 +379,20 @@ export default function MapTuner({
             type: l.type,
             isLabel,
             ours: OWN_LAYERS.has(l.id) || l.id === 'mr-borders' || l.id.startsWith('vol-'),
+            tier: isLabel ? labelTierOf(l as LayerLike) : null,
+            geom: isLabel ? null : geomGroupOf(l as LayerLike),
             minzoom: l.minzoom ?? 0,
             maxzoom: l.maxzoom ?? 24,
           })
-          // Two sources, because one of them is a race. The live read catches
-          // everything quietBasemap hides for reasons only it knows; the rule
-          // below catches the label tiers WITHOUT asking the map, so an early
-          // read cannot seed an empty set and un-hide them.
-          const off =
-            map.getLayoutProperty(l.id, 'visibility') === 'none' ||
-            (isLabel && isLabelHiddenByDefault(l.id)) ||
-            VEGETATION_RE.test(l.id)
+          // `hidden` is now ONLY the per-layer override. A label tier being
+          // off is the tier's own `shown`, applied below — folding it in here
+          // as well gave one fact two owners, so turning a tier on in TYPE did
+          // nothing because the layer was still ticked off in `hidden`.
+          //
+          // Labels are therefore excluded from the live read: their off-ness is
+          // already described by the tier table, and reading it back here would
+          // re-import it as a per-layer override on the first mount.
+          const off = !isLabel && (map.getLayoutProperty(l.id, 'visibility') === 'none' || VEGETATION_RE.test(l.id))
           if (off) offNow.push(l.id)
         } catch {
           /* layer doesn't answer — leave it out */
@@ -479,11 +454,7 @@ export default function MapTuner({
      *  groups layers differently from the map is a tuner for a map we do not
      *  have. Only the two layers this project draws itself are matched here,
      *  by exact id, because volumeGrid does not know about them. */
-    const tierFor = (id: string): TierKey => {
-      if (id === 'mr-label') return 'mr'
-      if (id === 'island-label') return 'island'
-      return basemapTier(id)
-    }
+    const tierFor = (layer: LayerLike): TierKey => labelTierOf(layer)
 
     const apply = () => {
       const line = deriveLine(tune.water)
@@ -546,12 +517,15 @@ export default function MapTuner({
           // island notes are map labels too, so a comparison that left them in
           // the old face would not show what the map actually becomes.
           if (layer.type === 'symbol' && m.getLayoutProperty(id, 'text-field') != null) {
-            const key = tierFor(id)
+            const key = tierFor(layer as LayerLike)
             const tier = tune.tiers[key]
             // Rank only exists on the settlement layers, so the spread only
             // reaches the tiers that have it. Applying it to sea names would
             // silently shrink every one of them to the `coalesce` default.
-            const spread = RANKED.includes(key) ? tune.rankSpread : 0
+            const spread = RANKED.has(key) ? tier.rankSpread : 0
+            // Tier switch AND per-layer override. The layer wins when it is
+            // ticked off, because it is the more specific instruction.
+            m.setLayoutProperty(id, 'visibility', tier.shown && !tune.hidden.includes(id) ? 'visible' : 'none')
             m.setLayoutProperty(id, 'text-font', [tier.font || tune.font])
             m.setLayoutProperty(id, 'text-size', ramp(tier.size, spread))
             m.setLayoutProperty(id, 'text-letter-spacing', tier.tracking)
@@ -597,8 +571,7 @@ export default function MapTuner({
       | 'typeFloor'
       | 'typeTop'
       | 'coarseDeg'
-      | 'fineDeg'
-      | 'rankSpread',
+      | 'fineDeg',
     v: number,
   ) => setTune((t) => ({ ...t, [key]: v }))
 
@@ -623,6 +596,42 @@ export default function MapTuner({
     () => (labelsOnly ? allLayers.filter((l) => l.isLabel) : allLayers),
     [allLayers, labelsOnly],
   )
+
+  /** Tier → the layer ids it actually governs, off the live style. Shown on
+   *  every row, because "which layers does this control" was the question the
+   *  old panel could not answer — and the answer used to be wrong. */
+  const ids = useMemo(() => {
+    const o = {} as Record<LabelTier, string[]>
+    for (const l of allLayers) if (l.tier) (o[l.tier] = o[l.tier] || []).push(l.id)
+    return o
+  }, [allLayers])
+
+  /** Same, for geometry. */
+  const geomIds = useMemo(() => {
+    const o = {} as Record<GeomGroup, string[]>
+    for (const l of allLayers) if (l.geom) (o[l.geom] = o[l.geom] || []).push(l.id)
+    return o
+  }, [allLayers])
+
+  /** The LAYERS tab, sectioned: every label tier first (in panel order), then
+   *  the geometry groups. Empty sections are dropped rather than shown as
+   *  headings with nothing under them — the style decides which exist. */
+  const layerSections = useMemo(() => {
+    const keep = new Set(shownLayers.map((l) => l.id))
+    const find = (id: string) => shownLayers.find((l) => l.id === id)!
+    const secs: { head: string; rows: typeof shownLayers }[] = []
+    for (const g of LABEL_GROUPS) {
+      for (const t of g.tiers) {
+        const rows = (ids[t] ?? []).filter((id) => keep.has(id)).map(find)
+        if (rows.length) secs.push({ head: `${g.label} · ${LABEL_TIER_NAME[t]}`, rows })
+      }
+    }
+    for (const g of GEOM_GROUPS) {
+      const rows = (geomIds[g] ?? []).filter((id) => keep.has(id)).map(find)
+      if (rows.length) secs.push({ head: GEOM_NAME[g], rows })
+    }
+    return secs
+  }, [shownLayers, ids, geomIds])
 
   const setLayerZoom = (id: string, end: 0 | 1, raw: string) =>
     setTune((t) => {
@@ -689,7 +698,7 @@ export default function MapTuner({
       for (const k of keys) {
         const a = tune.tiers[k]
         const b = DEFAULTS.tiers[k]
-        const table = k in BASEMAP_TIERS
+        const table = true
         const bits: string[] = []
         if (changed(a.size, b.size)) bits.push(table ? `size: ${r(a.size)}` : `text-size ${r(a.size)}`)
         if (changed(a.zoom, b.zoom)) {
@@ -707,18 +716,12 @@ export default function MapTuner({
           bits.push(table ? `haloWidth: ${a.haloWidth}` : `text-halo-width ${a.haloWidth}`)
         }
         if (!bits.length) continue
-        const at = table ? `BASEMAP_TIERS.${k}` : TIER_ROWS.find((t) => t.key === k)!.label
+        const at = `LABEL_TIERS.${k}`
         out.push(`${at}: ${bits.join(' · ')}`)
       }
       return out
     }
-    vol.push(...tierLines([...RANKED, 'admin', 'waterName', 'country']))
-    if (tune.rankSpread !== DEFAULTS.rankSpread) {
-      vol.push(
-        `quietBasemap settlements — scale text-size by rank, spread ${tune.rankSpread} ` +
-          `(1 − ${tune.rankSpread}·(min(rank,10)−1)/9)`,
-      )
-    }
+    vol.push(...tierLines(LABEL_GROUPS.flatMap((g) => g.tiers)))
     // Only layers the reader turned off ON TOP of what quietBasemap already
     // hides are a change; listing the pre-hidden ones would read as work to do.
     const newlyHidden = tune.hidden.filter((id) => !baselineHidden.includes(id))
@@ -776,8 +779,7 @@ export default function MapTuner({
       | 'typeFloor'
       | 'typeTop'
       | 'coarseDeg'
-      | 'fineDeg'
-      | 'rankSpread',
+      | 'fineDeg',
     min: number,
     max: number,
     step: number,
@@ -964,13 +966,25 @@ export default function MapTuner({
         <>
           {num('Ramp floor · Z_TYPE_FLOOR', 'typeFloor', 3, 8, 0.1)}
           {num('Ramp top · Z_TYPE_TOP', 'typeTop', 9, 16, 0.5)}
-          {TIER_ROWS.map(({ key, label, where }) => {
-            const tier = tune.tiers[key]
-            return (
-              <div className="tuner-ramp" key={key}>
-                <span className="tuner-ramp-name">
-                  {label} <em>{where}</em>
-                </span>
+          {LABEL_GROUPS.flatMap((group) =>
+            group.tiers.map((key, i) => {
+              const tier = tune.tiers[key]
+              return (
+                <div className="tuner-ramp" key={key}>
+                  {/* One heading per group, on its first tier. Fifteen tiers in
+                      a flat list is a wall; grouped, it is a map legend. */}
+                  {i === 0 && <h4 className="tuner-group">{group.label}</h4>}
+                  <label className="tuner-ramp-name tuner-ramp-head">
+                    <input
+                      type="checkbox"
+                      checked={tier.shown}
+                      onChange={(e) => setTier(key, { shown: e.target.checked })}
+                    />
+                    <span>
+                      {LABEL_TIER_NAME[key]}
+                      <em>{ids[key]?.length ? ids[key].join(', ') : 'no layer in this style'}</em>
+                    </span>
+                  </label>
                 <div className="tuner-ramp-ends">
                   {([0, 1] as const).map((end) => (
                     <label key={end}>
@@ -1063,31 +1077,31 @@ export default function MapTuner({
                 <p className="tuner-tier-read">
                   {contrast(tier.color, tune.land).toFixed(2)}:1 on land
                 </p>
-                {key === 'city' && (
-                  <label className="tuner-slider tuner-rank">
-                    <span>
-                      Rank spread · within tier <strong>{tune.rankSpread}</strong>
-                    </span>
-                    <input
-                      type="range"
-                      min={0}
-                      max={0.6}
-                      step={0.05}
-                      value={tune.rankSpread}
-                      onChange={(e) => setNum('rankSpread', Number(e.target.value))}
-                    />
-                    <em>
-                      Separates places INSIDE one tier, using the `rank` OpenMapTiles ships. 0 =
-                      every place in a tier the same size; 0.4 puts a rank-10 place at 60% of a
-                      rank-1 one. Applies to all four settlement tiers at once — capital, city, town
-                      and village are separate layers and are tiered by the rows above, so this is
-                      only for telling two CITIES apart.
-                    </em>
-                  </label>
-                )}
-              </div>
-            )
-          })}
+                {RANKED.has(key) && (
+                    <label className="tuner-slider tuner-rank">
+                      <span>
+                        rank spread <strong>{tier.rankSpread}</strong>
+                      </span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={0.6}
+                        step={0.05}
+                        value={tier.rankSpread}
+                        onChange={(e) => setTier(key, { rankSpread: Number(e.target.value) })}
+                      />
+                      <em>
+                        Separates features INSIDE this one tier by OpenMapTiles `rank`. Only
+                        shown on tiers whose source carries rank — `label_city` holds Hồ Chí Minh
+                        (rank 3) and small provincial seats (rank 7+) in the SAME layer, and
+                        nothing else can tell them apart. 0 = all one size.
+                      </em>
+                    </label>
+                  )}
+                </div>
+              )
+            }),
+          )}
         </>
       )}
 
@@ -1102,11 +1116,18 @@ export default function MapTuner({
             <span>Label layers only</span>
           </label>
           <p className="tuner-note">
-            {shownLayers.length} of {allLayers.length} layers, read from the live style. The two
-            boxes on the right are that layer&apos;s own minzoom / maxzoom — blank means unclamped.
+            {shownLayers.length} of {allLayers.length} layers, read from the live style. This tab is
+            for INDIVIDUAL layers — a per-layer override here beats its tier&apos;s setting in TYPE,
+            because it is the more specific instruction. Text is grouped by label tier, geometry by
+            what it draws. The two boxes on the right are that layer&apos;s own minzoom / maxzoom.
           </p>
           <div className="tuner-layers is-detailed">
-            {shownLayers.map((l) => (
+            {layerSections.map((sec) => (
+              <div className="tuner-layer-sec" key={sec.head}>
+                <h4 className="tuner-group">
+                  {sec.head} <em>{sec.rows.length}</em>
+                </h4>
+                {sec.rows.map((l) => (
               <div className="tuner-layer-row" key={l.id}>
                 <label>
                   <input
@@ -1140,6 +1161,8 @@ export default function MapTuner({
                     onChange={(e) => setLayerZoom(l.id, 1, e.target.value)}
                   />
                 </span>
+              </div>
+                ))}
               </div>
             ))}
           </div>
