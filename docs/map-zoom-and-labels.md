@@ -157,9 +157,50 @@ This is the table to go through line by line.
 | `highway-name-minor` | 15–24 | none | 9.5 → 14 | never draws |
 | `highway-name-path` | 15.5–24 | none | 9.5 → 14 | never draws |
 
-Uniform treatment applied to every surviving label layer: uppercase,
-letter-spacing 0.2, font `Roboto Condensed`, halo `rgba(250,249,244,0.92)` at
-1.1 px, icon stripped, `text-anchor: center`, `text-offset: [0,0]`, and
+> **The "Size ramp" column above predates the tuning pass and is stale** — it
+> reads 9.5 → 14 everywhere, which is no longer any tier's value. Live numbers
+> are in `BASEMAP_TIERS` (below) and in §6. The column is left as written rather
+> than quietly corrected, because the rest of the table is a survey of what
+> positron ships and that part is still accurate.
+
+### 4.1 · Settlement tiers — no longer uniform
+
+The paragraph that used to sit here said one font, one colour and one ramp were
+applied to every surviving label layer. That was true, and it was the bug: the
+basemap already separates settlements into four layers by attribute, and
+writing one appearance across all of them erased the distinction before it
+reached the screen. `label_city_capital` ships as **Noto Sans Bold** at a larger
+ramp; we overwrote it with the map's medium.
+
+The tiers now come from one table, `BASEMAP_TIERS` in `volumeGrid.ts`, with one
+classifier (`basemapTier`) that the tuner calls rather than copies:
+
+| Tier | Layer(s) | Face | Size | Colour | Shown |
+|---|---|---|---|---|---|
+| `capital` | `label_city_capital` (`capital=2`) | **Bold** | 9 → 13.5 | `#646464` | yes |
+| `city` | `label_city` (`class=city`) | medium | 8 → 12 | `#646464` | yes |
+| `town` | `label_town` | Regular | 7.5 → 11 | `#767676` | hidden |
+| `village` | `label_village`, suburb / quarter | Light | 7 → 10 | `#8a8a8a` | hidden |
+| `admin` | `label_state`, provinces | Light | 8 → 11 | `#8a8a8a` | hidden |
+| `waterName` | sea / river names | medium | 8 → 12 | `#338199` | yes |
+| `country` | `label_country_*`, our own VN label | medium | 10 → 15 | `#646464` | to z7.5 |
+
+The hidden three are styled anyway, so switching one on from the tuner produces
+a tiered map rather than four identical layers.
+
+**Weight is a font stack in MapLibre** — there is no numeric `text-font-weight`,
+so each of those faces is a separate set of SDF glyph PBFs under `public/fonts/`.
+All four Roboto Condensed weights are built.
+
+Per-`rank` styling *within* one layer is possible but not done: the style spec
+marks `text-font`, `text-letter-spacing`, `text-size`, `text-color` and
+`text-halo-*` all `data-driven` with `feature` in their parameters. `text-font`
+carries `interpolated: false`, so that split would have to be a `step`/`match`,
+never an `interpolate`. Today `rank` drives only the within-tier size spread.
+
+Still uniform across every surviving label layer: uppercase, letter-spacing 0.2,
+halo `rgba(250,249,244,0.92)` at 1.1 px, icon stripped, `text-anchor: center`,
+`text-offset: [0,0]`, and
 
 ```js
 symbol-sort-key: ['case', ['has','rank'], ['to-number',['get','rank']], 100]
@@ -214,6 +255,19 @@ CF: ○ unknown — Studio-side.
 ## 7 · Things I found while building this table
 
 Ordered by how much I think they matter. None are fixed; they are yours to rule on.
+
+**7.0 · The tuner's behaviour depended on deviceScaleFactor.**
+Found while verifying the tier split, and worth recording because the shape of
+it will recur. At DPR 2 the panel silently un-hid `label_town`, `label_village`
+and `label_state`; at DPR 1 it did not. Two causes. The `hidden` seed was read
+off the live style, which races `quietBasemap` — ask too early and the answer is
+"nothing is hidden", which then gets written back as truth. And the real one:
+both effects deferred with `map.once('idle', fn)`, but `idle` fires only when
+the map finishes a frame, so if the map had already settled when the listener
+was attached, the callback never ran at all. The corrected pass was waiting on
+an event that had already happened. Replaced with a helper that polls the
+animation frame until `isStyleLoaded()`, which has no event to miss. DPR 1 was
+only ever correct by accident — its apply never ran.
 
 **7.1 · `highway-shield-us-interstate` is hidden by accident.**
 The province rule is `/state|province/.test(id)`, and `inter`**`state`** matches

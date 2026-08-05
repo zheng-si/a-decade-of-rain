@@ -147,7 +147,43 @@ CF：○ 他们的底图图层集合完全在 Studio 样式里。唯一能确定
 | `highway-name-minor` | 15–24 | 无 | 9.5 → 14 | 永远画不出来 |
 | `highway-name-path` | 15.5–24 | 无 | 9.5 → 14 | 永远画不出来 |
 
-所有活下来的标注图层统一处理：大写、字距 0.2、字体 `Roboto Condensed`、
+> **上表的「字号 ramp」列早于调参那一轮，已经过时** —— 它通篇写着 9.5 → 14，
+> 而这已经不是任何一档的实际值。当前数值见下面的 `BASEMAP_TIERS` 和 §6。这一列
+> 保留原样而不悄悄改掉，是因为表格其余部分是对 positron 出厂状态的调查，那部分仍然准确。
+
+### 4.1 · 聚落分层 —— 不再是统一处理
+
+这里原本写着「一种字体、一种颜色、一条 ramp 应用到所有活下来的标注图层」。那句话属实，
+而它本身就是 bug：**底图本来就按属性把聚落拆成了四个图层**，给它们写同一套外观，等于在
+上屏之前就把区分抹掉了。`label_city_capital` 出厂是 **Noto Sans Bold** 且 ramp 更大，
+被我们覆盖成了地图的中等字重。
+
+现在分层来自一张表 —— `volumeGrid.ts` 里的 `BASEMAP_TIERS` —— 配一个分类器
+（`basemapTier`），tuner 是**调用**它而不是抄一份：
+
+| 档 | 图层 | 字重 | 字号 | 颜色 | 显示 |
+|---|---|---|---|---|---|
+| `capital` | `label_city_capital`（`capital=2`） | **Bold** | 9 → 13.5 | `#646464` | 是 |
+| `city` | `label_city`（`class=city`） | medium | 8 → 12 | `#646464` | 是 |
+| `town` | `label_town` | Regular | 7.5 → 11 | `#767676` | 隐藏 |
+| `village` | `label_village`、suburb / quarter | Light | 7 → 10 | `#8a8a8a` | 隐藏 |
+| `admin` | `label_state`、省级 | Light | 8 → 11 | `#8a8a8a` | 隐藏 |
+| `waterName` | 海 / 河名 | medium | 8 → 12 | `#338199` | 是 |
+| `country` | `label_country_*`、我们自己的 VN 标注 | medium | 10 → 15 | `#646464` | 到 z7.5 |
+
+隐藏的那三档**照样上样式**，所以从 tuner 里打开任意一档，出来的是分好层的地图，
+而不是四个长得一样的图层。
+
+**MapLibre 里字重就是字体栈** —— 没有数值型的 `text-font-weight`，所以上面每一档字重
+都是 `public/fonts/` 下一套独立的 SDF 字形。Roboto Condensed 四档全部已构建。
+
+**按 `rank` 在同一图层内分级**是可行的，但没做：规格里 `text-font`、
+`text-letter-spacing`、`text-size`、`text-color`、`text-halo-*` 全部标记为
+`data-driven` 且参数含 `feature`。`text-font` 额外带 `interpolated: false`，
+所以那种拆分只能用 `step`/`match`，不能用 `interpolate`。目前 `rank` 只驱动
+**档内**的字号 spread。
+
+仍然统一处理的部分：大写、字距 0.2、
 描边 `rgba(250,249,244,0.92)` 1.1 px、剥掉图标、`text-anchor: center`、
 `text-offset: [0,0]`，以及
 
@@ -203,6 +239,16 @@ CF：○ 未知 —— 在 Studio 那边。
 ## 7 · 做这张表时发现的问题
 
 按我认为的重要程度排序。**一个都没改**，这些是你来定的。
+
+**7.0 · tuner 的行为取决于 deviceScaleFactor。**
+验证分层改动时发现的，值得记下来，因为这个形状还会再出现。DPR 2 下面板会悄悄把
+`label_town`、`label_village`、`label_state` 重新显示出来；DPR 1 不会。两个原因。
+一是 `hidden` 的种子从活样式读取，会和 `quietBasemap` 抢跑 —— 问早了答案就是
+「什么都没隐藏」，然后被当成事实写回去。二是真正的原因：两个 effect 都用
+`map.once('idle', fn)` 延迟，而 `idle` 只在地图画完一帧时触发，所以如果挂监听时
+地图**已经**静止了，回调根本不会执行 —— 本该纠正的那一遍在等一个已经发生过的事件。
+换成轮询动画帧直到 `isStyleLoaded()` 的辅助函数，没有会错过的事件。
+DPR 1 一直「正确」只是运气：它的 apply 从来没跑过。
 
 **7.1 · `highway-shield-us-interstate` 是被误伤隐藏的。**
 省份规则是 `/state|province/.test(id)`，而 `inter`**`state`** 匹配上了。这个图层确实
