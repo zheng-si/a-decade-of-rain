@@ -798,7 +798,20 @@ export default function MapTuner({
     vol.push(...tierLines(LABEL_GROUPS.flatMap((g) => g.tiers)))
     // Only layers the reader turned off ON TOP of what quietBasemap already
     // hides are a change; listing the pre-hidden ones would read as work to do.
-    const newlyHidden = tune.hidden.filter((id) => !baselineHidden.includes(id))
+    //
+    // `baselineHidden` covers geometry only — the read effect deliberately
+    // leaves labels out of it, so that a tier being off does not come back as a
+    // per-layer override. That left a hole here: ticking a label in LAYERS that
+    // its TIER already hides got reported as "also hide: highway-name-major,
+    // road_shield_us, mr-label, …", which reads as seven layers of work when
+    // the map is already doing all seven. The tiers are the other half of the
+    // baseline, so they are consulted as well.
+    const tierAlreadyOff = new Set(
+      allLayers.filter((l) => l.isLabel && l.tier && !tune.tiers[l.tier].shown).map((l) => l.id),
+    )
+    const newlyHidden = tune.hidden.filter(
+      (id) => !baselineHidden.includes(id) && !tierAlreadyOff.has(id),
+    )
     if (newlyHidden.length) {
       vol.push(`quietBasemap — also hide: ${newlyHidden.join(', ')}`)
     }
@@ -811,7 +824,12 @@ export default function MapTuner({
         `quietBasemap — setLayerZoomRange('${id}', ${ov[0] ?? 0}, ${ov[1] ?? 24})`,
       )
     }
-    if (!tune.vegOn) vol.push('quietBasemap — hide vegetation entirely')
+    // Against the DEFAULT, not against `true`. Vegetation ships hidden, so the
+    // old test printed this line on every single copy — a standing instruction
+    // to make a change that had already been made.
+    if (tune.vegOn !== DEFAULTS.vegOn) {
+      vol.push(`quietBasemap — ${tune.vegOn ? 'STOP hiding' : 'hide'} vegetation entirely`)
+    }
     push('src/components/volumeGrid.ts', vol)
 
     const theme: string[] = []
@@ -823,7 +841,7 @@ export default function MapTuner({
     push('src/components/mapTheme.ts', theme)
 
     return out.length ? out.join('\n').trimEnd() : 'Nothing changed from the committed values.'
-  }, [tune, baselineHidden])
+  }, [tune, baselineHidden, allLayers])
 
   const copy = () => {
     navigator.clipboard?.writeText(summary).then(
