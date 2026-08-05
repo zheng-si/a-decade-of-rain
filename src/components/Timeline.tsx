@@ -57,6 +57,9 @@ interface TimelineProps {
   agentChoices: AgentChoice[]
   activeAgentKey: string
   volume: VolumeChart | null
+  /** SPIKE A — the map is drawing tracks. The dek describes the encoding, so
+   *  it cannot stay the same sentence when the encoding changes. */
+  tracks?: boolean
   onScrub: (day: number) => void
   onPlay: () => void
   onPause: () => void
@@ -93,6 +96,7 @@ export default function Timeline({
   agentChoices,
   activeAgentKey,
   volume,
+  tracks = false,
   onScrub,
   onPlay,
   onPause,
@@ -123,11 +127,21 @@ export default function Timeline({
             HERBS record
           </a>{' '}
           behind Stellman et&nbsp;al. (2003): 8,360 Operation Ranch Hand spray runs carrying a
-          recorded volume, logged as 24,604 track points. HERBS records each run as a line and
-          books its whole volume against the line&apos;s first point, so a filled dot&apos;s area
-          is the gallons for an entire run and the rings mark the rest of its track. Press play
-          to watch the decade fall month by month, isolate an agent to grey out the rest, or tilt
-          the terrain into 3D. Every view is shareable straight from its URL.
+          recorded volume, logged as 24,604 track points.{' '}
+          {tracks ? (
+            <>
+              Each run is drawn as the line it was flown, its thickness the gallons laid down per
+              kilometre — so where the aircraft turned and came back, the ink stacks.
+            </>
+          ) : (
+            <>
+              HERBS records each run as a line and books its whole volume against the line&apos;s
+              first point, so a filled dot&apos;s area is the gallons for an entire run and the
+              rings mark the rest of its track.
+            </>
+          )}{' '}
+          Press play to watch the decade fall month by month, isolate an agent to grey out the
+          rest, or tilt the terrain into 3D. Every view is shareable straight from its URL.
         </p>
       </header>
 

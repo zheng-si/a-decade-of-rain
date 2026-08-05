@@ -25,7 +25,15 @@ import {
   VOL_COARSE_LAYER,
   VOL_FINE_LAYER,
   VOL_RAW_LAYER,
+  DOTS,
 } from './volumeGrid'
+import {
+  addTrackLayers,
+  setTrackTime,
+  setTrackAgents,
+  setLayersVisible,
+} from './trackLayers'
+import { loadTracks, type TrackDataset } from '../data/tracks'
 import ArchiveInspect, {
   fmtGallons,
   type Inspect,
@@ -42,6 +50,20 @@ const SHOW_MILITARY_REGIONS = false
 // Scoped under .map-wrap; delete both imports and the two files to revert.
 import '../fontsGeist.css'
 import '../ArchiveSkinV2.css'
+
+/** SPIKE A — draw the record as the lines it actually is (?tracks=1).
+ *
+ *  Behind a URL flag rather than a build flag so the two encodings can be
+ *  compared on one deploy, and so the dot map — which three other things are
+ *  tuned against — stays the default until the lines have earned it. */
+function tracksEnabled(): boolean {
+  try {
+    return new URLSearchParams(window.location.search).has('tracks')
+  } catch {
+    return false
+  }
+}
+const TRACKS = tracksEnabled()
 
 const SPRAY_SOURCE = 'spray'
 const DEM_SOURCE = 'terrain-dem'
@@ -328,6 +350,7 @@ export default function MapView() {
     if (ready) refitRef.current?.(false)
   }, [ready])
 
+  const tracksRef = useRef<TrackDataset | null>(null)
   const dayRef = useRef(0)
   const colorsRef = useRef<string[] | null>(null)
   const playingRef = useRef(false)
@@ -424,6 +447,18 @@ export default function MapView() {
         stampEventColors(spray, colors, groupOf)
         map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
         const bottomLayer = addVolumeLayers(map, SPRAY_SOURCE)
+        // The lines go in alongside the dots and one of the two is hidden, so
+        // switching is a visibility change and both are always in a state the
+        // other can be compared against.
+        if (TRACKS) {
+          loadTracks(colors, groupOf)
+            .then((t) => {
+              tracksRef.current = t
+              addTrackLayers(map, t, dayRef.current, DOTS.tint)
+              setLayersVisible(map, [VOL_COARSE_LAYER, VOL_FINE_LAYER, VOL_RAW_LAYER], false)
+            })
+            .catch((e) => console.error('tracks failed to load', e))
+        }
         // The one country label positron cannot place for itself (see
         // addVietnamLabel). Must follow the circles to draw above them, and
         // stays under the basemap's labels so it never costs a city its name.
@@ -538,6 +573,18 @@ export default function MapView() {
     appliedKeyRef.current = key
     if (dataRef.current)
       updateVolume(map, dataRef.current, day, activeIndices, choices.find((c) => c.key === agentKey)?.color ?? null)
+    // The tracks need no re-bin — the playhead is a filter and the selection is
+    // a paint expression, so both are applied unconditionally and cheaply
+    // rather than behind the grid tiers' throttle key.
+    if (TRACKS && tracksRef.current) {
+      setTrackTime(map, day)
+      setTrackAgents(
+        map,
+        activeIndices,
+        choices.find((c) => c.key === agentKey)?.color ?? DOTS.tint,
+        DOTS.dim,
+      )
+    }
     if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
   }, [ready, day, agentKey, activeIndices, choices, bounds.max])
 
@@ -622,6 +669,7 @@ export default function MapView() {
           onToggle3D={toggleView}
           tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
           filtered={agentKey !== 'all'}
+          tracks={TRACKS}
         >
           {inspect && (
             <ArchiveInspect
@@ -651,6 +699,7 @@ export default function MapView() {
           agentChoices={choices}
           activeAgentKey={agentKey}
           volume={volume}
+          tracks={TRACKS}
           onScrub={(d) => {
             setPlaying(false)
             setDay(d)

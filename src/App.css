@@ -659,6 +659,26 @@
   opacity: 1;
 }
 
+/* SPIKE A — the track map's two swatches. A line and a dashed line, at the
+   width the map itself draws them near the middle of its ramp, so the key
+   reads as a sample of the map rather than as an icon of it. */
+.archive-key .key-line {
+  display: block;
+  width: 14px;
+  height: 3px;
+  margin: 0 auto;
+  opacity: 0.75;
+}
+
+.archive-key .key-line-dash {
+  display: block;
+  width: 14px;
+  height: 0;
+  margin: 0 auto;
+  border-top: 1.5px dashed;
+  opacity: 0.75;
+}
+
 /* The zero-volume mark: an open ring, matching what the raw tier draws. Two
    pixels smaller than .key-dot so the legend keeps the map's own hierarchy —
    a ring is subordinate to a filled dot there too. The border colour is set

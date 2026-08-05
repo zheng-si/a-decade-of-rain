@@ -16,6 +16,10 @@ interface Props {
   tint: string
   /** Whether an agent is isolated (shows the grey-context legend row). */
   filtered: boolean
+  /** SPIKE A — the map is drawing tracks, not dots, so the key must describe
+   *  lines. A key that shows a dot over a map of lines is not a smaller
+   *  problem than a key with the wrong words on it. */
+  tracks?: boolean
   /** Extra section rendered below the legend (the inspect card). */
   children?: ReactNode
 }
@@ -47,6 +51,7 @@ export default function ArchiveKey({
   onToggle3D,
   tint,
   filtered,
+  tracks = false,
   children,
 }: Props) {
   const [scale, setScale] = useState<{ label: string; w: number }>({ label: '', w: 0 })
@@ -97,9 +102,16 @@ export default function ArchiveKey({
       <ul className="map-key-list" aria-hidden="true">
         <li>
           <span className="key-swatch">
-            <span className="key-dot" style={{ background: tint }} />
+            {tracks ? (
+              <span className="key-line" style={{ background: tint }} />
+            ) : (
+              <span className="key-dot" style={{ background: tint }} />
+            )}
           </span>
-          Sprayed Volume
+          {/* On the track map the width is gallons per KM, not gallons — the
+              only quantity comparable between a 2 km run and a 40 km one, and
+              a different claim from the dot map's. */}
+          {tracks ? 'Gallons per km' : 'Sprayed Volume'}
         </li>
         {filtered && (
           <li>
@@ -118,9 +130,13 @@ export default function ArchiveKey({
             of points. */}
         <li>
           <span className="key-swatch">
-            <span className="key-ring" style={{ borderColor: tint }} />
+            {tracks ? (
+              <span className="key-line-dash" style={{ borderColor: tint }} />
+            ) : (
+              <span className="key-ring" style={{ borderColor: tint }} />
+            )}
           </span>
-          Flight Path Point
+          {tracks ? 'Flown, No Volume' : 'Flight Path Point'}
         </li>
         {/* No military-region row: the Archive no longer draws them (see
             SHOW_MILITARY_REGIONS in MapView). A legend that names something
