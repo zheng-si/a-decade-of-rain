@@ -74,7 +74,7 @@ export function agentIndexColors(spray: SprayDataset): string[] {
 /** Grey for de-emphasised (non-selected) volume. A neutral #808080 was tried
  *  and read too heavy — de-emphasised volume competed with the selection —
  *  so this stays the original soft green-grey and leans on the raised
- *  circle-opacity (0.72) for its legibility instead of a darker value. */
+ *  circle-opacity (DOT_OPACITY) for its legibility instead of a darker value. */
 const DIM = '#c9cdc4'
 
 /** Bin events up to `day` into a grid. With a selection, each cell emits a
@@ -166,6 +166,22 @@ const gridRadius = (kStops: [number, number][], cap: number): maplibregl.Express
     ...kStops.flatMap(([z, k]) => [z, ['min', ['*', k, ['sqrt', ['get', 'g']]], cap]]),
   ] as unknown as maplibregl.ExpressionSpecification
 
+/** Radial falloff on every dot.
+ *
+ *  MapLibre has no gradient fill for circles; `circle-blur` is the equivalent —
+ *  it feathers the disc inward from its edge, so `1` fades the whole radius and
+ *  `0` is the hard disc we shipped before. At 0.75 a dot reads as deposition
+ *  rather than as a plotted symbol.
+ *
+ *  It is not free, and the trade was made with the comparison renders in hand:
+ *  the softer edge costs some of the area→gallons read (two dots of noticeably
+ *  different size look closer in weight than they are), and because every dot
+ *  becomes a similar soft blob it makes the 0.12°/0.03° binning lattice more
+ *  visible in the dense areas. Opacity is lifted from 0.72 to compensate for
+ *  the energy the falloff spreads out. Set BLUR to 0 to get the old discs back. */
+const BLUR = 0.75
+const DOT_OPACITY = 0.9
+
 /** Add the three-tier symbol stack. Returns the bottom layer id (for
  *  inserting reference overlays beneath the symbols). */
 export function addVolumeLayers(map: maplibregl.Map, spraySource: string): string {
@@ -184,7 +200,8 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
   // 3D view the dots foreshorten into ellipses instead of billboarding.
   const shared = {
     'circle-color': ['get', 'c'] as unknown as maplibregl.ExpressionSpecification,
-    'circle-opacity': 0.72,
+    'circle-opacity': DOT_OPACITY,
+    'circle-blur': BLUR,
     'circle-pitch-alignment': 'map' as const,
     'circle-pitch-scale': 'map' as const,
   }
@@ -242,7 +259,8 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
       minzoom: Z_MID_TO_NEAR,
       paint: {
         'circle-color': ['get', 'c'] as unknown as maplibregl.ExpressionSpecification,
-        'circle-opacity': 0.72,
+        'circle-opacity': DOT_OPACITY,
+        'circle-blur': BLUR,
         'circle-pitch-alignment': 'map',
         'circle-pitch-scale': 'map',
         'circle-radius': [
