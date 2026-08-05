@@ -31,12 +31,42 @@ import {
   VOL_COARSE_LAYER,
   VOL_FINE_LAYER,
   VOL_RAW_LAYER,
+  BASEMAP_TIERS,
+  basemapTier,
+  isLabelHiddenByDefault,
   gridDegrees,
   setGridDegrees,
 } from './volumeGrid'
 import './MapTuner.css'
 
 const STORE_KEY = 'adr-map-tuner'
+
+/** Run `fn` as soon as the style is usable, and DO run it.
+ *
+ *  Both effects below used to do `if (isStyleLoaded()) fn(); else once('idle',
+ *  fn)`, which has a hole: `idle` fires when the map finishes a frame, so if
+ *  the map has already settled by the time the listener is attached, no
+ *  further frame is scheduled and the callback never runs at all. That is what
+ *  made the panel's behaviour depend on deviceScaleFactor — at DPR 2 the extra
+ *  render work pushed `isStyleLoaded()` false at mount, the tune was applied
+ *  once with an unseeded `hidden`, and the corrected pass that should have
+ *  followed was waiting on an idle that had already happened. Hidden layers
+ *  came back visible.
+ *
+ *  Polling the animation frame has no such hole: there is no event to miss,
+ *  and it stops the moment the style answers. */
+function whenStyleReady(map: maplibregl.Map, fn: () => void): () => void {
+  let cancelled = false
+  const tick = () => {
+    if (cancelled) return
+    if (map.isStyleLoaded()) fn()
+    else requestAnimationFrame(tick)
+  }
+  tick()
+  return () => {
+    cancelled = true
+  }
+}
 
 /** A size ramp: [size at Z_TYPE_FLOOR, size at Z_TYPE_TOP]. */
 type Ramp = [number, number]
@@ -128,7 +158,10 @@ const FONT_NOTE: Record<string, string> = {
 }
 
 type ColorKey = 'land' | 'water' | 'veg'
-type TierKey = 'place' | 'waterName' | 'country' | 'mr' | 'island'
+/** The basemap's own tiers plus the two this project draws itself. `place` is
+ *  gone: it used to cover capital, city, town and village at once, which is
+ *  exactly why none of them could be styled apart. */
+type TierKey = keyof typeof BASEMAP_TIERS | 'mr' | 'island'
 
 const DEFAULTS: Tune = {
   land: mapConfig.theme.land,
@@ -150,9 +183,10 @@ const DEFAULTS: Tune = {
   // Read off quietBasemap / mapTheme as committed, so "Reset" really is the
   // shipped map rather than a second opinion about it.
   tiers: {
-    place: { size: [8, 12], color: '#646464', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1, font: '', tracking: 0.2 },
-    waterName: { size: [8, 12], color: '#338199', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1, font: '', tracking: 0.2 },
-    country: { size: [10, 15], color: '#646464', halo: 'rgba(250,249,244,0.92)', haloWidth: 1.1, font: '', tracking: 0.2 },
+    // The seven basemap tiers are SPREAD from the shipped table rather than
+    // retyped, so "Reset" cannot drift from the map by one edit. mr and island
+    // belong to mapTheme, which has no such table, so they stay literal.
+    ...(JSON.parse(JSON.stringify(BASEMAP_TIERS)) as Record<keyof typeof BASEMAP_TIERS, Tier>),
     mr: { size: [8, 14], color: '#cf3720', halo: 'rgba(250,249,244,0.95)', haloWidth: 2, font: '', tracking: 0.1 },
     island: { size: [8.5, 11], color: '#6b7268', halo: '#ffffff', haloWidth: 1, font: '', tracking: 0 },
   },
@@ -162,16 +196,21 @@ const DEFAULTS: Tune = {
   zoomRanges: {},
 }
 
+/** Settlement tiers, in importance order. They are the ones `rank` exists on,
+ *  so they are also the only ones the size spread may touch. */
+const RANKED: TierKey[] = ['capital', 'city', 'town', 'village']
+
 const TIER_ROWS: { key: TierKey; label: string; where: string }[] = [
-  { key: 'place', label: 'Places', where: 'volumeGrid quietBasemap' },
+  { key: 'capital', label: 'Capital · HÀ NỘI', where: 'label_city_capital · capital=2' },
+  { key: 'city', label: 'Cities', where: 'label_city · class=city' },
+  { key: 'town', label: 'Towns', where: 'label_town · class=town' },
+  { key: 'village', label: 'Villages · districts', where: 'label_village + suburb / quarter' },
+  { key: 'admin', label: 'Provinces · states', where: 'label_state · admin labels' },
   { key: 'waterName', label: 'Sea · river names', where: 'volumeGrid quietBasemap (isWater)' },
   { key: 'country', label: 'Country · VIET NAM', where: 'volumeGrid COUNTRY_TEXT' },
   { key: 'mr', label: 'Military region', where: 'mapTheme addMilitaryRegions' },
   { key: 'island', label: 'Island notes', where: 'mapTheme addIslandMarks' },
 ]
-
-/** Same test quietBasemap uses to decide a label is a water name. */
-const WATER_NAME_RE = /water|sea|ocean|marine|river|lake|bay/
 
 const clampByte = (n: number) => Math.max(0, Math.min(255, n))
 
@@ -233,10 +272,28 @@ function readStore(): Tune {
       const stored = (parsed.tiers as Record<string, Partial<Tier>> | undefined)?.[k]
       if (stored) t.tiers[k] = { ...DEFAULTS.tiers[k], ...stored }
     }
+    // v2 kept capital, city, town and village in ONE `place` tier. Splitting
+    // them would otherwise throw away whatever was tuned into it — and it is
+    // tuned live, so "your settings reset themselves" is the likely outcome of
+    // doing nothing here.
+    //
+    // `place` lands on `city` verbatim: that is the layer that was visible, so
+    // it is the one the tuning was done against. The capital takes the stored
+    // COLOUR decisions and keeps its own new face and size — inheriting the
+    // palette preserves the choice that was actually made, while inheriting
+    // the face would undo the distinction this change exists to add. Town and
+    // village stay at their new defaults; they were hidden, so there is no
+    // tuning to carry and assuming any would be inventing intent.
+    const storedPlace = (parsed.tiers as Record<string, Partial<Tier>> | undefined)?.place
+    if (storedPlace) {
+      t.tiers.city = { ...t.tiers.city, ...storedPlace }
+      const { color, halo, haloWidth } = { ...DEFAULTS.tiers.city, ...storedPlace }
+      t.tiers.capital = { ...t.tiers.capital, color, halo, haloWidth }
+    }
     // v1 kept four bare ramps at the top level. Carry them across rather than
     // silently discarding whatever was already tuned into them.
     for (const [old, key] of [
-      ['place', 'place'],
+      ['place', 'city'],
       ['country', 'country'],
       ['mr', 'mr'],
       ['island', 'island'],
@@ -349,7 +406,15 @@ export default function MapTuner({
             minzoom: l.minzoom ?? 0,
             maxzoom: l.maxzoom ?? 24,
           })
-          if (map.getLayoutProperty(l.id, 'visibility') === 'none') offNow.push(l.id)
+          // Two sources, because one of them is a race. The live read catches
+          // everything quietBasemap hides for reasons only it knows; the rule
+          // below catches the label tiers WITHOUT asking the map, so an early
+          // read cannot seed an empty set and un-hide them.
+          const off =
+            map.getLayoutProperty(l.id, 'visibility') === 'none' ||
+            (isLabel && isLabelHiddenByDefault(l.id)) ||
+            VEGETATION_RE.test(l.id)
+          if (off) offNow.push(l.id)
         } catch {
           /* layer doesn't answer — leave it out */
         }
@@ -363,8 +428,7 @@ export default function MapTuner({
         t.seeded ? t : { ...t, seeded: true, hidden: [...new Set([...t.hidden, ...offNow])] },
       )
     }
-    if (map.isStyleLoaded()) read()
-    else map.once('idle', read)
+    return whenStyleReady(map, read)
   }, [map, enabled])
 
   // Apply on every change, and once on mount so a stored tune survives reload.
@@ -405,15 +469,16 @@ export default function MapTuner({
       ] as never
     }
 
-    /** Which tier a label layer belongs to. Same order of tests quietBasemap
-     *  uses, so the tuner cannot classify a layer differently than the shipped
-     *  code does — that would make it a tuner for a map we do not have. */
+    /** Which tier a label layer belongs to. The basemap layers are classified
+     *  by CALLING the shipped classifier rather than by a lookalike copy of
+     *  its tests — the old copy had already drifted once, and a tuner that
+     *  groups layers differently from the map is a tuner for a map we do not
+     *  have. Only the two layers this project draws itself are matched here,
+     *  by exact id, because volumeGrid does not know about them. */
     const tierFor = (id: string): TierKey => {
-      if (/country/.test(id) || id === VN_LABEL_LAYER) return 'country'
       if (id === 'mr-label') return 'mr'
       if (id === 'island-label') return 'island'
-      if (WATER_NAME_RE.test(id)) return 'waterName'
-      return 'place'
+      return basemapTier(id)
     }
 
     const apply = () => {
@@ -480,9 +545,9 @@ export default function MapTuner({
             const key = tierFor(id)
             const tier = tune.tiers[key]
             // Rank only exists on the settlement layers, so the spread only
-            // reaches the tier that has it. Applying it to sea names would
+            // reaches the tiers that have it. Applying it to sea names would
             // silently shrink every one of them to the `coalesce` default.
-            const spread = key === 'place' ? tune.rankSpread : 0
+            const spread = RANKED.includes(key) ? tune.rankSpread : 0
             m.setLayoutProperty(id, 'text-font', [tier.font || tune.font])
             m.setLayoutProperty(id, 'text-size', ramp(tier.size, spread))
             m.setLayoutProperty(id, 'text-letter-spacing', tier.tracking)
@@ -505,14 +570,9 @@ export default function MapTuner({
       m.triggerRepaint()
     }
 
-    // On the mount pass the style is usually still settling, and `tune` never
-    // changes again on its own — so a plain early return would silently drop a
-    // stored tune on every reload. Wait for the map instead.
-    if (m.isStyleLoaded()) apply()
-    else m.once('idle', apply)
-    return () => {
-      m.off('idle', apply)
-    }
+    // On the mount pass the style is usually still settling, so this cannot
+    // just early-return — a stored tune would be dropped on every reload.
+    return whenStyleReady(m, apply)
   }, [tune, map, enabled])
 
   const setColor = (key: ColorKey, value: string) => {
@@ -600,33 +660,42 @@ export default function MapTuner({
     if (tune.water !== DEFAULTS.water) {
       vol.push(`WATER_FILL = '${tune.water}'`, `WATER_LINE = '${deriveLine(tune.water)}'`)
     }
+    /** The basemap tiers now live in one table, so their edits are quoted in
+     *  the TABLE's field names and keyed by the row to paste into. mr and
+     *  island have no table — they are raw layer specs in mapTheme — so those
+     *  stay in MapLibre property names. Emitting one shape for both would
+     *  make half the block wrong wherever it was pasted. */
     const tierLines = (keys: TierKey[]) => {
       const out: string[] = []
       for (const k of keys) {
         const a = tune.tiers[k]
         const b = DEFAULTS.tiers[k]
+        const table = k in BASEMAP_TIERS
         const bits: string[] = []
-        if (changed(a.size, b.size)) bits.push(`text-size ${r(a.size)}`)
-        if (a.font !== b.font) bits.push(`text-font ['${a.font || tune.font}']`)
-        if (a.tracking !== b.tracking) bits.push(`text-letter-spacing ${a.tracking}`)
-        if (a.color !== b.color) bits.push(`text-color '${a.color}'`)
-        if (a.halo !== b.halo) bits.push(`text-halo-color '${a.halo}'`)
-        if (a.haloWidth !== b.haloWidth) bits.push(`text-halo-width ${a.haloWidth}`)
-        if (bits.length) out.push(`${TIER_ROWS.find((t) => t.key === k)!.label}: ${bits.join(' · ')}`)
+        if (changed(a.size, b.size)) bits.push(table ? `size: ${r(a.size)}` : `text-size ${r(a.size)}`)
+        if (a.font !== b.font) {
+          bits.push(table ? `font: '${a.font}'` : `text-font ['${a.font || tune.font}']`)
+        }
+        if (a.tracking !== b.tracking) {
+          bits.push(table ? `tracking: ${a.tracking}` : `text-letter-spacing ${a.tracking}`)
+        }
+        if (a.color !== b.color) bits.push(table ? `color: '${a.color}'` : `text-color '${a.color}'`)
+        if (a.halo !== b.halo) bits.push(table ? `halo: '${a.halo}'` : `text-halo-color '${a.halo}'`)
+        if (a.haloWidth !== b.haloWidth) {
+          bits.push(table ? `haloWidth: ${a.haloWidth}` : `text-halo-width ${a.haloWidth}`)
+        }
+        if (!bits.length) continue
+        const at = table ? `BASEMAP_TIERS.${k}` : TIER_ROWS.find((t) => t.key === k)!.label
+        out.push(`${at}: ${bits.join(' · ')}`)
       }
       return out
     }
-    vol.push(...tierLines(['place', 'waterName', 'country']))
+    vol.push(...tierLines([...RANKED, 'admin', 'waterName', 'country']))
     if (tune.rankSpread !== DEFAULTS.rankSpread) {
       vol.push(
-        `quietBasemap places — scale text-size by rank, spread ${tune.rankSpread} ` +
+        `quietBasemap settlements — scale text-size by rank, spread ${tune.rankSpread} ` +
           `(1 − ${tune.rankSpread}·(min(rank,10)−1)/9)`,
       )
-    }
-    // Places and sea names share one `size` in quietBasemap today; if they have
-    // been pulled apart, that is a code change, not just a value change.
-    if (changed(tune.tiers.place.size, tune.tiers.waterName.size)) {
-      vol.push('NOTE places and sea names now need SEPARATE size ramps (one `size` today)')
     }
     // Only layers the reader turned off ON TOP of what quietBasemap already
     // hides are a change; listing the pre-hidden ones would read as work to do.
@@ -954,10 +1023,10 @@ export default function MapTuner({
                 <p className="tuner-tier-read">
                   {contrast(tier.color, tune.land).toFixed(2)}:1 on land
                 </p>
-                {key === 'place' && (
+                {key === 'city' && (
                   <label className="tuner-slider tuner-rank">
                     <span>
-                      City rank spread <strong>{tune.rankSpread}</strong>
+                      Rank spread · within tier <strong>{tune.rankSpread}</strong>
                     </span>
                     <input
                       type="range"
@@ -968,8 +1037,11 @@ export default function MapTuner({
                       onChange={(e) => setNum('rankSpread', Number(e.target.value))}
                     />
                     <em>
-                      0 = every place the same size (today). 0.4 puts a rank-10 place at 60% of a
-                      rank-1 one, using the `rank` OpenMapTiles already ships.
+                      Separates places INSIDE one tier, using the `rank` OpenMapTiles ships. 0 =
+                      every place in a tier the same size; 0.4 puts a rank-10 place at 60% of a
+                      rank-1 one. Applies to all four settlement tiers at once — capital, city, town
+                      and village are separate layers and are tiered by the rows above, so this is
+                      only for telling two CITIES apart.
                     </em>
                   </label>
                 )}

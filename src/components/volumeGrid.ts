@@ -32,6 +32,103 @@ export const WATER_LINE = '#c0d0db'
 export const WATER_FILL_RE = /water|sea|ocean|river|lake/
 export const WATER_LINE_RE = /water|river|lake/
 export const VEGETATION_RE = /wood|forest|park|grass|green|landcover|landuse|vegetation/
+/** Water NAMES, as opposed to the water itself. Exported for the same reason. */
+export const WATER_NAME_RE = /water|sea|ocean|marine|river|lake|bay/
+
+/* ── label tiers ───────────────────────────────────────────────────────────
+   The basemap already ships a settlement hierarchy and we were erasing it.
+   positron splits places into four layers by attribute —
+
+     label_city_capital   class=city AND capital=2   Noto Sans BOLD, 4→12 11→20
+     label_city           class=city AND capital≠2   Noto Sans Regular, 4→11 11→18
+     label_town           class=town                 Noto Sans Regular, 7→12 11→14
+     label_village        class=village              Noto Sans Regular, 7→10 11→12
+
+   — and the treatment below used to write ONE font, ONE colour and ONE size
+   ramp across every label layer it touched, so Hà Nội and a provincial city
+   arrived identical. The capital's Bold was overwritten with the map's medium
+   before it ever reached the screen.
+
+   Tiering by layer rather than by `rank` is the cheap half of the fix and the
+   half that is certain: these are four separate layers with four separate
+   filters, so each can carry its own weight, colour and tracking with no
+   data-driven expression at all. `rank` still does what it did — it drives the
+   within-tier size spread, because it is the only signal that separates two
+   cities in the SAME layer. */
+
+export type BasemapTier = 'capital' | 'city' | 'town' | 'village' | 'admin' | 'waterName' | 'country'
+
+/** One tier's whole appearance. Size, colour, halo, face and tracking travel
+ *  together because they are judged together. */
+export interface TierStyle {
+  /** [size at Z_TYPE_FLOOR, size at Z_TYPE_TOP]. */
+  size: [number, number]
+  color: string
+  halo: string
+  haloWidth: number
+  /** Glyph stack. WEIGHT IS A STACK in MapLibre — there is no numeric
+   *  text-font-weight, so Bold is a different set of SDF glyphs. Empty string
+   *  means "the map-wide face" (LABEL_FONT). Every stack named here must exist
+   *  under public/fonts/ or the labels render blank. */
+  font: string
+  /** `text-letter-spacing`, in ems. */
+  tracking: number
+}
+
+const HALO = 'rgba(250,249,244,0.92)'
+
+/** The shipped appearance of every basemap label tier, in one table so the
+ *  tuner's "Reset" and the map agree by construction rather than by someone
+ *  remembering to update both.
+ *
+ *  `city` and `waterName` and `country` are the values already tuned and
+ *  committed — they are NOT changed here. `capital` is the new distinction and
+ *  it is deliberately narrow: Bold and one step larger, at the SAME ink, so it
+ *  reads as the top of the existing ramp rather than as a new colour decision.
+ *  The three hidden tiers get a descending ramp so that switching one on from
+ *  the tuner produces a tiered map rather than four identical layers. */
+export const BASEMAP_TIERS: Record<BasemapTier, TierStyle> = {
+  capital: { size: [9, 13.5], color: '#646464', halo: HALO, haloWidth: 1.1, font: 'Roboto Condensed Bold', tracking: 0.2 },
+  city: { size: [8, 12], color: '#646464', halo: HALO, haloWidth: 1.1, font: '', tracking: 0.2 },
+  town: { size: [7.5, 11], color: '#767676', halo: HALO, haloWidth: 1.1, font: 'Roboto Condensed Regular', tracking: 0.2 },
+  village: { size: [7, 10], color: '#8a8a8a', halo: HALO, haloWidth: 1.1, font: 'Roboto Condensed Light', tracking: 0.2 },
+  admin: { size: [8, 11], color: '#8a8a8a', halo: HALO, haloWidth: 1.1, font: 'Roboto Condensed Light', tracking: 0.3 },
+  waterName: { size: [8, 12], color: '#338199', halo: HALO, haloWidth: 1.1, font: '', tracking: 0.2 },
+  country: { size: [10, 15], color: '#646464', halo: HALO, haloWidth: 1.1, font: '', tracking: 0.2 },
+}
+
+/** Which tier a label layer belongs to.
+ *
+ *  ORDER IS LOAD-BEARING and this is the only copy of it. `label_city_capital`
+ *  contains the substring `city`, so the capital test has to run first or the
+ *  distinction this whole table exists for is lost again — silently, because
+ *  the result still looks like a working map.
+ *
+ *  Exported so the tuner classifies with this function rather than with its
+ *  own lookalike. A tuner that groups layers differently from the shipped code
+ *  is a tuner for a map we do not have. */
+export function basemapTier(id: string): BasemapTier {
+  if (/country/.test(id) || id === VN_LABEL_LAYER) return 'country'
+  if (WATER_NAME_RE.test(id)) return 'waterName'
+  if (/capital/.test(id)) return 'capital'
+  if (/state|province|region/.test(id)) return 'admin'
+  if (/village|hamlet|suburb|neighbourhood|quarter/.test(id)) return 'village'
+  if (/town/.test(id)) return 'town'
+  return 'city'
+}
+
+/** Tiers hidden in the shipped map. Kept as a set over tiers rather than as a
+ *  second regex, so "what is hidden" and "how it is styled" cannot drift. */
+const HIDDEN_TIERS = new Set<BasemapTier>(['town', 'village', 'admin'])
+
+/** Does the shipped map hide this label layer?
+ *
+ *  Exported because reading the answer off the live style is a race: a tuner
+ *  that asks the map "what is hidden right now" can ask before quietBasemap
+ *  has run and get "nothing", then write that back as the truth. Reproduced at
+ *  deviceScaleFactor 2, where the extra render work is enough to reorder the
+ *  two. The rule is knowable without asking the map, so it should be. */
+export const isLabelHiddenByDefault = (id: string) => HIDDEN_TIERS.has(basemapTier(id))
 
 /** Grid cell sizes, in degrees. Mutable ONLY so the tuner can try other values
  *  on the running map — nothing in the app writes them. The committed numbers
@@ -402,9 +499,10 @@ export function quietBasemap(map: maplibregl.Map) {
         // while every other label was uppercase, tracked and centred. Styling
         // something you are about to hide costs nothing; having it come back
         // wrong costs an afternoon.
-        const hide =
-          /village|hamlet|suburb|neighbourhood|quarter|town/.test(id) || /state|province/.test(id)
-        const isWater = /water|sea|ocean|marine|river|lake|bay/.test(id)
+        const tier = basemapTier(id)
+        const style = BASEMAP_TIERS[tier]
+        const hide = HIDDEN_TIERS.has(tier)
+        const isWater = tier === 'waterName'
         if (isWater) {
           // Open-sea names read in English (the site's language); coalesce
           // falls back to the local name where no translation exists.
@@ -419,12 +517,14 @@ export function quietBasemap(map: maplibregl.Map) {
         // names take its cool sibling, matched in luminance (6.6:1) so the two
         // read as one tier that happens to differ in temperature. Both were
         // far too pale before — the old sea grey sat at 2.6:1, barely there.
-        map.setPaintProperty(id, 'text-color', isWater ? '#338199' : '#646464')
-        map.setPaintProperty(id, 'text-halo-color', 'rgba(250,249,244,0.92)')
-        map.setPaintProperty(id, 'text-halo-width', 1.1)
+        // Every one of these five now comes from BASEMAP_TIERS instead of being
+        // written flat, which is what lets the capital keep a heavier face.
+        map.setPaintProperty(id, 'text-color', style.color)
+        map.setPaintProperty(id, 'text-halo-color', style.halo)
+        map.setPaintProperty(id, 'text-halo-width', style.haloWidth)
         map.setLayoutProperty(id, 'text-transform', 'uppercase')
-        map.setLayoutProperty(id, 'text-letter-spacing', 0.2)
-        map.setLayoutProperty(id, 'text-font', [LABEL_FONT])
+        map.setLayoutProperty(id, 'text-letter-spacing', style.tracking)
+        map.setLayoutProperty(id, 'text-font', [style.font || LABEL_FONT])
         // Drop any dot the label layer carries with it, and re-centre the
         // text on the point it names — positron parks the name above the
         // icon, so without this the label floats clear of its own location.
@@ -451,10 +551,10 @@ export function quietBasemap(map: maplibregl.Map) {
         // with one cliff. Cities anchor the record from the opening view;
         // towns wait for the first hand-off; the country name steps aside at
         // the same moment, its job done once the places inside it are named.
-        const isCountry = /country/.test(id)
+        const isCountry = tier === 'country'
         // Smaller at the overview than the old flat 12/15 — that view is the
         // record's, not the basemap's — and growing from there.
-        const size = isCountry ? textSizeRamp(10, 15) : textSizeRamp(8, 12)
+        const size = textSizeRamp(style.size[0], style.size[1])
         if (isCountry) {
           map.setLayerZoomRange(id, 0, Z_FAR_TO_MID)
         }
