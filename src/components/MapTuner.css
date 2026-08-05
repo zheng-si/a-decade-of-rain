@@ -592,3 +592,10 @@
   align-items: stretch;
   gap: 0.12rem;
 }
+
+/* The floor row has two fields, not three. Without this it inherits the
+   three-column grid and both inputs sit at a third of the width for no
+   reason. */
+.tuner-ramp-ends.is-dots.is-two {
+  grid-template-columns: repeat(2, 1fr);
+}

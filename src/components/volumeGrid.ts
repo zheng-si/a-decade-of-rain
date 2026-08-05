@@ -6,7 +6,7 @@
 
 import type maplibregl from 'maplibre-gl'
 import type { SprayDataset } from '../data/spray'
-import { mapConfig, LABEL_FONT, Z_MID, Z_NEAR } from '../config/mapConfig'
+import { mapConfig, LABEL_FONT, Z_FAR, Z_MID, Z_NEAR } from '../config/mapConfig'
 import { firstLabelLayerId, textSizeRamp } from './mapTheme'
 import { labelTierOf, LABEL_TIERS, type LayerLike } from './mapTaxonomy'
 
@@ -94,7 +94,13 @@ export interface DotRamp {
   k0: number
   /** k at the tier's high anchor. */
   k1: number
-  /** Hard ceiling in px, so a dot stays inside its own grid cell. */
+  /** Hard ceiling in px, so a dot stays inside its own grid cell.
+   *
+   *  16 is not a taste number: a 0.12° cell is 30.9 px wide at Z_MID and a
+   *  0.03° cell is 30.9 px at Z_NEAR (the two bands happen to be the same
+   *  width in zoom), so 16 is half a cell — the biggest dot exactly fills its
+   *  own square and never spills into its neighbour's. The raw tier has no
+   *  cell, so its cap is a safety rail that never actually bites. */
   cap: number
 }
 
@@ -107,6 +113,22 @@ export interface DotStyle {
   coarse: DotRamp
   fine: DotRamp
   raw: DotRamp
+  /** Minimum radius in px at [low anchor, high anchor], applied under the
+   *  k·√gallons ramp.
+   *
+   *  This exists because 16,244 of the 24,604 recorded runs carry ZERO
+   *  gallons — the volume for a mission is booked against one leg and the
+   *  rest of its legs read 0. k·√0 is 0, so two thirds of the record simply
+   *  did not draw at the deepest zoom, and the map quietly claimed those
+   *  sorties never happened. The story's heatmap has always handled this
+   *  (WEIGHT_FLOOR in spray.ts, "so the many mission-legs recorded with 0
+   *  gallons still faintly mark a spray location"); the Archive — the page
+   *  that calls itself the complete record — did not.
+   *
+   *  The floor is well under the median dot, so a floored run reads as
+   *  presence rather than as volume, and the chains of them trace the actual
+   *  flight lines. Set to [0, 0] for the old behaviour. */
+  floor: [number, number]
   /** The whole record's colour, with no agent isolated. */
   tint: string
   /** Grey for de-emphasised (non-selected) volume. A neutral #808080 was tried
@@ -119,25 +141,54 @@ export interface DotStyle {
   dim: string
 }
 
-/** Zoom anchors for each tier's radius ramp. Not tunable — they ARE the
- *  hand-off zooms, and moving them here without moving Z_MID / Z_NEAR would
- *  leave a tier ramping toward a zoom it never reaches. */
+/** Zoom anchors for each tier's radius ramp — DERIVED, not typed.
+ *
+ *  These used to be three hard-coded pairs (5.6→7.0, 7.0→9.2, 9.2→12) left
+ *  over from an earlier set of hand-off zooms, and they had silently drifted
+ *  out of step with Z_MID / Z_NEAR / maxZoom. Every tier was ramping across
+ *  the wrong stretch of zoom:
+ *
+ *    coarse  lived to 7.5 but stopped growing at 7.0
+ *    fine    started at 7.5 already a quarter of the way up its ramp
+ *    raw     lived to the 11 ceiling while ramping toward 12, so its top k
+ *            was a number the map could not reach — a control that lies
+ *
+ *  Deriving them is the only way that stays true: a tier's ramp now spans
+ *  exactly the zooms that tier is on screen for, so "k at the top" means the
+ *  size it really reaches. Not tunable, for the same reason. */
 export const DOT_ANCHORS: Record<'coarse' | 'fine' | 'raw', [number, number]> = {
-  coarse: [5.6, 7.0],
-  fine: [7.0, 9.2],
-  raw: [9.2, 12],
+  coarse: [Z_FAR, Z_MID],
+  fine: [Z_MID, Z_NEAR],
+  raw: [Z_NEAR, mapConfig.view.maxZoom],
 }
 
 /** Shipped dot appearance. Mutable ONLY through `setDots`, which is dev
  *  tooling — nothing in the app writes it. */
+// The k values are derived from the record's own distribution rather than
+// dialled in by eye: each one puts the MEDIAN cell of its tier at a legible
+// size (2 px at the far end of a band, ~4 px at the near end) and lets only
+// the top few per cent reach the cap. Measured against the real data:
+//
+//              median   p90    max     capped
+//   coarse z5.6   2.0    5.6   13.6      0.0%
+//   coarse z7.5   4.5   12.8   16.0      4.8%
+//   fine   z7.5   1.6    3.9    9.2      0.0%
+//   fine   z9.5   3.6    8.5   16.0      0.3%
+//   raw    z9.5   2.5    3.9    6.0      0.0%
+//   raw    z11    6.0    9.2   14.2      0.0%
+//
+// The previous numbers capped 100% of the fine tier at its top, which is what
+// turned the near view into a uniform lattice — every cell the same size is
+// a grid, not a proportional symbol map.
 export const DOTS: DotStyle = {
-  blur: 0.75,
+  blur: 0.25,
   opacity: 0.9,
-  coarse: { k0: 0.03, k1: 0.069, cap: 13 },
-  fine: { k0: 0.037, k1: 0.1, cap: 12 },
-  raw: { k0: 0.14, k1: 0.34, cap: 18 },
+  coarse: { k0: 0.022, k1: 0.05, cap: 16 },
+  fine: { k0: 0.03, k1: 0.065, cap: 16 },
+  raw: { k0: 0.055, k1: 0.13, cap: 18 },
+  floor: [1, 2],
   tint: '#ff5449',
-  dim: '#c9cdc4',
+  dim: '#bdbdbd',
 }
 
 /** Tuner hook. Merges in place so `DOTS` stays one object — the layers below
@@ -158,6 +209,7 @@ export function setDots(next: Partial<DotStyle>): boolean {
   // Object.assign would alias it — leaving the map's own table pointing at
   // something a later render is free to replace under it.
   for (const k of ['coarse', 'fine', 'raw'] as const) if (next[k]) DOTS[k] = { ...next[k] }
+  if (next.floor) DOTS.floor = [next.floor[0], next.floor[1]]
   return rebin
 }
 
@@ -252,10 +304,20 @@ export function dotRadius(
   tier: 'coarse' | 'fine' | 'raw',
 ): maplibregl.ExpressionSpecification {
   const { k0, k1, cap } = DOTS[tier]
+  const floor = DOTS.floor
   const [z0, z1] = DOT_ANCHORS[tier]
   const prop = tier === 'raw' ? 'gallons' : 'g'
-  const at = (k: number) => ['min', ['*', k, ['sqrt', ['get', prop]]], cap]
-  return ['interpolate', ['linear'], ['zoom'], z0, at(k0), z1, at(k1)] as unknown as maplibregl.ExpressionSpecification
+  // max(floor, min(k·√g, cap)) — the floor is what keeps a zero-gallon run on
+  // the map at all; see DotStyle.floor.
+  const at = (k: number, f: number) => {
+    const ramp = ['min', ['*', k, ['sqrt', ['get', prop]]], cap]
+    return f > 0 ? ['max', f, ramp] : ramp
+  }
+  return [
+    'interpolate', ['linear'], ['zoom'],
+    z0, at(k0, floor[0]),
+    z1, at(k1, floor[1]),
+  ] as unknown as maplibregl.ExpressionSpecification
 }
 
 /** Push the current DOTS onto a live map. Called once at layer creation and

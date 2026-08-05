@@ -756,6 +756,7 @@ export default function MapTuner({
         vol.push(`DOTS.${k}: { k0: ${d[k].k0}, k1: ${d[k].k1}, cap: ${d[k].cap} },`)
       }
     }
+    if (changed(d.floor, dd.floor)) vol.push(`DOTS.floor: [${d.floor[0]}, ${d.floor[1]}],`)
     if (d.tint !== dd.tint) vol.push(`DOTS.tint: '${d.tint}',`)
     if (d.dim !== dd.dim) vol.push(`DOTS.dim: '${d.dim}',`)
     /** The basemap tiers now live in one table, so their edits are quoted in
@@ -1057,7 +1058,8 @@ export default function MapTuner({
           ).map(([tier, name, sample]) => {
             const r = tune.dots[tier]
             const [z0, z1] = DOT_ANCHORS[tier]
-            const px = (k: number) => Math.min(k * Math.sqrt(sample), r.cap)
+            const px = (k: number, end: 0 | 1) =>
+              Math.max(tune.dots.floor[end], Math.min(k * Math.sqrt(sample), r.cap))
             /** Gallons at which this k hits the cap — above it every dot is the
              *  same size. It is the number worth printing: the cap is not a
              *  fault (it is what keeps a dot inside its own cell) but it IS
@@ -1108,7 +1110,7 @@ export default function MapTuner({
                 </div>
                 <p className="tuner-tier-read">
                   radius = k·√gallons. A {sample.toLocaleString()} gallon{' '}
-                  {tier === 'raw' ? 'run' : 'cell'} draws {px(r.k0).toFixed(1)} px → {px(r.k1).toFixed(1)} px
+                  {tier === 'raw' ? 'run' : 'cell'} draws {px(r.k0, 0).toFixed(1)} px → {px(r.k1, 1).toFixed(1)} px
                   across the ramp. The {r.cap} px cap bites above{' '}
                   {capsAt(r.k0).toLocaleString()} gal at z{z0} and {capsAt(r.k1).toLocaleString()} gal
                   at z{z1} — past that, every dot is the same size.
@@ -1116,6 +1118,41 @@ export default function MapTuner({
               </div>
             )
           })}
+
+          <div className="tuner-ramp">
+            <span className="tuner-ramp-name">
+              Minimum radius <em>DOTS.floor · zero-gallon runs</em>
+            </span>
+            <div className="tuner-ramp-ends is-dots is-two">
+              <label>
+                <span>px at low z</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={8}
+                  step={0.25}
+                  value={tune.dots.floor[0]}
+                  onChange={(e) => setDot({ floor: [Number(e.target.value), tune.dots.floor[1]] })}
+                />
+              </label>
+              <label>
+                <span>px at high z</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={8}
+                  step={0.25}
+                  value={tune.dots.floor[1]}
+                  onChange={(e) => setDot({ floor: [tune.dots.floor[0], Number(e.target.value)] })}
+                />
+              </label>
+            </div>
+            <p className="tuner-tier-read">
+              16,244 of the 24,604 runs carry ZERO gallons — a mission books its volume against
+              one leg and the rest read 0. Without a floor, k·√0 = 0 and two thirds of the record
+              does not draw at the deepest zoom. Set both to 0 to see that.
+            </p>
+          </div>
 
           {(
             [

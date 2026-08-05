@@ -138,7 +138,20 @@ export const LABEL_FONT = 'Roboto Condensed'
  * close an import cycle.
  */
 export const Z_MID = 7.5
-export const Z_NEAR = 10.5
+/** Was 10.5, which left the raw tier half a zoom level of life before the
+ *  ceiling at 11 — so a reader who zoomed all the way in was almost always
+ *  still looking at the fine GRID and concluding the map never stopped
+ *  aggregating. The raw events now get 9.5 → 11. */
+export const Z_NEAR = 9.5
+
+/** The far end of the record, for ramps that need a low anchor.
+ *
+ *  Not a hand-off like the two above: the actual zoom floor is derived per
+ *  viewport by fitting recordBounds (≈5.3 on a phone, ≈6.6 on a 27"), so
+ *  nothing can be pinned to it statically. This is the nominal "whole record
+ *  on screen" zoom, and it exists so the dot ramps have a named low end
+ *  instead of a literal 5.6 copied between three call sites. */
+export const Z_FAR = 5.6
 
 export const mapConfig: MapConfig = {
   baseStyleUrl: 'https://tiles.openfreemap.org/styles/positron',
