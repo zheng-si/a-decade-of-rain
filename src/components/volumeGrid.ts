@@ -73,6 +73,18 @@ export interface TierStyle {
   font: string
   /** `text-letter-spacing`, in ems. */
   tracking: number
+  /** WHEN the tier is on screen: `setLayerZoomRange(id, min, max)`.
+   *
+   *  Distinct from `size`, and the distinction matters because the panel's
+   *  "at floor / at top" fields are the SIZE ramp's two ends and were read as
+   *  visibility staging. They are not: a tier with size 9.5 → 14 is 9.5px at
+   *  Z_TYPE_FLOOR and 14px at Z_TYPE_TOP, and is on screen the whole time.
+   *  This is the pair that decides on-screen-or-not.
+   *
+   *  Staging used to be two hard-coded special cases in the apply loop — one
+   *  for `country`, one for `town` — so `city` had no staging at all and there
+   *  was nowhere to say "show the big cities from the opening view". */
+  zoom: [number, number]
 }
 
 const HALO = 'rgba(250,249,244,0.92)'
@@ -88,13 +100,15 @@ const HALO = 'rgba(250,249,244,0.92)'
  *  The three hidden tiers get a descending ramp so that switching one on from
  *  the tuner produces a tiered map rather than four identical layers. */
 export const BASEMAP_TIERS: Record<BasemapTier, TierStyle> = {
-  capital: { size: [9, 13.5], color: '#646464', halo: HALO, haloWidth: 1.1, font: 'Roboto Condensed Bold', tracking: 0.2 },
-  city: { size: [8, 12], color: '#646464', halo: HALO, haloWidth: 1.1, font: '', tracking: 0.2 },
-  town: { size: [7.5, 11], color: '#767676', halo: HALO, haloWidth: 1.1, font: 'Roboto Condensed Regular', tracking: 0.2 },
-  village: { size: [7, 10], color: '#8a8a8a', halo: HALO, haloWidth: 1.1, font: 'Roboto Condensed Light', tracking: 0.2 },
-  admin: { size: [8, 11], color: '#8a8a8a', halo: HALO, haloWidth: 1.1, font: 'Roboto Condensed Light', tracking: 0.3 },
-  waterName: { size: [8, 12], color: '#338199', halo: HALO, haloWidth: 1.1, font: '', tracking: 0.2 },
-  country: { size: [10, 15], color: '#646464', halo: HALO, haloWidth: 1.1, font: '', tracking: 0.2 },
+  capital: { size: [9, 13.5], color: '#646464', halo: HALO, haloWidth: 1.1, font: 'Roboto Condensed Bold', tracking: 0.2, zoom: [0, 24] },
+  city: { size: [8, 12], color: '#646464', halo: HALO, haloWidth: 1.1, font: '', tracking: 0.2, zoom: [0, 24] },
+  town: { size: [7.5, 11], color: '#767676', halo: HALO, haloWidth: 1.1, font: 'Roboto Condensed Regular', tracking: 0.2, zoom: [Z_MID, 24] },
+  village: { size: [7, 10], color: '#8a8a8a', halo: HALO, haloWidth: 1.1, font: 'Roboto Condensed Light', tracking: 0.2, zoom: [Z_NEAR, 24] },
+  admin: { size: [8, 11], color: '#8a8a8a', halo: HALO, haloWidth: 1.1, font: 'Roboto Condensed Light', tracking: 0.3, zoom: [4, 24] },
+  waterName: { size: [8, 12], color: '#338199', halo: HALO, haloWidth: 1.1, font: '', tracking: 0.2, zoom: [0, 24] },
+  // The one tier that steps ASIDE rather than arriving: the country name has
+  // done its job once the places inside it are named.
+  country: { size: [10, 15], color: '#646464', halo: HALO, haloWidth: 1.1, font: '', tracking: 0.2, zoom: [0, Z_MID] },
 }
 
 /** Which tier a label layer belongs to.
@@ -551,13 +565,13 @@ export function quietBasemap(map: maplibregl.Map) {
         // with one cliff. Cities anchor the record from the opening view;
         // towns wait for the first hand-off; the country name steps aside at
         // the same moment, its job done once the places inside it are named.
-        const isCountry = tier === 'country'
         // Smaller at the overview than the old flat 12/15 — that view is the
         // record's, not the basemap's — and growing from there.
         const size = textSizeRamp(style.size[0], style.size[1])
-        if (isCountry) {
-          map.setLayerZoomRange(id, 0, Z_FAR_TO_MID)
-        }
+        // Staging comes from the tier table now. It used to be a single
+        // special case for the country label, which left every settlement
+        // tier on from zoom 0 with no way to say otherwise.
+        map.setLayerZoomRange(id, style.zoom[0], style.zoom[1])
         // Cities and water names carry no clamp at all: both earn their place
         // at the overview, and the sea names in particular are the only thing
         // labelling two-fifths of the frame.

@@ -85,6 +85,10 @@ interface Tier {
   font: string
   /** `text-letter-spacing`, in ems. */
   tracking: number
+  /** WHEN the tier is on screen — `[minzoom, maxzoom]`. Separate from `size`,
+   *  and the separation is the point: "at floor / at top" are the two ends of
+   *  the SIZE ramp and were being read as visibility staging. */
+  zoom: Ramp
 }
 
 interface Tune {
@@ -187,8 +191,8 @@ const DEFAULTS: Tune = {
     // retyped, so "Reset" cannot drift from the map by one edit. mr and island
     // belong to mapTheme, which has no such table, so they stay literal.
     ...(JSON.parse(JSON.stringify(BASEMAP_TIERS)) as Record<keyof typeof BASEMAP_TIERS, Tier>),
-    mr: { size: [8, 14], color: '#cf3720', halo: 'rgba(250,249,244,0.95)', haloWidth: 2, font: '', tracking: 0.1 },
-    island: { size: [8.5, 11], color: '#6b7268', halo: '#ffffff', haloWidth: 1, font: '', tracking: 0 },
+    mr: { size: [8, 14], color: '#cf3720', halo: 'rgba(250,249,244,0.95)', haloWidth: 2, font: '', tracking: 0.1, zoom: [0, Z_NEAR] },
+    island: { size: [8.5, 11], color: '#6b7268', halo: '#ffffff', haloWidth: 1, font: '', tracking: 0, zoom: [0, 24] },
   },
   rankSpread: 0,
   hidden: [],
@@ -555,10 +559,14 @@ export default function MapTuner({
             m.setPaintProperty(id, 'text-halo-color', tier.halo)
             m.setPaintProperty(id, 'text-halo-width', tier.haloWidth)
 
-            // The country tier steps aside at the first hand-off, same as the
-            // shipped rule — otherwise moving zMid would leave it behind.
-            if (/country/.test(id)) setRange(id, 0, tune.zMid)
-            else if (/town/.test(id)) setRange(id, tune.zMid, 22)
+            // Staging, from the tier itself. This replaces two hard-coded
+            // special cases — one for `country`, one for `town` — which was
+            // why `city` had no staging control at all and the big cities
+            // could not be brought forward to the opening view.
+            //
+            // A per-layer override in the LAYERS tab still wins: it is the
+            // more specific instruction, and it is applied after this.
+            if (!tune.zoomRanges[id]) setRange(id, tier.zoom[0], tier.zoom[1])
           }
         } catch {
           /* layer doesn't take this property — skip */
@@ -604,6 +612,13 @@ export default function MapTuner({
       return { ...t, tiers: { ...t.tiers, [key]: { ...t.tiers[key], size: next } } }
     })
 
+  const setStageEnd = (key: TierKey, end: 0 | 1, v: number) =>
+    setTune((t) => {
+      const next: Ramp = [...t.tiers[key].zoom] as Ramp
+      next[end] = v
+      return { ...t, tiers: { ...t.tiers, [key]: { ...t.tiers[key], zoom: next } } }
+    })
+
   const shownLayers = useMemo(
     () => (labelsOnly ? allLayers.filter((l) => l.isLabel) : allLayers),
     [allLayers, labelsOnly],
@@ -641,6 +656,10 @@ export default function MapTuner({
       if (lines.length) out.push(`// ${file}`, ...lines, '')
     }
     const r = (v: Ramp) => `textSizeRamp(${v[0]}, ${v[1]})`
+    /** Staging is a plain [min, max] pair in the tier table — NOT a size ramp.
+     *  Printing it through `r` produced `textSizeRamp(9, 24)`, which is wrong
+     *  wherever it was pasted. */
+    const zr = (v: Ramp) => `[${v[0]}, ${v[1]}]`
     const changed = <T,>(a: T, b: T) => JSON.stringify(a) !== JSON.stringify(b)
 
     const cfg: string[] = []
@@ -673,6 +692,9 @@ export default function MapTuner({
         const table = k in BASEMAP_TIERS
         const bits: string[] = []
         if (changed(a.size, b.size)) bits.push(table ? `size: ${r(a.size)}` : `text-size ${r(a.size)}`)
+        if (changed(a.zoom, b.zoom)) {
+          bits.push(table ? `zoom: ${zr(a.zoom)}` : `setLayerZoomRange(${a.zoom[0]}, ${a.zoom[1]})`)
+        }
         if (a.font !== b.font) {
           bits.push(table ? `font: '${a.font}'` : `text-font ['${a.font || tune.font}']`)
         }
@@ -952,7 +974,7 @@ export default function MapTuner({
                 <div className="tuner-ramp-ends">
                   {([0, 1] as const).map((end) => (
                     <label key={end}>
-                      <span>{end === 0 ? 'at floor' : 'at top'}</span>
+                      <span>{end === 0 ? 'size at z' + tune.typeFloor : 'size at z' + tune.typeTop}</span>
                       <input
                         type="number"
                         min={4}
@@ -960,6 +982,24 @@ export default function MapTuner({
                         step={0.5}
                         value={tier.size[end]}
                         onChange={(e) => setRampEnd(key, end, Number(e.target.value))}
+                      />
+                    </label>
+                  ))}
+                </div>
+                {/* SEPARATE from the two above, and labelled to say so — these
+                    are the only fields that decide whether the tier is drawn at
+                    all. "at floor / at top" were being read as staging. */}
+                <div className="tuner-ramp-ends tuner-ramp-stage">
+                  {([0, 1] as const).map((end) => (
+                    <label key={end}>
+                      <span>{end === 0 ? 'shows from z' : 'hides after z'}</span>
+                      <input
+                        type="number"
+                        min={0}
+                        max={24}
+                        step={0.5}
+                        value={tier.zoom[end]}
+                        onChange={(e) => setStageEnd(key, end, Number(e.target.value))}
                       />
                     </label>
                   ))}

@@ -301,6 +301,17 @@
   white-space: nowrap;
 }
 
+/* The staging pair decides whether the tier is drawn at all, which is a
+   different kind of answer from the size ramp above it. Marked with the
+   accent so the two rows cannot be skim-read as one. */
+.tuner-ramp-stage label {
+  color: #a33d28;
+}
+
+.tuner-ramp-stage input {
+  border-color: rgba(163, 61, 40, 0.28);
+}
+
 .tuner-ramp-ends input {
   width: 100%;
   min-width: 0;
