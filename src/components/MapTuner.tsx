@@ -272,6 +272,7 @@ function readStore(): Tune {
     for (const k of ['coarse', 'fine', 'raw'] as const) {
       t.dots[k] = { ...DEFAULTS.dots[k], ...(parsed.dots?.[k] ?? {}) }
     }
+    t.dots.zero = { ...DEFAULTS.dots.zero, ...(parsed.dots?.zero ?? {}) }
     // Tiers deep-merge, so a stored tune written before a field existed keeps
     // the rest of its work instead of being thrown away wholesale.
     t.tiers = { ...DEFAULTS.tiers }
@@ -757,6 +758,11 @@ export default function MapTuner({
       }
     }
     if (changed(d.floor, dd.floor)) vol.push(`DOTS.floor: [${d.floor[0]}, ${d.floor[1]}],`)
+    if (changed(d.zero, dd.zero)) {
+      vol.push(
+        `DOTS.zero: { radius: [${d.zero.radius[0]}, ${d.zero.radius[1]}], stroke: ${d.zero.stroke}, opacity: ${d.zero.opacity} },`,
+      )
+    }
     if (d.tint !== dd.tint) vol.push(`DOTS.tint: '${d.tint}',`)
     if (d.dim !== dd.dim) vol.push(`DOTS.dim: '${d.dim}',`)
     /** The basemap tiers now live in one table, so their edits are quoted in
@@ -1121,7 +1127,7 @@ export default function MapTuner({
 
           <div className="tuner-ramp">
             <span className="tuner-ramp-name">
-              Minimum radius <em>DOTS.floor · zero-gallon runs</em>
+              Minimum radius <em>DOTS.floor · marks that carry volume</em>
             </span>
             <div className="tuner-ramp-ends is-dots is-two">
               <label>
@@ -1148,9 +1154,75 @@ export default function MapTuner({
               </label>
             </div>
             <p className="tuner-tier-read">
-              16,244 of the 24,604 runs carry ZERO gallons — a mission books its volume against
-              one leg and the rest read 0. Without a floor, k·√0 = 0 and two thirds of the record
-              does not draw at the deepest zoom. Set both to 0 to see that.
+              The smallest coarse cell holds 10 gallons — 0.07 px on the ramp — and the 10th
+              percentile is 0.64 px. Without a floor the bottom tenth of every tier is sub-pixel.
+            </p>
+          </div>
+
+          <div className="tuner-ramp">
+            <span className="tuner-ramp-name">
+              No-volume ring <em>DOTS.zero · 16,244 of 24,604 runs</em>
+            </span>
+            <div className="tuner-ramp-ends is-dots">
+              <label>
+                <span>r at low z</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={12}
+                  step={0.25}
+                  value={tune.dots.zero.radius[0]}
+                  onChange={(e) =>
+                    setDot({
+                      zero: { ...tune.dots.zero, radius: [Number(e.target.value), tune.dots.zero.radius[1]] },
+                    })
+                  }
+                />
+              </label>
+              <label>
+                <span>r at high z</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={12}
+                  step={0.25}
+                  value={tune.dots.zero.radius[1]}
+                  onChange={(e) =>
+                    setDot({
+                      zero: { ...tune.dots.zero, radius: [tune.dots.zero.radius[0], Number(e.target.value)] },
+                    })
+                  }
+                />
+              </label>
+              <label>
+                <span>stroke px</span>
+                <input
+                  type="number"
+                  min={0}
+                  max={4}
+                  step={0.25}
+                  value={tune.dots.zero.stroke}
+                  onChange={(e) => setDot({ zero: { ...tune.dots.zero, stroke: Number(e.target.value) } })}
+                />
+              </label>
+            </div>
+            <label className="tuner-slider">
+              <span>
+                Ring alpha <strong>{tune.dots.zero.opacity}</strong>
+              </span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={tune.dots.zero.opacity}
+                onChange={(e) => setDot({ zero: { ...tune.dots.zero, opacity: Number(e.target.value) } })}
+              />
+            </label>
+            <p className="tuner-tier-read">
+              A mission books its gallons against one leg; the rest read 0. These are drawn hollow
+              because they are a different KIND of fact, not a smaller quantity — a filled dot of
+              any size reads as &ldquo;this much fell here&rdquo;. Stroke 0 takes them off the map.
             </p>
           </div>
 

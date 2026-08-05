@@ -109,6 +109,19 @@ export default function ArchiveKey({
             Other Agents
           </li>
         )}
+        {/* Two thirds of the 24,604 runs carry no gallons — a mission books
+            its volume against one leg and the rest read 0 — and they are drawn
+            as open rings rather than small dots, because they are a different
+            kind of fact and not a smaller quantity of the same one. The legend
+            has to say so: an unexplained second mark is worse than none, and
+            without this line a reader would take the rings for very small
+            spraying. */}
+        <li>
+          <span className="key-swatch">
+            <span className="key-ring" style={{ borderColor: tint }} />
+          </span>
+          No Volume Recorded
+        </li>
         {/* No military-region row: the Archive no longer draws them (see
             SHOW_MILITARY_REGIONS in MapView). A legend that names something
             the map cannot show is worse than a shorter legend. */}

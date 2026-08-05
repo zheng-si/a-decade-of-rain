@@ -659,6 +659,20 @@
   opacity: 1;
 }
 
+/* The zero-volume mark: an open ring, matching what the raw tier draws. Two
+   pixels smaller than .key-dot so the legend keeps the map's own hierarchy —
+   a ring is subordinate to a filled dot there too. The border colour is set
+   inline from the current selection, like the dot above it. */
+.archive-key .key-ring {
+  display: block;
+  width: 8px;
+  height: 8px;
+  margin: 0 auto;
+  border: 1px solid;
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
 .archive-key .key-mr {
   border-top: 1.5px dashed #ec7066;
 }

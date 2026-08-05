@@ -113,22 +113,44 @@ export interface DotStyle {
   coarse: DotRamp
   fine: DotRamp
   raw: DotRamp
-  /** Minimum radius in px at [low anchor, high anchor], applied under the
-   *  k·√gallons ramp.
+  /** Minimum radius in px at [low anchor, high anchor] for a mark that DOES
+   *  carry volume.
    *
-   *  This exists because 16,244 of the 24,604 recorded runs carry ZERO
-   *  gallons — the volume for a mission is booked against one leg and the
-   *  rest of its legs read 0. k·√0 is 0, so two thirds of the record simply
-   *  did not draw at the deepest zoom, and the map quietly claimed those
-   *  sorties never happened. The story's heatmap has always handled this
-   *  (WEIGHT_FLOOR in spray.ts, "so the many mission-legs recorded with 0
-   *  gallons still faintly mark a spray location"); the Archive — the page
-   *  that calls itself the complete record — did not.
-   *
-   *  The floor is well under the median dot, so a floored run reads as
-   *  presence rather than as volume, and the chains of them trace the actual
-   *  flight lines. Set to [0, 0] for the old behaviour. */
+   *  Not cosmetic: the smallest coarse cell holds 10 gallons, which k·√g puts
+   *  at 0.07 px, and the 10th percentile is still only 0.64 px. Without a
+   *  floor the bottom tenth of every tier is sub-pixel — present in the data,
+   *  absent from the map. */
   floor: [number, number]
+
+  /** How a run with NO recorded volume is drawn: a small open ring.
+   *
+   *  16,244 of the 24,604 recorded runs carry zero gallons — a mission books
+   *  its volume against one leg and the rest of its legs read 0. k·√0 is 0, so
+   *  two thirds of the record did not draw at all, and the page that calls
+   *  itself the complete record quietly claimed those sorties never happened.
+   *  (The story's heatmap has always handled this: WEIGHT_FLOOR in spray.ts,
+   *  "so the many mission-legs recorded with 0 gallons still faintly mark a
+   *  spray location".)
+   *
+   *  A ring rather than a small filled dot, because these are a different KIND
+   *  of fact, not a smaller quantity of the same one — a filled dot of any size
+   *  reads on a scale that says "this much fell here", and for these runs the
+   *  honest statement is "a pass is on file, the volume is not". Hollow says
+   *  that without needing a number. Only the raw tier can hold them; binGrid
+   *  never emits an empty cell.
+   *
+   *  Set `stroke` to 0 to take them off the map again. */
+  zero: {
+    /** Ring radius in px at [low anchor, high anchor]. Kept under the median
+     *  filled dot so the ring stays subordinate to real volume. */
+    radius: [number, number]
+    /** Ring thickness in px. */
+    stroke: number
+    /** Ring alpha. Lower than the filled dots': there are twice as many of
+     *  these as there are volume-carrying runs, and at full strength two
+     *  thirds of the record would shout. */
+    opacity: number
+  }
   /** The whole record's colour, with no agent isolated. */
   tint: string
   /** Grey for de-emphasised (non-selected) volume. A neutral #808080 was tried
@@ -186,10 +208,20 @@ export const DOTS: DotStyle = {
   coarse: { k0: 0.022, k1: 0.05, cap: 16 },
   fine: { k0: 0.03, k1: 0.065, cap: 16 },
   raw: { k0: 0.055, k1: 0.13, cap: 18 },
-  floor: [1, 2],
+  floor: [1, 1.5],
+  zero: { radius: [2, 3.5], stroke: 1, opacity: 0.55 },
   tint: '#ff5449',
   dim: '#bdbdbd',
 }
+
+/** True for a run with no recorded volume. `coalesce` because the grid tiers
+ *  carry `g` and not `gallons` — asking for a missing property would make the
+ *  whole expression null rather than false. */
+const NO_VOLUME: maplibregl.ExpressionSpecification = [
+  '==',
+  ['coalesce', ['to-number', ['get', 'gallons']], 0],
+  0,
+]
 
 /** Tuner hook. Merges in place so `DOTS` stays one object — the layers below
  *  and any console both read it, and a second copy is how a panel starts
@@ -210,6 +242,7 @@ export function setDots(next: Partial<DotStyle>): boolean {
   // something a later render is free to replace under it.
   for (const k of ['coarse', 'fine', 'raw'] as const) if (next[k]) DOTS[k] = { ...next[k] }
   if (next.floor) DOTS.floor = [next.floor[0], next.floor[1]]
+  if (next.zero) DOTS.zero = { ...next.zero, radius: [next.zero.radius[0], next.zero.radius[1]] }
   return rebin
 }
 
@@ -304,20 +337,41 @@ export function dotRadius(
   tier: 'coarse' | 'fine' | 'raw',
 ): maplibregl.ExpressionSpecification {
   const { k0, k1, cap } = DOTS[tier]
-  const floor = DOTS.floor
   const [z0, z1] = DOT_ANCHORS[tier]
   const prop = tier === 'raw' ? 'gallons' : 'g'
-  // max(floor, min(k·√g, cap)) — the floor is what keeps a zero-gallon run on
-  // the map at all; see DotStyle.floor.
-  const at = (k: number, f: number) => {
+  // max(floor, min(k·√g, cap)) — the cap keeps a dot inside its cell, the
+  // floor keeps the bottom tenth of the distribution above one pixel.
+  const filled = (k: number, i: 0 | 1) => {
     const ramp = ['min', ['*', k, ['sqrt', ['get', prop]]], cap]
-    return f > 0 ? ['max', f, ramp] : ramp
+    return DOTS.floor[i] > 0 ? ['max', DOTS.floor[i], ramp] : ramp
   }
+  // Only the raw tier can hold a zero-volume run, and there the radius is a
+  // fixed ring size rather than anything read off the (absent) quantity.
+  const at = (k: number, i: 0 | 1) =>
+    tier === 'raw' ? ['case', NO_VOLUME, DOTS.zero.radius[i], filled(k, i)] : filled(k, i)
   return [
     'interpolate', ['linear'], ['zoom'],
-    z0, at(k0, floor[0]),
-    z1, at(k1, floor[1]),
+    z0, at(k0, 0),
+    z1, at(k1, 1),
   ] as unknown as maplibregl.ExpressionSpecification
+}
+
+/** Fill and ring for one tier.
+ *
+ *  A zero-volume run is drawn as an outline: no fill (opacity 0), a 1 px
+ *  stroke, and NO blur — a feathered 1 px ring is just a smudge, so the
+ *  falloff that makes the filled dots read as deposition would erase the very
+ *  thing that distinguishes these. Only the raw tier needs the split. */
+export function dotPaint(tier: 'coarse' | 'fine' | 'raw') {
+  if (tier !== 'raw') {
+    return { opacity: DOTS.opacity, blur: DOTS.blur, stroke: 0, strokeOpacity: 1 }
+  }
+  return {
+    opacity: ['case', NO_VOLUME, 0, DOTS.opacity] as unknown as maplibregl.ExpressionSpecification,
+    blur: ['case', NO_VOLUME, 0, DOTS.blur] as unknown as maplibregl.ExpressionSpecification,
+    stroke: ['case', NO_VOLUME, DOTS.zero.stroke, 0] as unknown as maplibregl.ExpressionSpecification,
+    strokeOpacity: DOTS.zero.opacity,
+  }
 }
 
 /** Push the current DOTS onto a live map. Called once at layer creation and
@@ -330,8 +384,11 @@ export function applyDots(map: maplibregl.Map) {
     [VOL_RAW_LAYER, 'raw'],
   ] as const) {
     if (!map.getLayer(id)) continue
-    map.setPaintProperty(id, 'circle-blur', DOTS.blur)
-    map.setPaintProperty(id, 'circle-opacity', DOTS.opacity)
+    const p = dotPaint(tier)
+    map.setPaintProperty(id, 'circle-blur', p.blur as never)
+    map.setPaintProperty(id, 'circle-opacity', p.opacity as never)
+    map.setPaintProperty(id, 'circle-stroke-width', p.stroke as never)
+    map.setPaintProperty(id, 'circle-stroke-opacity', p.strokeOpacity as never)
     map.setPaintProperty(id, 'circle-radius', dotRadius(tier) as never)
   }
 }
@@ -395,8 +452,13 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
       minzoom: Z_MID_TO_NEAR,
       paint: {
         'circle-color': ['get', 'c'] as unknown as maplibregl.ExpressionSpecification,
-        'circle-opacity': DOTS.opacity,
-        'circle-blur': DOTS.blur,
+        // The ring takes the feature's own colour, so a zero-volume run of a
+        // de-emphasised agent greys out with everything else.
+        'circle-stroke-color': ['get', 'c'] as unknown as maplibregl.ExpressionSpecification,
+        'circle-opacity': dotPaint('raw').opacity as never,
+        'circle-blur': dotPaint('raw').blur as never,
+        'circle-stroke-width': dotPaint('raw').stroke as never,
+        'circle-stroke-opacity': dotPaint('raw').strokeOpacity,
         'circle-pitch-alignment': 'map',
         'circle-pitch-scale': 'map',
         'circle-radius': dotRadius('raw'),
@@ -427,13 +489,14 @@ export function updateVolume(
   fine.setData(binGrid(spray, day, indices, FINE_DEG, c))
   if (map.getLayer(VOL_RAW_LAYER)) {
     map.setFilter(VOL_RAW_LAYER, ['<=', ['get', 'day'], day] as never)
-    map.setPaintProperty(
-      VOL_RAW_LAYER,
-      'circle-color',
-      indices
-        ? (['case', ['in', ['get', 'agent'], ['literal', indices]], c, DOTS.dim] as never)
-        : c,
-    )
+    const colour = indices
+      ? (['case', ['in', ['get', 'agent'], ['literal', indices]], c, DOTS.dim] as never)
+      : (c as never)
+    map.setPaintProperty(VOL_RAW_LAYER, 'circle-color', colour)
+    // The zero-volume rings are stroke, not fill, so they need the same
+    // instruction — otherwise isolating an agent leaves every ring red while
+    // the filled dots around them go grey.
+    map.setPaintProperty(VOL_RAW_LAYER, 'circle-stroke-color', colour)
     map.setLayoutProperty(
       VOL_RAW_LAYER,
       'circle-sort-key',
