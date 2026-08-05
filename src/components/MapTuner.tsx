@@ -45,6 +45,7 @@ import {
   setTracks,
   applyTracks,
   TRACK_LAYER,
+  TRACK_DIM_LAYER,
   TRACK_NIL_LAYER,
   TRACK_END_LAYER,
   TRACK_MARK_LAYER,
@@ -576,7 +577,14 @@ export default function MapTuner({
       // checkbox did nothing, and vol-raw drew its dots straight over the
       // tracks. One fact, one owner: these five are theirs.
       const spikeOwned = TRACKS_ON
-        ? new Set<string>([TRACK_LAYER, TRACK_NIL_LAYER, TRACK_END_LAYER, TRACK_MARK_LAYER, VOL_RAW_LAYER])
+        ? new Set<string>([
+            TRACK_LAYER,
+            TRACK_DIM_LAYER,
+            TRACK_NIL_LAYER,
+            TRACK_END_LAYER,
+            TRACK_MARK_LAYER,
+            VOL_RAW_LAYER,
+          ])
         : new Set<string>()
 
       for (const layer of m.getStyle().layers ?? []) {
@@ -837,6 +845,7 @@ export default function MapTuner({
           `TRACKS.nil: { width: ${t.nil.width}, opacity: ${t.nil.opacity}, dash: [${t.nil.dash[0]}, ${t.nil.dash[1]}], shown: ${t.nil.shown} },`,
         )
       }
+      if (t.taper !== td.taper) trk.push(`TRACKS.taper: ${t.taper},`)
       if (changed(t.marks, td.marks)) {
         trk.push(
           `TRACKS.marks: { kFar: ${t.marks.kFar}, kNear: ${t.marks.kNear}, cap: ${t.marks.cap}, shown: ${t.marks.shown} },`,
@@ -1506,6 +1515,23 @@ export default function MapTuner({
                 }
               />
               <span>show beads</span>
+            </label>
+            <label className="tuner-slider">
+              <span>
+                Taper along the stroke <strong>{tune.tracks.taper}</strong>
+              </span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={tune.tracks.taper}
+                onChange={(e) => setTrk({ taper: Number(e.target.value) })}
+              />
+              <em>
+                0 = flat · 1 = tail fully transparent. The stronger cue: direction carried along
+                the whole length, not just by two beads.
+              </em>
             </label>
             <p className="tuner-tier-read">
               Multiples of the stroke&apos;s own half-width, so a bead always belongs to its line.

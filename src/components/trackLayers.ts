@@ -39,6 +39,16 @@ export const TRACK_MARK_SOURCE = 'spray-track-marks'
 export const TRACK_END_SOURCE = 'spray-track-ends'
 /** Sprayed segments, width by gallons per km. */
 export const TRACK_LAYER = 'spray-track'
+/** The de-emphasised half of the same strokes.
+ *
+ *  A second layer exists ONLY because of the taper. line-gradient can read
+ *  `line-progress` and nothing else — not a feature property — so a single
+ *  layer cannot fade a selected track in one hue and an unselected one in
+ *  grey. Splitting by filter works because the record allows it: checked
+ *  against the source, 0 of 11,273 runs carry more than one agent, so every
+ *  track belongs wholly to one side of the split and none has to be half
+ *  tinted and half grey. */
+export const TRACK_DIM_LAYER = 'spray-track-dim'
 /** Segments of runs with no recorded volume — the same fact the hollow rings
  *  carry on the dot map, in the grammar of a line. */
 export const TRACK_NIL_LAYER = 'spray-track-nil'
@@ -102,6 +112,16 @@ export interface TrackStyle {
   nil: { width: number; opacity: number; dash: [number, number]; shown: boolean }
   /** Runs recorded at a single grid reference — a point, drawn as one. */
   marks: { kFar: number; kNear: number; cap: number; shown: boolean }
+  /** Fade along the stroke, head to tail. 0 = flat, 1 = tail fully transparent.
+   *
+   *  The stronger of the two direction cues by a distance: the beads mark two
+   *  points, the taper carries direction along the whole length, so a run reads
+   *  as having been FLOWN rather than as a segment with different-sized ends.
+   *
+   *  It costs a layer. MapLibre's line-gradient can only read `line-progress`,
+   *  never a feature property, so the tinted and the greyed strokes cannot
+   *  share one layer once either of them is a gradient. See TRACK_DIM_LAYER. */
+  taper: number
 }
 
 /** Shipped track appearance. Mutable ONLY through `setTracks`. */
@@ -114,6 +134,30 @@ export const TRACKS: TrackStyle = {
   ends: { head: 1.1, tail: 0.5, opacity: 0.6, blur: 0.3, shown: true },
   nil: { width: 0.6, opacity: 0.35, dash: [2, 2], shown: true },
   marks: { kFar: 0.02, kNear: 0.09, cap: 14, shown: true },
+  taper: 0,
+}
+
+/** The last selection applied, so applyTracks can rebuild a gradient without
+ *  the caller having to hand it the colours again. Module state rather than a
+ *  parameter because the console changes the taper and the agent chips change
+ *  the selection, and either one has to be able to redraw the other's work. */
+let paintState = { tint: '#ff5449', dim: '#bdbdbd', indices: null as number[] | null }
+
+/** #rrggbb → rgba(), for the gradient stops. MapLibre needs a colour string
+ *  with the alpha baked in; line-opacity multiplies on top of it. */
+function rgba(hex: string, a: number): string {
+  const h = hex.replace('#', '')
+  const n = parseInt(h.length === 3 ? h.replace(/(.)/g, '$1$1') : h, 16)
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`
+}
+
+/** Full at the head, faded to (1 − taper) at the tail. */
+function gradient(colour: string): maplibregl.ExpressionSpecification {
+  return [
+    'interpolate', ['linear'], ['line-progress'],
+    0, rgba(colour, 1),
+    1, rgba(colour, Math.max(0, 1 - TRACKS.taper)),
+  ] as unknown as maplibregl.ExpressionSpecification
 }
 
 /** Console hook. Merges in place so TRACKS stays one object; the nested
@@ -180,14 +224,18 @@ function markRamp(): maplibregl.ExpressionSpecification {
 /** Push the current TRACKS onto a live map — one function that knows how a
  *  track parameter reaches the screen, called at creation and by the console. */
 export function applyTracks(map: maplibregl.Map) {
+  // The taper decides whether colour comes from line-color or line-gradient,
+  // so any change to TRACKS has to re-run the colour pass.
+  applyTrackColour(map)
   const vis = (id: string, on: boolean) => {
     if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
   }
-  if (map.getLayer(TRACK_LAYER)) {
-    map.setPaintProperty(TRACK_LAYER, 'line-width', widthRamp() as never)
-    map.setPaintProperty(TRACK_LAYER, 'line-opacity', TRACKS.opacity)
-    map.setPaintProperty(TRACK_LAYER, 'line-blur', TRACKS.blur)
-    map.setLayoutProperty(TRACK_LAYER, 'line-cap', TRACKS.cap)
+  for (const id of [TRACK_LAYER, TRACK_DIM_LAYER]) {
+    if (!map.getLayer(id)) continue
+    map.setPaintProperty(id, 'line-width', widthRamp() as never)
+    map.setPaintProperty(id, 'line-opacity', TRACKS.opacity)
+    map.setPaintProperty(id, 'line-blur', TRACKS.blur)
+    map.setLayoutProperty(id, 'line-cap', TRACKS.cap)
   }
   if (map.getLayer(TRACK_END_LAYER)) {
     map.setPaintProperty(TRACK_END_LAYER, 'circle-radius', endRamp() as never)
@@ -216,8 +264,12 @@ export function addTrackLayers(
   day: number,
   tint: string,
 ): string {
+  lastDay = day
+  paintState = { ...paintState, tint }
   const labelId = firstLabelLayerId(map)
-  map.addSource(TRACK_SOURCE, { type: 'geojson', data: data.lines })
+  // lineMetrics is what makes `line-progress` — and so the taper — possible.
+  // It costs a per-feature length pass at load and nothing after.
+  map.addSource(TRACK_SOURCE, { type: 'geojson', data: data.lines, lineMetrics: true })
   map.addSource(TRACK_MARK_SOURCE, { type: 'geojson', data: data.marks })
   map.addSource(TRACK_END_SOURCE, { type: 'geojson', data: data.ends })
 
@@ -240,6 +292,27 @@ export function addTrackLayers(
         // Dashed for the same reason the zero-volume dots are hollow: it is a
         // different KIND of mark, not a thinner amount of the same one.
         'line-dasharray': TRACKS.nil.dash,
+      },
+    },
+    labelId,
+  )
+
+  // The de-emphasised twin, added under the tinted one so a selected track
+  // always draws over a greyed neighbour. Its filter matches nothing until an
+  // agent is isolated.
+  map.addLayer(
+    {
+      id: TRACK_DIM_LAYER,
+      type: 'line',
+      source: TRACK_SOURCE,
+      minzoom: Z_NEAR,
+      filter: ['all', sprayed(day), ['==', ['literal', true], false]] as unknown as maplibregl.FilterSpecification,
+      layout: { 'line-cap': TRACKS.cap, 'line-join': 'round' },
+      paint: {
+        'line-color': tint,
+        'line-width': widthRamp(),
+        'line-opacity': TRACKS.opacity,
+        'line-blur': TRACKS.blur,
       },
     },
     labelId,
@@ -306,11 +379,21 @@ export function addTrackLayers(
 
 /** Advance the playhead. Cheap — a filter change, no re-tessellation of the
  *  geometry, which is the one thing the grid tiers could never avoid. */
+/** The playhead, remembered so the colour pass can rebuild a filter without
+ *  being handed the day again — every sprayed filter is `day AND selection`,
+ *  and the two are set from different places. */
+let lastDay = 0
+
 export function setTrackTime(map: maplibregl.Map, day: number) {
+  lastDay = day
   if (map.getLayer(TRACK_NIL_LAYER)) map.setFilter(TRACK_NIL_LAYER, unsprayed(day))
-  if (map.getLayer(TRACK_LAYER)) map.setFilter(TRACK_LAYER, sprayed(day))
   if (map.getLayer(TRACK_END_LAYER)) map.setFilter(TRACK_END_LAYER, sprayed(day))
   if (map.getLayer(TRACK_MARK_LAYER)) map.setFilter(TRACK_MARK_LAYER, dayFilter(day))
+  // The two sprayed LINE layers are not touched here. Their filter is
+  // `day AND selection` and the selection half lives in applyTrackColour, so
+  // setting it from two places is how one of them silently wins — the taper
+  // split survived only because MapView happened to call the other one next.
+  applyTrackColour(map)
 }
 
 /** Isolate an agent: the selection takes the agent's hue, the rest go grey, and
@@ -326,14 +409,61 @@ export function setTrackAgents(
   tint: string,
   dim: string,
 ) {
-  const colour = indices
-    ? (['case', ['in', ['get', 'agent'], ['literal', indices]], tint, dim] as never)
-    : (tint as never)
-  for (const id of [TRACK_LAYER, TRACK_NIL_LAYER]) {
-    if (map.getLayer(id)) map.setPaintProperty(id, 'line-color', colour)
+  paintState = { tint, dim, indices }
+  applyTrackColour(map)
+}
+
+/** Colour and split the two sprayed layers from `paintState` + TRACKS.taper.
+ *
+ *  With no taper this is one layer doing a `case` on the agent, exactly as
+ *  before. With a taper the split has to be a FILTER, because a gradient reads
+ *  `line-progress` and cannot see which agent a stroke belongs to — so the
+ *  selected strokes go in one layer with the tint's gradient and the rest in
+ *  the twin with grey's. Both paths end with the same picture; only the taper
+ *  needs the second layer, so only the taper pays for it. */
+function applyTrackColour(map: maplibregl.Map) {
+  const { tint, dim, indices } = paintState
+  const inSel = ['in', ['get', 'agent'], ['literal', indices ?? []]]
+  const day = lastDay
+  const both = (l: maplibregl.FilterSpecification, r: unknown) =>
+    ['all', l, r] as unknown as maplibregl.FilterSpecification
+
+  const has = (id: string) => map.getLayer(id) != null
+  if (TRACKS.taper > 0) {
+    // Split by filter. `line-color` must be cleared to undefined or MapLibre
+    // keeps painting it under the gradient.
+    if (has(TRACK_LAYER)) {
+      map.setFilter(TRACK_LAYER, indices ? both(sprayed(day), inSel) : sprayed(day))
+      map.setPaintProperty(TRACK_LAYER, 'line-gradient', gradient(tint) as never)
+    }
+    if (has(TRACK_DIM_LAYER)) {
+      map.setFilter(
+        TRACK_DIM_LAYER,
+        indices ? both(sprayed(day), ['!', inSel]) : both(sprayed(day), ['==', ['literal', true], false]),
+      )
+      map.setPaintProperty(TRACK_DIM_LAYER, 'line-gradient', gradient(dim) as never)
+    }
+  } else {
+    const colour = indices
+      ? (['case', inSel, tint, dim] as never)
+      : (tint as never)
+    if (has(TRACK_LAYER)) {
+      map.setPaintProperty(TRACK_LAYER, 'line-gradient', undefined as never)
+      map.setFilter(TRACK_LAYER, sprayed(day))
+      map.setPaintProperty(TRACK_LAYER, 'line-color', colour)
+    }
+    // The twin goes empty rather than hidden: an empty filter costs nothing
+    // and leaves the layer ready for the next taper without a re-add.
+    if (has(TRACK_DIM_LAYER)) {
+      map.setFilter(TRACK_DIM_LAYER, both(sprayed(day), ['==', ['literal', true], false]))
+    }
   }
+  const colour = indices
+    ? (['case', inSel, tint, dim] as never)
+    : (tint as never)
+  if (has(TRACK_NIL_LAYER)) map.setPaintProperty(TRACK_NIL_LAYER, 'line-color', colour)
   for (const id of [TRACK_MARK_LAYER, TRACK_END_LAYER]) {
-    if (map.getLayer(id)) map.setPaintProperty(id, 'circle-color', colour)
+    if (has(id)) map.setPaintProperty(id, 'circle-color', colour)
   }
 }
 
