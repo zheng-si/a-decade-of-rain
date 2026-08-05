@@ -71,11 +71,95 @@ export function agentIndexColors(spray: SprayDataset): string[] {
   return spray.agents.map((a) => byCode[a.code] ?? other)
 }
 
-/** Grey for de-emphasised (non-selected) volume. A neutral #808080 was tried
- *  and read too heavy — de-emphasised volume competed with the selection —
- *  so this stays the original soft green-grey and leans on the raised
- *  circle-opacity (DOT_OPACITY) for its legibility instead of a darker value. */
-const DIM = '#c9cdc4'
+// ── the dot, as one table ────────────────────────────────────────────────
+//
+//  Everything that decides what a dot LOOKS like, in one object, for the same
+//  reason the label tiers moved into mapTaxonomy: these numbers are judged
+//  together and were previously scattered across three addLayer calls, two
+//  loose constants and a string literal inside updateVolume. A console cannot
+//  offer a full set of controls over values it has to go and find.
+//
+//  MapLibre has no gradient fill for circles. `blur` is the whole falloff
+//  control — it feathers the disc inward from its edge, 0 = hard disc, 1 =
+//  faded across the entire radius. So the *look* of the gradient is not one
+//  number but three: how far it feathers (blur), how dark it starts (opacity)
+//  and how big the disc is to begin with (the k ramps below). All three are
+//  here, and the panel says so.
+
+/** Per-tier radius: k·√gallons evaluated at two zoom anchors, capped in px.
+ *  The anchors are where each tier hands off, so they are not free numbers —
+ *  they follow Z_MID / Z_NEAR and are not exposed for tuning. */
+export interface DotRamp {
+  /** k at the tier's low anchor. */
+  k0: number
+  /** k at the tier's high anchor. */
+  k1: number
+  /** Hard ceiling in px, so a dot stays inside its own grid cell. */
+  cap: number
+}
+
+export interface DotStyle {
+  /** Radial falloff, 0–1. See the note above: this is MapLibre's only one. */
+  blur: number
+  /** Peak alpha at the dot's centre. Lifted from 0.72 when blur arrived, to
+   *  put back the weight the falloff spreads out. */
+  opacity: number
+  coarse: DotRamp
+  fine: DotRamp
+  raw: DotRamp
+  /** The whole record's colour, with no agent isolated. */
+  tint: string
+  /** Grey for de-emphasised (non-selected) volume. A neutral #808080 was tried
+   *  and read too heavy — de-emphasised volume competed with the selection —
+   *  so this stays a soft green-grey and leans on `opacity` for its legibility
+   *  instead of a darker value.
+   *
+   *  Unlike everything else here, this one is baked into the binned features
+   *  rather than into paint, so changing it needs a re-bin. */
+  dim: string
+}
+
+/** Zoom anchors for each tier's radius ramp. Not tunable — they ARE the
+ *  hand-off zooms, and moving them here without moving Z_MID / Z_NEAR would
+ *  leave a tier ramping toward a zoom it never reaches. */
+export const DOT_ANCHORS: Record<'coarse' | 'fine' | 'raw', [number, number]> = {
+  coarse: [5.6, 7.0],
+  fine: [7.0, 9.2],
+  raw: [9.2, 12],
+}
+
+/** Shipped dot appearance. Mutable ONLY through `setDots`, which is dev
+ *  tooling — nothing in the app writes it. */
+export const DOTS: DotStyle = {
+  blur: 0.75,
+  opacity: 0.9,
+  coarse: { k0: 0.03, k1: 0.069, cap: 13 },
+  fine: { k0: 0.037, k1: 0.1, cap: 12 },
+  raw: { k0: 0.14, k1: 0.34, cap: 18 },
+  tint: '#ff5449',
+  dim: '#c9cdc4',
+}
+
+/** Tuner hook. Merges in place so `DOTS` stays one object — the layers below
+ *  and any console both read it, and a second copy is how a panel starts
+ *  describing a map we do not have.
+ *
+ *  Returns true if a re-bin is needed. Blur, opacity and the radius ramps are
+ *  paint and reach the screen through `applyDots`; the two COLOURS do not —
+ *  they are written into each binned feature's `c` property by `binGrid`, so
+ *  the features have to be rebuilt before a new colour is visible. Reporting
+ *  that here is the difference between a working colour picker and one that
+ *  does nothing until you happen to scrub the timeline. */
+export function setDots(next: Partial<DotStyle>): boolean {
+  const rebin =
+    (next.dim != null && next.dim !== DOTS.dim) || (next.tint != null && next.tint !== DOTS.tint)
+  Object.assign(DOTS, next)
+  // Deep-copy the ramps. `next` is likely a console's React state object, and
+  // Object.assign would alias it — leaving the map's own table pointing at
+  // something a later render is free to replace under it.
+  for (const k of ['coarse', 'fine', 'raw'] as const) if (next[k]) DOTS[k] = { ...next[k] }
+  return rebin
+}
 
 /** Bin events up to `day` into a grid. With a selection, each cell emits a
  *  grey feature for the other agents' volume UNDER a tinted feature for the
@@ -136,7 +220,7 @@ function binGrid(
       features.push({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: coords },
-        properties: { g: Math.round(cell.out), c: DIM, s: 0, ...shared },
+        properties: { g: Math.round(cell.out), c: DOTS.dim, s: 0, ...shared },
       })
     if (cell.inSel > 0)
       features.push({
@@ -157,30 +241,38 @@ export function cellDegAt(zoom: number): number | null {
 
 /** Area-true radius: k·√gallons, capped so dots stay inside their cell.
  *  MapLibre requires the zoom interpolate to be the OUTERMOST expression,
- *  so the cap is applied inside each stop's output. */
-const gridRadius = (kStops: [number, number][], cap: number): maplibregl.ExpressionSpecification =>
-  [
-    'interpolate',
-    ['linear'],
-    ['zoom'],
-    ...kStops.flatMap(([z, k]) => [z, ['min', ['*', k, ['sqrt', ['get', 'g']]], cap]]),
-  ] as unknown as maplibregl.ExpressionSpecification
+ *  so the cap is applied inside each stop's output.
+ *
+ *  `prop` is the gallons field, which differs between the tiers: the grids
+ *  carry a binned total (`g`), the near tier reads the raw event (`gallons`).
+ *  Taking it as an argument is what lets all three tiers share one builder —
+ *  the raw tier used to hand-roll the same expression a few lines below and
+ *  drifted out of reach of anything that wanted to change it. */
+export function dotRadius(
+  tier: 'coarse' | 'fine' | 'raw',
+): maplibregl.ExpressionSpecification {
+  const { k0, k1, cap } = DOTS[tier]
+  const [z0, z1] = DOT_ANCHORS[tier]
+  const prop = tier === 'raw' ? 'gallons' : 'g'
+  const at = (k: number) => ['min', ['*', k, ['sqrt', ['get', prop]]], cap]
+  return ['interpolate', ['linear'], ['zoom'], z0, at(k0), z1, at(k1)] as unknown as maplibregl.ExpressionSpecification
+}
 
-/** Radial falloff on every dot.
- *
- *  MapLibre has no gradient fill for circles; `circle-blur` is the equivalent —
- *  it feathers the disc inward from its edge, so `1` fades the whole radius and
- *  `0` is the hard disc we shipped before. At 0.75 a dot reads as deposition
- *  rather than as a plotted symbol.
- *
- *  It is not free, and the trade was made with the comparison renders in hand:
- *  the softer edge costs some of the area→gallons read (two dots of noticeably
- *  different size look closer in weight than they are), and because every dot
- *  becomes a similar soft blob it makes the 0.12°/0.03° binning lattice more
- *  visible in the dense areas. Opacity is lifted from 0.72 to compensate for
- *  the energy the falloff spreads out. Set BLUR to 0 to get the old discs back. */
-const BLUR = 0.75
-const DOT_OPACITY = 0.9
+/** Push the current DOTS onto a live map. Called once at layer creation and
+ *  again by the console on every change, so there is exactly one function that
+ *  knows how a dot parameter reaches the screen. */
+export function applyDots(map: maplibregl.Map) {
+  for (const [id, tier] of [
+    [VOL_COARSE_LAYER, 'coarse'],
+    [VOL_FINE_LAYER, 'fine'],
+    [VOL_RAW_LAYER, 'raw'],
+  ] as const) {
+    if (!map.getLayer(id)) continue
+    map.setPaintProperty(id, 'circle-blur', DOTS.blur)
+    map.setPaintProperty(id, 'circle-opacity', DOTS.opacity)
+    map.setPaintProperty(id, 'circle-radius', dotRadius(tier) as never)
+  }
+}
 
 /** Add the three-tier symbol stack. Returns the bottom layer id (for
  *  inserting reference overlays beneath the symbols). */
@@ -200,8 +292,8 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
   // 3D view the dots foreshorten into ellipses instead of billboarding.
   const shared = {
     'circle-color': ['get', 'c'] as unknown as maplibregl.ExpressionSpecification,
-    'circle-opacity': DOT_OPACITY,
-    'circle-blur': BLUR,
+    'circle-opacity': DOTS.opacity,
+    'circle-blur': DOTS.blur,
     'circle-pitch-alignment': 'map' as const,
     'circle-pitch-scale': 'map' as const,
   }
@@ -214,16 +306,7 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
       source: VOL_COARSE_SOURCE,
       maxzoom: Z_FAR_TO_MID,
       layout: sharedLayout,
-      paint: {
-        ...shared,
-        'circle-radius': gridRadius(
-          [
-            [5.6, 0.03],
-            [7.0, 0.069],
-          ],
-          13,
-        ),
-      },
+      paint: { ...shared, 'circle-radius': dotRadius('coarse') },
     },
     labelId,
   )
@@ -236,16 +319,7 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
       minzoom: Z_FAR_TO_MID,
       maxzoom: Z_MID_TO_NEAR,
       layout: sharedLayout,
-      paint: {
-        ...shared,
-        'circle-radius': gridRadius(
-          [
-            [7.0, 0.037],
-            [9.2, 0.1],
-          ],
-          12,
-        ),
-      },
+      paint: { ...shared, 'circle-radius': dotRadius('fine') },
     },
     labelId,
   )
@@ -259,19 +333,11 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
       minzoom: Z_MID_TO_NEAR,
       paint: {
         'circle-color': ['get', 'c'] as unknown as maplibregl.ExpressionSpecification,
-        'circle-opacity': DOT_OPACITY,
-        'circle-blur': BLUR,
+        'circle-opacity': DOTS.opacity,
+        'circle-blur': DOTS.blur,
         'circle-pitch-alignment': 'map',
         'circle-pitch-scale': 'map',
-        'circle-radius': [
-          'interpolate',
-          ['linear'],
-          ['zoom'],
-          9.2,
-          ['min', ['*', 0.14, ['sqrt', ['get', 'gallons']]], 18],
-          12,
-          ['min', ['*', 0.34, ['sqrt', ['get', 'gallons']]], 18],
-        ] as unknown as maplibregl.ExpressionSpecification,
+        'circle-radius': dotRadius('raw'),
       },
     },
     labelId,
@@ -294,7 +360,7 @@ export function updateVolume(
   // One hue at a time: brand red for the whole field, an agent's colour
   // when isolated — and the rest of the record dims to grey rather than
   // vanishing, so the selection keeps its context.
-  const c = tint ?? '#ff5449'
+  const c = tint ?? DOTS.tint
   coarse.setData(binGrid(spray, day, indices, COARSE_DEG, c))
   fine.setData(binGrid(spray, day, indices, FINE_DEG, c))
   if (map.getLayer(VOL_RAW_LAYER)) {
@@ -303,7 +369,7 @@ export function updateVolume(
       VOL_RAW_LAYER,
       'circle-color',
       indices
-        ? (['case', ['in', ['get', 'agent'], ['literal', indices]], c, DIM] as never)
+        ? (['case', ['in', ['get', 'agent'], ['literal', indices]], c, DOTS.dim] as never)
         : c,
     )
     map.setLayoutProperty(

@@ -33,6 +33,12 @@ import {
   VOL_RAW_LAYER,
   gridDegrees,
   setGridDegrees,
+  DOTS,
+  DOT_ANCHORS,
+  setDots,
+  applyDots,
+  type DotStyle,
+  type DotRamp,
 } from './volumeGrid'
 import {
   LABEL_TIERS,
@@ -110,6 +116,12 @@ interface Tune {
    *  is a separate decision from the zoom at which one hands off to the next. */
   coarseDeg: number
   fineDeg: number
+  // ── the dots themselves ──
+  /** How the record is drawn, as opposed to where the basemap gets out of its
+   *  way. Spread from volumeGrid's DOTS rather than restated, for the same
+   *  reason the tiers are: a second copy is how a panel starts describing a
+   *  map we do not have. */
+  dots: DotStyle
   // ── type scale ──
   typeFloor: number
   typeTop: number
@@ -185,6 +197,7 @@ const DEFAULTS: Tune = {
   minZoomMargin: mapConfig.view.minZoomMargin,
   coarseDeg: gridDegrees().coarse,
   fineDeg: gridDegrees().fine,
+  dots: JSON.parse(JSON.stringify(DOTS)) as DotStyle,
   typeFloor: 5,
   typeTop: 11,
   // Read off quietBasemap / mapTheme as committed, so "Reset" really is the
@@ -252,6 +265,13 @@ function readStore(): Tune {
     if (!raw) return DEFAULTS
     const parsed = JSON.parse(raw) as Partial<Tune> & Record<string, unknown>
     const t: Tune = { ...DEFAULTS, ...parsed }
+    // `dots` is two levels deep, so a plain spread of a tune stored before a
+    // sub-field existed would hand the panel `undefined` for it and every
+    // slider would read NaN. Merged per ramp, same as the tiers below.
+    t.dots = { ...DEFAULTS.dots, ...(parsed.dots ?? {}) }
+    for (const k of ['coarse', 'fine', 'raw'] as const) {
+      t.dots[k] = { ...DEFAULTS.dots[k], ...(parsed.dots?.[k] ?? {}) }
+    }
     // Tiers deep-merge, so a stored tune written before a field existed keeps
     // the rest of its work instead of being thrown away wholesale.
     t.tiers = { ...DEFAULTS.tiers }
@@ -320,7 +340,7 @@ export default function MapTuner({
 }) {
   const enabled = useMemo(tunerEnabled, [])
   const [open, setOpen] = useState(false)
-  const [tab, setTab] = useState<'palette' | 'zoom' | 'type' | 'layers'>('palette')
+  const [tab, setTab] = useState<'palette' | 'dots' | 'zoom' | 'type' | 'layers'>('palette')
   const [tune, setTune] = useState<Tune>(readStore)
   const [copied, setCopied] = useState(false)
   const [labelsOnly, setLabelsOnly] = useState(true)
@@ -491,10 +511,18 @@ export default function MapTuner({
       // Cell sizes go in before the ranges, so a re-bin triggered below sees
       // the new values.
       const live = gridDegrees()
+      let regrid = false
       if (live.coarse !== tune.coarseDeg || live.fine !== tune.fineDeg) {
         setGridDegrees({ coarse: tune.coarseDeg, fine: tune.fineDeg })
-        onRegridRef.current?.()
+        regrid = true
       }
+      // The dots go through volumeGrid's own setter and its own apply, so the
+      // panel and the map cannot hold different opinions about what a radius
+      // expression looks like. `dim` is the one field baked into the binned
+      // features rather than into paint, so they ask for a re-bin.
+      if (setDots(tune.dots)) regrid = true
+      applyDots(m)
+      if (regrid) onRegridRef.current?.()
       setRange(VOL_COARSE_LAYER, 0, tune.zMid)
       setRange(VOL_FINE_LAYER, tune.zMid, tune.zNear)
       setRange(VOL_RAW_LAYER, tune.zNear, 24)
@@ -588,6 +616,12 @@ export default function MapTuner({
       | 'fineDeg',
     v: number,
   ) => setTune((t) => ({ ...t, [key]: v }))
+
+  const setDot = (patch: Partial<DotStyle>) =>
+    setTune((t) => ({ ...t, dots: { ...t.dots, ...patch } }))
+
+  const setDotRamp = (tier: 'coarse' | 'fine' | 'raw', patch: Partial<DotRamp>) =>
+    setTune((t) => ({ ...t, dots: { ...t.dots, [tier]: { ...t.dots[tier], ...patch } } }))
 
   const setTier = (key: TierKey, patch: Partial<Tier>) =>
     setTune((t) => ({ ...t, tiers: { ...t.tiers, [key]: { ...t.tiers[key], ...patch } } }))
@@ -711,6 +745,19 @@ export default function MapTuner({
     if (tune.water !== DEFAULTS.water) {
       vol.push(`WATER_FILL = '${tune.water}'`, `WATER_LINE = '${deriveLine(tune.water)}'`)
     }
+    // The dots print as the DOTS table's own field names, ready to paste over
+    // the object rather than to be translated into MapLibre property names.
+    const d = tune.dots
+    const dd = DEFAULTS.dots
+    if (d.blur !== dd.blur) vol.push(`DOTS.blur: ${d.blur},`)
+    if (d.opacity !== dd.opacity) vol.push(`DOTS.opacity: ${d.opacity},`)
+    for (const k of ['coarse', 'fine', 'raw'] as const) {
+      if (changed(d[k], dd[k])) {
+        vol.push(`DOTS.${k}: { k0: ${d[k].k0}, k1: ${d[k].k1}, cap: ${d[k].cap} },`)
+      }
+    }
+    if (d.tint !== dd.tint) vol.push(`DOTS.tint: '${d.tint}',`)
+    if (d.dim !== dd.dim) vol.push(`DOTS.dim: '${d.dim}',`)
     /** The basemap tiers now live in one table, so their edits are quoted in
      *  the TABLE's field names and keyed by the row to paste into. mr and
      *  island have no table — they are raw layer specs in mapTheme — so those
@@ -840,7 +887,7 @@ export default function MapTuner({
       </div>
 
       <div className="tuner-tabs" role="tablist">
-        {(['palette', 'zoom', 'type', 'layers'] as const).map((t) => (
+        {(['palette', 'dots', 'zoom', 'type', 'layers'] as const).map((t) => (
           <button
             key={t}
             role="tab"
@@ -921,6 +968,160 @@ export default function MapTuner({
               <dd>{contrast(tune.land, mapConfig.agents[0].color).toFixed(2)}:1</dd>
             </div>
           </dl>
+        </>
+      )}
+
+      {tab === 'dots' && (
+        <>
+          <p className="tuner-note">
+            MapLibre has no gradient fill for a circle, so there is exactly one falloff number —{' '}
+            <code>circle-blur</code>. What the gradient LOOKS like is these three together: how far
+            it feathers, how dark it starts, and how big the disc was to begin with. How MANY dots
+            there are is the grid cell size, which lives under ZOOM so that it keeps one owner.
+          </p>
+
+          <label className="tuner-slider">
+            <span>
+              Falloff · circle-blur <strong>{tune.dots.blur}</strong>
+            </span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.05}
+              value={tune.dots.blur}
+              onChange={(e) => setDot({ blur: Number(e.target.value) })}
+            />
+            <em>0 = hard disc · 1 = faded across the entire radius</em>
+          </label>
+
+          <label className="tuner-slider">
+            <span>
+              Peak alpha · circle-opacity <strong>{tune.dots.opacity}</strong>
+            </span>
+            <input
+              type="range"
+              min={0.1}
+              max={1}
+              step={0.02}
+              value={tune.dots.opacity}
+              onChange={(e) => setDot({ opacity: Number(e.target.value) })}
+            />
+            <em>overlap darkens by stacking — WebGL layers have no multiply blend to reach for</em>
+          </label>
+
+          {/* The preview is not decoration: raising blur is what quietly eats
+              the difference between a big dot and a small one, and that is the
+              cost you cannot see by looking at one dot. CSS reproduces the
+              falloff exactly — MapLibre fades linearly from (1−blur)·r to r. */}
+          <div className="tuner-dots">
+            {[34, 22, 12].map((d) => (
+              <span
+                key={d}
+                className="tuner-dot"
+                style={{
+                  width: d,
+                  height: d,
+                  opacity: tune.dots.opacity,
+                  background: `radial-gradient(circle, ${tune.dots.tint} 0%, ${tune.dots.tint} ${Math.round((1 - tune.dots.blur) * 100)}%, transparent 100%)`,
+                }}
+              />
+            ))}
+            <em>the same cell at 8× · 3.4× · 1× the gallons, at this falloff</em>
+          </div>
+
+          {(
+            [
+              ['coarse', 'Coarse grid', 1_000_000],
+              ['fine', 'Fine grid', 200_000],
+              ['raw', 'Raw runs', 1_000],
+            ] as const
+          ).map(([tier, name, sample]) => {
+            const r = tune.dots[tier]
+            const [z0, z1] = DOT_ANCHORS[tier]
+            const px = (k: number) => Math.min(k * Math.sqrt(sample), r.cap)
+            /** Gallons at which this k hits the cap — above it every dot is the
+             *  same size. It is the number worth printing: the cap is not a
+             *  fault (it is what keeps a dot inside its own cell) but it IS
+             *  where the encoding stops, and that was invisible. */
+            const capsAt = (k: number) => Math.round((r.cap / k) ** 2)
+            return (
+              <div className="tuner-ramp" key={tier}>
+                <span className="tuner-ramp-name">
+                  {name}{' '}
+                  <em>
+                    DOTS.{tier} · z{z0}→{z1}
+                  </em>
+                </span>
+                <div className="tuner-ramp-ends is-dots">
+                  <label>
+                    <span>k at z{z0}</span>
+                    <input
+                      type="number"
+                      min={0.002}
+                      max={2}
+                      step={0.002}
+                      value={r.k0}
+                      onChange={(e) => setDotRamp(tier, { k0: Number(e.target.value) })}
+                    />
+                  </label>
+                  <label>
+                    <span>k at z{z1}</span>
+                    <input
+                      type="number"
+                      min={0.002}
+                      max={2}
+                      step={0.002}
+                      value={r.k1}
+                      onChange={(e) => setDotRamp(tier, { k1: Number(e.target.value) })}
+                    />
+                  </label>
+                  <label>
+                    <span>cap px</span>
+                    <input
+                      type="number"
+                      min={2}
+                      max={60}
+                      step={1}
+                      value={r.cap}
+                      onChange={(e) => setDotRamp(tier, { cap: Number(e.target.value) })}
+                    />
+                  </label>
+                </div>
+                <p className="tuner-tier-read">
+                  radius = k·√gallons. A {sample.toLocaleString()} gallon{' '}
+                  {tier === 'raw' ? 'run' : 'cell'} draws {px(r.k0).toFixed(1)} px → {px(r.k1).toFixed(1)} px
+                  across the ramp. The {r.cap} px cap bites above{' '}
+                  {capsAt(r.k0).toLocaleString()} gal at z{z0} and {capsAt(r.k1).toLocaleString()} gal
+                  at z{z1} — past that, every dot is the same size.
+                </p>
+              </div>
+            )
+          })}
+
+          {(
+            [
+              ['tint', 'All agents'],
+              ['dim', 'De-emphasised'],
+            ] as const
+          ).map(([key, label]) => (
+            <label className="tuner-row" key={key}>
+              <span className="tuner-label">{label}</span>
+              <input
+                className="tuner-swatch"
+                type="color"
+                value={tune.dots[key]}
+                onChange={(e) => setDot({ [key]: e.target.value })}
+              />
+              <code>{tune.dots[key]}</code>
+            </label>
+          ))}
+          <p className="tuner-note">
+            Isolating a single agent uses that agent&apos;s own colour from mapConfig, so the first
+            swatch is only the all-agents case. Both colours are written into the binned features
+            rather than into paint, so changing one re-bins the grid — it takes a beat, and that is
+            the work, not a stall.
+          </p>
         </>
       )}
 

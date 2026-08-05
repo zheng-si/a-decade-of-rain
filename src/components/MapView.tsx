@@ -32,8 +32,7 @@ import ArchiveInspect, {
   type CellInspect,
 } from './ArchiveInspect'
 import { applyLabelCuration } from './labelLayers'
-// The tuner is kept in the tree but not mounted — see the element below.
-// import MapTuner from './MapTuner'
+import MapTuner from './MapTuner'
 
 /** The Archive draws no military regions. Named rather than deleted so the
  *  decision is visible and reversible in one place; the Story still calls
@@ -534,10 +533,10 @@ export default function MapView() {
     if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
   }, [ready, day, agentKey, activeIndices, choices, bounds.max])
 
-  // Lets the tuner force a re-bin after changing a cell size. The effect above
+  // Lets the tuner force a re-bin after changing something the bins bake in —
+  // a cell size, or either of the two dot colours. The effect above
   // short-circuits on an unchanged throttle key, so clearing the key is the
-  // whole trick. Kept alongside the unmounted <MapTuner> element: restoring the
-  // panel means uncommenting two lines, not reconstructing this.
+  // whole trick.
   const regrid = useCallback(() => {
     const map = mapRef.current
     if (!map || !dataRef.current) return
@@ -550,10 +549,6 @@ export default function MapView() {
       choices.find((c) => c.key === agentKey)?.color ?? null,
     )
   }, [day, activeIndices, choices, agentKey])
-  // Referenced so `noUnusedLocals` does not force this to be deleted while the
-  // panel it feeds is commented out. Restoring the tuner is two lines, not a
-  // rebuild of this callback.
-  void regrid
 
   // Agent selection re-bins the grids and re-filters the raw tier (the
   // throttle key includes agentKey, so the day effect above handles it).
@@ -634,7 +629,7 @@ export default function MapView() {
       {/* The tuner is UNMOUNTED — the palette and the label tiers are settled
           and live in mapTaxonomy.ts. The file and its styles are kept: putting
           the element back is this one line, and `?tune=1` still gates it. */}
-      {/* {ready && <MapTuner map={mapRef.current} onRegrid={regrid} />} */}
+      {ready && <MapTuner map={mapRef.current} onRegrid={regrid} />}
       {ready && (
         <Timeline
           day={day}
