@@ -32,8 +32,13 @@ import ArchiveInspect, {
   type CellInspect,
 } from './ArchiveInspect'
 import { applyLabelCuration } from './labelLayers'
-// TEMPORARY — basemap colour tuner. See the header of MapTuner.tsx.
-import MapTuner from './MapTuner'
+// The tuner is kept in the tree but not mounted — see the element below.
+// import MapTuner from './MapTuner'
+
+/** The Archive draws no military regions. Named rather than deleted so the
+ *  decision is visible and reversible in one place; the Story still calls
+ *  addMilitaryRegions directly. */
+const SHOW_MILITARY_REGIONS = false
 // SPIKE — Archive UI v2 (Geist, no radii, no strokes, near-flat shadows).
 // Scoped under .map-wrap; delete both imports and the two files to revert.
 import '../fontsGeist.css'
@@ -474,9 +479,12 @@ export default function MapView() {
           }
         })
 
-        // Same reference overlays as the story: military-region dividers +
-        // tags (under the spray symbols) and the disputed-island marks.
-        addMilitaryRegions(map, mrGeo, mrLabelsGeo, bottomLayer)
+        // The military regions are OFF on the Archive — borders and tags both.
+        // The record's own geography carries this map; four administrative
+        // zones drawn over it were a second division competing with the one
+        // the reader came for. The Story still draws them, where they are
+        // narrated rather than ambient, so the function stays.
+        if (SHOW_MILITARY_REGIONS) addMilitaryRegions(map, mrGeo, mrLabelsGeo, bottomLayer)
         addIslandMarks(map)
 
         setChoices(agentChoices)
@@ -526,10 +534,10 @@ export default function MapView() {
     if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
   }, [ready, day, agentKey, activeIndices, choices, bounds.max])
 
-  // TEMPORARY — lets the tuner force a re-bin after changing a cell size. The
-  // effect above short-circuits on an unchanged throttle key, so clearing the
-  // key is the whole trick; without it a new cell size would sit in the module
-  // and not reach the screen until the reader scrubbed the timeline.
+  // Lets the tuner force a re-bin after changing a cell size. The effect above
+  // short-circuits on an unchanged throttle key, so clearing the key is the
+  // whole trick. Kept alongside the unmounted <MapTuner> element: restoring the
+  // panel means uncommenting two lines, not reconstructing this.
   const regrid = useCallback(() => {
     const map = mapRef.current
     if (!map || !dataRef.current) return
@@ -542,6 +550,10 @@ export default function MapView() {
       choices.find((c) => c.key === agentKey)?.color ?? null,
     )
   }, [day, activeIndices, choices, agentKey])
+  // Referenced so `noUnusedLocals` does not force this to be deleted while the
+  // panel it feeds is commented out. Restoring the tuner is two lines, not a
+  // rebuild of this callback.
+  void regrid
 
   // Agent selection re-bins the grids and re-filters the raw tier (the
   // throttle key includes agentKey, so the day effect above handles it).
@@ -619,9 +631,10 @@ export default function MapView() {
           )}
         </ArchiveKey>
       )}
-      {/* TEMPORARY basemap colour tuner — remove this element, the import, and
-          MapTuner.tsx/.css when the palette is settled. */}
-      {ready && <MapTuner map={mapRef.current} onRegrid={regrid} />}
+      {/* The tuner is UNMOUNTED — the palette and the label tiers are settled
+          and live in mapTaxonomy.ts. The file and its styles are kept: putting
+          the element back is this one line, and `?tune=1` still gates it. */}
+      {/* {ready && <MapTuner map={mapRef.current} onRegrid={regrid} />} */}
       {ready && (
         <Timeline
           day={day}

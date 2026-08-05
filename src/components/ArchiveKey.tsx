@@ -109,10 +109,9 @@ export default function ArchiveKey({
             Other Agents
           </li>
         )}
-        <li>
-          <span className="key-swatch key-mr" />
-          Military Region
-        </li>
+        {/* No military-region row: the Archive no longer draws them (see
+            SHOW_MILITARY_REGIONS in MapView). A legend that names something
+            the map cannot show is worse than a shorter legend. */}
         <li>
           <span className="key-swatch key-border" />
           National Border

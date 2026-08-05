@@ -98,26 +98,36 @@ const S = (o: Partial<LabelStyle>): LabelStyle => ({
  *  PURPOSE and can be switched on with a full set of controls. */
 export const LABEL_TIERS: Record<LabelTier, LabelStyle> = {
   // ── places ──
-  country: S({ size: [10, 15], zoom: [0, Z_MID] }),
-  capital: S({ size: [9, 13.5], font: 'Roboto Condensed Bold' }),
-  city: S({ size: [8, 12] }),
-  town: S({ size: [7.5, 11], color: '#767676', font: 'Roboto Condensed Regular', zoom: [Z_MID, 24], shown: false }),
-  village: S({ size: [7, 10], color: '#8a8a8a', font: 'Roboto Condensed Light', zoom: [Z_NEAR, 24], shown: false }),
+  country: S({ size: [10.5, 15], zoom: [0, Z_MID], color: '#464e48' }),
+  // The capital is no longer told apart by WEIGHT — it went back to the map's
+  // medium and is separated by size and ink instead (15 vs 14 at the top of the
+  // ramp, #424c45 vs #606662). A deliberate reversal of the Bold split: at
+  // these sizes the extra weight read as a second typeface rather than a rank.
+  capital: S({ size: [9.5, 15], color: '#424c45' }),
+  city: S({ size: [9.5, 14], zoom: [0, 23], tracking: 0.15, color: '#606662' }),
+  town: S({ size: [7.5, 11], color: '#767676', font: 'Roboto Condensed Regular', tracking: 0.1, zoom: [9, 24] }),
+  village: S({ size: [7, 10], color: '#8a8a8a', font: 'Roboto Condensed Light', zoom: [10, 24] }),
   // positron's third, unfiltered settlement tier. Documented in
   // docs/map-zoom-and-labels.md §7.2 as unmanaged; it now has a row.
   placeOther: S({ size: [7, 10], color: '#8a8a8a', font: 'Roboto Condensed Light', zoom: [Z_NEAR, 24], shown: false }),
   province: S({ size: [8, 11], color: '#8a8a8a', font: 'Roboto Condensed Light', tracking: 0.3, zoom: [4, 24], shown: false }),
   // ── water ──
-  sea: S({ size: [8, 12], color: '#338199' }),
-  river: S({ size: [8, 12], color: '#338199', shown: false }),
+  sea: S({ size: [10, 12], color: '#338199' }),
+  river: S({ size: [8, 12], color: '#338199', tracking: 0.1 }),
   // ── transport ──
-  airport: S({ size: [7.5, 10], color: '#8a8a8a', font: 'Roboto Condensed Light', zoom: [10, 24], shown: false }),
+  airport: S({ size: [7.5, 9], zoom: [8, 24], tracking: 0.15, color: '#757575' }),
+  // Road names and shields stay off. They are the tier that used to be swept
+  // into `city`, and switching them on at this zoom ceiling puts bare route
+  // numbers over the record.
   roadName: S({ size: [7, 9.5], color: '#9a9a9a', font: 'Roboto Condensed Light', zoom: [12, 24], shown: false }),
   roadShield: S({ size: [7, 9.5], color: '#9a9a9a', font: 'Roboto Condensed Light', zoom: [12, 24], shown: false }),
   // ── ours ──
-  mr: S({ size: [8, 14], color: '#cf3720', halo: 'rgba(250,249,244,0.95)', haloWidth: 2, tracking: 0.1, zoom: [0, Z_NEAR] }),
+  // The military regions are off entirely — labels here, and the dashed
+  // borders at their call site in MapView. The record's own geography carries
+  // the map now; the four zones were a second division competing with it.
+  mr: S({ size: [11, 16], color: '#cf3720', halo: 'rgba(250,249,244,0.95)', haloWidth: 2, tracking: 0.1, zoom: [0, Z_NEAR], shown: false }),
   island: S({ size: [8.5, 11], color: '#6b7268', halo: '#ffffff', haloWidth: 1, tracking: 0 }),
-  vnCountry: S({ size: [10, 15], zoom: [0, Z_MID] }),
+  vnCountry: S({ size: [10.5, 15], zoom: [0, Z_MID], color: '#464e48' }),
   // ── unclassified ──
   // NOT a silent bucket. It has a row like every other tier, so a basemap that
   // grows a layer we have not named shows up in the panel instead of being

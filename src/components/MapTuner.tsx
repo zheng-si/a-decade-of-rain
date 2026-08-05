@@ -52,6 +52,10 @@ import './MapTuner.css'
 
 const STORE_KEY = 'adr-map-tuner'
 
+/** Bump when the set of layers the SHIPPED map hides changes. Stored tunes
+ *  with an older number re-seed their `hidden` list on the next load. */
+const SEED_VERSION = 2
+
 /** Run `fn` as soon as the style is usable, and DO run it.
  *
  *  Both effects below used to do `if (isStyleLoaded()) fn(); else once('idle',
@@ -115,9 +119,17 @@ interface Tune {
    *  already hides, so the ticks describe the shipped map rather than
    *  overriding it — see the read effect. */
   hidden: string[]
-  /** Has `hidden` been seeded from the live style yet? Stored, so a tune saved
-   *  before this existed still gets seeded once on the next load. */
-  seeded: boolean
+  /** Schema version of the seed. Stored so that when the SHIPPED hidden set
+   *  changes — as it did when labels moved out of `hidden` and onto their
+   *  tier's `shown` — an old tune re-seeds instead of keeping a stale list.
+   *
+   *  A plain boolean here caused a real fault: a tune seeded under the old
+   *  rules never re-seeded, so `hidden` was missing every geometry layer
+   *  quietBasemap hides, the apply loop wrote `visible` to buildings, minor
+   *  roads and landcover, and the copy block reported the difference as
+   *  "STOP hiding: park, building, highway_minor, …" — reading as an
+   *  instruction when it was the symptom. */
+  seeded: number
   /** Per-layer [minzoom, maxzoom] overrides. `null` in a slot means "leave the
    *  layer's own value alone" — an override of 0 is a real instruction and must
    *  not be confused with "unset". */
@@ -182,7 +194,7 @@ const DEFAULTS: Tune = {
   // that table, so there is no global copy of it here.
   tiers: JSON.parse(JSON.stringify(LABEL_TIERS)) as Record<TierKey, Tier>,
   hidden: [],
-  seeded: false,
+  seeded: 0,
   zoomRanges: {},
 }
 
@@ -404,7 +416,9 @@ export default function MapTuner({
       setAllLayers(rows)
       setBaselineHidden(offNow)
       setTune((t) =>
-        t.seeded ? t : { ...t, seeded: true, hidden: [...new Set([...t.hidden, ...offNow])] },
+        t.seeded === SEED_VERSION
+          ? t
+          : { ...t, seeded: SEED_VERSION, hidden: [...new Set([...t.hidden, ...offNow])] },
       )
     }
     return whenStyleReady(map, read)
@@ -724,6 +738,10 @@ export default function MapTuner({
         if (a.haloWidth !== b.haloWidth) {
           bits.push(table ? `haloWidth: ${a.haloWidth}` : `text-halo-width ${a.haloWidth}`)
         }
+        // `shown` was missing from this list, so every tier switched on or off
+        // in TYPE was absent from the block entirely — a config could be
+        // copied, pasted and applied and still not be the map it came from.
+        if (a.shown !== b.shown) bits.push(`shown: ${a.shown}`)
         if (!bits.length) continue
         const at = `LABEL_TIERS.${k}`
         out.push(`${at}: ${bits.join(' · ')}`)
@@ -752,7 +770,9 @@ export default function MapTuner({
     const theme: string[] = []
     if (tune.typeFloor !== DEFAULTS.typeFloor) theme.push(`Z_TYPE_FLOOR = ${tune.typeFloor}`)
     if (tune.typeTop !== DEFAULTS.typeTop) theme.push(`Z_TYPE_TOP = ${tune.typeTop}`)
-    theme.push(...tierLines(['mr', 'island']))
+    // mr and island are in LABEL_GROUPS, so tierLines already emitted them
+    // above under their real home. Emitting them again here printed
+    // `LABEL_TIERS.mr` under BOTH files, one of which was wrong.
     push('src/components/mapTheme.ts', theme)
 
     return out.length ? out.join('\n').trimEnd() : 'Nothing changed from the committed values.'
