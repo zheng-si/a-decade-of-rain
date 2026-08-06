@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import type maplibregl from 'maplibre-gl'
-import { Z_NEAR } from '../config/mapConfig'
+import { TRACK_LAYER } from './trackLayers'
 
 // ── the Explorer's map key ────────────────────────────────────────────────
 // Top-right panel in the story MapKey's language (near-opaque paper, small
@@ -56,23 +56,37 @@ export default function ArchiveKey({
   children,
 }: Props) {
   const [scale, setScale] = useState<{ label: string; w: number }>({ label: '', w: 0 })
-  /** The key has to know the zoom, because which MARKS exist depends on it.
+  /** Whether the TRACK layer is drawing right now.
    *
-   *  Measured at the hand-off: at z9.49 the fine grid draws 1,032 dots and the
-   *  tracks draw 0; at z9.50 it is 0 and 2,375. The two never share the screen
-   *  — but the key was naming both at every zoom, so a reader looking at a map
-   *  of lines was told there were also cells on it, and looking for the cells
-   *  would find the endpoint beads and take those for cells. Same fault as the
-   *  military-region row and the unexplained ring: a key that names a mark the
-   *  map is not drawing. */
-  const [zoom, setZoom] = useState(0)
-  const onTracks = tracks && zoom >= Z_NEAR
+   *  Which MARKS exist depends on the zoom: at the shipped hand-off the fine
+   *  grid draws 948 dots at z9.4 and none at z9.6, where 2,054 strokes take
+   *  over. The two never share the screen, and the key named both at every zoom
+   *  until this existed — so a reader looking at a map of lines was told there
+   *  were cells on it too, and looking for the cells found the endpoint beads
+   *  and took those for cells.
+   *
+   *  Asked of the MAP rather than computed from Z_NEAR. Comparing against the
+   *  imported constant made the key a third owner of the hand-off, alongside
+   *  volumeGrid and trackLayers. That held only while the number was fixed:
+   *  once the console could move it, dragging Z_NEAR down put the whole country
+   *  in strokes while the key went on saying "Sprayed Volume · per cell",
+   *  because the constant had not moved. A layer's own minzoom cannot drift
+   *  from the layer — whatever moved it moved this.
+   *
+   *  The key used to compare the zoom against the imported constant, which made
+   *  it a third owner of the hand-off alongside volumeGrid and trackLayers.
+   *  That held until the console could MOVE the hand-off: dragging Z_NEAR down
+   *  put the whole country in strokes while the key went on saying "Sprayed
+   *  Volume · per cell", because the constant had not moved. Reading the
+   *  layer's own minzoom cannot drift — whatever moved the layer moved this. */
+  const [onTracks, setOnTracks] = useState(false)
 
   useEffect(() => {
     if (!ready || !map) return
     const update = () => {
       setScale(computeScale(map))
-      setZoom(map.getZoom())
+      const layer = map.getLayer(TRACK_LAYER)
+      setOnTracks(tracks && layer != null && map.getZoom() >= (layer.minzoom ?? 0))
     }
     update()
     map.on('move', update)
@@ -81,7 +95,7 @@ export default function ArchiveKey({
       map.off('move', update)
       window.removeEventListener('resize', update)
     }
-  }, [ready, map])
+  }, [ready, map, tracks])
 
   return (
     <div className="archive-key">

@@ -165,6 +165,23 @@ export interface TrackStyle {
   taper: number
 }
 
+/** The zoom the tracks take over at.
+ *
+ *  Deliberately NOT a field of TRACKS. It is not an appearance value — it is
+ *  one half of the hand-off, and the other half is the fine grid's maxzoom over
+ *  in volumeGrid. Whoever sets it has to set both or the map gets a band with
+ *  dots and tracks together, or a band with neither. Keeping it out of the
+ *  style table stops it being tuned from the TRACKS panel as if it were a look.
+ *
+ *  Seeded from Z_NEAR so nothing moves unless something moves it. */
+let trackStart: number = Z_NEAR
+
+/** Move the hand-off. Callers must move the grid tiers to match — see the
+ *  ZOOM tab, which is the one place that owns both sides. */
+export function setTrackStart(z: number) {
+  trackStart = z
+}
+
 /** Shipped track appearance. Mutable ONLY through `setTracks`. */
 export const TRACKS: TrackStyle = {
   far: { k: 0.8 / 162, cap: 4 },
@@ -301,6 +318,15 @@ export function applyTracks(map: maplibregl.Map) {
   applyTrackColour(map)
   const vis = (id: string, on: boolean) => {
     if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
+  }
+  // The hand-off, pushed to all five layers from one place. They were given
+  // minzoom at creation and nothing ever wrote it again, so the ZOOM tab's
+  // Z_NEAR moved the grid tiers and left the tracks where they were — the
+  // console could open a blank band between the two encodings and nothing said
+  // so. minzoom is a layer property like any other; it belongs in the same
+  // apply as the paint.
+  for (const id of [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER, TRACK_END_LAYER]) {
+    if (map.getLayer(id)) map.setLayerZoomRange(id, trackStart, 24)
   }
   for (const id of [TRACK_LAYER, TRACK_DIM_LAYER]) {
     if (!map.getLayer(id)) continue

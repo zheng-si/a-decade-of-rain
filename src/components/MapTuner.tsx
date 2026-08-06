@@ -45,6 +45,7 @@ import {
   beadFeather,
   setTracks,
   applyTracks,
+  setTrackStart,
   TRACK_LAYER,
   TRACK_DIM_LAYER,
   TRACK_NIL_LAYER,
@@ -586,11 +587,24 @@ export default function MapTuner({
       // The tracks go through their own module's setter and apply, for exactly
       // the reason the dots do: one path from a value to the screen.
       setTracks(tune.tracks)
+      // The hand-off is ONE number with two sides: below it the map is dots,
+      // at and above it the map is lines. setTrackStart moves the track half;
+      // the setRange calls below move the grid half. Both, from here, in one
+      // pass — the alternative is the state this replaces, where Z_NEAR moved
+      // the dots and the tracks stayed at their creation-time minzoom.
+      setTrackStart(tune.zNear)
       applyTracks(m)
       if (regrid) onRegridRef.current?.()
-      setRange(VOL_COARSE_LAYER, 0, tune.zMid)
-      setRange(VOL_FINE_LAYER, tune.zMid, tune.zNear)
-      setRange(VOL_RAW_LAYER, tune.zNear, 24)
+      // Every dot tier is clamped to the hand-off, not just the fine one.
+      // Dragging Z_NEAR below Z_MID otherwise leaves the COARSE tier drawing
+      // up to Z_MID while the tracks have already started — dots and lines on
+      // screen together, which is the exact confusion this map spent a day
+      // getting rid of. Clamping is also why the fine tier simply disappears
+      // rather than inverting when the hand-off passes below Z_MID.
+      const hand = tune.zNear
+      setRange(VOL_COARSE_LAYER, 0, Math.min(tune.zMid, hand))
+      setRange(VOL_FINE_LAYER, Math.min(tune.zMid, hand), hand)
+      setRange(VOL_RAW_LAYER, hand, 24)
       setRange('mr-label', 0, tune.zNear)
       setRange(VN_LABEL_LAYER, 0, tune.zMid)
 
@@ -1855,7 +1869,20 @@ export default function MapTuner({
       {tab === 'zoom' && (
         <>
           {num('First hand-off · Z_MID', 'zMid', 5, 11, 0.1, 'coarse grid → fine · towns in · country out')}
-          {num('Second hand-off · Z_NEAR', 'zNear', 6, 12, 0.1, 'fine grid → raw runs · region tags out')}
+          {/* Range opens down to 3 so the tracks can be pulled out over the
+              whole country. Nothing below ~5 is a proposal — 8,753 strokes at
+              national scale is a texture, not a reading — but seeing where it
+              stops working is the point of having the control. */}
+          {num(
+            'Second hand-off · Z_NEAR',
+            'zNear',
+            3,
+            12,
+            0.1,
+            TRACKS_ON
+              ? 'dots → TRACKS · drag DOWN to pull the runs out over a wider view'
+              : 'fine grid → raw runs · region tags out',
+          )}
           {num('Zoom ceiling · maxZoom', 'maxZoom', 9, 16, 0.5, 'the record stops carrying detail past ~12')}
           {num(
             'Zoom floor margin · minZoomMargin',
