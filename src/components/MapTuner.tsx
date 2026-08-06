@@ -51,6 +51,7 @@ import {
   TRACK_NIL_LAYER,
   TRACK_END_LAYER,
   TRACK_MARK_LAYER,
+  TRACK_DRAW_LAYER,
   type TrackStyle,
 } from './trackLayers'
 import {
@@ -624,6 +625,12 @@ export default function MapTuner({
             TRACK_NIL_LAYER,
             TRACK_END_LAYER,
             TRACK_MARK_LAYER,
+            // Added late and missed here, which is why the copy block printed
+            // "STOP hiding: spray-track-draw": the sweep forced the drawing
+            // layer visible under ?tune=1, so the last step's arrivals stayed
+            // on screen after playback stopped, and then the panel reported
+            // its own doing back as an instruction.
+            TRACK_DRAW_LAYER,
             VOL_RAW_LAYER,
           ])
         : new Set<string>()

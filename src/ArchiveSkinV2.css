@@ -227,8 +227,13 @@
    .stat-pair and strong directly at 11, so the container's value only ever
    applied to whitespace between the pairs. It rendered at 11 and declared 10,
    which is the kind of gap that makes the next person mistrust the file. */
+/* Full panel width, below the transport rather than inside the readout column
+   beside the buttons: three pairs measure 288px and that column is 250px, so
+   the Gallons pair was being clipped. The margin is the readout's old 5px
+   column gap plus a little, so the counts still read as belonging to the
+   heading above them rather than to the chart below. */
 .map-wrap .explorer-statline {
-  margin: 0;
+  margin: 8px 0 0;
   gap: 10px;
   font-size: 11px;
   text-transform: none;

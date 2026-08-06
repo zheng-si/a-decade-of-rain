@@ -1048,3 +1048,14 @@
   box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.85);
   cursor: pointer;
 }
+
+/* The legend's one explanatory line. The rows name the marks; this says what
+   the size and the fade MEAN, once, instead of once per row. */
+.archive-key .map-key-note {
+  margin: 0.45rem 0 0;
+  padding-top: 0.45rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+  font-size: 0.6rem;
+  line-height: 1.5;
+  color: #8a8d85;
+}

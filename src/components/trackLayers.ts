@@ -210,13 +210,13 @@ export function setTrackStart(z: number) {
 export const TRACKS: TrackStyle = {
   far: { k: 0.8 / 162, cap: 4 },
   near: { k: 3 / 162, cap: 14 },
-  opacity: 0.5,
-  blur: 0.4,
+  opacity: 0.8,
+  blur: 1.5,
   cap: 'round',
   // head/tail sit at 0.75 — INSIDE the round cap — so that turning the beads
   // on from the panel shows what they do without putting the discs back.
   ends: { head: 0.75, tail: 0.75, opacity: 0.6, blur: 0.3, shown: false, fuse: true },
-  nil: { width: 0.6, opacity: 0.35, dash: [2, 2], shown: true },
+  nil: { width: 0.6, opacity: 0.35, dash: [2, 2], shown: false },
   marks: { kFar: 0.02, kNear: 0.09, cap: 14, shown: true },
   // Strong enough to read at a glance on a 155 px median stroke, short of 1.0
   // so the tail still records that the aircraft was there.

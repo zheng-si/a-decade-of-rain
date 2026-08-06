@@ -182,21 +182,32 @@ export default function Timeline({
             {volume && <span className="explorer-section-label">Spraying Volume</span>}
             <span className="explorer-date">{dateLabel}</span>
           </p>
-          {volume && (
-            <span className="explorer-statline">
-              <span className="stat-pair">
-                <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Spray Runs
-              </span>
-              <span className="stat-pair">
-                <strong style={statStyle}>{runCount.toLocaleString()}</strong> Track Points
-              </span>
-              <span className="stat-pair">
-                <strong style={statStyle}>{fmtGallons(gallons)}</strong> Gallons
-              </span>
-            </span>
-          )}
         </div>
       </div>
+
+      {/* The counts sit UNDER the transport, not beside it in the readout
+          column. Measured: the three pairs need 288px and that column is 250px
+          wide (the buttons take the rest), so the last pair was clipped by 38px
+          — the box was too small, the content was not too big. Here the line
+          gets 324px and needs 289. Abbreviating instead (8,360 → 8.4K, 24,604 →
+          24.6K) was measured at 14px of the 38, nowhere near enough: the digits
+          are narrow and the words carry most of the width. It would have cost
+          precision without clearing the overflow — and the dek two blocks up
+          prints both totals in full, which an abbreviated counter would then
+          contradict at the end of playback. */}
+      {volume && (
+        <span className="explorer-statline">
+          <span className="stat-pair">
+            <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Spray Runs
+          </span>
+          <span className="stat-pair">
+            <strong style={statStyle}>{runCount.toLocaleString()}</strong> Track Points
+          </span>
+          <span className="stat-pair">
+            <strong style={statStyle}>{fmtGallons(gallons)}</strong> Gallons
+          </span>
+        </span>
+      )}
 
       {volume && (
         <div className="explorer-chart">

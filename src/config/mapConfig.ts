@@ -137,7 +137,7 @@ export const LABEL_FONT = 'Roboto Condensed'
  * and volumeGrid already imports from mapTheme — the other direction would
  * close an import cycle.
  */
-export const Z_MID = 7.5
+export const Z_MID = 6.5
 /** Where the grid hands off to the TRACKS.
  *
  *  10.5 first, which left the deepest tier half a zoom level of life before the

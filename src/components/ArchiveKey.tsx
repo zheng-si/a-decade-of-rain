@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import type maplibregl from 'maplibre-gl'
-import { TRACK_LAYER } from './trackLayers'
+import { TRACK_LAYER, TRACKS } from './trackLayers'
 
 // ── the Explorer's map key ────────────────────────────────────────────────
 // Top-right panel in the story MapKey's language (near-opaque paper, small
@@ -122,18 +122,20 @@ export default function ArchiveKey({
         </div>
       </div>
 
+      {/* SHORT ROWS, ONE FOOTNOTE.
+          Every row used to carry its own justification — "Single Run · gal/km,
+          from its first waypoint" is three facts in a label — and a key read
+          top-to-bottom like prose stops being scannable, which is the one job
+          it has. The rows now NAME the marks and the note below explains the
+          encoding once. Nothing was dropped: every claim that was in a label is
+          still on screen, just not in the reader's way. */}
       <ul className="map-key-list" aria-hidden="true">
-        {/* The hybrid draws BOTH marks — dots where the data on screen is a
-            cell total, tracks where it is one run — so with tracks on the key
-            has to carry both and say which is which. Listing only the line
-            would leave the far view's dots unexplained, which is the same
-            fault as the ring had. */}
         {!onTracks && (
           <li>
             <span className="key-swatch">
               <span className="key-dot" style={{ background: tint }} />
             </span>
-            Sprayed Volume{tracks ? ' · per cell' : ''}
+            Sprayed Volume
           </li>
         )}
         {onTracks && (
@@ -148,28 +150,18 @@ export default function ArchiveKey({
                 style={{ background: `linear-gradient(90deg, ${tint}, ${tint}00)` }}
               />
             </span>
-            {/* Width is gallons per KM, not gallons — the only quantity
-                comparable between a 2 km run and a 40 km one. The fade names
-                the run's FIRST WAYPOINT ON FILE (leg 1A, the row the gallons
-                are booked against), not a verified heading — HERBS records no
-                bearing, so "direction of flight" would be a claim the record
-                does not make. */}
-            Single Run · gal/km, from its first waypoint
+            Spray Run
           </li>
         )}
-        {/* The track map draws circles too, and they are not cell totals: 2,829
-            of the 11,273 runs are logged against ONE grid reference, so there
-            is no line to draw and the record is a point. Measured at Đồng Xoài,
-            652 of them are on screen at z9.5 and 145 at z10.4 — enough that a
-            reader sees dots among the strokes, which is exactly the question
-            this map has been asked. Leaving them out of the key made the reader
-            take them for leftovers of the tier below. */}
+        {/* 2,829 of the 11,273 runs are logged against ONE grid reference, so
+            there is no line to draw and the record is a point. Left out of the
+            key, a reader took them for leftovers of the tier below. */}
         {onTracks && (
           <li>
             <span className="key-swatch">
               <span className="key-dot" style={{ background: tint }} />
             </span>
-            Run Logged at One Point
+            Logged at One Point
           </li>
         )}
         {filtered && (
@@ -180,16 +172,12 @@ export default function ArchiveKey({
             Other Agents
           </li>
         )}
-        {/* These rings are the WAYPOINTS of a spray run, not runs whose volume
-            went unrecorded — see the note on DotStyle.zero in volumeGrid. HERBS
-            gives each run a track (leg 1A → 1B → …) and books the whole run's
-            gallons against 1A, so every other waypoint reads 0. This row said
-            "No Volume Recorded" first, which described the record as having a
-            gap in it; the record has no gap, we were reading a line as a heap
-            of points. */}
-        {/* The no-volume mark exists in both encodings, but only the dot map
-            draws it below the hand-off. */}
-        {(onTracks || !tracks) && (
+        {/* The no-volume mark: a dashed track above the hand-off, a hollow ring
+            below it. Above, it is drawn only while TRACKS.nil.shown — turning
+            that off in the console and leaving the row here would put the key
+            back to naming a mark the map is not drawing, which is the fault
+            this file has now corrected four separate times. */}
+        {((onTracks && TRACKS.nil.shown) || !tracks) && (
           <li>
             <span className="key-swatch">
               {onTracks ? (
@@ -209,6 +197,16 @@ export default function ArchiveKey({
           National Border
         </li>
       </ul>
+      {/* The encoding, once. Width is gallons per KM, not gallons — the only
+          quantity comparable between a 2 km run and a 40 km one. The fade names
+          each run's FIRST WAYPOINT ON FILE (leg 1A, the row the gallons are
+          booked against), not a verified heading: HERBS records no bearing, so
+          "direction of flight" would be a claim the record does not make. */}
+      <p className="map-key-note" aria-hidden="true">
+        {onTracks
+          ? 'Stroke width is gallons per kilometre. Each run fades away from its first waypoint on file.'
+          : 'Dot area is the gallons that fell in the cell, counted along every run that crossed it.'}
+      </p>
       {children}
     </div>
   )
