@@ -800,6 +800,60 @@ export default function MapTuner({
     setDraft({ land: DEFAULTS.land, water: DEFAULTS.water, veg: DEFAULTS.veg })
   }
 
+  /** Leaf paths where a tuned block no longer matches what the map ships.
+   *
+   *  DEFAULTS.dots / DEFAULTS.tracks are deep clones taken at module load,
+   *  before setDots/setTracks can mutate the live tables, so they are the
+   *  shipped values and not merely "whatever the panel started this session
+   *  with". That distinction is the whole point of comparing here. */
+  const driftIn = (a: unknown, b: unknown, at = ''): string[] => {
+    if (a !== null && b !== null && typeof a === 'object' && typeof b === 'object') {
+      if (Array.isArray(a) || Array.isArray(b)) {
+        return JSON.stringify(a) === JSON.stringify(b) ? [] : [at]
+      }
+      const ao = a as Record<string, unknown>
+      const bo = b as Record<string, unknown>
+      return [...new Set([...Object.keys(ao), ...Object.keys(bo)])].flatMap((k) =>
+        driftIn(ao[k], bo[k], at ? `${at}.${k}` : k),
+      )
+    }
+    return a === b ? [] : [at]
+  }
+
+  /** The banner a tab wears while it is NOT describing the shipped map.
+   *
+   *  It exists because of a real hour lost: the beads were switched on from
+   *  this panel to see the failure they were removed for, the panel persisted
+   *  that to localStorage, and the next session's map came back full of discs
+   *  with nothing on screen saying the view was a tuned one. A console whose
+   *  state outlives the session has to say when its state is not the product.
+   *
+   *  Scoped to the tabs that own a single shipped table — DOTS and TRACKS. The
+   *  others are spread across several constants with no one object to diff, so
+   *  claiming "clean" for them would be a guess. The wording says which. */
+  const driftBanner = (
+    label: string,
+    now: unknown,
+    shipped: unknown,
+    restore: () => void,
+  ) => {
+    const paths = driftIn(now, shipped)
+    if (!paths.length) return null
+    return (
+      <div className="tuner-drift">
+        <span>
+          <strong>{paths.length}</strong> value{paths.length === 1 ? '' : 's'} on this tab differ
+          from what the map ships: {paths.slice(0, 6).join(', ')}
+          {paths.length > 6 ? `, +${paths.length - 6} more` : ''}. You are not looking at{' '}
+          {label}.
+        </span>
+        <button type="button" onClick={restore}>
+          Reset this tab
+        </button>
+      </div>
+    )
+  }
+
   /** Paste-ready, and only what CHANGED — a wall of unchanged defaults is how a
    *  tuner's output stops being read. Each line names the file and the constant
    *  so nothing has to be hunted for. */
@@ -1116,6 +1170,12 @@ export default function MapTuner({
 
       {tab === 'dots' && (
         <>
+          {driftBanner('the shipped dot map', tune.dots, DEFAULTS.dots, () =>
+            setTune((t) => ({
+              ...t,
+              dots: JSON.parse(JSON.stringify(DEFAULTS.dots)) as DotStyle,
+            })),
+          )}
           <p className="tuner-note">
             MapLibre has no gradient fill for a circle, so there is exactly one falloff number —{' '}
             <code>circle-blur</code>. What the gradient LOOKS like is these three together: how far
@@ -1372,6 +1432,12 @@ export default function MapTuner({
 
       {tab === 'tracks' && (
         <>
+          {driftBanner('the shipped track map', tune.tracks, DEFAULTS.tracks, () =>
+            setTune((t) => ({
+              ...t,
+              tracks: JSON.parse(JSON.stringify(DEFAULTS.tracks)) as TrackStyle,
+            })),
+          )}
           <p className="tuner-note">
             The near tier draws each spray run as the line it was flown, width by gallons per km.
             These controls reach only that band — the two grid tiers above it are dots, and they
