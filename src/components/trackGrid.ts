@@ -36,8 +36,27 @@ interface Cell {
   y: number
   inSel: number
   out: number
-  /** Segments touching this cell — the track equivalent of a run count. */
+  /** Runs touching this cell, whatever they carried — the hover's "runs". */
   segs: number
+  /** Runs that actually SPRAYED here, split the same way the gallons are.
+   *
+   *  A separate count from `segs` because a run with no recorded volume flew
+   *  over this ground without dosing it, and "sprayed 36 times" has to mean
+   *  thirty-six applications of chemical or it means nothing. Measured over the
+   *  record, excluding the no-volume runs moves the fine grid from 7,596 cells
+   *  to 6,884 and drops the worst outliers — cells credited with 25 passes and
+   *  zero gallons.
+   *
+   *  Split in and out of the selection because isolating an agent has to change
+   *  the count as well as the colour: "how many times was this sprayed with
+   *  Orange" is the question the chip is asking. */
+  nIn: number
+  nOut: number
+  /** Distinct days on which this cell was sprayed. Two aircraft flying parallel
+   *  swaths in one sortie are two applications but one day, and the difference
+   *  is worth carrying: at the fine cell the record's median is 2 passes over
+   *  2 days, so they mostly agree — where they do not, they disagree loudly. */
+  days: Set<number>
   byGroup: number[]
   d0: number
   d1: number
@@ -71,7 +90,10 @@ export function binTracks(
     const key = `${x}|${y}`
     let c = cells.get(key)
     if (!c) {
-      c = { x, y, inSel: 0, out: 0, segs: 0, byGroup: [0, 0, 0, 0], d0: Infinity, d1: -Infinity, km: 0 }
+      c = {
+        x, y, inSel: 0, out: 0, segs: 0, nIn: 0, nOut: 0,
+        days: new Set(), byGroup: [0, 0, 0, 0], d0: Infinity, d1: -Infinity, km: 0,
+      }
       cells.set(key, c)
     }
     return c
@@ -122,7 +144,16 @@ export function binTracks(
         touched.add(c)
       }
     }
-    for (const c of touched) c.segs++
+    // Once per cell per RUN, not per step — a pass is a run crossing the cell,
+    // however many sampling steps that took.
+    const sprayed = p.gallons > 0
+    for (const c of touched) {
+      c.segs++
+      if (!sprayed) continue
+      if (!sel || sel.has(p.agent)) c.nIn++
+      else c.nOut++
+      c.days.add(Math.floor(p.day))
+    }
   }
 
   const features: GeoJSON.Feature[] = []
@@ -133,23 +164,41 @@ export function binTracks(
     const shared = {
       gt: Math.round(cell.inSel + cell.out),
       rt: cell.segs,
+      /** Total sprayings and the days they fell on — the hover reports the
+       *  CELL, so these stay whole even when an agent is isolated. */
+      nt: cell.nIn + cell.nOut,
+      dt: cell.days.size,
+      /** The cell's gallons split by agent group, as four scalars.
+       *
+       *  Emitted because the inspect card draws these as ABSOLUTE numbers under
+       *  the headline total, and it was drawing them from the point data while
+       *  the headline came from here — bars reading 15K/3K/2K under a 23K
+       *  total. Four fields rather than one array: a GeoJSON source's
+       *  properties go through tile encoding, and a nested array does not
+       *  survive it as an array. */
+      b0: Math.round(cell.byGroup[0]),
+      b1: Math.round(cell.byGroup[1]),
+      b2: Math.round(cell.byGroup[2]),
+      b3: Math.round(cell.byGroup[3]),
       km: Number(cell.km.toFixed(1)),
       dom,
       d0: cell.d0,
       d1: cell.d1,
     }
     // Same two-feature shape as binGrid: grey context under a tinted selection.
+    // `n` is this feature's OWN share of the passes, so the passes map answers
+    // the selection the same way the volume map does.
     if (sel && cell.out > 0.5)
       features.push({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: coordsOut },
-        properties: { g: Math.round(cell.out), c: DOTS.dim, s: 0, ...shared },
+        properties: { g: Math.round(cell.out), n: cell.nOut, c: DOTS.dim, s: 0, ...shared },
       })
     if (cell.inSel > 0.5)
       features.push({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: coordsOut },
-        properties: { g: Math.round(cell.inSel), c: tint, s: 1, ...shared },
+        properties: { g: Math.round(cell.inSel), n: cell.nIn, c: tint, s: 1, ...shared },
       })
   }
   return { type: 'FeatureCollection', features }

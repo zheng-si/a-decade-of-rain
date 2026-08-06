@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { loadSpray, dayToDate, dateToDay, type SprayDataset } from '../data/spray'
-import { mapConfig } from '../config/mapConfig'
+import { mapConfig, Z_MID, Z_NEAR } from '../config/mapConfig'
 import Timeline, { buildVolume, type VolumeChart } from './Timeline'
 import ArchiveKey from './ArchiveKey'
 import { buildAgentChoices, type AgentChoice } from './agentChoices'
@@ -29,6 +29,9 @@ import {
   VOL_FINE_SOURCE,
   gridDegrees,
   DOTS,
+  applyDots,
+  setDotMetric,
+  type DotMetric,
 } from './volumeGrid'
 import {
   addTrackLayers,
@@ -39,6 +42,8 @@ import {
   setDrawProgress,
   setDrawVisible,
   setLayersVisible,
+  setTrackStart,
+  applyTracks,
 } from './trackLayers'
 import { loadTracks, type TrackDataset } from '../data/tracks'
 import { binTracks } from './trackGrid'
@@ -424,6 +429,15 @@ export default function MapView() {
   /** Bumped to force the throttled day effect to run again after a zoom-out
    *  has found the grids stale. */
   const [gridEpoch, setGridEpoch] = useState(0)
+  /** Which quantity the dots are sized by.
+   *
+   *  Gated on TRACKS because the pass count only exists when the grids are
+   *  binned from the LINES — binGrid drops a run's whole volume into the one
+   *  cell holding leg 1A and has no notion of a run crossing a cell, so a
+   *  passes reading built on it would be counting run STARTS and calling them
+   *  sprayings. Offering the switch without the lines would be offering a
+   *  number the record cannot support. */
+  const [metric, setMetric] = useState<DotMetric>('volume')
   const dayRef = useRef(0)
   const colorsRef = useRef<string[] | null>(null)
   const playingRef = useRef(false)
@@ -587,7 +601,30 @@ export default function MapView() {
           const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number]
           if (p.gt != null) {
             const deg = cellDegAt(map.getZoom()) ?? 0.03
-            if (dataRef.current) setInspect(aggregateCell(dataRef.current, coords[0], coords[1], deg))
+            if (dataRef.current) {
+              const cell = aggregateCell(dataRef.current, coords[0], coords[1], deg)
+              // Prefer the counts the FEATURE carries. binTracks measured them
+              // by walking the lines; aggregateCell can only count run starts.
+              // Only the line-binned grids have them, so the card falls back
+              // rather than inventing a number the point data cannot support.
+              setInspect(
+                p.nt != null
+                  ? // The headline gallons come from the feature too, so the
+                    // three numbers on the card share one denominator. Left as
+                    // they were, the card read "20K Gallons · 79 Sprayings"
+                    // where the 20K was the gallons of runs STARTING in the
+                    // cell and the 79 was runs CROSSING it — two different
+                    // cells' worth of arithmetic printed side by side.
+                    {
+                      ...cell,
+                      gallons: p.gt,
+                      crossings: p.nt,
+                      days: p.dt,
+                      byGroup: [p.b0, p.b1, p.b2, p.b3],
+                    }
+                  : cell,
+              )
+            }
           } else {
             setInspect({
               kind: 'run',
@@ -704,6 +741,31 @@ export default function MapView() {
     }
     if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
   }, [ready, day, agentKey, activeIndices, choices, bounds.max, tracksReady, gridEpoch])
+
+  // Switching what the dots MEAN.
+  //
+  // The passes reading has no track tier: a track is one run, so "how many
+  // times" is not a question a single stroke can answer — it is a question
+  // about a place. So the switch does not hide the tracks as a special case,
+  // it moves the hand-off to 24. The grids then own every zoom, the strokes
+  // own none, and the one number that decides which encoding is on screen
+  // stays the only one, exactly as it is in volume mode.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map || !TRACKS) return
+    setDotMetric(metric)
+    const hand = metric === 'passes' ? 24 : Z_NEAR
+    setTrackStart(hand)
+    applyTracks(map)
+    if (map.getLayer(VOL_FINE_LAYER)) map.setLayerZoomRange(VOL_FINE_LAYER, Z_MID, hand)
+    applyDots(map)
+    // The count lives in the binned features, not in paint, so the grids have
+    // to be rebuilt — the same reason the tuner's colour pickers ask for a
+    // re-bin rather than trusting a paint update.
+    gridsStaleRef.current = false
+    appliedKeyRef.current = ''
+    setGridEpoch((n) => n + 1)
+  }, [ready, metric])
 
   // Spend the skipped bin the moment the grids become the visible tier again.
   // Without this the reader zooms out of the track band onto a grid still
@@ -830,6 +892,8 @@ export default function MapView() {
           tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
           filtered={agentKey !== 'all'}
           tracks={TRACKS}
+          metric={TRACKS ? metric : undefined}
+          onMetric={TRACKS ? setMetric : undefined}
         >
           {inspect && (
             <ArchiveInspect

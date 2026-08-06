@@ -21,6 +21,17 @@ export interface CellInspect {
   lastDay: number
   byGroup: number[]
   byYear: number[]
+  /** Sprayings that CROSSED this cell, and the number of distinct days they
+   *  fell on — carried on the binned feature itself rather than recomputed.
+   *
+   *  Present only when the grids were binned from the lines. `missions` above
+   *  counts runs whose FIRST WAYPOINT lands in the cell box, which is what the
+   *  point data can answer and is not the same question: a run is an 11 km line
+   *  across three or four fine cells, so counting starts undercounts every cell
+   *  the run merely crossed. Where the dot is sized by crossings, the card has
+   *  to report crossings or it is describing a different mark. */
+  crossings?: number
+  days?: number
 }
 
 export interface RunInspect {
@@ -87,12 +98,25 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
             <span className="inspect-figure-unit">Gallons</span>
           </p>
           <p className="inspect-sub is-stats">
-            <span className="stat-pair">
-              <strong>{data.missions.toLocaleString()}</strong> Missions
-            </span>
-            <span className="stat-pair">
-              <strong>{data.runs.toLocaleString()}</strong> Runs
-            </span>
+            {data.crossings != null ? (
+              <>
+                <span className="stat-pair">
+                  <strong>{data.crossings.toLocaleString()}</strong> Sprayings
+                </span>
+                <span className="stat-pair">
+                  <strong>{(data.days ?? 0).toLocaleString()}</strong> Days
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="stat-pair">
+                  <strong>{data.missions.toLocaleString()}</strong> Missions
+                </span>
+                <span className="stat-pair">
+                  <strong>{data.runs.toLocaleString()}</strong> Runs
+                </span>
+              </>
+            )}
           </p>
 
           {/* Two headings the card did without: the bars and the sparkline were

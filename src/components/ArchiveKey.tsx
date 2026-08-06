@@ -21,6 +21,11 @@ interface Props {
    *  lines. A key that shows a dot over a map of lines is not a smaller
    *  problem than a key with the wrong words on it. */
   tracks?: boolean
+  /** Which quantity the dots are sized by, and the switch for it. Absent when
+   *  the record is not binned from the lines — see the note on `metric` in
+   *  MapView for why a passes reading needs them. */
+  metric?: 'volume' | 'passes'
+  onMetric?: (m: 'volume' | 'passes') => void
   /** Extra section rendered below the legend (the inspect card). */
   children?: ReactNode
 }
@@ -53,8 +58,11 @@ export default function ArchiveKey({
   tint,
   filtered,
   tracks = false,
+  metric,
+  onMetric,
   children,
 }: Props) {
+  const passes = metric === 'passes'
   const [scale, setScale] = useState<{ label: string; w: number }>({ label: '', w: 0 })
   /** Whether the TRACK layer is drawing right now.
    *
@@ -116,6 +124,27 @@ export default function ArchiveKey({
           3D
         </button>
       </div>
+      {metric && onMetric && (
+        <>
+          <p className="map-key-view-label">Dot Size Reads</p>
+          <div className="map-key-view" role="group" aria-label="Dot size reads">
+            <button
+              type="button"
+              className={`map-key-view-btn${passes ? '' : ' is-active'}`}
+              onClick={() => passes && onMetric('volume')}
+            >
+              Volume
+            </button>
+            <button
+              type="button"
+              className={`map-key-view-btn${passes ? ' is-active' : ''}`}
+              onClick={() => !passes && onMetric('passes')}
+            >
+              Times
+            </button>
+          </div>
+        </>
+      )}
       <div className="map-key-top" aria-hidden="true">
         <div className="map-key-scale">
           <div className="map-key-scale-bar" style={{ width: `${scale.w}px` }} />
@@ -134,12 +163,17 @@ export default function ArchiveKey({
             has to carry both and say which is which. Listing only the line
             would leave the far view's dots unexplained, which is the same
             fault as the ring had. */}
+        {/* In the PASSES reading there is no track tier — the hand-off is at 24
+            — so this row is the only mark on the map and it must not go on
+            saying "volume". A count is also worth naming precisely: it is
+            sprayings, not sorties and not flights, and a run that carried no
+            recorded volume is not one of them. */}
         {!onTracks && (
           <li>
             <span className="key-swatch">
               <span className="key-dot" style={{ background: tint }} />
             </span>
-            Sprayed Volume{tracks ? ' · per cell' : ''}
+            {passes ? 'Times Sprayed · per cell' : `Sprayed Volume${tracks ? ' · per cell' : ''}`}
           </li>
         )}
         {onTracks && (
