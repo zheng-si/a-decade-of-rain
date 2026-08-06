@@ -24,8 +24,8 @@ interface Props {
   /** Which quantity the dots are sized by, and the switch for it. Absent when
    *  the record is not binned from the lines — see the note on `metric` in
    *  MapView for why a passes reading needs them. */
-  metric?: 'volume' | 'passes'
-  onMetric?: (m: 'volume' | 'passes') => void
+  metric?: 'volume' | 'passes' | 'load'
+  onMetric?: (m: 'volume' | 'passes' | 'load') => void
   /** Extra section rendered below the legend (the inspect card). */
   children?: ReactNode
 }
@@ -63,6 +63,7 @@ export default function ArchiveKey({
   children,
 }: Props) {
   const passes = metric === 'passes'
+  const load = metric === 'load'
   const [scale, setScale] = useState<{ label: string; w: number }>({ label: '', w: 0 })
   /** Whether the TRACK layer is drawing right now.
    *
@@ -80,13 +81,7 @@ export default function ArchiveKey({
    *  in strokes while the key went on saying "Sprayed Volume · per cell",
    *  because the constant had not moved. A layer's own minzoom cannot drift
    *  from the layer — whatever moved it moved this.
-   *
-   *  The key used to compare the zoom against the imported constant, which made
-   *  it a third owner of the hand-off alongside volumeGrid and trackLayers.
-   *  That held until the console could MOVE the hand-off: dragging Z_NEAR down
-   *  put the whole country in strokes while the key went on saying "Sprayed
-   *  Volume · per cell", because the constant had not moved. Reading the
-   *  layer's own minzoom cannot drift — whatever moved the layer moved this. */
+   */
   const [onTracks, setOnTracks] = useState(false)
 
   useEffect(() => {
@@ -130,8 +125,8 @@ export default function ArchiveKey({
           <div className="map-key-view" role="group" aria-label="Dot size reads">
             <button
               type="button"
-              className={`map-key-view-btn${passes ? '' : ' is-active'}`}
-              onClick={() => passes && onMetric('volume')}
+              className={`map-key-view-btn${passes || load ? '' : ' is-active'}`}
+              onClick={() => (passes || load) && onMetric('volume')}
             >
               Volume
             </button>
@@ -141,6 +136,13 @@ export default function ArchiveKey({
               onClick={() => !passes && onMetric('passes')}
             >
               Times
+            </button>
+            <button
+              type="button"
+              className={`map-key-view-btn${load ? ' is-active' : ''}`}
+              onClick={() => !load && onMetric('load')}
+            >
+              Residue
             </button>
           </div>
         </>
@@ -173,7 +175,15 @@ export default function ArchiveKey({
             <span className="key-swatch">
               <span className="key-dot" style={{ background: tint }} />
             </span>
-            {passes ? 'Times Sprayed · per cell' : `Sprayed Volume${tracks ? ' · per cell' : ''}`}
+            {/* The load reading needs its assumption on the face of the map,
+                not buried in a tooltip: it is a MODEL, not a measurement, and a
+                reader who takes a decayed surface for an observation has been
+                misled by the legend rather than informed by it. */}
+            {load
+              ? 'Still On The Ground · 30-day half-life'
+              : passes
+                ? 'Times Sprayed · per cell'
+                : `Sprayed Volume${tracks ? ' · per cell' : ''}`}
           </li>
         )}
         {onTracks && (

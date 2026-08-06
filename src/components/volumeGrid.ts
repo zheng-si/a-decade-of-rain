@@ -238,7 +238,7 @@ export const DOTS: DotStyle = {
  * head. "19.5 million gallons" is a number you have to be told; "this ground
  * was sprayed seventy-nine times" is a number you already understand.
  */
-export type DotMetric = 'volume' | 'passes'
+export type DotMetric = 'volume' | 'passes' | 'load'
 let METRIC: DotMetric = 'volume'
 export const dotMetric = () => METRIC
 export function setDotMetric(m: DotMetric) {
@@ -287,6 +287,28 @@ export const PASS_ANCHORS: Record<'coarse' | 'fine' | 'raw', [number, number]> =
   coarse: [Z_FAR, Z_MID],
   fine: [Z_MID, mapConfig.view.maxZoom],
   raw: [Z_MID, mapConfig.view.maxZoom],
+}
+
+/** Radius ramp for the LOAD reading — how much is still on the ground.
+ *
+ * Calibrated on the field as it actually behaves rather than on the record's
+ * totals, because a decayed surface is a different distribution at every date.
+ * Stepping the real field at a 30-day half-life, the live cells read:
+ *
+ *   fine 0.03°     1964: 135 cells, p50 19    1967: 2,283 cells, p50 77
+ *                  1969: 2,414 cells, p50 27  1970: 1,018 cells, p50 5
+ *   coarse 0.12°   1967: 447 cells, p50 249   1970: 257 cells, p50 15
+ *
+ * k is set against the busiest period — 1967, fine p50 77 and p90 780 — so the
+ * map is legible when there is most to see and thins honestly either side of
+ * it. That thinning is the whole point of the reading: this is the only one of
+ * the three that goes DOWN, and a ramp tuned to the record's peak totals would
+ * have flattened the recovery into nothing.
+ */
+export const LOAD: Record<'coarse' | 'fine' | 'raw', DotRamp> = {
+  coarse: { k0: 0.127, k1: 0.285, cap: 20 },
+  fine: { k0: 0.18, k1: 1.02, cap: 44 },
+  raw: { k0: 0.18, k1: 1.02, cap: 44 },
 }
 
 /** True for a run with no recorded volume. `coalesce` because the grid tiers
@@ -415,8 +437,14 @@ export function dotRadius(
   // read — one event is one pass by definition. It keeps the volume ramp in
   // both readings rather than being sized by the constant 1.
   const passes = METRIC === 'passes' && tier !== 'raw'
-  const { k0, k1, cap } = passes ? PASSES[tier] : DOTS[tier]
-  const [z0, z1] = passes ? PASS_ANCHORS[tier] : DOT_ANCHORS[tier]
+  // The LOAD reading also owns every zoom — there is no track tier for "what is
+  // still here" any more than for "how many times", so it borrows the passes
+  // anchors. It keeps reading `g`, because loadFeatures puts the decayed load
+  // there; only the ramp differs.
+  const load = METRIC === 'load' && tier !== 'raw'
+  const table = passes ? PASSES : load ? LOAD : DOTS
+  const { k0, k1, cap } = table[tier]
+  const [z0, z1] = passes || load ? PASS_ANCHORS[tier] : DOT_ANCHORS[tier]
   const prop = passes ? 'n' : tier === 'raw' ? 'gallons' : 'g'
   // max(floor, min(k·√g, cap)) — the cap keeps a dot inside its cell, the
   // floor keeps the bottom tenth of the distribution above one pixel.

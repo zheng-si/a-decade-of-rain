@@ -47,6 +47,7 @@ import {
 } from './trackLayers'
 import { loadTracks, type TrackDataset } from '../data/tracks'
 import { binTracks } from './trackGrid'
+import { buildLoadField, advanceLoad, loadFeatures, type LoadField } from '../data/decay'
 import ArchiveInspect, {
   fmtGallons,
   type Inspect,
@@ -98,6 +99,27 @@ const FILTER_STEP_DAYS = 12
 const TRACKS_DRAW = TRACKS
 
 const EMPTY_FC: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
+
+/** The two decayed load fields, built once per cell size and kept.
+ *
+ *  Module-level rather than a ref because they are pure derivations of the
+ *  track file, which does not change for the life of the page — and because
+ *  rebuilding one would throw away the replay state that makes the reading
+ *  incremental. Keyed by cell size so a console changing the grid gets a new
+ *  field instead of a field binned to the wrong cell.
+ */
+const LOAD_FIELDS = new Map<number, LoadField>()
+function loadFields(data: TrackDataset, deg: { coarse: number; fine: number }) {
+  const get = (d: number) => {
+    let f = LOAD_FIELDS.get(d)
+    if (!f) {
+      f = buildLoadField(data, d)
+      LOAD_FIELDS.set(d, f)
+    }
+    return f
+  }
+  return { coarse: get(deg.coarse), fine: get(deg.fine) }
+}
 
 /**
  * The runs that arrived in (lo, hi] — the ones a playback step has just added.
@@ -621,6 +643,7 @@ export default function MapView() {
                       crossings: p.nt,
                       days: p.dt,
                       byGroup: [p.b0, p.b1, p.b2, p.b3],
+                      ...(p.ld != null ? { load: p.ld } : {}),
                     }
                   : cell,
               )
@@ -702,8 +725,21 @@ export default function MapView() {
         const coarse = map.getSource(VOL_COARSE_SOURCE) as maplibregl.GeoJSONSource | undefined
         const fine = map.getSource(VOL_FINE_SOURCE) as maplibregl.GeoJSONSource | undefined
         const deg = gridDegrees()
-        coarse?.setData(binTracks(tracksRef.current, day, activeIndices, deg.coarse, c))
-        fine?.setData(binTracks(tracksRef.current, day, activeIndices, deg.fine, c))
+        if (metric === 'load') {
+          // The decayed field, not a re-bin. It is stateful — it steps forward
+          // from where it was — so it cannot be rebuilt per frame the way the
+          // other two readings are, and it must not be: replaying it is what
+          // makes the surface fall as well as rise.
+          const f = loadFields(tracksRef.current, deg)
+          advanceLoad(f.coarse, day, activeIndices)
+          advanceLoad(f.fine, day, activeIndices)
+          const filtered = activeIndices != null
+          coarse?.setData(loadFeatures(f.coarse, c, DOTS.dim, filtered))
+          fine?.setData(loadFeatures(f.fine, c, DOTS.dim, filtered))
+        } else {
+          coarse?.setData(binTracks(tracksRef.current, day, activeIndices, deg.coarse, c))
+          fine?.setData(binTracks(tracksRef.current, day, activeIndices, deg.fine, c))
+        }
       }
       gridsStaleRef.current = false
     } else {
@@ -754,7 +790,7 @@ export default function MapView() {
     const map = mapRef.current
     if (!ready || !map || !TRACKS) return
     setDotMetric(metric)
-    const hand = metric === 'passes' ? 24 : Z_NEAR
+    const hand = metric === 'volume' ? Z_NEAR : 24
     setTrackStart(hand)
     applyTracks(map)
     if (map.getLayer(VOL_FINE_LAYER)) map.setLayerZoomRange(VOL_FINE_LAYER, Z_MID, hand)

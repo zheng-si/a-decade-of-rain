@@ -32,6 +32,12 @@ export interface CellInspect {
    *  to report crossings or it is describing a different mark. */
   crossings?: number
   days?: number
+  /** Decayed load still present on the cell AT THE PLAYHEAD, gallon-equivalent.
+   *
+   *  Only the load reading supplies it, and it is the one number on this card
+   *  that is a MODEL rather than a record — so it is labelled with its
+   *  assumption rather than printed as a bare figure beside the measured ones. */
+  load?: number
 }
 
 export interface RunInspect {
@@ -97,6 +103,12 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
             <strong>{fmtGallons(data.gallons)}</strong>
             <span className="inspect-figure-unit">Gallons</span>
           </p>
+          {data.load != null && (
+            <p className="inspect-load">
+              <strong>{fmtGallons(data.load)}</strong> still on the ground at this
+              date — modelled, 30-day half-life
+            </p>
+          )}
           <p className="inspect-sub is-stats">
             {data.crossings != null ? (
               <>
