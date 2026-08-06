@@ -32,8 +32,12 @@ import {
 } from './volumeGrid'
 import {
   addTrackLayers,
+  TRACK_LAYER,
   setTrackTime,
   setTrackAgents,
+  setTrackDraw,
+  setDrawProgress,
+  setDrawVisible,
   setLayersVisible,
 } from './trackLayers'
 import { loadTracks, type TrackDataset } from '../data/tracks'
@@ -82,6 +86,42 @@ const PLAY_DURATION_MS = 28_000
 // instead of every animation frame — re-tessellating 24k points at 60fps is
 // what made playback drop the heatmap and lag on agent switches.
 const FILTER_STEP_DAYS = 12
+
+/** Whether the draw-on animation is wanted at all. Reads the shipped table
+ *  rather than a second flag, so the console owns it like every other track
+ *  parameter. */
+const TRACKS_DRAW = TRACKS
+
+const EMPTY_FC: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
+
+/**
+ * The runs that arrived in (lo, hi] — the ones a playback step has just added.
+ *
+ * A linear scan of 8,753 features, which is a rounding error next to the
+ * setData it feeds; the expensive thing about a GeoJSON source is handing
+ * MapLibre the result, and the result here is a few dozen lines.
+ *
+ * Isolated agents are filtered OUT rather than drawn grey, because a layer has
+ * one gradient and a gradient cannot ask which agent a stroke belongs to — the
+ * same constraint that forced the dim twin. The consequence is small and worth
+ * naming: with an agent isolated, the greyed runs land one step later than the
+ * selected ones instead of being drawn on.
+ */
+function arriving(
+  data: TrackDataset,
+  lo: number,
+  hi: number,
+  indices: number[] | null,
+): GeoJSON.FeatureCollection {
+  const sel = indices ? new Set(indices) : null
+  const features = data.lines.features.filter((f) => {
+    const p = f.properties as { day: number; agent: number; gpk: number }
+    if (p.day <= lo || p.day > hi) return false
+    if (p.gpk <= 0) return false
+    return !sel || sel.has(p.agent)
+  })
+  return { type: 'FeatureCollection', features }
+}
 
 const monthLabel = (day: number) =>
   dayToDate(day).toLocaleDateString('en-US', { year: 'numeric', month: 'short', timeZone: 'UTC' })
@@ -361,6 +401,29 @@ export default function MapView() {
    *  happened to scrub — the same class of "correct code, never runs" bug the
    *  tuner's once('idle') had. */
   const [tracksReady, setTracksReady] = useState(false)
+  /** The grid tiers hold data for a day/agent that is no longer the current
+   *  one, because the reader was past the hand-off when it changed.
+   *
+   *  Binning the two grids is the expensive thing this component does — it
+   *  walks every segment of every run in sub-cell steps — and past the hand-off
+   *  it produces features for layers that draw nothing. Measured at z10.2 with
+   *  only the strokes on screen, one agent switch blocked the main thread for
+   *  639 ms in a single task and 1,425 ms in total, all of it for tiers with
+   *  zero rendered features. The tracks' own update is a filter and a paint
+   *  expression and costs nothing.
+   *
+   *  So the bin is skipped and this is set instead, and the zoom watcher below
+   *  spends it the moment the grids are the visible tier again. Skipping
+   *  without recording it would be the real bug: the reader would zoom out onto
+   *  a grid still showing the agent they had deselected. */
+  const gridsStaleRef = useRef(false)
+  /** The day the SETTLED track layers are filtered to. While playing it trails
+   *  the playhead by one step, and the gap is exactly what the drawing layer
+   *  holds. */
+  const settledDayRef = useRef(0)
+  /** Bumped to force the throttled day effect to run again after a zoom-out
+   *  has found the grids stale. */
+  const [gridEpoch, setGridEpoch] = useState(0)
   const dayRef = useRef(0)
   const colorsRef = useRef<string[] | null>(null)
   const playingRef = useRef(false)
@@ -583,24 +646,55 @@ export default function MapView() {
     const map = mapRef.current
     if (!ready || !map) return
     const atEnd = day >= bounds.max
-    const key = `${Math.floor(day / FILTER_STEP_DAYS)}|${agentKey}|${atEnd}|${tracksReady}`
+    const key = `${Math.floor(day / FILTER_STEP_DAYS)}|${agentKey}|${atEnd}|${tracksReady}|${gridEpoch}`
     if (key === appliedKeyRef.current) return
     appliedKeyRef.current = key
-    if (dataRef.current)
-      updateVolume(map, dataRef.current, day, activeIndices, choices.find((c) => c.key === agentKey)?.color ?? null)
-    // The track LAYERS need no re-bin — the playhead is a filter and the
-    // selection is a paint expression. The two grid tiers do, and now from the
-    // lines rather than from the points.
-    if (TRACKS && tracksRef.current) {
+    // Are the grid tiers the encoding on screen? Asked of the track layer's own
+    // minzoom rather than of Z_NEAR, so that moving the hand-off from the
+    // console moves this with it — the key already learned that lesson.
+    const trackLayer = TRACKS ? map.getLayer(TRACK_LAYER) : null
+    const gridsOn = !trackLayer || map.getZoom() < (trackLayer.minzoom ?? 0)
+
+    if (gridsOn) {
+      if (dataRef.current)
+        updateVolume(map, dataRef.current, day, activeIndices, choices.find((c) => c.key === agentKey)?.color ?? null)
       // The grids are re-binned from the TRACKS, so a run's gallons land in
       // every cell it crossed. Same feature shape as binGrid, same layers.
-      const c = choices.find((x) => x.key === agentKey)?.color ?? DOTS.tint
-      const coarse = map.getSource(VOL_COARSE_SOURCE) as maplibregl.GeoJSONSource | undefined
-      const fine = map.getSource(VOL_FINE_SOURCE) as maplibregl.GeoJSONSource | undefined
-      const deg = gridDegrees()
-      coarse?.setData(binTracks(tracksRef.current, day, activeIndices, deg.coarse, c))
-      fine?.setData(binTracks(tracksRef.current, day, activeIndices, deg.fine, c))
-      setTrackTime(map, day)
+      if (TRACKS && tracksRef.current) {
+        const c = choices.find((x) => x.key === agentKey)?.color ?? DOTS.tint
+        const coarse = map.getSource(VOL_COARSE_SOURCE) as maplibregl.GeoJSONSource | undefined
+        const fine = map.getSource(VOL_FINE_SOURCE) as maplibregl.GeoJSONSource | undefined
+        const deg = gridDegrees()
+        coarse?.setData(binTracks(tracksRef.current, day, activeIndices, deg.coarse, c))
+        fine?.setData(binTracks(tracksRef.current, day, activeIndices, deg.fine, c))
+      }
+      gridsStaleRef.current = false
+    } else {
+      gridsStaleRef.current = true
+    }
+
+    // The track LAYERS need no re-bin — the playhead is a filter and the
+    // selection is a paint expression — so they update at every zoom, whether
+    // or not the grids were spent on.
+    if (TRACKS && tracksRef.current) {
+      // Playing: hold the settled record one step back and hand the runs that
+      // arrived in this step to the drawing layer, which the rAF loop wipes in.
+      // The settled filter therefore lags by one step — about 92 ms of
+      // playback — which is the whole reason a run can be seen to arrive at
+      // all rather than appearing complete.
+      const lo = settledDayRef.current
+      const playingNow = playingRef.current && TRACKS_DRAW
+      if (playingNow && lo < day) {
+        setTrackTime(map, lo)
+        setTrackDraw(map, arriving(tracksRef.current, lo, day, activeIndices))
+        setDrawProgress(map, 0)
+        setDrawVisible(map, true)
+      } else {
+        setTrackTime(map, day)
+        setTrackDraw(map, EMPTY_FC)
+        setDrawVisible(map, false)
+      }
+      settledDayRef.current = day
       setTrackAgents(
         map,
         activeIndices,
@@ -609,7 +703,28 @@ export default function MapView() {
       )
     }
     if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
-  }, [ready, day, agentKey, activeIndices, choices, bounds.max, tracksReady])
+  }, [ready, day, agentKey, activeIndices, choices, bounds.max, tracksReady, gridEpoch])
+
+  // Spend the skipped bin the moment the grids become the visible tier again.
+  // Without this the reader zooms out of the track band onto a grid still
+  // binned for the agent or the day they left behind — a stale map is a worse
+  // failure than a slow one, which is why the skip above has to be recorded.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map || !TRACKS) return
+    const check = () => {
+      if (!gridsStaleRef.current) return
+      const layer = map.getLayer(TRACK_LAYER)
+      if (!layer || map.getZoom() >= (layer.minzoom ?? 0)) return
+      gridsStaleRef.current = false
+      appliedKeyRef.current = ''
+      setGridEpoch((n) => n + 1)
+    }
+    map.on('zoomend', check)
+    return () => {
+      map.off('zoomend', check)
+    }
+  }, [ready])
 
   // Lets the tuner force a re-bin after changing something the bins bake in —
   // a cell size, or either of the two dot colours. The effect above
@@ -655,11 +770,33 @@ export default function MapView() {
       }
       cur = next
       setDay(next)
+      // Advance the drawing front. The wipe is driven by where the playhead
+      // sits INSIDE its own filter step, not by a clock, so it finishes exactly
+      // as the next step replaces it and can never queue up behind playback.
+      // The write lands on the drawing layer's own small source — the record's
+      // 8,753 lines are not touched by this.
+      const m = mapRef.current
+      if (m && TRACKS_DRAW) {
+        const q = (next - settledDayRef.current) / FILTER_STEP_DAYS
+        setDrawProgress(m, q < 0 ? 0 : q > 1 ? 1 : q)
+      }
       frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
   }, [playing, bounds.min, bounds.max])
+
+  // Stopping mid-step would leave the last few runs half-drawn for good, so
+  // pausing settles them: the drawing layer empties and the record's own filter
+  // catches up to the playhead.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !TRACKS_DRAW || playing || !tracksReady) return
+    setTrackTime(map, dayRef.current)
+    setTrackDraw(map, EMPTY_FC)
+    setDrawVisible(map, false)
+    settledDayRef.current = dayRef.current
+  }, [playing, tracksReady])
 
   // Switch between flat (top-down) and tilted 3D terrain.
   function toggleView() {

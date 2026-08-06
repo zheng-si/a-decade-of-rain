@@ -61,6 +61,17 @@ export const TRACK_MARK_LAYER = 'spray-track-mark'
  *  flight. Round caps fix the end itself; a dot at each end gives the stroke
  *  somewhere to resolve, the way a route diagram does. */
 export const TRACK_END_LAYER = 'spray-track-end'
+/** The runs ARRIVING at the current playback step, drawn on stroke by stroke.
+ *
+ *  Its own source, and that is the whole design. A wipe is a gradient, a
+ *  gradient has to be rewritten every frame, and every style write against a
+ *  source costs in proportion to that source: `spray-tracks` carries 8,753
+ *  lines with lineMetrics, so animating it directly would re-tessellate the
+ *  record sixty times a second. This source holds only the runs of one step —
+ *  8,753 over ~304 steps, so a few dozen — and is replaced once per step
+ *  instead. The per-frame write lands on the small one. */
+export const TRACK_DRAW_SOURCE = 'spray-track-draw'
+export const TRACK_DRAW_LAYER = 'spray-track-draw'
 
 /** Zoom anchors for the width ramp. One span, because there is one tier. */
 const Z_TOP = 11
@@ -163,6 +174,19 @@ export interface TrackStyle {
    *  never a feature property, so the tinted and the greyed strokes cannot
    *  share one layer once either of them is a gradient. See TRACK_DIM_LAYER. */
   taper: number
+  /** Draw each arriving run on, stroke by stroke, while the record plays.
+   *
+   *  `from` is which end the stroke grows FROM. 'tail' means it grows towards
+   *  the head — towards leg 1A, the waypoint the gallons are booked against —
+   *  which with a taper reads as a brush loading as it lands. 'head' is the
+   *  other reading: the aircraft leaving its first waypoint and running out.
+   *  Neither is a claim about heading; the record carries none.
+   *
+   *  There is no duration. The wipe is driven by where the playhead sits inside
+   *  its own filter step, so a run draws on over exactly one step and the
+   *  animation cannot fall behind playback however fast the record is played.
+   *  A fixed duration would need a queue the moment the two disagreed. */
+  draw: { shown: boolean; from: 'tail' | 'head' }
 }
 
 /** The zoom the tracks take over at.
@@ -197,6 +221,7 @@ export const TRACKS: TrackStyle = {
   // Strong enough to read at a glance on a 155 px median stroke, short of 1.0
   // so the tail still records that the aircraft was there.
   taper: 0.7,
+  draw: { shown: true, from: 'tail' },
 }
 
 /** The last selection applied, so applyTracks can rebuild a gradient without
@@ -231,6 +256,60 @@ export function setTracks(next: Partial<TrackStyle>) {
   if (next.ends) TRACKS.ends = { ...next.ends }
   if (next.nil) TRACKS.nil = { ...next.nil, dash: [next.nil.dash[0], next.nil.dash[1]] }
   if (next.marks) TRACKS.marks = { ...next.marks }
+  if (next.draw) TRACKS.draw = { ...next.draw }
+}
+
+/** The taper's own alpha at a point along the stroke. */
+const taperAt = (t: number) => Math.max(0, 1 - TRACKS.taper * t)
+
+/**
+ * The wipe: the taper, with everything past the drawing front cut away.
+ *
+ * `q` runs 0 → 1 across one playback step. line-progress is 0 at the head (leg
+ * 1A) and 1 at the tail, so growing FROM the tail means the visible window is
+ * [1 − q, 1] and growing from the head means [0, q].
+ *
+ * The front is a hard edge one thousandth of the length wide rather than a
+ * feathered one, because a soft front over a taper reads as a second gradient
+ * and the stroke stops having a tip. Stops must be strictly increasing, which
+ * is the only reason for the clamping here.
+ */
+function wipe(colour: string, q: number): maplibregl.ExpressionSpecification {
+  const c = (t: number, a: number) => rgba(colour, taperAt(t) * a)
+  const e = 0.001
+  // Clamped to [2e, 1−2e], not [e, 1−e]: the front contributes a stop at p−e
+  // (or p+e), and at the tighter clamp that stop lands exactly on the 0 or 1
+  // endpoint. MapLibre requires interpolate inputs to be STRICTLY ascending and
+  // rejects the whole expression on a tie — every frame, silently, leaving the
+  // layer on its last valid gradient.
+  const p = Math.min(1 - 2 * e, Math.max(2 * e, TRACKS.draw.from === 'tail' ? 1 - q : q))
+  const stops: [number, string][] =
+    TRACKS.draw.from === 'tail'
+      ? [[0, c(0, 0)], [p - e, c(p, 0)], [p, c(p, 1)], [1, c(1, 1)]]
+      : [[0, c(0, 1)], [p, c(p, 1)], [p + e, c(p, 0)], [1, c(1, 0)]]
+  return [
+    'interpolate', ['linear'], ['line-progress'],
+    ...stops.flat(),
+  ] as unknown as maplibregl.ExpressionSpecification
+}
+
+/** Hand the draw layer the runs arriving at this step. Called ONCE per step. */
+export function setTrackDraw(map: maplibregl.Map, data: GeoJSON.FeatureCollection) {
+  const src = map.getSource(TRACK_DRAW_SOURCE) as maplibregl.GeoJSONSource | undefined
+  src?.setData(data)
+}
+
+/** Advance the drawing front. Called every frame — on the SMALL source. */
+export function setDrawProgress(map: maplibregl.Map, q: number) {
+  if (!map.getLayer(TRACK_DRAW_LAYER)) return
+  map.setPaintProperty(TRACK_DRAW_LAYER, 'line-gradient', wipe(paintState.tint, q) as never)
+}
+
+/** Show or hide the drawing layer without touching the record's own source. */
+export function setDrawVisible(map: maplibregl.Map, on: boolean) {
+  if (map.getLayer(TRACK_DRAW_LAYER)) {
+    map.setLayoutProperty(TRACK_DRAW_LAYER, 'visibility', on && TRACKS.draw.shown ? 'visible' : 'none')
+  }
 }
 
 const dayFilter = (day: number) =>
@@ -325,8 +404,17 @@ export function applyTracks(map: maplibregl.Map) {
   // console could open a blank band between the two encodings and nothing said
   // so. minzoom is a layer property like any other; it belongs in the same
   // apply as the paint.
-  for (const id of [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER, TRACK_END_LAYER]) {
+  for (const id of [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER, TRACK_END_LAYER, TRACK_DRAW_LAYER]) {
     if (map.getLayer(id)) map.setLayerZoomRange(id, trackStart, 24)
+  }
+  // The drawing layer shares the stroke's geometry rules, so it shares their
+  // ramp — a run must not change width the moment it stops arriving.
+  if (map.getLayer(TRACK_DRAW_LAYER)) {
+    map.setPaintProperty(TRACK_DRAW_LAYER, 'line-width', widthRamp() as never)
+    map.setPaintProperty(TRACK_DRAW_LAYER, 'line-opacity', TRACKS.opacity)
+    map.setPaintProperty(TRACK_DRAW_LAYER, 'line-blur', TRACKS.blur)
+    map.setLayoutProperty(TRACK_DRAW_LAYER, 'line-cap', TRACKS.cap)
+    if (!TRACKS.draw.shown) map.setLayoutProperty(TRACK_DRAW_LAYER, 'visibility', 'none')
   }
   for (const id of [TRACK_LAYER, TRACK_DIM_LAYER]) {
     if (!map.getLayer(id)) continue
@@ -453,6 +541,30 @@ export function addTrackLayers(
     },
     labelId,
   )
+  // The arriving runs, above the settled record so a stroke being drawn reads
+  // over the ones already down. Empty until playback fills it.
+  map.addSource(TRACK_DRAW_SOURCE, {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features: [] },
+    lineMetrics: true,
+  })
+  map.addLayer(
+    {
+      id: TRACK_DRAW_LAYER,
+      type: 'line',
+      source: TRACK_DRAW_SOURCE,
+      minzoom: Z_NEAR,
+      layout: { 'line-cap': TRACKS.cap, 'line-join': 'round', visibility: 'none' },
+      paint: {
+        'line-width': widthRamp(),
+        'line-opacity': TRACKS.opacity,
+        'line-blur': TRACKS.blur,
+        'line-gradient': wipe(tint, 0),
+      },
+    },
+    labelId,
+  )
+
   // Endpoint caps last, so they sit on top of the stroke they belong to.
   map.addLayer(
     {

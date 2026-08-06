@@ -88,7 +88,7 @@ const SEED_VERSION = 2
  *  panel would have gone on drawing exactly the thing the change removes —
  *  a fix that ships and cannot be seen. Bumping this drops the stored `tracks`
  *  block alone; everything else the reader tuned survives. */
-const TRACK_SEED = 1
+const TRACK_SEED = 2
 
 /** Run `fn` as soon as the style is usable, and DO run it.
  *
@@ -324,6 +324,7 @@ function readStore(): Tune {
     t.tracks.ends = { ...DEFAULTS.tracks.ends, ...(st?.ends ?? {}) }
     t.tracks.nil = { ...DEFAULTS.tracks.nil, ...(st?.nil ?? {}) }
     t.tracks.marks = { ...DEFAULTS.tracks.marks, ...(st?.marks ?? {}) }
+    t.tracks.draw = { ...DEFAULTS.tracks.draw, ...(st?.draw ?? {}) }
     // Tiers deep-merge, so a stored tune written before a field existed keeps
     // the rest of its work instead of being thrown away wholesale.
     t.tiers = { ...DEFAULTS.tiers }
@@ -940,6 +941,8 @@ export default function MapTuner({
         )
       }
       if (t.taper !== td.taper) trk.push(`TRACKS.taper: ${t.taper},`)
+      if (changed(t.draw, td.draw))
+        trk.push(`TRACKS.draw: { shown: ${t.draw.shown}, from: '${t.draw.from}' },`)
       if (changed(t.marks, td.marks)) {
         trk.push(
           `TRACKS.marks: { kFar: ${t.marks.kFar}, kNear: ${t.marks.kNear}, cap: ${t.marks.cap}, shown: ${t.marks.shown} },`,
@@ -1570,6 +1573,38 @@ export default function MapTuner({
               />
               <em>0 = flat · 1 = tail fully transparent</em>
             </label>
+            <label className="tuner-check">
+              <input
+                type="checkbox"
+                checked={tune.tracks.draw.shown}
+                onChange={(e) =>
+                  setTrk({ draw: { ...tune.tracks.draw, shown: e.target.checked } })
+                }
+              />
+              <span>draw each run on while the record PLAYS</span>
+            </label>
+            <label className="tuner-row">
+              <span className="tuner-label">Grows from</span>
+              <select
+                value={tune.tracks.draw.from}
+                onChange={(e) =>
+                  setTrk({ draw: { ...tune.tracks.draw, from: e.target.value as 'tail' | 'head' } })
+                }
+              >
+                <option value="tail">tail → head (loads as it lands)</option>
+                <option value="head">head → tail (leaves and runs out)</option>
+              </select>
+            </label>
+            <p className="tuner-tier-read">
+              The wipe is driven by where the playhead sits inside its own {12}-day filter step —
+              about 92 ms at the shipped play speed — so a run draws on over exactly one step and
+              the animation cannot fall behind however fast the record is played. It runs on its
+              own small source holding just that step&apos;s arrivals, never on the record&apos;s
+              8,753 lines, which is the only reason a per-frame gradient is affordable.
+              {tune.tracks.taper > 0 && tune.tracks.draw.from === 'tail'
+                ? ' With a taper, growing from the tail means the stroke enters faint and loads towards the head.'
+                : ''}
+            </p>
             <p className="tuner-tier-read">
               The only direction cue that can work here, because it lives in the line&apos;s own
               paint and so composites exactly as the line does — see the beads below for what
