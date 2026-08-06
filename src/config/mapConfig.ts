@@ -145,18 +145,20 @@ export const Z_MID = 6.5
  *  looking at the fine GRID and concluding the map never stopped aggregating.
  *  Then 9.5, which gave it 9.5 → 11.
  *
- *  Now 8.1, which is a different decision from the two above rather than a
- *  further correction of them. Those were about giving the deepest tier room;
- *  this is about which encoding the reader spends their time in. The strokes
- *  are the honest mark — a run is a line, and the grid only ever summarises
- *  them — so the band where the map draws what actually happened is worth
- *  three zoom levels rather than one and a half. Measured over Đồng Xoài, the
- *  hand-off moves from z9.5 to z8.1 and the strokes on screen at the moment
- *  they appear go from 2,054 to 4,169.
+ *  Now 8.5, arrived at through 8.1. Both are a different decision from the two
+ *  above rather than a further correction of them: those were about giving the
+ *  deepest tier room; this is about which encoding the reader spends their time
+ *  in. The strokes are the honest mark — a run is a line, and the grid only
+ *  ever summarises them — so the band where the map draws what actually
+ *  happened is worth two and a half zoom levels rather than one and a half.
+ *  Measured over Đồng Xoài, DISTINCT runs on screen the moment the strokes
+ *  appear: 1,903 at the old z9.5, 3,039 here. (Distinct, because a run crossing
+ *  a tile boundary is returned twice by queryRenderedFeatures and the earlier
+ *  figures in this comment counted those twice.)
  *
  *  Reachable from the ZOOM tab (3–12) without editing this file, but the
  *  slider is a console and this is the shipped map. */
-export const Z_NEAR = 8.1
+export const Z_NEAR = 8.5
 
 /** The far end of the record, for ramps that need a low anchor.
  *

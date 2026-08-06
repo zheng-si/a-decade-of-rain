@@ -33,6 +33,9 @@ import {
 import {
   addTrackLayers,
   TRACK_LAYER,
+  TRACK_DIM_LAYER,
+  TRACK_NIL_LAYER,
+  setTrackHover,
   setTrackTime,
   setTrackAgents,
   setTrackDraw,
@@ -424,6 +427,15 @@ export default function MapView() {
   /** Bumped to force the throttled day effect to run again after a zoom-out
    *  has found the grids stale. */
   const [gridEpoch, setGridEpoch] = useState(0)
+  /** Which run the highlight is on, from two sources with one output.
+   *
+   *  Hover is transient and click PINS, because otherwise the inspect card
+   *  names a run the map has stopped pointing at the moment the reader moves
+   *  the mouse to read it — the card would be about "this one" with no "this"
+   *  left on screen. Hover wins while it lasts, so the reader can still compare
+   *  a neighbour against the pinned run without losing it. */
+  const hoverRunRef = useRef<number | null>(null)
+  const pinnedRunRef = useRef<number | null>(null)
   const dayRef = useRef(0)
   const colorsRef = useRef<string[] | null>(null)
   const playingRef = useRef(false)
@@ -555,7 +567,43 @@ export default function MapView() {
           offset: 12,
           maxWidth: '250px',
         })
+        // The tracks are the mark the reader spends most of their time on now,
+        // and until this they were the only mark on the map that answered
+        // nothing when you pointed at it — the dots had a tooltip and a card
+        // and the strokes had neither. Queried FIRST, because in their band the
+        // grid tiers are already out and the raw dots are hidden, so anything
+        // else under the pointer is the basemap.
+        const trackLayers = () =>
+          [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER].filter((id) => map.getLayer(id))
+        /** The run under the pointer, or null. Also the one place that knows a
+         *  run is only pickable where it is actually drawn. */
+        const trackAt = (pt: maplibregl.PointLike) => {
+          const ids = trackLayers()
+          if (!ids.length) return null
+          const f = map.queryRenderedFeatures(pt, { layers: ids })[0]
+          return f ? (f as unknown as maplibregl.MapGeoJSONFeature) : null
+        }
+        /** One writer for the highlight, fed by both sources. */
+        const paintHover = () => setTrackHover(map, hoverRunRef.current ?? pinnedRunRef.current)
         map.on('mousemove', (e) => {
+          const t = trackAt(e.point)
+          if (t) {
+            const p = t.properties as Record<string, number>
+            hoverRunRef.current = typeof t.id === 'number' ? t.id : null
+            paintHover()
+            map.getCanvas().style.cursor = 'pointer'
+            hover
+              .setLngLat(e.lngLat)
+              .setHTML(
+                `<strong>${p.gallons > 0 ? `<span class="n">${fmtGallons(p.gallons)}</span> Gallons` : 'No Volume Logged'}</strong>` +
+                  `<span>${groupLabels[p.gi] ?? 'Unknown'} · ${dayLabel(p.day)}</span>` +
+                  `<span>${p.km.toFixed(1)} km · ${Math.round(p.gpk).toLocaleString()} gal/km</span>`,
+              )
+              .addTo(map)
+            return
+          }
+          hoverRunRef.current = null
+          paintHover()
           const feats = map.queryRenderedFeatures(e.point, { layers: volLayers })
           if (!feats.length) {
             hover.remove()
@@ -576,7 +624,39 @@ export default function MapView() {
           }
           hover.setLngLat(e.lngLat).setHTML(html).addTo(map)
         })
+        // The pointer leaving the canvas has to clear both, or the last run the
+        // reader passed over stays lit while they are looking somewhere else.
+        map.on('mouseout', () => {
+          hover.remove()
+          map.getCanvas().style.cursor = ''
+          hoverRunRef.current = null
+          paintHover()
+        })
         map.on('click', (e) => {
+          const t = trackAt(e.point)
+          if (t) {
+            const p = t.properties as Record<string, number>
+            pinnedRunRef.current = typeof t.id === 'number' ? t.id : null
+            paintHover()
+            setInspect({
+              kind: 'run',
+              // Unused by the track card — a line has no single position — but
+              // the shape wants it, and the click point is the honest answer to
+              // "where did you point".
+              coords: [e.lngLat.lng, e.lngLat.lat],
+              day: p.day,
+              groupIndex: p.gi ?? -1,
+              gallons: p.gallons,
+              km: p.km,
+              gpk: p.gpk,
+            })
+            return
+          }
+          // Any other click changes what the card is about, so the pin goes
+          // with it — a pinned stroke under a cell card points at the wrong
+          // subject.
+          pinnedRunRef.current = null
+          paintHover()
           const feats = map.queryRenderedFeatures(e.point, { layers: volLayers })
           if (!feats.length) {
             setInspect(null)
@@ -882,7 +962,11 @@ export default function MapView() {
               groups={choices
                 .filter((c) => c.indices && c.color)
                 .map((c) => ({ label: c.label, color: c.color! }))}
-              onClose={() => setInspect(null)}
+              onClose={() => {
+                setInspect(null)
+                pinnedRunRef.current = null
+                if (mapRef.current) setTrackHover(mapRef.current, hoverRunRef.current)
+              }}
             />
           )}
         </ArchiveKey>
@@ -899,7 +983,6 @@ export default function MapView() {
           playing={playing}
           dateLabel={monthLabel(day)}
           missionCount={stats.missions}
-          runCount={stats.runs}
           gallons={stats.gallons}
           agentChoices={choices}
           activeAgentKey={agentKey}

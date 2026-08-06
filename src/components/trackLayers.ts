@@ -54,6 +54,19 @@ export const TRACK_DIM_LAYER = 'spray-track-dim'
 export const TRACK_NIL_LAYER = 'spray-track-nil'
 /** Runs recorded at a single grid reference: no line exists to draw. */
 export const TRACK_MARK_LAYER = 'spray-track-mark'
+/** The one run under the pointer, redrawn opaque and a little wider.
+ *
+ *  A layer rather than a feature-state expression on the stroke itself, because
+ *  applyTracks writes `line-opacity` and `line-width` on TRACK_LAYER as plain
+ *  numbers every time the console moves a slider — a `case` on hover would be
+ *  overwritten by the next apply, which is the same "two owners for one fact"
+ *  that has bitten this file before. Here the highlight owns its own paint and
+ *  nothing else writes it.
+ *
+ *  It filters on the feature id, so the whole run lights up even when the tile
+ *  boundary has cut it into pieces — hovering the middle of an 11 km line
+ *  should not highlight 3 km of it. */
+export const TRACK_HI_LAYER = 'spray-track-hi'
 /** The ends of each track.
  *
  *  Cosmetic and deliberate: butt-capped lines end in a hard rectangle, and
@@ -378,6 +391,45 @@ export function beadBlur(): number {
   return beadFeather(TRACKS)
 }
 
+/** A filter that matches nothing, for a layer that exists before it has a
+ *  subject. Cheaper than adding and removing the layer, and it keeps the
+ *  highlight's position in the draw order fixed. */
+const NO_FEATURE = ['==', ['id'], -1] as unknown as maplibregl.FilterSpecification
+
+/** The hovered run's width: the stroke's own ramp plus a constant.
+ *
+ *  Plus, not times. A multiplier would grow the thick runs most and leave a
+ *  0.8px hairline still nearly invisible, which is backwards — the hairlines
+ *  are the ones the reader most needs help finding. A flat +1.6px is the same
+ *  visible gain everywhere.
+ *
+ *  The constant is added INSIDE each stop, not around the finished ramp.
+ *  `['+', widthRamp(), 1.6]` is the shape you would write first and MapLibre
+ *  rejects the whole layer for it — "zoom may only be used as input to a
+ *  top-level step or interpolate" — which is the rule the comment above
+ *  widthRamp already states. Written the wrong way it did not fall back to a
+ *  plain width: addLayer threw, addTrackLayers never finished, and the map came
+ *  up with no strokes at all. */
+function hiWidthRamp(): maplibregl.ExpressionSpecification {
+  const at = (w: TrackRamp) => ['+', ['min', ['*', w.k, ['get', 'gpk']], w.cap], HI_BUMP]
+  return [
+    'interpolate', ['linear'], ['zoom'],
+    Z_FAR, at(TRACKS.far),
+    Z_TOP, at(TRACKS.near),
+  ] as unknown as maplibregl.ExpressionSpecification
+}
+const HI_BUMP = 1.6
+
+/** Put the highlight on one run, or clear it. The id comes from the feature
+ *  under the pointer, so `null` and "not found" are the same thing. */
+export function setTrackHover(map: maplibregl.Map, id: number | null) {
+  if (!map.getLayer(TRACK_HI_LAYER)) return
+  map.setFilter(
+    TRACK_HI_LAYER,
+    id == null ? NO_FEATURE : (['==', ['id'], id] as unknown as maplibregl.FilterSpecification),
+  )
+}
+
 /** Single-point runs: k·√gallons, the dot map's own encoding, because a run
  *  recorded at one grid reference IS a point. */
 function markRamp(): maplibregl.ExpressionSpecification {
@@ -404,8 +456,15 @@ export function applyTracks(map: maplibregl.Map) {
   // console could open a blank band between the two encodings and nothing said
   // so. minzoom is a layer property like any other; it belongs in the same
   // apply as the paint.
-  for (const id of [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER, TRACK_END_LAYER, TRACK_DRAW_LAYER]) {
+  for (const id of [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER, TRACK_END_LAYER, TRACK_DRAW_LAYER, TRACK_HI_LAYER]) {
     if (map.getLayer(id)) map.setLayerZoomRange(id, trackStart, 24)
+  }
+  // The highlight is the stroke's own ramp plus a constant, so a console change
+  // to the width has to reach it too — otherwise hovering would report the
+  // width the map had before the slider moved.
+  if (map.getLayer(TRACK_HI_LAYER)) {
+    map.setPaintProperty(TRACK_HI_LAYER, 'line-width', hiWidthRamp() as never)
+    map.setLayoutProperty(TRACK_HI_LAYER, 'line-cap', TRACKS.cap)
   }
   // The drawing layer shares the stroke's geometry rules, so it shares their
   // ramp — a run must not change width the moment it stops arriving.
@@ -455,7 +514,15 @@ export function addTrackLayers(
   const labelId = firstLabelLayerId(map)
   // lineMetrics is what makes `line-progress` — and so the taper — possible.
   // It costs a per-feature length pass at load and nothing after.
-  map.addSource(TRACK_SOURCE, { type: 'geojson', data: data.lines, lineMetrics: true })
+  // generateId is what gives the highlight something to filter on: without it
+  // every line feature has id `undefined` and `['==', ['id'], n]` can never
+  // match. It numbers features in parse order and costs nothing.
+  map.addSource(TRACK_SOURCE, {
+    type: 'geojson',
+    data: data.lines,
+    lineMetrics: true,
+    generateId: true,
+  })
   map.addSource(TRACK_MARK_SOURCE, { type: 'geojson', data: data.marks })
   map.addSource(TRACK_END_SOURCE, { type: 'geojson', data: data.ends })
 
@@ -584,6 +651,25 @@ export function addTrackLayers(
     },
     labelId,
   )
+  // The hovered run, on top of the whole group so it is never buried under a
+  // neighbour it crosses. Empty until the pointer finds one.
+  map.addLayer(
+    {
+      id: TRACK_HI_LAYER,
+      type: 'line',
+      source: TRACK_SOURCE,
+      minzoom: Z_NEAR,
+      filter: NO_FEATURE,
+      layout: { 'line-cap': TRACKS.cap, 'line-join': 'round' },
+      paint: {
+        'line-color': tint,
+        'line-width': hiWidthRamp(),
+        'line-opacity': 1,
+      },
+    },
+    labelId,
+  )
+
   // The layers above are added with the paint they need to EXIST; applyTracks
   // is what makes them match TRACKS. Running it here rather than leaving it to
   // the caller is not tidiness — without it every field applyTracks alone owns
@@ -691,6 +777,11 @@ function applyTrackColour(map: maplibregl.Map) {
     ? (['case', inSel, tint, dim] as never)
     : (tint as never)
   if (has(TRACK_NIL_LAYER)) map.setPaintProperty(TRACK_NIL_LAYER, 'line-color', colour)
+  // The same `case` the nil layer takes, so the highlight never changes a run's
+  // hue — only its weight. Picking out a greyed-out run in the SELECTION's tint
+  // would say it belonged to the isolated agent, which is the one thing the
+  // grey exists to deny.
+  if (has(TRACK_HI_LAYER)) map.setPaintProperty(TRACK_HI_LAYER, 'line-color', colour)
   for (const id of [TRACK_MARK_LAYER, TRACK_END_LAYER]) {
     if (has(id)) map.setPaintProperty(id, 'circle-color', colour)
   }

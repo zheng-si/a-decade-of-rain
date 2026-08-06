@@ -52,7 +52,6 @@ interface TimelineProps {
   playing: boolean
   dateLabel: string
   missionCount: number
-  runCount: number
   gallons: number
   agentChoices: AgentChoice[]
   activeAgentKey: string
@@ -91,7 +90,6 @@ export default function Timeline({
   playing,
   dateLabel,
   missionCount,
-  runCount,
   gallons,
   agentChoices,
   activeAgentKey,
@@ -182,32 +180,30 @@ export default function Timeline({
             {volume && <span className="explorer-section-label">Spraying Volume</span>}
             <span className="explorer-date">{dateLabel}</span>
           </p>
+          {/* Two counts, not three. "Track Points" was the waypoint count, and
+              it earned its place when the near tier drew a dot per waypoint —
+              the reader could see the marks it was counting. Now that tier
+              draws lines, so it counted something the map no longer shows, and
+              it was the widest pair on the row. Runs and gallons are the two
+              quantities every other surface here reports.
+
+              With it gone the pair fits the readout column again (175px of
+              250), which is why it sits back under the heading instead of
+              spanning the panel: the counts are what SPRAYING VOLUME · DEC 1971
+              resolves to, and a full-width row put a rule's worth of distance
+              between the label and its own figures. */}
+          {volume && (
+            <span className="explorer-statline">
+              <span className="stat-pair">
+                <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Spray Runs
+              </span>
+              <span className="stat-pair">
+                <strong style={statStyle}>{fmtGallons(gallons)}</strong> Gallons
+              </span>
+            </span>
+          )}
         </div>
       </div>
-
-      {/* The counts sit UNDER the transport, not beside it in the readout
-          column. Measured: the three pairs need 288px and that column is 250px
-          wide (the buttons take the rest), so the last pair was clipped by 38px
-          — the box was too small, the content was not too big. Here the line
-          gets 324px and needs 289. Abbreviating instead (8,360 → 8.4K, 24,604 →
-          24.6K) was measured at 14px of the 38, nowhere near enough: the digits
-          are narrow and the words carry most of the width. It would have cost
-          precision without clearing the overflow — and the dek two blocks up
-          prints both totals in full, which an abbreviated counter would then
-          contradict at the end of playback. */}
-      {volume && (
-        <span className="explorer-statline">
-          <span className="stat-pair">
-            <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Spray Runs
-          </span>
-          <span className="stat-pair">
-            <strong style={statStyle}>{runCount.toLocaleString()}</strong> Track Points
-          </span>
-          <span className="stat-pair">
-            <strong style={statStyle}>{fmtGallons(gallons)}</strong> Gallons
-          </span>
-        </span>
-      )}
 
       {volume && (
         <div className="explorer-chart">

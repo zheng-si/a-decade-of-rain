@@ -227,13 +227,12 @@
    .stat-pair and strong directly at 11, so the container's value only ever
    applied to whitespace between the pairs. It rendered at 11 and declared 10,
    which is the kind of gap that makes the next person mistrust the file. */
-/* Full panel width, below the transport rather than inside the readout column
-   beside the buttons: three pairs measure 288px and that column is 250px, so
-   the Gallons pair was being clipped. The margin is the readout's old 5px
-   column gap plus a little, so the counts still read as belonging to the
-   heading above them rather than to the chart below. */
+/* Back inside the readout column under the heading. Three pairs measured
+   288px against that column's 250px and the Gallons pair was clipped; two
+   measure 175px and fit with room to spare. The readout's own 5px column gap
+   is the spacing, so no margin here. */
 .map-wrap .explorer-statline {
-  margin: 8px 0 0;
+  margin: 0;
   gap: 10px;
   font-size: 11px;
   text-transform: none;
@@ -469,6 +468,13 @@
 .map-wrap .adr-popup.adr-hover strong {
   font-weight: 500;
   color: var(--ink);
+}
+
+/* Same rule the panel's statline has, for the same reason: a pair wraps as a
+   whole or not at all. The card never needed it while both pairs were one
+   short word; the run card's "23.8 km" broke away from its unit. */
+.map-wrap .inspect-sub.is-stats .stat-pair {
+  white-space: nowrap;
 }
 
 /* Headings for the two breakdowns. Same 10px tier as the panel's own section

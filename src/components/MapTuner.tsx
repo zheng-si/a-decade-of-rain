@@ -52,6 +52,7 @@ import {
   TRACK_END_LAYER,
   TRACK_MARK_LAYER,
   TRACK_DRAW_LAYER,
+  TRACK_HI_LAYER,
   type TrackStyle,
 } from './trackLayers'
 import {
@@ -631,6 +632,10 @@ export default function MapTuner({
             // on screen after playback stopped, and then the panel reported
             // its own doing back as an instruction.
             TRACK_DRAW_LAYER,
+            // Same reason, before it can happen again: the highlight is driven
+            // by the pointer, so a sweep that wrote its visibility would either
+            // do nothing visible or break hover with no way to tell which.
+            TRACK_HI_LAYER,
             VOL_RAW_LAYER,
           ])
         : new Set<string>()

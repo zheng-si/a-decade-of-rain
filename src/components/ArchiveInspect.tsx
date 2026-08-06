@@ -40,6 +40,13 @@ export interface RunInspect {
   day: number
   groupIndex: number
   gallons: number
+  /** Set when the subject is a TRACK — the whole run as a line — rather than a
+   *  single waypoint from the raw dot tier. Their presence is what switches the
+   *  card between the two, because the difference is real: a waypoint has a
+   *  position and a run has an extent, and printing one coordinate for an 11 km
+   *  line would claim the run happened at a point. */
+  km?: number
+  gpk?: number
 }
 
 export type Inspect = CellInspect | RunInspect
@@ -175,7 +182,11 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
       ) : (
         <>
           <p className="inspect-kicker">Single Spray Run</p>
-          <p className="inspect-coords">{fmtCoords(data.coords)}</p>
+          {/* A line's "where" is its date, not a coordinate. The waypoint card
+              keeps the coordinate because a waypoint really is one place. */}
+          <p className="inspect-coords">
+            {data.km != null ? fullDate(data.day) : fmtCoords(data.coords)}
+          </p>
           <p className="inspect-figure">
             {data.gallons > 0 ? (
               <>
@@ -191,12 +202,41 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
               className="inspect-dot"
               style={{ background: groups[data.groupIndex]?.color ?? '#999' }}
             />{' '}
-            {groups[data.groupIndex]?.label ?? 'Unknown'} · {fullDate(data.day)}
+            {groups[data.groupIndex]?.label ?? 'Unknown'}
+            {data.km == null && <> · {fullDate(data.day)}</>}
           </p>
-          {data.gallons === 0 && (
+          {/* Length and dose, in the cell card's own stats grammar. The second
+              figure is the one the stroke's width encodes, so the card names
+              the quantity the reader is looking at rather than leaving them to
+              divide the first two. */}
+          {data.km != null && (
+            <p className="inspect-sub is-stats">
+              {/* Bare units, not "km Flown" and "Gal / km". The card is 210px
+                  wide and the longer pair of words broke each figure away from
+                  its own label — "23.8 km / Flown" over two lines, with the
+                  slash in "Gal / km" left dangling at the end of the first. A
+                  figure and its unit are one atom, so they get nowrap and short
+                  enough words to keep it. */}
+              <span className="stat-pair">
+                <strong>{data.km.toFixed(1)}</strong> km
+              </span>
+              {data.gpk != null && data.gpk > 0 && (
+                <span className="stat-pair">
+                  <strong>{Math.round(data.gpk).toLocaleString()}</strong> Gal/km
+                </span>
+              )}
+            </p>
+          )}
+          {data.gallons === 0 && data.km == null && (
             <p className="inspect-note">
               A waypoint on a spray run&apos;s track. HERBS records the run as a line — leg 1A, 1B,
               1C — and books its whole volume against 1A, so every later waypoint reads zero.
+            </p>
+          )}
+          {data.gallons === 0 && data.km != null && (
+            <p className="inspect-note">
+              A leg the record carries no volume against — the aircraft flew it, but the gallons
+              were booked to another leg of the same run.
             </p>
           )}
         </>
