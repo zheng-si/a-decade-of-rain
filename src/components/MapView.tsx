@@ -36,6 +36,7 @@ import {
   TRACK_DIM_LAYER,
   TRACK_NIL_LAYER,
   setTrackHover,
+  setTrackTaper,
   setTrackTime,
   setTrackAgents,
   setTrackDraw,
@@ -595,8 +596,17 @@ export default function MapView() {
           }
           return null
         }
-        /** One writer for the highlight, fed by both sources. */
-        const paintHover = () => setTrackHover(map, hoverRunRef.current ?? pinnedRunRef.current)
+        /** One writer for the highlight, fed by both sources.
+         *
+         *  It passes the run out of the LOADED dataset rather than the feature
+         *  the hit test returned: queryRenderedFeatures hands back tile-clipped
+         *  geometry, and a run cut by a tile boundary would light up in pieces.
+         *  `generateId` numbers features in source order, so the rendered id is
+         *  the index here — verified on the running page. */
+        const paintHover = () => {
+          const id = hoverRunRef.current ?? pinnedRunRef.current
+          setTrackHover(map, id, id != null ? tracksRef.current?.lines.features[id] : null)
+        }
         map.on('mousemove', (e) => {
           const t = trackAt(e.point)
           if (t) {
@@ -895,6 +905,18 @@ export default function MapView() {
   // tracks the playhead in a local — the first frame can fire before React
   // re-renders, so an end-of-record restart read via dayRef would still see
   // the old end value and stop the playback dead on its first tick.
+  // The taper is a line-gradient, and a line-gradient is a 256-step colour ramp
+  // MapLibre re-renders per tile whenever the layer changes — which during
+  // playback is every playhead step. Profiled at z9: median frame 733ms with it
+  // against 250ms without, on the same data. So it is suspended while the
+  // playhead moves and restored when it stops. Its own effect, not a line
+  // inside the rAF setup, so a pause caused by anything at all restores it.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map || !TRACKS) return
+    setTrackTaper(map, !playing)
+  }, [ready, playing, tracksReady])
+
   useEffect(() => {
     if (!playing) return
     let frame = 0

@@ -67,6 +67,19 @@ export const TRACK_MARK_LAYER = 'spray-track-mark'
  *  boundary has cut it into pieces — hovering the middle of an 11 km line
  *  should not highlight 3 km of it. */
 export const TRACK_HI_LAYER = 'spray-track-hi'
+/** The hovered run's own source, holding at most one feature.
+ *
+ *  It began as a filter on the record's own source, which is the obvious way
+ *  and cost the earth: `setFilter` marks the SOURCE for reload, so every
+ *  mousemove that changed the hovered run re-parsed 8,753 lines, recomputed
+ *  their line metrics, and — because the two sprayed layers carry a
+ *  `line-gradient` for the taper — re-rendered a 256-step colour ramp for every
+ *  tile. Profiled, that made hovering as expensive as playback.
+ *
+ *  A source with one line in it parses in microseconds no matter how large the
+ *  record is. `lineMetrics` is off because the highlight is flat colour: it has
+ *  no taper to read `line-progress` for. */
+export const TRACK_HI_SOURCE = 'spray-track-hi-src'
 /** The ends of each track.
  *
  *  Cosmetic and deliberate: butt-capped lines end in a hard rectangle, and
@@ -433,11 +446,6 @@ export function beadBlur(): number {
   return beadFeather(TRACKS)
 }
 
-/** A filter that matches nothing, for a layer that exists before it has a
- *  subject. Cheaper than adding and removing the layer, and it keeps the
- *  highlight's position in the draw order fixed. */
-const NO_FEATURE = ['==', ['id'], -1] as unknown as maplibregl.FilterSpecification
-
 /** The hovered run's width: the stroke's own ramp plus a constant.
  *
  *  Plus, not times. A multiplier would grow the thick runs most and leave a
@@ -462,14 +470,27 @@ function hiWidthRamp(): maplibregl.ExpressionSpecification {
 }
 const HI_BUMP = 1.6
 
-/** Put the highlight on one run, or clear it. The id comes from the feature
- *  under the pointer, so `null` and "not found" are the same thing. */
-export function setTrackHover(map: maplibregl.Map, id: number | null) {
-  if (!map.getLayer(TRACK_HI_LAYER)) return
-  map.setFilter(
-    TRACK_HI_LAYER,
-    id == null ? NO_FEATURE : (['==', ['id'], id] as unknown as maplibregl.FilterSpecification),
-  )
+/** Which run the highlight source currently holds, so an unchanged hover is
+ *  not a write. A mousemove fires many times over one stroke. */
+let hoverId: number | null = null
+
+/** Put the highlight on one run, or clear it. Takes the FEATURE, not an id:
+ *  `queryRenderedFeatures` hands back tile-CLIPPED geometry, so highlighting
+ *  what the hit test returned would light up only the piece inside one tile.
+ *  The caller passes the whole run out of the loaded dataset. */
+export function setTrackHover(
+  map: maplibregl.Map,
+  id: number | null,
+  feature?: GeoJSON.Feature | null,
+) {
+  if (id === hoverId) return
+  hoverId = id
+  const src = map.getSource(TRACK_HI_SOURCE) as maplibregl.GeoJSONSource | undefined
+  if (!src) return
+  src.setData({
+    type: 'FeatureCollection',
+    features: id != null && feature ? [feature] : [],
+  })
 }
 
 /** Single-point runs: k·√gallons, the dot map's own encoding, because a run
@@ -559,9 +580,11 @@ export function addTrackLayers(
   const labelId = firstLabelLayerId(map)
   // lineMetrics is what makes `line-progress` — and so the taper — possible.
   // It costs a per-feature length pass at load and nothing after.
-  // generateId is what gives the highlight something to filter on: without it
-  // every line feature has id `undefined` and `['==', ['id'], n]` can never
-  // match. It numbers features in parse order and costs nothing.
+  // generateId numbers features in the order they appear in the
+  // FeatureCollection, so a rendered feature's `id` IS its index in
+  // `data.lines.features` — checked on the running page. That is what lets the
+  // hit test hand the highlight the WHOLE run rather than the tile-clipped
+  // piece queryRenderedFeatures returns.
   map.addSource(TRACK_SOURCE, {
     type: 'geojson',
     data: data.lines,
@@ -697,18 +720,21 @@ export function addTrackLayers(
   )
   // The hovered run, on top of the whole group so it is never buried under a
   // neighbour it crosses. Empty until the pointer finds one.
+  map.addSource(TRACK_HI_SOURCE, {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features: [] },
+  })
   map.addLayer(
     {
       id: TRACK_HI_LAYER,
       type: 'line',
-      source: TRACK_SOURCE,
+      source: TRACK_HI_SOURCE,
       minzoom: Z_NEAR,
-      filter: NO_FEATURE,
       layout: { 'line-cap': TRACKS.cap, 'line-join': 'round' },
       paint: {
         'line-color': tint,
         'line-width': hiWidthRamp(),
-        'line-opacity': dayGate(1),
+        'line-opacity': 1,
       },
     },
     labelId,
@@ -765,7 +791,6 @@ function applyDayGate(map: maplibregl.Map) {
   set(TRACK_NIL_LAYER, 'line-opacity', TRACKS.nil.opacity)
   set(TRACK_MARK_LAYER, 'circle-opacity', TRACKS.opacity)
   set(TRACK_END_LAYER, 'circle-opacity', beadOpacity())
-  set(TRACK_HI_LAYER, 'line-opacity', 1)
 }
 
 export function setTrackTime(map: maplibregl.Map, day: number) {
@@ -819,12 +844,35 @@ export function setTrackAgents(
  *  selected strokes go in one layer with the tint's gradient and the rest in
  *  the twin with grey's. Both paths end with the same picture; only the taper
  *  needs the second layer, so only the taper pays for it. */
+/** Whether the taper is live RIGHT NOW, as opposed to configured.
+ *
+ *  The taper is a `line-gradient`, and a line-gradient is a 256-step colour
+ *  ramp that MapLibre renders per TILE and re-renders whenever anything about
+ *  the layer changes — which, during playback, is every playhead step. Measured
+ *  at z9 over Đồng Xoài: median frame 733ms with the taper against 250ms
+ *  without, on the same machine and the same data. It is the single most
+ *  expensive thing on this map.
+ *
+ *  So it is suspended while the playhead is moving and restored when it stops.
+ *  The taper is something the reader studies in a settled map; during playback
+ *  the strokes are arriving and the eye is on the front, not on how each run
+ *  fades. Two ramp regenerations per play-through instead of eleven a second. */
+let taperLive = true
+
+/** Suspend or restore the taper. One reload of the source when it flips, which
+ *  is a price paid twice per play-through rather than 300 times. */
+export function setTrackTaper(map: maplibregl.Map, on: boolean) {
+  if (taperLive === on) return
+  taperLive = on
+  applyTrackColour(map)
+}
+
 function applyTrackColour(map: maplibregl.Map) {
   const { tint, dim, indices } = paintState
   const inSel = ['in', ['get', 'agent'], ['literal', indices ?? []]]
 
   const has = (id: string) => map.getLayer(id) != null
-  if (TRACKS.taper > 0) {
+  if (TRACKS.taper > 0 && taperLive) {
     // Split by filter. `line-color` is deliberately left alone: MapLibre gives
     // line-gradient precedence over it, checked on the canvas — the layer still
     // reports line-color '#ff5449' while painting the gradient. Clearing it
