@@ -147,11 +147,16 @@ export const LABEL_FONT = 'Roboto Condensed'
  * that half of its job is gone — the comment says so rather than describing a
  * map we stopped drawing.
  *
+ * Z_MID is 7 rather than 6.5 because of what the fine cell measures when it
+ * arrives: 0.03° is 3.3 km, which is 3.9 px at z6.5 and 5.5 px at z7. Opening
+ * the fine tier below ~5 px means its cells merge on arrival, which is the
+ * thing the coarse tier exists to avoid.
+ *
  * They live here rather than in volumeGrid because mapTheme needs them too,
  * and volumeGrid already imports from mapTheme — the other direction would
  * close an import cycle.
  */
-export const Z_MID = 6.5
+export const Z_MID = 7
 /** Where the grid hands off to the TRACKS.
  *
  *  10.5 first, which left the deepest tier half a zoom level of life before the
@@ -159,20 +164,25 @@ export const Z_MID = 6.5
  *  looking at the fine GRID and concluding the map never stopped aggregating.
  *  Then 9.5, which gave it 9.5 → 11.
  *
- *  Now 8.5, arrived at through 8.1. Both are a different decision from the two
- *  above rather than a further correction of them: those were about giving the
- *  deepest tier room; this is about which encoding the reader spends their time
- *  in. The strokes are the honest mark — a run is a line, and the grid only
- *  ever summarises them — so the band where the map draws what actually
- *  happened is worth two and a half zoom levels rather than one and a half.
- *  Measured over Đồng Xoài, DISTINCT runs on screen the moment the strokes
- *  appear: 1,903 at the old z9.5, 3,039 here. (Distinct, because a run crossing
- *  a tile boundary is returned twice by queryRenderedFeatures and the earlier
- *  figures in this comment counted those twice.)
+ *  Now 9, arrived at through 8.1 and 8.5. Those two were a different KIND of
+ *  decision from 10.5 and 9.5 — not "give the deepest tier room" but "which
+ *  encoding does the reader spend their time in" — and 9 settles it a little
+ *  back toward the grid.
+ *
+ *  There is a measured floor under this, and it is a floor rather than an
+ *  answer. The median run is 10.9 km, and across this map's zoom range that
+ *  line measures 7 px at the zoom floor and 291 px at the ceiling — a factor of
+ *  42. Below roughly 15 px a line cannot be told from a dot, which is why a
+ *  hand-off has to exist at all; measured, that floor is crossed around z6.8,
+ *  so anything from there up is defensible and WHERE in that band is a reading
+ *  decision, not a derivation. At 9 a median run is 73 px and 2,292 distinct
+ *  runs are on screen over Đồng Xoài (3,039 at 8.5, 1,903 at the old 9.5).
+ *
+ *  See docs/methods.md §6.
  *
  *  Reachable from the ZOOM tab (3–12) without editing this file, but the
  *  slider is a console and this is the shipped map. */
-export const Z_NEAR = 8.5
+export const Z_NEAR = 9
 
 /** The far end of the record, for ramps that need a low anchor.
  *
