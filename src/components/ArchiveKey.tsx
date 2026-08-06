@@ -131,11 +131,37 @@ export default function ArchiveKey({
         {onTracks && (
           <li>
             <span className="key-swatch">
-              <span className="key-line" style={{ background: tint }} />
+              {/* The swatch fades because the map's strokes do (TRACKS.taper).
+                  A flat swatch over tapered strokes would be the same fault as
+                  the ring and the military regions: a key describing a mark
+                  that is not on the map. */}
+              <span
+                className="key-line"
+                style={{ background: `linear-gradient(90deg, ${tint}, ${tint}00)` }}
+              />
             </span>
             {/* Width is gallons per KM, not gallons — the only quantity
-                comparable between a 2 km run and a 40 km one. */}
-            Single Run · gal/km
+                comparable between a 2 km run and a 40 km one. The fade names
+                the run's FIRST WAYPOINT ON FILE (leg 1A, the row the gallons
+                are booked against), not a verified heading — HERBS records no
+                bearing, so "direction of flight" would be a claim the record
+                does not make. */}
+            Single Run · gal/km, from its first waypoint
+          </li>
+        )}
+        {/* The track map draws circles too, and they are not cell totals: 2,829
+            of the 11,273 runs are logged against ONE grid reference, so there
+            is no line to draw and the record is a point. Measured at Đồng Xoài,
+            652 of them are on screen at z9.5 and 145 at z10.4 — enough that a
+            reader sees dots among the strokes, which is exactly the question
+            this map has been asked. Leaving them out of the key made the reader
+            take them for leftovers of the tier below. */}
+        {onTracks && (
+          <li>
+            <span className="key-swatch">
+              <span className="key-dot" style={{ background: tint }} />
+            </span>
+            Run Logged at One Point
           </li>
         )}
         {filtered && (

@@ -94,42 +94,56 @@ export interface TrackStyle {
   /** Round caps stop 8,753 strokes reading as scratches. `butt` is here to
    *  make that comparison, not because it is a real option. */
   cap: 'round' | 'butt'
-  /** The endpoint beads, and the only thing on this map that carries
-   *  DIRECTION.
+  /** The endpoint beads. OFF by default, and the reason is worth keeping.
    *
-   *  head and tail are multiples of the line's own half-width, so a bead always
-   *  belongs to its stroke instead of being a fixed dot stuck on it. Making
-   *  head bigger than tail turns every track into an arrow without drawing an
-   *  arrowhead — the taper does the work that a glyph would, and at 8,753
-   *  strokes a glyph would be unreadable anyway.
+   *  head and tail are multiples of the line's own half-width, so at 1.0 a bead
+   *  is exactly the round cap the stroke already draws. The idea was that
+   *  making head bigger than tail turns every track into an arrow without
+   *  drawing an arrowhead.
    *
-   *  What the direction MEANS is worth being careful about: head is leg 1A,
-   *  the run's first row and the one the gallons are booked against. The
-   *  record gives no flight bearing, so this is "first waypoint on file", not
-   *  "verified direction of travel". */
+   *  It cannot work, and matching the alpha — the `fuse` attempt below — made
+   *  it worse rather than better. A circle layer and a line layer composite
+   *  independently: ink laid at alpha a, twice, reads 1 − (1 − a)², so a bead
+   *  at the stroke's own 0.5 over a stroke at 0.5 reads 0.75. Fusing the alpha
+   *  is precisely what guarantees the end is 50% darker than the line running
+   *  out of it. There is no group opacity in WebGL to fix this with.
+   *
+   *  Then the record makes it worse again. HERBS grid references are quantised,
+   *  so runs share start waypoints: measured over Đồng Xoài at z9.7, 3,084
+   *  beads land in 2,262 four-pixel bins and the busiest holds 33 of them —
+   *  1 − 0.5³³, an opaque disc, while the strokes leaving it fan apart at 0.5.
+   *  That is the "dots on a map of lines" this map kept showing, and it gets
+   *  worse as you zoom OUT, because zooming out packs more shared waypoints
+   *  into one pixel while the bead radius barely changes. Hence a fault that
+   *  appeared across one small zoom step.
+   *
+   *  Shrinking the bead does not fix it: at head 1.25 the discs are still
+   *  solid, because the defect is the compositing, not the radius. Below 1.0 a
+   *  bead is invisible — it is inside the cap — so the honest range is a
+   *  choice between "no direction cue" and "a disc". The taper is neither: it
+   *  lives in the line's own paint and so composites exactly as the line does.
+   *
+   *  Left in the panel because seeing the bad option is how the panel earns
+   *  its keep, and because at head ≤ 1.0 it is harmless.
+   *
+   *  What the direction MEANS is worth being careful about either way: head is
+   *  leg 1A, the run's first row and the one the gallons are booked against.
+   *  The record gives no flight bearing, so this is "first waypoint on file",
+   *  not "verified direction of travel". */
   ends: {
     head: number
     tail: number
     opacity: number
     blur: number
     shown: boolean
-    /** Draw the beads as part of the STROKE rather than as dots sitting on it.
+    /** Give the bead the stroke's alpha and a matched feather.
      *
-     *  What made them read as two objects was not the geometry — a round cap
-     *  and a bead of the same radius occupy the same pixels — it was that they
-     *  had their own alpha (0.6 vs the line's 0.5) and their own feather. Two
-     *  slightly different reds on the same shape is exactly how the eye is told
-     *  "these are two things".
-     *
-     *  Fused, the bead takes the line's alpha and a feather matched to the
-     *  line's. They can only be matched at ONE size — line-blur is in px and
-     *  circle-blur is a fraction of the radius — so they are matched at the
-     *  median segment, which is where most of the map lives.
-     *
-     *  Some double-compositing where bead and stroke overlap is unavoidable:
-     *  they are separate layers and WebGL has no group opacity. Keeping `tail`
-     *  at 1.0 makes the tail bead exactly the round cap, so the only place it
-     *  can show is the head — which is the end that is supposed to be heavier. */
+     *  Kept as a switch because it is the comparison that shows why beads lose:
+     *  off, the bead is a different red (0.6 vs 0.5) and reads as a separate
+     *  object; on, it is the same red laid twice and reads as a darker object.
+     *  The feather can only be matched at ONE size — line-blur is in px and
+     *  circle-blur is a fraction of the radius — so it is matched at the median
+     *  segment, which is where most of the map lives. */
     fuse: boolean
   }
   /** The dashed track of a run with no recorded volume. */
@@ -138,9 +152,12 @@ export interface TrackStyle {
   marks: { kFar: number; kNear: number; cap: number; shown: boolean }
   /** Fade along the stroke, head to tail. 0 = flat, 1 = tail fully transparent.
    *
-   *  The stronger of the two direction cues by a distance: the beads mark two
-   *  points, the taper carries direction along the whole length, so a run reads
-   *  as having been FLOWN rather than as a segment with different-sized ends.
+   *  The direction cue this map actually ships, and the only one that can be:
+   *  it is a property of the line's own paint, so it composites exactly as the
+   *  line does and can never separate from it the way a bead does. It also
+   *  carries direction along the whole length rather than marking two points,
+   *  so a run reads as having been FLOWN instead of as a segment with
+   *  different-sized ends.
    *
    *  It costs a layer. MapLibre's line-gradient can only read `line-progress`,
    *  never a feature property, so the tinted and the greyed strokes cannot
@@ -155,10 +172,14 @@ export const TRACKS: TrackStyle = {
   opacity: 0.5,
   blur: 0.4,
   cap: 'round',
-  ends: { head: 1.6, tail: 1, opacity: 0.6, blur: 0.3, shown: true, fuse: true },
+  // head/tail sit at 0.75 — INSIDE the round cap — so that turning the beads
+  // on from the panel shows what they do without putting the discs back.
+  ends: { head: 0.75, tail: 0.75, opacity: 0.6, blur: 0.3, shown: false, fuse: true },
   nil: { width: 0.6, opacity: 0.35, dash: [2, 2], shown: true },
   marks: { kFar: 0.02, kNear: 0.09, cap: 14, shown: true },
-  taper: 0,
+  // Strong enough to read at a glance on a 155 px median stroke, short of 1.0
+  // so the tail still records that the aircraft was there.
+  taper: 0.7,
 }
 
 /** The last selection applied, so applyTracks can rebuild a gradient without
@@ -417,6 +438,20 @@ export function addTrackLayers(
     },
     labelId,
   )
+  // The layers above are added with the paint they need to EXIST; applyTracks
+  // is what makes them match TRACKS. Running it here rather than leaving it to
+  // the caller is not tidiness — without it every field applyTracks alone owns
+  // is dead on the shipped path, because MapView never calls it and only the
+  // console does. `ends.shown`, `nil.shown` and `marks.shown` were exactly
+  // that: setting `shown: false` turned nothing off, and 3,075 beads went on
+  // drawing at z9.7 with the flag reading `false` in the table. Correct code
+  // that never runs, again.
+  //
+  // It also gets the taper onto the first frame. applyTracks starts with
+  // applyTrackColour, which is the only thing that installs a line-gradient;
+  // before this, a tapered map painted flat until the reader happened to move
+  // the playhead and setTrackTime ran.
+  applyTracks(map)
   return TRACK_NIL_LAYER
 }
 
@@ -473,8 +508,13 @@ function applyTrackColour(map: maplibregl.Map) {
 
   const has = (id: string) => map.getLayer(id) != null
   if (TRACKS.taper > 0) {
-    // Split by filter. `line-color` must be cleared to undefined or MapLibre
-    // keeps painting it under the gradient.
+    // Split by filter. `line-color` is deliberately left alone: MapLibre gives
+    // line-gradient precedence over it, checked on the canvas — the layer still
+    // reports line-color '#ff5449' while painting the gradient. Clearing it
+    // would be worse than useless, because `undefined` resets the property to
+    // its spec default of BLACK, so any path where the gradient failed to
+    // install would paint the record in black rather than fall back to the
+    // tint. (An earlier comment here claimed the opposite. It was wrong.)
     if (has(TRACK_LAYER)) {
       map.setFilter(TRACK_LAYER, indices ? both(sprayed(day), inSel) : sprayed(day))
       map.setPaintProperty(TRACK_LAYER, 'line-gradient', gradient(tint) as never)

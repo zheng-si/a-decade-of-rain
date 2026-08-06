@@ -73,6 +73,21 @@ const STORE_KEY = 'adr-map-tuner'
  *  with an older number re-seed their `hidden` list on the next load. */
 const SEED_VERSION = 2
 
+/** Bump when the TRACK encoding changes, not merely its numbers.
+ *
+ *  A separate counter from SEED_VERSION on purpose: they answer different
+ *  questions, and one number answering two is how this project has repeatedly
+ *  given one fact two owners.
+ *
+ *  It exists because readStore merges a stored tune OVER the defaults, which is
+ *  right for a value someone tuned and wrong for a value that has since stopped
+ *  describing the map. When the beads went off and the taper came on, a tune
+ *  saved the day before would have kept `ends.shown: true, taper: 0` and the
+ *  panel would have gone on drawing exactly the thing the change removes —
+ *  a fix that ships and cannot be seen. Bumping this drops the stored `tracks`
+ *  block alone; everything else the reader tuned survives. */
+const TRACK_SEED = 1
+
 /** Run `fn` as soon as the style is usable, and DO run it.
  *
  *  Both effects below used to do `if (isStyleLoaded()) fn(); else once('idle',
@@ -157,6 +172,9 @@ interface Tune {
    *  "STOP hiding: park, building, highway_minor, …" — reading as an
    *  instruction when it was the symptom. */
   seeded: number
+  /** Which track ENCODING the stored `tracks` block was written against. A
+   *  mismatch throws that block away rather than merging it — see TRACK_SEED. */
+  trackSeed: number
   /** Per-layer [minzoom, maxzoom] overrides. `null` in a slot means "leave the
    *  layer's own value alone" — an override of 0 is a real instruction and must
    *  not be confused with "unset". */
@@ -224,6 +242,7 @@ const DEFAULTS: Tune = {
   tiers: JSON.parse(JSON.stringify(LABEL_TIERS)) as Record<TierKey, Tier>,
   hidden: [],
   seeded: 0,
+  trackSeed: TRACK_SEED,
   zoomRanges: {},
 }
 
@@ -290,13 +309,19 @@ function readStore(): Tune {
     }
     t.dots.zero = { ...DEFAULTS.dots.zero, ...(parsed.dots?.zero ?? {}) }
     // Same nested merge for the tracks, so a tune stored before this tab
-    // existed loads with real numbers instead of undefined.
-    t.tracks = { ...DEFAULTS.tracks, ...(parsed.tracks ?? {}) }
-    t.tracks.far = { ...DEFAULTS.tracks.far, ...(parsed.tracks?.far ?? {}) }
-    t.tracks.near = { ...DEFAULTS.tracks.near, ...(parsed.tracks?.near ?? {}) }
-    t.tracks.ends = { ...DEFAULTS.tracks.ends, ...(parsed.tracks?.ends ?? {}) }
-    t.tracks.nil = { ...DEFAULTS.tracks.nil, ...(parsed.tracks?.nil ?? {}) }
-    t.tracks.marks = { ...DEFAULTS.tracks.marks, ...(parsed.tracks?.marks ?? {}) }
+    // existed loads with real numbers instead of undefined — UNLESS the track
+    // encoding itself has moved on, in which case the stored block describes a
+    // map that no longer exists and merging it would hide the change. See
+    // TRACK_SEED.
+    const stale = parsed.trackSeed !== TRACK_SEED
+    const st = stale ? undefined : parsed.tracks
+    t.trackSeed = TRACK_SEED
+    t.tracks = { ...DEFAULTS.tracks, ...(st ?? {}) }
+    t.tracks.far = { ...DEFAULTS.tracks.far, ...(st?.far ?? {}) }
+    t.tracks.near = { ...DEFAULTS.tracks.near, ...(st?.near ?? {}) }
+    t.tracks.ends = { ...DEFAULTS.tracks.ends, ...(st?.ends ?? {}) }
+    t.tracks.nil = { ...DEFAULTS.tracks.nil, ...(st?.nil ?? {}) }
+    t.tracks.marks = { ...DEFAULTS.tracks.marks, ...(st?.marks ?? {}) }
     // Tiers deep-merge, so a stored tune written before a field existed keeps
     // the rest of its work instead of being thrown away wholesale.
     t.tiers = { ...DEFAULTS.tiers }
