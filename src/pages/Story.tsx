@@ -4,6 +4,7 @@ import type { FeatureCollection } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import scrollama from 'scrollama'
 import { loadSpray, dateToDay, dayToDate, fmtGallons, type SprayDataset } from '../data/spray'
+import { loadHeat } from '../data/heat'
 import { mapConfig } from '../config/mapConfig'
 import {
   resolveMapStyle,
@@ -459,11 +460,12 @@ export default function Story() {
       const asset = (f: string) => fetch(`${import.meta.env.BASE_URL}${f}`).then((r) => r.json())
       Promise.all([
         loadSpray(),
+        loadHeat(),
         asset('data/military-region-dividers.geojson'),
         asset('data/military-region-labels.geojson'),
         asset('data/landmarks.geojson'),
         new Promise<void>((resolve) => map.once('load', () => resolve())),
-      ]).then(([spray, mrGeo, mrLabelsGeo, landmarksGeo]) => {
+      ]).then(([spray, heat, mrGeo, mrLabelsGeo, landmarksGeo]) => {
         if (!mapRef.current) return
         dataRef.current = spray
         landmarksRef.current = landmarksGeo as FeatureCollection
@@ -492,8 +494,16 @@ export default function Story() {
 
         // One combined, brand-orange heatmap (all agents merged) — no muddy
         // per-agent overlap.
-        map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
-        addStoryHeat(map, SPRAY_SOURCE, spray.dayMax)
+        //
+        // Fed by the LINE binning, not by `spray`. `spray` is one point per
+        // HERBS waypoint carrying the gallons booked against waypoint 1A, and a
+        // heat field built on that answers "where were the accounts kept"
+        // rather than "where did it fall" — at this map's smoothing radius
+        // (3–7 km on the ground) that is 42–58% of the volume in the wrong
+        // place. docs/methods.md §3. `spray` still drives everything the Story
+        // computes over TIME, where no spatial convention applies.
+        map.addSource(SPRAY_SOURCE, { type: 'geojson', data: heat.features })
+        addStoryHeat(map, SPRAY_SOURCE, heat.dayMax)
 
         // Military-region dividers + tags — shared with the Archive.
         addMilitaryRegions(map, mrGeo, mrLabelsGeo, STORY_HEAT_LAYER)

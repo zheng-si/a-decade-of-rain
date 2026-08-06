@@ -45,7 +45,7 @@ import {
   setLayersVisible,
 } from './trackLayers'
 import { loadTracks, type TrackDataset } from '../data/tracks'
-import { binTracks } from './trackGrid'
+import { binTracks, resetTrackGrid } from './trackGrid'
 import ArchiveInspect, {
   fmtGallons,
   type Inspect,
@@ -63,19 +63,25 @@ const SHOW_MILITARY_REGIONS = false
 import '../fontsGeist.css'
 import '../ArchiveSkinV2.css'
 
-/** SPIKE A — draw the record as the lines it actually is (?tracks=1).
+/**
+ * Draw the record as the lines it actually is.
  *
- *  Behind a URL flag rather than a build flag so the two encodings can be
- *  compared on one deploy, and so the dot map — which three other things are
- *  tuned against — stays the default until the lines have earned it. */
-function tracksEnabled(): boolean {
-  try {
-    return new URLSearchParams(window.location.search).has('tracks')
-  } catch {
-    return false
-  }
-}
-const TRACKS = tracksEnabled()
+ * This was `?tracks=1` while the two encodings were being compared on one
+ * deploy. The comparison is settled and lives in docs/methods.md, so the flag
+ * is gone: the grids bin from the LINES, the near tier draws them, and there is
+ * no URL that turns that off.
+ *
+ * The flag had to go rather than merely default to on. Left reachable, it was a
+ * URL that makes the map put 58% of the volume in the wrong cell — and the one
+ * thing this project has learned over and over is that a switch nobody
+ * remembers is a switch that eventually gets flipped. The old reading is still
+ * reproducible, from scripts/analyse-binning.mjs, where it is labelled.
+ *
+ * The constant stays because ~30 call sites read it, and a named constant is
+ * where the decision is visible. TO REVERT: this file's `tracks` branch plus
+ * src/components/trackLayers.ts and src/data/tracks.ts.
+ */
+const TRACKS = true
 
 const SPRAY_SOURCE = 'spray'
 const DEM_SOURCE = 'terrain-dem'
@@ -421,6 +427,10 @@ export default function MapView() {
    *  without recording it would be the real bug: the reader would zoom out onto
    *  a grid still showing the agent they had deselected. */
   const gridsStaleRef = useRef(false)
+  /** The throttle key each grid TIER was last binned for, or '' if it was
+   *  skipped because it was off screen. Per tier rather than one flag, because
+   *  only one of the two is ever visible and binning the other is pure waste. */
+  const gridTierKeyRef = useRef<Record<string, string>>({})
   /** The day the SETTLED track layers are filtered to. While playing it trails
    *  the playhead by one step, and the gap is exactly what the drawing layer
    *  holds. */
@@ -811,11 +821,25 @@ export default function MapView() {
       // every cell it crossed. Same feature shape as binGrid, same layers.
       if (TRACKS && tracksRef.current) {
         const c = choices.find((x) => x.key === agentKey)?.color ?? DOTS.tint
-        const coarse = map.getSource(VOL_COARSE_SOURCE) as maplibregl.GeoJSONSource | undefined
-        const fine = map.getSource(VOL_FINE_SOURCE) as maplibregl.GeoJSONSource | undefined
         const deg = gridDegrees()
-        coarse?.setData(binTracks(tracksRef.current, day, activeIndices, deg.coarse, c))
-        fine?.setData(binTracks(tracksRef.current, day, activeIndices, deg.fine, c))
+        // Bin the tier that is ON SCREEN, not both. Only one of the two grid
+        // tiers is ever drawn, and a full bin of the fine grid costs 43 ms — so
+        // the opening view at z5.94, which draws the coarse tier alone, was
+        // paying for a fine grid nobody could see on every agent switch and
+        // every playhead step. A skipped tier is recorded as stale and re-binned
+        // by the zoom watcher below the moment it becomes the visible one.
+        const z = map.getZoom()
+        const binTier = (layer: string, source: string, cellDeg: number) => {
+          const l = map.getLayer(layer)
+          const on = !!l && z >= (l.minzoom ?? 0) && z < (l.maxzoom ?? 24)
+          if (!on) { gridTierKeyRef.current[layer] = ''; return }
+          if (gridTierKeyRef.current[layer] === key) return
+          gridTierKeyRef.current[layer] = key
+          const src = map.getSource(source) as maplibregl.GeoJSONSource | undefined
+          src?.setData(binTracks(tracksRef.current!, day, activeIndices, cellDeg, c))
+        }
+        binTier(VOL_COARSE_LAYER, VOL_COARSE_SOURCE, deg.coarse)
+        binTier(VOL_FINE_LAYER, VOL_FINE_SOURCE, deg.fine)
       }
       gridsStaleRef.current = false
     } else {
@@ -862,9 +886,19 @@ export default function MapView() {
     const map = mapRef.current
     if (!ready || !map || !TRACKS) return
     const check = () => {
-      if (!gridsStaleRef.current) return
-      const layer = map.getLayer(TRACK_LAYER)
-      if (!layer || map.getZoom() >= (layer.minzoom ?? 0)) return
+      const z = map.getZoom()
+      const track = map.getLayer(TRACK_LAYER)
+      const tracksOn = !!track && z >= (track.minzoom ?? 0)
+      // A tier that is visible and was never binned for the current playhead —
+      // either because the tracks owned the screen, or because it was the other
+      // tier — has to be caught up before the reader sees it.
+      const stale = [VOL_COARSE_LAYER, VOL_FINE_LAYER].some((id) => {
+        const l = map.getLayer(id)
+        if (!l || z < (l.minzoom ?? 0) || z >= (l.maxzoom ?? 24)) return false
+        return gridTierKeyRef.current[id] !== appliedKeyRef.current
+      })
+      if (!tracksOn && !stale && !gridsStaleRef.current) return
+      if (tracksOn) return
       gridsStaleRef.current = false
       appliedKeyRef.current = ''
       setGridEpoch((n) => n + 1)
@@ -883,6 +917,12 @@ export default function MapView() {
     const map = mapRef.current
     if (!map || !dataRef.current) return
     appliedKeyRef.current = ''
+    // The console can change the cell size and both dot colours, and the
+    // accumulated bins are keyed on exactly those. Throwing them away here is
+    // what keeps "resumable" from meaning "stale": one owner clears the cache,
+    // and it is the one that changed the thing the cache is keyed on.
+    resetTrackGrid()
+    gridTierKeyRef.current = {}
     // Clearing the key is what actually re-bins — the day effect runs next and
     // picks whichever binning the current reading calls for. This direct call
     // is the point-bin path only, and under TRACKS it is the same discarded

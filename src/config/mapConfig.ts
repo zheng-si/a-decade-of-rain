@@ -297,14 +297,37 @@ export const mapConfig: MapConfig = {
   heatmap: {
     // Tighter radius keeps spray on the land it came from (less blur into the
     // sea) and is cheaper to render.
+    //
+    // The deep end is set from the DATA's resolution, not by eye. The Story's
+    // field is binned into 0.03° cells (3.33 km), and a kernel narrower than
+    // its own sample spacing does not smooth — it draws the lattice. That is
+    // exactly what happened when the field moved from 24,604 irregular
+    // waypoints to 21,711 cell centres: at the deepest node zooms the map came
+    // up as a regular grid of blobs.
+    //
+    // Cell ÷ metres-per-pixel at 11°N is 0.0217 × 2^z: 0.7 px at z5, 5.5 at z8,
+    // 22 at z10, 44 at z11. A kernel merely EQUAL to the spacing still reads as
+    // dots, because the kernel falls off from its centre — measured on the page,
+    // it takes about 2× before the field goes continuous. These stops track
+    // 0.043 × 2^z. The first stop is unchanged, so the country-scale view the
+    // Story opens on looks as it did; only the deep end softens, and there the
+    // old radius was claiming resolution the record does not have.
     radius: [
       [5, 3],
-      [8, 11],
-      [11, 24],
+      [8, 12],
+      [10, 46],
+      [12, 180],
     ],
+    // Nearly flat, where it used to climb to 1.9. The ramp climbed because the
+    // old radius was a fixed pixel size: zooming in shrank the ground each
+    // kernel covered, so fewer points landed in it and the field faded. The
+    // radius now tracks the ground (0.043 × 2^z), so a kernel covers about two
+    // cells at EVERY zoom and the count inside it barely changes — which means
+    // the intensity should not either. Leaving it climbing with a kernel ~4×
+    // the area turned A Sầu into a solid red field with no structure left in it.
     intensity: [
       [5, 0.8],
-      [10, 1.9],
+      [10, 0.85],
     ],
     opacity: 0.8,
   },

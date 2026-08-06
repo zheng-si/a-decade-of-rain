@@ -68,6 +68,46 @@ interface Cell {
  * layers — the dots do not care whether their totals came from points or from
  * lines, and that is the point of keeping the two apart.
  */
+/**
+ * The playhead only ever moves forward during playback, and a cell's totals
+ * only ever grow with it — so re-walking all 8,753 runs on every step is work
+ * the last step already did.
+ *
+ * This caches the accumulated cells per (cell size, selection, tint) and, when
+ * the next call asks for a LATER day with everything else unchanged, deposits
+ * only the runs that arrived in between. Measured: a full bin of the fine grid
+ * costs 43 ms and playback asks for one about eleven times a second; resuming
+ * costs the runs of one step, which is about thirty of them.
+ *
+ * Anything else — scrubbing backwards, changing agent, changing cell size —
+ * throws the cache away and rebuilds, because those change what a cell CONTAINS
+ * rather than adding to it.
+ */
+interface Acc {
+  day: number
+  cells: Map<string, Cell>
+  cursor: number
+}
+const accs = new Map<string, Acc>()
+
+/** Runs in day order, so resuming can walk a contiguous slice. Memoised on the
+ *  dataset itself — it is loaded once and never mutated. */
+const orderCache = new WeakMap<TrackDataset, GeoJSON.Feature<GeoJSON.LineString, TrackProps>[]>()
+function byDay(data: TrackDataset) {
+  let o = orderCache.get(data)
+  if (!o) {
+    o = [...data.lines.features].sort((a, b) => a.properties.day - b.properties.day)
+    orderCache.set(data, o)
+  }
+  return o
+}
+
+/** Drop every cached accumulation. For the console, which can change the cell
+ *  size and the two dot colours under us. */
+export function resetTrackGrid() {
+  accs.clear()
+}
+
 export function binTracks(
   data: TrackDataset,
   day: number,
@@ -76,8 +116,12 @@ export function binTracks(
   tint: string,
 ): GeoJSON.FeatureCollection {
   const sel = indices ? new Set(indices) : null
-  const cells = new Map<string, Cell>()
   const step = cellDeg * STEP_FRACTION
+  const accKey = `${cellDeg}|${tint}|${indices ? indices.join(',') : 'all'}`
+  const prev = accs.get(accKey)
+  // Resume only when the playhead has moved FORWARD and nothing else changed.
+  const resume = prev != null && day >= prev.day
+  const cells = resume ? prev.cells : new Map<string, Cell>()
 
   const cellAt = (lng: number, lat: number) => {
     const x = Math.floor(lng / cellDeg)
@@ -103,9 +147,12 @@ export function binTracks(
     if (p.day > c.d1) c.d1 = p.day
   }
 
-  for (const f of data.lines.features) {
+  const ordered = byDay(data)
+  let cursor = resume ? prev.cursor : 0
+  for (; cursor < ordered.length; cursor++) {
+    const f = ordered[cursor]
     const p = f.properties
-    if (p.day > day) continue
+    if (p.day > day) break
     const coords = f.geometry.coordinates
     // Segment length in DEGREES, which is what the sampling walks in — the
     // gallons split uses the km the ETL already measured, so the two units
@@ -149,6 +196,11 @@ export function binTracks(
       c.days.add(Math.floor(p.day))
     }
   }
+  accs.set(accKey, { day, cells, cursor })
+  // One accumulation per (cell size, selection). Four agent choices × two live
+  // cell sizes is eight, and each holds ~7k small objects — bounded, but not
+  // unbounded, so the oldest go when a console change adds cell sizes.
+  if (accs.size > 12) for (const k of [...accs.keys()].slice(0, accs.size - 12)) accs.delete(k)
 
   const features: GeoJSON.Feature[] = []
   for (const cell of cells.values()) {

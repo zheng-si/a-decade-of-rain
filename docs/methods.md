@@ -131,18 +131,38 @@ single encoding, not three competing encodings.
 
 | surface | tier | mark | cell / unit | binned from |
 |---|---|---|---|---|
-| Archive | z < 7 | dot, area ∝ gallons | 13 km | the lines |
-| Archive | 7 – 9 | dot, area ∝ gallons | 3 km | the lines |
+| Archive | z < 7 | dot, area ∝ gallons | 3.3 km cells, aggregated to 13 km | the lines |
+| Archive | 7 – 9 | dot, area ∝ gallons | 3.3 km | the lines |
 | Archive | z > 9 | line, width = gallons per km | the run itself | — |
-| Story | all | heat field | KDE, 3–7 km on the ground | **still waypoint 1A** |
+| Story | all | heat field, KDE 3–7 km on the ground | 3.3 km cell × month | the lines |
 
-**Two things this table is not yet describing.** The Archive tiers above are
-what `?tracks=1` draws; the default build still binds the three tiers to the
-booked reading, so the flag has to go before this document describes the
-shipped map. And the Story's heat field has not been rebuilt — it is weighted
-by `gallons` at waypoint 1A, which at its own smoothing radius (3–7 km on the
-ground) puts it in the 42–58% band of §3. Both are known and neither is done;
-this row says so rather than describing the map we intend.
+This is the shipped map. There is no URL that returns any surface to the booked
+reading; the comparison lives in `scripts/analyse-binning.mjs`, where it is
+labelled as what it is.
+
+The Story's field is built by `scripts/build-story-heat.mjs` into the same
+0.03° cell the Archive's fine tier uses — one binning, two presentations —
+split by month because the Story's heat layer filters on the playhead and month
+is the resolution it steps in. It carries the record's total to the gallon
+(19.513 M) and is *smaller* than the waypoint file it replaced: 21,711 points
+against 24,604, because binning 8,753 runs into shared cells collapses more
+than sampling them adds.
+
+**A binned field has two constraints a scattered one does not**, and both were
+found by looking at the result rather than by reasoning about it:
+
+1. *Position.* A point placed at its cell's geometric centre puts the whole
+   field on a lattice, and at the Story's deep node zooms it renders as graph
+   paper. Each point sits at the volume-weighted centroid of the samples that
+   made it instead — a cell clipped by one straight run gets a point on that
+   run. Same point count, no lattice, and closer to where the volume was.
+2. *Kernel.* A KDE whose kernel is narrower than its sample spacing does not
+   smooth; it draws the samples. The cell is 3.33 km, which is 0.0217 × 2^z
+   pixels, so `heatmap-radius` tracks 0.043 × 2^z — about twice the spacing,
+   which is what it took on the page for the field to read as continuous. The
+   intensity ramp was flattened to match: with a kernel that now covers a fixed
+   ground area, the number of points inside it no longer changes with zoom, so
+   the intensity should not either.
 
 **Why tiers at all.** The median run is 11 km. Across the explorer's zoom range
 that line measures **7 px at the zoom floor and 291 px at the ceiling — a
