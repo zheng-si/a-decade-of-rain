@@ -837,7 +837,7 @@ export default function MapTuner({
       if (t.cap !== td.cap) trk.push(`TRACKS.cap: '${t.cap}',`)
       if (changed(t.ends, td.ends)) {
         trk.push(
-          `TRACKS.ends: { head: ${t.ends.head}, tail: ${t.ends.tail}, opacity: ${t.ends.opacity}, blur: ${t.ends.blur}, shown: ${t.ends.shown} },`,
+          `TRACKS.ends: { head: ${t.ends.head}, tail: ${t.ends.tail}, opacity: ${t.ends.opacity}, blur: ${t.ends.blur}, shown: ${t.ends.shown}, fuse: ${t.ends.fuse} },`,
         )
       }
       if (changed(t.nil, td.nil)) {
@@ -1515,6 +1515,14 @@ export default function MapTuner({
                 }
               />
               <span>show beads</span>
+            </label>
+            <label className="tuner-check">
+              <input
+                type="checkbox"
+                checked={tune.tracks.ends.fuse}
+                onChange={(e) => setTrk({ ends: { ...tune.tracks.ends, fuse: e.target.checked } })}
+              />
+              <span>fuse into the stroke (bead takes the line&apos;s alpha and feather)</span>
             </label>
             <label className="tuner-slider">
               <span>

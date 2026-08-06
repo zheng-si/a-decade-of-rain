@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import type maplibregl from 'maplibre-gl'
+import { Z_NEAR } from '../config/mapConfig'
 
 // ── the Explorer's map key ────────────────────────────────────────────────
 // Top-right panel in the story MapKey's language (near-opaque paper, small
@@ -55,10 +56,24 @@ export default function ArchiveKey({
   children,
 }: Props) {
   const [scale, setScale] = useState<{ label: string; w: number }>({ label: '', w: 0 })
+  /** The key has to know the zoom, because which MARKS exist depends on it.
+   *
+   *  Measured at the hand-off: at z9.49 the fine grid draws 1,032 dots and the
+   *  tracks draw 0; at z9.50 it is 0 and 2,375. The two never share the screen
+   *  — but the key was naming both at every zoom, so a reader looking at a map
+   *  of lines was told there were also cells on it, and looking for the cells
+   *  would find the endpoint beads and take those for cells. Same fault as the
+   *  military-region row and the unexplained ring: a key that names a mark the
+   *  map is not drawing. */
+  const [zoom, setZoom] = useState(0)
+  const onTracks = tracks && zoom >= Z_NEAR
 
   useEffect(() => {
     if (!ready || !map) return
-    const update = () => setScale(computeScale(map))
+    const update = () => {
+      setScale(computeScale(map))
+      setZoom(map.getZoom())
+    }
     update()
     map.on('move', update)
     window.addEventListener('resize', update)
@@ -105,13 +120,15 @@ export default function ArchiveKey({
             has to carry both and say which is which. Listing only the line
             would leave the far view's dots unexplained, which is the same
             fault as the ring had. */}
-        <li>
-          <span className="key-swatch">
-            <span className="key-dot" style={{ background: tint }} />
-          </span>
-          Sprayed Volume{tracks ? ' · per cell' : ''}
-        </li>
-        {tracks && (
+        {!onTracks && (
+          <li>
+            <span className="key-swatch">
+              <span className="key-dot" style={{ background: tint }} />
+            </span>
+            Sprayed Volume{tracks ? ' · per cell' : ''}
+          </li>
+        )}
+        {onTracks && (
           <li>
             <span className="key-swatch">
               <span className="key-line" style={{ background: tint }} />
@@ -136,16 +153,20 @@ export default function ArchiveKey({
             "No Volume Recorded" first, which described the record as having a
             gap in it; the record has no gap, we were reading a line as a heap
             of points. */}
-        <li>
-          <span className="key-swatch">
-            {tracks ? (
-              <span className="key-line-dash" style={{ borderColor: tint }} />
-            ) : (
-              <span className="key-ring" style={{ borderColor: tint }} />
-            )}
-          </span>
-          {tracks ? 'Flown, No Volume' : 'Flight Path Point'}
-        </li>
+        {/* The no-volume mark exists in both encodings, but only the dot map
+            draws it below the hand-off. */}
+        {(onTracks || !tracks) && (
+          <li>
+            <span className="key-swatch">
+              {onTracks ? (
+                <span className="key-line-dash" style={{ borderColor: tint }} />
+              ) : (
+                <span className="key-ring" style={{ borderColor: tint }} />
+              )}
+            </span>
+            {onTracks ? 'Flown, No Volume' : 'Flight Path Point'}
+          </li>
+        )}
         {/* No military-region row: the Archive no longer draws them (see
             SHOW_MILITARY_REGIONS in MapView). A legend that names something
             the map cannot show is worse than a shorter legend. */}

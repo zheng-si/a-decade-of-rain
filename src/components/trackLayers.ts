@@ -107,7 +107,31 @@ export interface TrackStyle {
    *  the run's first row and the one the gallons are booked against. The
    *  record gives no flight bearing, so this is "first waypoint on file", not
    *  "verified direction of travel". */
-  ends: { head: number; tail: number; opacity: number; blur: number; shown: boolean }
+  ends: {
+    head: number
+    tail: number
+    opacity: number
+    blur: number
+    shown: boolean
+    /** Draw the beads as part of the STROKE rather than as dots sitting on it.
+     *
+     *  What made them read as two objects was not the geometry — a round cap
+     *  and a bead of the same radius occupy the same pixels — it was that they
+     *  had their own alpha (0.6 vs the line's 0.5) and their own feather. Two
+     *  slightly different reds on the same shape is exactly how the eye is told
+     *  "these are two things".
+     *
+     *  Fused, the bead takes the line's alpha and a feather matched to the
+     *  line's. They can only be matched at ONE size — line-blur is in px and
+     *  circle-blur is a fraction of the radius — so they are matched at the
+     *  median segment, which is where most of the map lives.
+     *
+     *  Some double-compositing where bead and stroke overlap is unavoidable:
+     *  they are separate layers and WebGL has no group opacity. Keeping `tail`
+     *  at 1.0 makes the tail bead exactly the round cap, so the only place it
+     *  can show is the head — which is the end that is supposed to be heavier. */
+    fuse: boolean
+  }
   /** The dashed track of a run with no recorded volume. */
   nil: { width: number; opacity: number; dash: [number, number]; shown: boolean }
   /** Runs recorded at a single grid reference — a point, drawn as one. */
@@ -131,7 +155,7 @@ export const TRACKS: TrackStyle = {
   opacity: 0.5,
   blur: 0.4,
   cap: 'round',
-  ends: { head: 1.1, tail: 0.5, opacity: 0.6, blur: 0.3, shown: true },
+  ends: { head: 1.6, tail: 1, opacity: 0.6, blur: 0.3, shown: true, fuse: true },
   nil: { width: 0.6, opacity: 0.35, dash: [2, 2], shown: true },
   marks: { kFar: 0.02, kNear: 0.09, cap: 14, shown: true },
   taper: 0,
@@ -210,6 +234,25 @@ function endRamp(): maplibregl.ExpressionSpecification {
   ] as unknown as maplibregl.ExpressionSpecification
 }
 
+/** Bead alpha: the stroke's own when fused, so the two are one ink. */
+export function beadOpacity(): number {
+  return TRACKS.ends.fuse ? TRACKS.opacity : TRACKS.ends.opacity
+}
+
+/** Bead feather, matched to the line's.
+ *
+ *  line-blur is PX; circle-blur is a FRACTION of the radius. There is no value
+ *  that matches them at every size, so this matches them at the median segment
+ *  (162 gal/km) at the near anchor — where most of the map is. Away from the
+ *  median the two edges differ slightly, which is a real limit of the two
+ *  properties and not something a better number fixes. */
+export function beadBlur(): number {
+  if (!TRACKS.ends.fuse) return TRACKS.ends.blur
+  const medianHalfWidth = Math.min(TRACKS.near.k * 162, TRACKS.near.cap) / 2
+  const r = Math.max(0.5, medianHalfWidth * TRACKS.ends.head)
+  return Math.min(1, TRACKS.blur / r)
+}
+
 /** Single-point runs: k·√gallons, the dot map's own encoding, because a run
  *  recorded at one grid reference IS a point. */
 function markRamp(): maplibregl.ExpressionSpecification {
@@ -239,8 +282,8 @@ export function applyTracks(map: maplibregl.Map) {
   }
   if (map.getLayer(TRACK_END_LAYER)) {
     map.setPaintProperty(TRACK_END_LAYER, 'circle-radius', endRamp() as never)
-    map.setPaintProperty(TRACK_END_LAYER, 'circle-opacity', TRACKS.ends.opacity)
-    map.setPaintProperty(TRACK_END_LAYER, 'circle-blur', TRACKS.ends.blur)
+    map.setPaintProperty(TRACK_END_LAYER, 'circle-opacity', beadOpacity())
+    map.setPaintProperty(TRACK_END_LAYER, 'circle-blur', beadBlur())
     vis(TRACK_END_LAYER, TRACKS.ends.shown)
   }
   if (map.getLayer(TRACK_NIL_LAYER)) {
@@ -365,8 +408,8 @@ export function addTrackLayers(
       filter: sprayed(day),
       paint: {
         'circle-color': tint,
-        'circle-opacity': TRACKS.ends.opacity,
-        'circle-blur': TRACKS.ends.blur,
+        'circle-opacity': beadOpacity(),
+        'circle-blur': beadBlur(),
         'circle-pitch-alignment': 'map',
         'circle-pitch-scale': 'map',
         'circle-radius': endRamp(),
