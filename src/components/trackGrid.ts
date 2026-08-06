@@ -38,20 +38,15 @@ interface Cell {
   out: number
   /** Runs touching this cell, whatever they carried — the hover's "runs". */
   segs: number
-  /** Runs that actually SPRAYED here, split the same way the gallons are.
+  /** Runs that actually SPRAYED here.
    *
    *  A separate count from `segs` because a run with no recorded volume flew
-   *  over this ground without dosing it, and "sprayed 36 times" has to mean
-   *  thirty-six applications of chemical or it means nothing. Measured over the
-   *  record, excluding the no-volume runs moves the fine grid from 7,596 cells
-   *  to 6,884 and drops the worst outliers — cells credited with 25 passes and
-   *  zero gallons.
-   *
-   *  Split in and out of the selection because isolating an agent has to change
-   *  the count as well as the colour: "how many times was this sprayed with
-   *  Orange" is the question the chip is asking. */
-  nIn: number
-  nOut: number
+   *  over this ground without dosing it, and the inspect card's "36 sprayings"
+   *  has to mean thirty-six applications of chemical or it means nothing.
+   *  Measured over the record, excluding the no-volume runs moves the fine grid
+   *  from 7,596 cells to 6,884 and drops the worst outliers — cells credited
+   *  with 25 passes and zero gallons. */
+  sprayings: number
   /** Distinct days on which this cell was sprayed. Two aircraft flying parallel
    *  swaths in one sortie are two applications but one day, and the difference
    *  is worth carrying: at the fine cell the record's median is 2 passes over
@@ -91,7 +86,7 @@ export function binTracks(
     let c = cells.get(key)
     if (!c) {
       c = {
-        x, y, inSel: 0, out: 0, segs: 0, nIn: 0, nOut: 0,
+        x, y, inSel: 0, out: 0, segs: 0, sprayings: 0,
         days: new Set(), byGroup: [0, 0, 0, 0], d0: Infinity, d1: -Infinity, km: 0,
       }
       cells.set(key, c)
@@ -150,8 +145,7 @@ export function binTracks(
     for (const c of touched) {
       c.segs++
       if (!sprayed) continue
-      if (!sel || sel.has(p.agent)) c.nIn++
-      else c.nOut++
+      c.sprayings++
       c.days.add(Math.floor(p.day))
     }
   }
@@ -166,7 +160,7 @@ export function binTracks(
       rt: cell.segs,
       /** Total sprayings and the days they fell on — the hover reports the
        *  CELL, so these stay whole even when an agent is isolated. */
-      nt: cell.nIn + cell.nOut,
+      nt: cell.sprayings,
       dt: cell.days.size,
       /** The cell's gallons split by agent group, as four scalars.
        *
@@ -186,19 +180,17 @@ export function binTracks(
       d1: cell.d1,
     }
     // Same two-feature shape as binGrid: grey context under a tinted selection.
-    // `n` is this feature's OWN share of the passes, so the passes map answers
-    // the selection the same way the volume map does.
     if (sel && cell.out > 0.5)
       features.push({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: coordsOut },
-        properties: { g: Math.round(cell.out), n: cell.nOut, c: DOTS.dim, s: 0, ...shared },
+        properties: { g: Math.round(cell.out), c: DOTS.dim, s: 0, ...shared },
       })
     if (cell.inSel > 0.5)
       features.push({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: coordsOut },
-        properties: { g: Math.round(cell.inSel), n: cell.nIn, c: tint, s: 1, ...shared },
+        properties: { g: Math.round(cell.inSel), c: tint, s: 1, ...shared },
       })
   }
   return { type: 'FeatureCollection', features }

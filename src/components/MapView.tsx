@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { loadSpray, dayToDate, dateToDay, type SprayDataset } from '../data/spray'
-import { mapConfig, Z_MID, Z_NEAR } from '../config/mapConfig'
+import { mapConfig } from '../config/mapConfig'
 import Timeline, { buildVolume, type VolumeChart } from './Timeline'
 import ArchiveKey from './ArchiveKey'
 import { buildAgentChoices, type AgentChoice } from './agentChoices'
@@ -29,9 +29,6 @@ import {
   VOL_FINE_SOURCE,
   gridDegrees,
   DOTS,
-  applyDots,
-  setDotMetric,
-  type DotMetric,
 } from './volumeGrid'
 import {
   addTrackLayers,
@@ -42,12 +39,9 @@ import {
   setDrawProgress,
   setDrawVisible,
   setLayersVisible,
-  setTrackStart,
-  applyTracks,
 } from './trackLayers'
 import { loadTracks, type TrackDataset } from '../data/tracks'
 import { binTracks } from './trackGrid'
-import { buildLoadField, advanceLoad, loadFeatures, type LoadField } from '../data/decay'
 import ArchiveInspect, {
   fmtGallons,
   type Inspect,
@@ -99,27 +93,6 @@ const FILTER_STEP_DAYS = 12
 const TRACKS_DRAW = TRACKS
 
 const EMPTY_FC: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
-
-/** The two decayed load fields, built once per cell size and kept.
- *
- *  Module-level rather than a ref because they are pure derivations of the
- *  track file, which does not change for the life of the page — and because
- *  rebuilding one would throw away the replay state that makes the reading
- *  incremental. Keyed by cell size so a console changing the grid gets a new
- *  field instead of a field binned to the wrong cell.
- */
-const LOAD_FIELDS = new Map<number, LoadField>()
-function loadFields(data: TrackDataset, deg: { coarse: number; fine: number }) {
-  const get = (d: number) => {
-    let f = LOAD_FIELDS.get(d)
-    if (!f) {
-      f = buildLoadField(data, d)
-      LOAD_FIELDS.set(d, f)
-    }
-    return f
-  }
-  return { coarse: get(deg.coarse), fine: get(deg.fine) }
-}
 
 /**
  * The runs that arrived in (lo, hi] — the ones a playback step has just added.
@@ -451,23 +424,6 @@ export default function MapView() {
   /** Bumped to force the throttled day effect to run again after a zoom-out
    *  has found the grids stale. */
   const [gridEpoch, setGridEpoch] = useState(0)
-  /** Which quantity the dots are sized by.
-   *
-   *  Gated on TRACKS because the pass count only exists when the grids are
-   *  binned from the LINES — binGrid drops a run's whole volume into the one
-   *  cell holding leg 1A and has no notion of a run crossing a cell, so a
-   *  passes reading built on it would be counting run STARTS and calling them
-   *  sprayings. Offering the switch without the lines would be offering a
-   *  number the record cannot support. */
-  const [metric, setMetric] = useState<DotMetric>('volume')
-  /** How many cells the load field is holding right now.
-   *
-   *  Only so the key can say why the map is empty. At the default playhead —
-   *  the end of the record — the honest answer is 8 cells nationwide, because
-   *  spraying stopped and thirty-day decay finished the job in a season. That
-   *  is the strongest sentence this reading has, and without a word on screen
-   *  it reads as a broken layer instead. */
-  const [loadCells, setLoadCells] = useState(-1)
   const dayRef = useRef(0)
   const colorsRef = useRef<string[] | null>(null)
   const playingRef = useRef(false)
@@ -748,24 +704,8 @@ export default function MapView() {
         const coarse = map.getSource(VOL_COARSE_SOURCE) as maplibregl.GeoJSONSource | undefined
         const fine = map.getSource(VOL_FINE_SOURCE) as maplibregl.GeoJSONSource | undefined
         const deg = gridDegrees()
-        if (metric === 'load') {
-          // The decayed field, not a re-bin. It is stateful — it steps forward
-          // from where it was — so it cannot be rebuilt per frame the way the
-          // other two readings are, and it must not be: replaying it is what
-          // makes the surface fall as well as rise.
-          const f = loadFields(tracksRef.current, deg)
-          advanceLoad(f.coarse, day, activeIndices)
-          advanceLoad(f.fine, day, activeIndices)
-          const filtered = activeIndices != null
-          const cf = loadFeatures(f.coarse, c, DOTS.dim, filtered)
-          const ff = loadFeatures(f.fine, c, DOTS.dim, filtered)
-          coarse?.setData(cf)
-          fine?.setData(ff)
-          setLoadCells(Math.max(cf.features.length, ff.features.length))
-        } else {
-          coarse?.setData(binTracks(tracksRef.current, day, activeIndices, deg.coarse, c))
-          fine?.setData(binTracks(tracksRef.current, day, activeIndices, deg.fine, c))
-        }
+        coarse?.setData(binTracks(tracksRef.current, day, activeIndices, deg.coarse, c))
+        fine?.setData(binTracks(tracksRef.current, day, activeIndices, deg.fine, c))
       }
       gridsStaleRef.current = false
     } else {
@@ -803,31 +743,6 @@ export default function MapView() {
     }
     if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
   }, [ready, day, agentKey, activeIndices, choices, bounds.max, tracksReady, gridEpoch])
-
-  // Switching what the dots MEAN.
-  //
-  // The passes reading has no track tier: a track is one run, so "how many
-  // times" is not a question a single stroke can answer — it is a question
-  // about a place. So the switch does not hide the tracks as a special case,
-  // it moves the hand-off to 24. The grids then own every zoom, the strokes
-  // own none, and the one number that decides which encoding is on screen
-  // stays the only one, exactly as it is in volume mode.
-  useEffect(() => {
-    const map = mapRef.current
-    if (!ready || !map || !TRACKS) return
-    setDotMetric(metric)
-    const hand = metric === 'volume' ? Z_NEAR : 24
-    setTrackStart(hand)
-    applyTracks(map)
-    if (map.getLayer(VOL_FINE_LAYER)) map.setLayerZoomRange(VOL_FINE_LAYER, Z_MID, hand)
-    applyDots(map)
-    // The count lives in the binned features, not in paint, so the grids have
-    // to be rebuilt — the same reason the tuner's colour pickers ask for a
-    // re-bin rather than trusting a paint update.
-    gridsStaleRef.current = false
-    appliedKeyRef.current = ''
-    setGridEpoch((n) => n + 1)
-  }, [ready, metric])
 
   // Spend the skipped bin the moment the grids become the visible tier again.
   // Without this the reader zooms out of the track band onto a grid still
@@ -960,9 +875,6 @@ export default function MapView() {
           tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
           filtered={agentKey !== 'all'}
           tracks={TRACKS}
-          metric={TRACKS ? metric : undefined}
-          onMetric={TRACKS ? setMetric : undefined}
-          loadCells={metric === 'load' ? loadCells : undefined}
         >
           {inspect && (
             <ArchiveInspect

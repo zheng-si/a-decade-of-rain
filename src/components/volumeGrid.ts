@@ -224,93 +224,6 @@ export const DOTS: DotStyle = {
   dim: '#bdbdbd',
 }
 
-/**
- * Which quantity the dots are sized by.
- *
- * "How much fell here" and "how many times was this sprayed" are different
- * questions, and the record answers them differently often enough to be worth
- * a switch: over the fine grid the two rankings correlate at 0.82, but 1,040
- * cells — 15% — move more than a quartile between them. The extremes are whole
- * different stories. One cell took 2,677 gallons in a single pass; another was
- * flown fifteen times for 105 gallons.
- *
- * A count is also the only quantity on this map a reader can hold in their
- * head. "19.5 million gallons" is a number you have to be told; "this ground
- * was sprayed seventy-nine times" is a number you already understand.
- */
-export type DotMetric = 'volume' | 'passes' | 'load'
-let METRIC: DotMetric = 'volume'
-export const dotMetric = () => METRIC
-export function setDotMetric(m: DotMetric) {
-  METRIC = m
-}
-
-/** Radius ramp for the PASSES reading, per tier.
- *
- * Derived from the counts the same way the gallons ramps were derived from the
- * volumes, and they have to be separate numbers because the two distributions
- * are four orders of magnitude apart — median 6 passes against median 6,725
- * gallons at the coarse cell. Measured, excluding no-volume runs:
- *
- *            passes p50   p90   p99   max
- *   coarse         6      35    106   170
- *   fine           2      13     31    79
- *
- * k is set so the median cell of each tier lands near 2 px at the bottom of
- * its band and 4.5 px at the top, matching the volume ramps' feel, and the cap
- * bites only in the last percent: at the fine tier a 16 px cap clips above 39
- * passes, and p99 is 31.
- */
-export const PASSES: Record<'coarse' | 'fine' | 'raw', DotRamp> = {
-  coarse: { k0: 0.82, k1: 1.84, cap: 16 },
-  // The fine tier's band is LONGER in this reading — it runs to the ceiling
-  // instead of handing off at Z_NEAR — so its top anchor is a different size
-  // problem. A 0.03° cell is 7.7 px at Z_MID and 87 px at the ceiling; k1 puts
-  // the median cell near 9 px there, which is the same tenth-of-a-cell the
-  // volume ramp holds at its own top. Keeping 2.55 here was the bug this
-  // replaced: the ramp ended at 9.5, so past the hand-off every dot froze at
-  // its z9.5 size while the cell under it kept growing.
-  fine: { k0: 1.13, k1: 6.4, cap: 30 },
-  // The raw tier never carries a binned count — it draws single events — so
-  // this exists only so the table has no hole. See dotRadius.
-  raw: { k0: 1.13, k1: 6.4, cap: 30 },
-}
-
-/** Zoom anchors for the PASSES reading.
- *
- *  Separate from DOT_ANCHORS for one reason: this reading has no track tier, so
- *  the fine band does not stop at Z_NEAR — it owns everything from Z_MID to the
- *  ceiling. Deriving the anchors from where a tier is ACTUALLY on screen is the
- *  rule DOT_ANCHORS already states; this is that rule applied to a band whose
- *  extent the metric changes. */
-export const PASS_ANCHORS: Record<'coarse' | 'fine' | 'raw', [number, number]> = {
-  coarse: [Z_FAR, Z_MID],
-  fine: [Z_MID, mapConfig.view.maxZoom],
-  raw: [Z_MID, mapConfig.view.maxZoom],
-}
-
-/** Radius ramp for the LOAD reading — how much is still on the ground.
- *
- * Calibrated on the field as it actually behaves rather than on the record's
- * totals, because a decayed surface is a different distribution at every date.
- * Stepping the real field at a 30-day half-life, the live cells read:
- *
- *   fine 0.03°     1964: 135 cells, p50 19    1967: 2,283 cells, p50 77
- *                  1969: 2,414 cells, p50 27  1970: 1,018 cells, p50 5
- *   coarse 0.12°   1967: 447 cells, p50 249   1970: 257 cells, p50 15
- *
- * k is set against the busiest period — 1967, fine p50 77 and p90 780 — so the
- * map is legible when there is most to see and thins honestly either side of
- * it. That thinning is the whole point of the reading: this is the only one of
- * the three that goes DOWN, and a ramp tuned to the record's peak totals would
- * have flattened the recovery into nothing.
- */
-export const LOAD: Record<'coarse' | 'fine' | 'raw', DotRamp> = {
-  coarse: { k0: 0.127, k1: 0.285, cap: 20 },
-  fine: { k0: 0.18, k1: 1.02, cap: 44 },
-  raw: { k0: 0.18, k1: 1.02, cap: 44 },
-}
-
 /** True for a run with no recorded volume. `coalesce` because the grid tiers
  *  carry `g` and not `gallons` — asking for a missing property would make the
  *  whole expression null rather than false. */
@@ -433,19 +346,9 @@ export function cellDegAt(zoom: number): number | null {
 export function dotRadius(
   tier: 'coarse' | 'fine' | 'raw',
 ): maplibregl.ExpressionSpecification {
-  // The raw tier draws single EVENTS, not cells, so it has no pass count to
-  // read — one event is one pass by definition. It keeps the volume ramp in
-  // both readings rather than being sized by the constant 1.
-  const passes = METRIC === 'passes' && tier !== 'raw'
-  // The LOAD reading also owns every zoom — there is no track tier for "what is
-  // still here" any more than for "how many times", so it borrows the passes
-  // anchors. It keeps reading `g`, because loadFeatures puts the decayed load
-  // there; only the ramp differs.
-  const load = METRIC === 'load' && tier !== 'raw'
-  const table = passes ? PASSES : load ? LOAD : DOTS
-  const { k0, k1, cap } = table[tier]
-  const [z0, z1] = passes || load ? PASS_ANCHORS[tier] : DOT_ANCHORS[tier]
-  const prop = passes ? 'n' : tier === 'raw' ? 'gallons' : 'g'
+  const { k0, k1, cap } = DOTS[tier]
+  const [z0, z1] = DOT_ANCHORS[tier]
+  const prop = tier === 'raw' ? 'gallons' : 'g'
   // max(floor, min(k·√g, cap)) — the cap keeps a dot inside its cell, the
   // floor keeps the bottom tenth of the distribution above one pixel.
   const filled = (k: number, i: 0 | 1) => {

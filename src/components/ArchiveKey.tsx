@@ -21,14 +21,6 @@ interface Props {
    *  lines. A key that shows a dot over a map of lines is not a smaller
    *  problem than a key with the wrong words on it. */
   tracks?: boolean
-  /** Which quantity the dots are sized by, and the switch for it. Absent when
-   *  the record is not binned from the lines — see the note on `metric` in
-   *  MapView for why a passes reading needs them. */
-  metric?: 'volume' | 'passes' | 'load'
-  onMetric?: (m: 'volume' | 'passes' | 'load') => void
-  /** Cells the load field is holding, for the note below the legend. Only the
-   *  load reading supplies it. */
-  loadCells?: number
   /** Extra section rendered below the legend (the inspect card). */
   children?: ReactNode
 }
@@ -61,13 +53,8 @@ export default function ArchiveKey({
   tint,
   filtered,
   tracks = false,
-  metric,
-  onMetric,
-  loadCells,
   children,
 }: Props) {
-  const passes = metric === 'passes'
-  const load = metric === 'load'
   const [scale, setScale] = useState<{ label: string; w: number }>({ label: '', w: 0 })
   /** Whether the TRACK layer is drawing right now.
    *
@@ -123,34 +110,6 @@ export default function ArchiveKey({
           3D
         </button>
       </div>
-      {metric && onMetric && (
-        <>
-          <p className="map-key-view-label">Dot Size Reads</p>
-          <div className="map-key-view" role="group" aria-label="Dot size reads">
-            <button
-              type="button"
-              className={`map-key-view-btn${passes || load ? '' : ' is-active'}`}
-              onClick={() => (passes || load) && onMetric('volume')}
-            >
-              Volume
-            </button>
-            <button
-              type="button"
-              className={`map-key-view-btn${passes ? ' is-active' : ''}`}
-              onClick={() => !passes && onMetric('passes')}
-            >
-              Times
-            </button>
-            <button
-              type="button"
-              className={`map-key-view-btn${load ? ' is-active' : ''}`}
-              onClick={() => !load && onMetric('load')}
-            >
-              Residue
-            </button>
-          </div>
-        </>
-      )}
       <div className="map-key-top" aria-hidden="true">
         <div className="map-key-scale">
           <div className="map-key-scale-bar" style={{ width: `${scale.w}px` }} />
@@ -169,25 +128,12 @@ export default function ArchiveKey({
             has to carry both and say which is which. Listing only the line
             would leave the far view's dots unexplained, which is the same
             fault as the ring had. */}
-        {/* In the PASSES reading there is no track tier — the hand-off is at 24
-            — so this row is the only mark on the map and it must not go on
-            saying "volume". A count is also worth naming precisely: it is
-            sprayings, not sorties and not flights, and a run that carried no
-            recorded volume is not one of them. */}
         {!onTracks && (
           <li>
             <span className="key-swatch">
               <span className="key-dot" style={{ background: tint }} />
             </span>
-            {/* The load reading needs its assumption on the face of the map,
-                not buried in a tooltip: it is a MODEL, not a measurement, and a
-                reader who takes a decayed surface for an observation has been
-                misled by the legend rather than informed by it. */}
-            {load
-              ? 'Still On The Ground · 30-day half-life'
-              : passes
-                ? 'Times Sprayed · per cell'
-                : `Sprayed Volume${tracks ? ' · per cell' : ''}`}
+            Sprayed Volume{tracks ? ' · per cell' : ''}
           </li>
         )}
         {onTracks && (
@@ -263,19 +209,6 @@ export default function ArchiveKey({
           National Border
         </li>
       </ul>
-      {/* An empty map is a result here, not a failure, and the difference has
-          to be on screen. At the end of the record this reading holds a
-          handful of cells nationwide — the cumulative map is still at its
-          maximum on the same date. */}
-      {load && loadCells != null && loadCells >= 0 && loadCells < 24 && (
-        <p className="map-key-note">
-          {loadCells === 0
-            ? 'Nothing modelled as remaining at this date.'
-            : `Only ${loadCells} cells still carry a modelled residue at this date.`}{' '}
-          Spraying has ended; thirty-day decay does the rest. Scrub back to the
-          late 1960s to see the surface at its fullest.
-        </p>
-      )}
       {children}
     </div>
   )

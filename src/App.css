@@ -1048,28 +1048,3 @@
   box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.85);
   cursor: pointer;
 }
-
-/* The one figure on the inspect card that is a MODEL rather than a record.
-   Set apart from the measured stats above it on purpose — a decayed load read
-   as an observation is the specific way this reading can mislead. */
-.archive-key .inspect-load {
-  margin: 0.15rem 0 0;
-  font-size: 0.62rem;
-  line-height: 1.45;
-  color: #8f6a5c;
-}
-
-.archive-key .inspect-load strong {
-  color: #b4472f;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Why the load map is empty. Only appears when it is. */
-.archive-key .map-key-note {
-  margin: 0.4rem 0 0;
-  padding-top: 0.4rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.07);
-  font-size: 0.6rem;
-  line-height: 1.5;
-  color: #8a8d85;
-}
