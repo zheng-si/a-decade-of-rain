@@ -255,23 +255,31 @@ function endRamp(): maplibregl.ExpressionSpecification {
   ] as unknown as maplibregl.ExpressionSpecification
 }
 
-/** Bead alpha: the stroke's own when fused, so the two are one ink. */
-export function beadOpacity(): number {
-  return TRACKS.ends.fuse ? TRACKS.opacity : TRACKS.ends.opacity
-}
-
-/** Bead feather, matched to the line's.
+/** Bead feather for ANY track table, matched to that table's line.
  *
  *  line-blur is PX; circle-blur is a FRACTION of the radius. There is no value
  *  that matches them at every size, so this matches them at the median segment
  *  (162 gal/km) at the near anchor — where most of the map is. Away from the
  *  median the two edges differ slightly, which is a real limit of the two
- *  properties and not something a better number fixes. */
+ *  properties and not something a better number fixes.
+ *
+ *  Takes the table as an argument so the console can SHOW the derived number in
+ *  the box it has disabled without computing it a second time. A panel that
+ *  re-derives a value is a panel that can disagree with the map. */
+export function beadFeather(t: TrackStyle): number {
+  if (!t.ends.fuse) return t.ends.blur
+  const medianHalfWidth = Math.min(t.near.k * 162, t.near.cap) / 2
+  const r = Math.max(0.5, medianHalfWidth * t.ends.head)
+  return Math.min(1, t.blur / r)
+}
+
+/** Bead alpha: the stroke's own when fused, so the two are one ink. */
+export function beadOpacity(): number {
+  return TRACKS.ends.fuse ? TRACKS.opacity : TRACKS.ends.opacity
+}
+
 export function beadBlur(): number {
-  if (!TRACKS.ends.fuse) return TRACKS.ends.blur
-  const medianHalfWidth = Math.min(TRACKS.near.k * 162, TRACKS.near.cap) / 2
-  const r = Math.max(0.5, medianHalfWidth * TRACKS.ends.head)
-  return Math.min(1, TRACKS.blur / r)
+  return beadFeather(TRACKS)
 }
 
 /** Single-point runs: k·√gallons, the dot map's own encoding, because a run

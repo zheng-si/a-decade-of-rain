@@ -42,6 +42,7 @@ import {
 } from './volumeGrid'
 import {
   TRACKS,
+  beadFeather,
   setTracks,
   applyTracks,
   TRACK_LAYER,
@@ -1379,11 +1380,11 @@ export default function MapTuner({
 
           <div className="tuner-ramp">
             <span className="tuner-ramp-name">
-              Stroke width <em>TRACKS.far / near · z{Z_FAR}→11</em>
+              Stroke width <em>TRACKS.far / near · px per 162 gal/km · z{Z_FAR}→11</em>
             </span>
             <div className="tuner-ramp-ends is-dots">
               <label>
-                <span>px per 162 gal/km, far</span>
+                <span>far</span>
                 <input
                   type="number"
                   min={0}
@@ -1396,7 +1397,7 @@ export default function MapTuner({
                 />
               </label>
               <label>
-                <span>px per 162, near</span>
+                <span>near</span>
                 <input
                   type="number"
                   min={0}
@@ -1409,7 +1410,7 @@ export default function MapTuner({
                 />
               </label>
               <label>
-                <span>cap px, near</span>
+                <span>cap px</span>
                 <input
                   type="number"
                   min={1}
@@ -1470,10 +1471,50 @@ export default function MapTuner({
             </select>
           </label>
 
-          {/* ── direction ── */}
+          {/* ── direction, in the order the map actually uses it ── */}
           <div className="tuner-ramp">
             <span className="tuner-ramp-name">
-              Head &amp; tail <em>TRACKS.ends · direction</em>
+              Direction <em>TRACKS.taper · the shipped cue</em>
+            </span>
+            <label className="tuner-slider">
+              <span>
+                Taper along the stroke <strong>{tune.tracks.taper}</strong>
+              </span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={tune.tracks.taper}
+                onChange={(e) => setTrk({ taper: Number(e.target.value) })}
+              />
+              <em>0 = flat · 1 = tail fully transparent</em>
+            </label>
+            <p className="tuner-tier-read">
+              The only direction cue that can work here, because it lives in the line&apos;s own
+              paint and so composites exactly as the line does — see the beads below for what
+              happens when it does not. It also carries direction along the whole length instead of
+              marking two points.
+              <br />
+              <br />
+              HEAD IS LEG 1A: the run&apos;s first row on file and the one the gallons are booked
+              against. The record carries no bearing, so this is &ldquo;first waypoint
+              recorded&rdquo;, not &ldquo;direction of flight&rdquo;.
+              {tune.tracks.taper > 0 && (
+                <>
+                  {' '}
+                  Costs the second line layer (TRACK_DIM_LAYER): line-gradient can only read
+                  line-progress, never a feature property, so tinted and greyed strokes have to be
+                  split by filter once either is a gradient.
+                </>
+              )}
+            </p>
+          </div>
+
+          <div className="tuner-ramp">
+            <span className="tuner-ramp-name">
+              Endpoint beads{' '}
+              <em>TRACKS.ends · {tune.tracks.ends.shown ? 'ON — read the note' : 'off'}</em>
             </span>
             <div className="tuner-ramp-ends is-dots">
               <label>
@@ -1503,13 +1544,24 @@ export default function MapTuner({
                 />
               </label>
               <label>
-                <span>feather px</span>
+                {/* Both this and the alpha below are OVERRIDDEN while `fuse` is
+                    on — beadBlur()/beadOpacity() derive their values from the
+                    stroke and never look at these. A control that still reads
+                    live and does nothing is the panel describing a map we do
+                    not have, so they are disabled and the derived number is
+                    shown in their place. */}
+                <span>feather px{tune.tracks.ends.fuse ? ' (derived)' : ''}</span>
                 <input
                   type="number"
                   min={0}
                   max={3}
                   step={0.1}
-                  value={tune.tracks.ends.blur}
+                  disabled={tune.tracks.ends.fuse}
+                  value={
+                    tune.tracks.ends.fuse
+                      ? Number(beadFeather(tune.tracks).toFixed(2))
+                      : tune.tracks.ends.blur
+                  }
                   onChange={(e) =>
                     setTrk({ ends: { ...tune.tracks.ends, blur: Number(e.target.value) } })
                   }
@@ -1518,14 +1570,19 @@ export default function MapTuner({
             </div>
             <label className="tuner-slider">
               <span>
-                Bead alpha <strong>{tune.tracks.ends.opacity}</strong>
+                Bead alpha{' '}
+                <strong>
+                  {tune.tracks.ends.fuse ? tune.tracks.opacity : tune.tracks.ends.opacity}
+                </strong>
+                {tune.tracks.ends.fuse ? ' — derived from the stroke' : ''}
               </span>
               <input
                 type="range"
                 min={0}
                 max={1}
                 step={0.05}
-                value={tune.tracks.ends.opacity}
+                disabled={tune.tracks.ends.fuse}
+                value={tune.tracks.ends.fuse ? tune.tracks.opacity : tune.tracks.ends.opacity}
                 onChange={(e) =>
                   setTrk({ ends: { ...tune.tracks.ends, opacity: Number(e.target.value) } })
                 }
@@ -1549,29 +1606,45 @@ export default function MapTuner({
               />
               <span>fuse into the stroke (bead takes the line&apos;s alpha and feather)</span>
             </label>
-            <label className="tuner-slider">
-              <span>
-                Taper along the stroke <strong>{tune.tracks.taper}</strong>
-              </span>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={tune.tracks.taper}
-                onChange={(e) => setTrk({ taper: Number(e.target.value) })}
-              />
-              <em>
-                0 = flat · 1 = tail fully transparent. The stronger cue: direction carried along
-                the whole length, not just by two beads.
-              </em>
-            </label>
+            {/* The live consequence, computed rather than described, because
+                the whole reason the beads shipped wrong is that this number was
+                never looked at. */}
+            {tune.tracks.ends.shown && (
+              <p className="tuner-tier-read is-warn">
+                Where this bead overlaps its own stroke the ink reads{' '}
+                <strong>
+                  {(
+                    1 -
+                    (1 -
+                      (tune.tracks.ends.fuse
+                        ? tune.tracks.opacity
+                        : tune.tracks.ends.opacity)) *
+                      (1 - tune.tracks.opacity)
+                  ).toFixed(2)}
+                </strong>{' '}
+                against the stroke&apos;s own {tune.tracks.opacity}.
+                {tune.tracks.ends.head > 1 || tune.tracks.ends.tail > 1
+                  ? ' A multiplier above 1 puts that darker ink OUTSIDE the round cap, where it reads as a separate disc.'
+                  : ' At ≤ 1 the bead stays inside the round cap, so only the very end darkens.'}
+              </p>
+            )}
             <p className="tuner-tier-read">
-              Multiples of the stroke&apos;s own half-width, so a bead always belongs to its line.
-              Head bigger than tail makes every track an arrow without drawing an arrowhead — at
-              8,753 strokes a glyph would be unreadable. HEAD IS LEG 1A: the run&apos;s first row
-              on file and the one the gallons are booked against. The record carries no bearing, so
-              this is &ldquo;first waypoint recorded&rdquo;, not &ldquo;direction of flight&rdquo;.
+              Multiples of the stroke&apos;s own half-width: at 1.0 a bead IS the round cap the line
+              already draws, so below 1.0 it is invisible and above 1.0 it is a disc. That is the
+              whole range — there is no setting at which a bead reads as part of the stroke.
+              <br />
+              <br />
+              A circle layer and a line layer composite independently, and WebGL has no group
+              opacity, so ink at alpha a laid twice reads 1 − (1 − a)². Matching the alpha —
+              &ldquo;fuse&rdquo; — is exactly what guarantees the end is half again darker than the
+              line leaving it. The record compounds it: HERBS grid references are quantised, so runs
+              share start waypoints — measured over Đồng Xoài at z9.7, 3,084 beads land in 2,262
+              four-pixel bins and the busiest holds 33, which is an opaque disc beside strokes at
+              0.5. It gets worse zooming OUT, because that packs more shared waypoints into a pixel
+              while the radius barely moves.
+              <br />
+              <br />
+              Kept because seeing the bad option is how this panel earns its keep. Use the taper.
             </p>
           </div>
 

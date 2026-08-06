@@ -284,6 +284,20 @@
   gap: 0.5rem;
 }
 
+/* Controls nested INSIDE a ramp group. The group started out as a name plus a
+   row of boxes, so nothing here carried a top margin; once sliders and
+   checkboxes moved in, each one sat flush against the boxes above it and the
+   "Bead alpha" heading collided with the head/tail row. Spacing belongs to the
+   parent's layout, not to per-element margins that fight the flat rules. */
+.tuner-ramp > .tuner-slider,
+.tuner-ramp > .tuner-check {
+  margin-top: 0.5rem;
+}
+
+.tuner-ramp > .tuner-check + .tuner-check {
+  margin-top: 0.25rem;
+}
+
 .tuner-ramp-ends label {
   display: flex;
   flex: 1;
@@ -385,6 +399,29 @@
   font-size: 0.6rem;
   font-variant-numeric: tabular-nums;
   color: #8a8d85;
+}
+
+/* A readout that is reporting a live consequence rather than describing a
+   setting — the bead/stroke overlap alpha. Marked because it only appears when
+   the map is doing the thing it warns about, and a reader has to be able to
+   tell that apart from the grey prose around it. */
+.tuner-tier-read.is-warn {
+  color: #b4472f;
+  border-left: 2px solid #e8c4b8;
+  padding-left: 0.4rem;
+}
+
+.tuner-tier-read.is-warn strong {
+  color: #8f3520;
+}
+
+/* Derived boxes and sliders are live but not YOURS: their value comes from the
+   stroke while `fuse` is on. Dimmed rather than removed so the number stays
+   readable and the reason stays visible. */
+.tuner-ramp-ends input:disabled,
+.tuner-slider input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* Layer rows carry an id, a type and two zoom boxes, so they need a grid
