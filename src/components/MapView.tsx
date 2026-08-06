@@ -469,9 +469,13 @@ export default function MapView() {
       // every laptop.
       const applyHome = (animate: boolean) => {
         const prev = homeRef.current
-        const next = homeCamera(map)
+        // The fit is computed either way, because the zoom FLOOR comes from it
+        // even when the opening camera does not. A chosen home that sits above
+        // the fit would otherwise take "pull out to the whole record" away.
+        const fit = homeCamera(map)
+        const next = mapConfig.view.archiveHome ?? fit
         homeRef.current = next
-        map.setMinZoom(next.zoom - mapConfig.view.minZoomMargin)
+        map.setMinZoom(Math.min(next.zoom, fit.zoom) - mapConfig.view.minZoomMargin)
         // Only re-frame a reader who has not gone anywhere.
         if (prev && !isAtHome(map, prev)) return
         if (animate) map.easeTo({ ...next, duration: 300 })
@@ -580,8 +584,16 @@ export default function MapView() {
         const trackAt = (pt: maplibregl.PointLike) => {
           const ids = trackLayers()
           if (!ids.length) return null
-          const f = map.queryRenderedFeatures(pt, { layers: ids })[0]
-          return f ? (f as unknown as maplibregl.MapGeoJSONFeature) : null
+          // The playhead is a paint gate now, not a filter (see trackLayers),
+          // and queryRenderedFeatures honours filters but not opacity — so
+          // without this the reader could hover a run that has not happened yet
+          // and read a 1970 date off a map showing 1963. Take the first hit
+          // that the playhead has actually reached.
+          for (const f of map.queryRenderedFeatures(pt, { layers: ids })) {
+            const p = f.properties as Record<string, number>
+            if (p.day <= dayRef.current) return f as unknown as maplibregl.MapGeoJSONFeature
+          }
+          return null
         }
         /** One writer for the highlight, fed by both sources. */
         const paintHover = () => setTrackHover(map, hoverRunRef.current ?? pinnedRunRef.current)
@@ -595,9 +607,17 @@ export default function MapView() {
             hover
               .setLngLat(e.lngLat)
               .setHTML(
-                `<strong>${p.gallons > 0 ? `<span class="n">${fmtGallons(p.gallons)}</span> Gallons` : 'No Volume Logged'}</strong>` +
-                  `<span>${groupLabels[p.gi] ?? 'Unknown'} · ${dayLabel(p.day)}</span>` +
-                  `<span>${p.km.toFixed(1)} km · ${Math.round(p.gpk).toLocaleString()} gal/km</span>`,
+                // The cell tooltip's grammar exactly: TWO figures on the bold
+                // line, then one line of context. It had three lines with the
+                // dose on its own, which made the same kind of object read as a
+                // different kind of tooltip. The two figures are the two things
+                // the stroke encodes — its colour and its width.
+                `<strong>${
+                  p.gallons > 0
+                    ? `<span class="n">${fmtGallons(p.gallons)}</span> Gallons<span class="gap"></span><span class="n">${Math.round(p.gpk).toLocaleString()}</span> Gal/km`
+                    : 'No Volume Logged'
+                }</strong>` +
+                  `<span>${groupLabels[p.gi] ?? 'Unknown'} · ${dayLabel(p.day)} · ${p.km.toFixed(1)} km</span>`,
               )
               .addTo(map)
             return

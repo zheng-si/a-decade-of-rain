@@ -68,6 +68,20 @@ export interface MapConfig {
      * phone and on a 27" display.
      */
     recordBounds: [[number, number], [number, number]]
+    /**
+     * The Archive's opening camera, chosen rather than fitted. Omit to let the
+     * explorer frame `recordBounds` itself.
+     *
+     * The fit answers "show me everything" and this answers "start me here",
+     * and they are not the same question — the fit centres the record's
+     * bounding box, which puts the eye on empty ground between the northern
+     * tail and the delta rather than on the Zone D / Iron Triangle mass where
+     * the record is densest. The cost is that one number cannot frame the same
+     * ground on a phone and a 27", which is exactly what the fit existed to
+     * fix; the zoom FLOOR is still derived from the fit, so a reader on a small
+     * screen can always pull out to the whole record.
+     */
+    archiveHome?: { center: [number, number]; zoom: number }
     /** Screen padding (px) left around `recordBounds` when fitting. */
     fitPadding: number
     /** How far below the fitted zoom the reader may still pull out. */
@@ -196,6 +210,9 @@ export const mapConfig: MapConfig = {
       [103.8, 8.3],
       [109.8, 17.7],
     ],
+    // Reads as ?cam=106.937,12.833,5.94 — the same three numbers the URL uses,
+    // so a camera found by moving the map can be pasted straight in here.
+    archiveHome: { center: [106.937, 12.833], zoom: 5.94 },
     fitPadding: 28,
     // The box is tall and narrow, so on any landscape viewport the fit is
     // height-limited and the extra width comes free — enough to keep the

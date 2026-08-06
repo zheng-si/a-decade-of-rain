@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import { useMemo, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import type { AgentChoice } from './agentChoices'
 import { dayToDate, dateToDay, type SprayDataset } from '../data/spray'
@@ -109,6 +109,87 @@ export default function Timeline({
   const span = Math.max(1, dayMax - dayMin)
   const pct = ((day - dayMin) / span) * 100
 
+  // ── what playback re-renders, and what it must not ──────────────────────
+  // The rAF loop calls setDay on EVERY frame, so this component renders ~60
+  // times a second for the whole 28s play-through. The chart is 120 months of
+  // up to two <rect> each and the axis another 60 spans — around 500 SVG nodes
+  // rebuilt and diffed per frame to move one playhead.
+  //
+  // The bars do depend on the playhead, but only through a boundary: a month is
+  // either past or future. Depending on the COUNT of past months instead of on
+  // `day` turns 60 changes a second into one a month — 120 over the whole
+  // record — and React skips the subtree entirely on every other frame, because
+  // the memo hands back the same element reference.
+  const playedThrough = useMemo(() => {
+    if (!volume) return 0
+    let n = 0
+    while (n < volume.monthStart.length && volume.monthStart[n] <= day) n++
+    return n
+  }, [volume, day])
+
+  const bars = useMemo(() => {
+    if (!volume) return null
+    return volume.months.map((m, i) => {
+      const total = m.reduce((a, b) => a + b, 0)
+      if (!total) return null
+      const played = i < playedThrough
+      // The chart mirrors the map: one hue for the whole field; with a
+      // selection, the selected agent's share sits tinted on the baseline and
+      // the rest stacks grey above it.
+      const sel = selGi >= 0 ? m[selGi] : total
+      const other = total - sel
+      const hSel = (sel / volume.max) * 100
+      const hOther = (other / volume.max) * 100
+      return (
+        <g key={i} className={played ? undefined : 'is-future'}>
+          {other > 0 && selGi >= 0 && (
+            <rect x={i + 0.12} y={100 - hSel - hOther} width={0.76} height={hOther} fill={CHART_DIM} />
+          )}
+          {sel > 0 && (
+            <rect x={i + 0.12} y={100 - hSel} width={0.76} height={hSel} fill={tint} opacity={0.85} />
+          )}
+        </g>
+      )
+    })
+  }, [volume, playedThrough, selGi, tint])
+
+  // The ruler does not depend on the playhead at all — it was only ever rebuilt
+  // because it sits in a component the playhead re-renders.
+  const axis = useMemo(() => {
+    if (!volume) return null
+    return (
+      <>
+        {/* Ruler: a major tick each year (labelled), a minor tick each
+            quarter — month-level reading comes from the playhead date. */}
+        {volume.monthStart.map((d0, i) => {
+          const date = dayToDate(d0)
+          const m = date.getUTCMonth()
+          if (m % 3 !== 0) return null
+          return (
+            <span
+              key={`t${i}`}
+              className={`axis-tick${m === 0 ? ' is-major' : ''}`}
+              style={{ left: `${((d0 - dayMin) / span) * 100}%` }}
+            />
+          )
+        })}
+        {volume.monthStart.map((d0, i) => {
+          const date = dayToDate(d0)
+          if (date.getUTCMonth() !== 0 || date.getUTCFullYear() % 2 !== 0) return null
+          return (
+            <span
+              key={`y${i}`}
+              className="axis-year"
+              style={{ left: `${((d0 - dayMin) / span) * 100}%` }}
+            >
+              {date.getUTCFullYear()}
+            </span>
+          )
+        })}
+      </>
+    )
+  }, [volume, dayMin, span])
+
   return (
     <section className="explorer-panel" aria-label="Archive controls">
       <header className="explorer-head">
@@ -212,41 +293,7 @@ export default function Timeline({
             preserveAspectRatio="none"
             aria-hidden="true"
           >
-            {volume.months.map((m, i) => {
-              const total = m.reduce((a, b) => a + b, 0)
-              if (!total) return null
-              const played = volume.monthStart[i] <= day
-              // The chart mirrors the map: one hue for the whole field; with a
-              // selection, the selected agent's share sits tinted on the
-              // baseline and the rest stacks grey above it.
-              const sel = selGi >= 0 ? m[selGi] : total
-              const other = total - sel
-              const hSel = (sel / volume.max) * 100
-              const hOther = (other / volume.max) * 100
-              return (
-                <g key={i} className={played ? undefined : 'is-future'}>
-                  {other > 0 && selGi >= 0 && (
-                    <rect
-                      x={i + 0.12}
-                      y={100 - hSel - hOther}
-                      width={0.76}
-                      height={hOther}
-                      fill={CHART_DIM}
-                    />
-                  )}
-                  {sel > 0 && (
-                    <rect
-                      x={i + 0.12}
-                      y={100 - hSel}
-                      width={0.76}
-                      height={hSel}
-                      fill={tint}
-                      opacity={0.85}
-                    />
-                  )}
-                </g>
-              )
-            })}
+            {bars}
           </svg>
 
           <div className="explorer-playhead" style={{ left: `${pct}%` }} />
@@ -267,34 +314,7 @@ export default function Timeline({
 
       {volume && (
         <div className="explorer-axis" aria-hidden="true">
-          {/* Ruler: a major tick each year (labelled), a minor tick each
-              quarter — month-level reading comes from the playhead date. */}
-          {volume.monthStart.map((d0, i) => {
-            const date = dayToDate(d0)
-            const m = date.getUTCMonth()
-            if (m % 3 !== 0) return null
-            const left = `${((d0 - dayMin) / span) * 100}%`
-            return (
-              <span
-                key={`t${i}`}
-                className={`axis-tick${m === 0 ? ' is-major' : ''}`}
-                style={{ left }}
-              />
-            )
-          })}
-          {volume.monthStart.map((d0, i) => {
-            const date = dayToDate(d0)
-            if (date.getUTCMonth() !== 0 || date.getUTCFullYear() % 2 !== 0) return null
-            return (
-              <span
-                key={`y${i}`}
-                className="axis-year"
-                style={{ left: `${((d0 - dayMin) / span) * 100}%` }}
-              >
-                {date.getUTCFullYear()}
-              </span>
-            )
-          })}
+          {axis}
         </div>
       )}
 

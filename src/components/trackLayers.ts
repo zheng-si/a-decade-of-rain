@@ -307,9 +307,21 @@ function wipe(colour: string, q: number): maplibregl.ExpressionSpecification {
 }
 
 /** Hand the draw layer the runs arriving at this step. Called ONCE per step. */
+/** Whether the drawing source is already empty.
+ *
+ *  The day effect clears it on EVERY step that is not a playing step — every
+ *  scrub, every agent switch, every zoom that re-runs the effect — and clearing
+ *  an already-empty source is still a full setData: a structured-clone to the
+ *  worker, a re-parse, a tile rebuild, all to arrive at the same nothing. */
+let drawEmpty = true
+
 export function setTrackDraw(map: maplibregl.Map, data: GeoJSON.FeatureCollection) {
+  const empty = data.features.length === 0
+  if (empty && drawEmpty) return
   const src = map.getSource(TRACK_DRAW_SOURCE) as maplibregl.GeoJSONSource | undefined
-  src?.setData(data)
+  if (!src) return
+  src.setData(data)
+  drawEmpty = empty
 }
 
 /** Advance the drawing front. Called every frame — on the SMALL source. */
@@ -325,12 +337,42 @@ export function setDrawVisible(map: maplibregl.Map, on: boolean) {
   }
 }
 
-const dayFilter = (day: number) =>
-  ['<=', ['get', 'day'], day] as unknown as maplibregl.FilterSpecification
-const sprayed = (day: number) =>
-  ['all', ['<=', ['get', 'day'], day], ['>', ['get', 'gpk'], 0]] as unknown as maplibregl.FilterSpecification
-const unsprayed = (day: number) =>
-  ['all', ['<=', ['get', 'day'], day], ['==', ['get', 'gpk'], 0]] as unknown as maplibregl.FilterSpecification
+// ── the playhead is PAINT, not a filter ───────────────────────────────────
+//
+// It used to be a filter, which is the obvious way to write it and the
+// expensive one. MapLibre routes every `setFilter` through `Style._updateLayer`,
+// which marks the layer's whole SOURCE for reload: each visible tile goes back
+// to the worker, re-parses its share of the 8,753 lines, recomputes the line
+// metrics the taper needs, rebuilds its buckets and re-uploads them. Measured on
+// the running page, six seconds of playback issued 203 filter writes — roughly
+// eleven playhead steps a second, each one tearing down and rebuilding the
+// geometry of a source whose geometry never changes.
+//
+// A run's day never changes either, so the playhead is not a question about
+// which features exist. It is a question about which ones are VISIBLE, and that
+// is a paint property: `line-opacity` gates on `['<=', day, playhead]` and
+// MapLibre re-evaluates the paint arrays over buckets it already has. No worker
+// round trip, no re-tessellation.
+//
+// What stays a filter is what genuinely partitions the record into two layers
+// drawn differently: volume vs no volume, and selected agent vs the rest. Those
+// change when the reader acts, not eleven times a second.
+//
+// The cost is that features past the playhead are still in the buffers and
+// still drawn, at alpha 0. Two consequences, both handled: fill rate (measured
+// below — no regression on this machine, which is software-rendered and so the
+// worst case), and `queryRenderedFeatures`, which respects filters but NOT
+// opacity — so a run that has not happened yet is still pickable and MapView's
+// hit test has to check the day itself.
+const HAS_VOLUME = ['>', ['get', 'gpk'], 0] as const
+const NO_VOLUME = ['==', ['get', 'gpk'], 0] as const
+const NEVER = ['==', ['literal', true], false] as const
+
+const all = (...parts: unknown[]) => ['all', ...parts] as unknown as maplibregl.FilterSpecification
+
+/** `o` where the run has happened, 0 where it has not. */
+const dayGate = (o: number) =>
+  ['case', ['<=', ['get', 'day'], lastDay], o, 0] as unknown as maplibregl.ExpressionSpecification
 
 /** min(k·gpk, cap) at each zoom anchor. The zoom interpolate has to be the
  *  outermost expression, so the cap goes inside each stop — the same shape as
@@ -478,27 +520,30 @@ export function applyTracks(map: maplibregl.Map) {
   for (const id of [TRACK_LAYER, TRACK_DIM_LAYER]) {
     if (!map.getLayer(id)) continue
     map.setPaintProperty(id, 'line-width', widthRamp() as never)
-    map.setPaintProperty(id, 'line-opacity', TRACKS.opacity)
     map.setPaintProperty(id, 'line-blur', TRACKS.blur)
     map.setLayoutProperty(id, 'line-cap', TRACKS.cap)
   }
   if (map.getLayer(TRACK_END_LAYER)) {
     map.setPaintProperty(TRACK_END_LAYER, 'circle-radius', endRamp() as never)
-    map.setPaintProperty(TRACK_END_LAYER, 'circle-opacity', beadOpacity())
     map.setPaintProperty(TRACK_END_LAYER, 'circle-blur', beadBlur())
     vis(TRACK_END_LAYER, TRACKS.ends.shown)
   }
   if (map.getLayer(TRACK_NIL_LAYER)) {
     map.setPaintProperty(TRACK_NIL_LAYER, 'line-width', TRACKS.nil.width)
-    map.setPaintProperty(TRACK_NIL_LAYER, 'line-opacity', TRACKS.nil.opacity)
     map.setPaintProperty(TRACK_NIL_LAYER, 'line-dasharray', TRACKS.nil.dash as never)
     vis(TRACK_NIL_LAYER, TRACKS.nil.shown)
   }
   if (map.getLayer(TRACK_MARK_LAYER)) {
     map.setPaintProperty(TRACK_MARK_LAYER, 'circle-radius', markRamp() as never)
-    map.setPaintProperty(TRACK_MARK_LAYER, 'circle-opacity', TRACKS.opacity)
     vis(TRACK_MARK_LAYER, TRACKS.marks.shown)
   }
+  // The filters are only written to layers that are ON, so a layer switched on
+  // here is carrying whatever day it was hidden at. This is the counterpart of
+  // that skip and has to run AFTER the vis() calls above: turn the beads on
+  // from the console and they arrive filtered to the current playhead, not to
+  // 1961. Cheap and console-only — nothing on the shipped path calls this
+  // after load.
+  setTrackTime(map, lastDay)
 }
 
 /** Add the track layers under the basemap's labels. Returns the bottom
@@ -536,12 +581,12 @@ export function addTrackLayers(
       // The near band only — the grids above it are dots, binned from these
       // same lines by trackGrid.
       minzoom: Z_NEAR,
-      filter: unsprayed(day),
+      filter: all(NO_VOLUME),
       layout: { 'line-cap': 'round', 'line-join': 'round' },
       paint: {
         'line-color': tint,
         'line-width': TRACKS.nil.width,
-        'line-opacity': TRACKS.nil.opacity,
+        'line-opacity': dayGate(TRACKS.nil.opacity),
         // Dashed for the same reason the zero-volume dots are hollow: it is a
         // different KIND of mark, not a thinner amount of the same one.
         'line-dasharray': TRACKS.nil.dash,
@@ -559,12 +604,12 @@ export function addTrackLayers(
       type: 'line',
       source: TRACK_SOURCE,
       minzoom: Z_NEAR,
-      filter: ['all', sprayed(day), ['==', ['literal', true], false]] as unknown as maplibregl.FilterSpecification,
+      filter: all(NEVER),
       layout: { 'line-cap': TRACKS.cap, 'line-join': 'round' },
       paint: {
         'line-color': tint,
         'line-width': widthRamp(),
-        'line-opacity': TRACKS.opacity,
+        'line-opacity': dayGate(TRACKS.opacity),
         'line-blur': TRACKS.blur,
       },
     },
@@ -579,12 +624,12 @@ export function addTrackLayers(
       // The near band only — the grids above it are dots, binned from these
       // same lines by trackGrid.
       minzoom: Z_NEAR,
-      filter: sprayed(day),
+      filter: all(HAS_VOLUME),
       layout: { 'line-cap': TRACKS.cap, 'line-join': 'round' },
       paint: {
         'line-color': tint,
         'line-width': widthRamp(),
-        'line-opacity': TRACKS.opacity,
+        'line-opacity': dayGate(TRACKS.opacity),
         'line-blur': TRACKS.blur,
       },
     },
@@ -597,10 +642,9 @@ export function addTrackLayers(
       type: 'circle',
       source: TRACK_MARK_SOURCE,
       minzoom: Z_NEAR,
-      filter: dayFilter(day),
       paint: {
         'circle-color': tint,
-        'circle-opacity': TRACKS.opacity,
+        'circle-opacity': dayGate(TRACKS.opacity),
         'circle-pitch-alignment': 'map',
         'circle-pitch-scale': 'map',
         'circle-radius': markRamp(),
@@ -639,10 +683,10 @@ export function addTrackLayers(
       type: 'circle',
       source: TRACK_END_SOURCE,
       minzoom: Z_NEAR,
-      filter: sprayed(day),
+      filter: all(HAS_VOLUME),
       paint: {
         'circle-color': tint,
-        'circle-opacity': beadOpacity(),
+        'circle-opacity': dayGate(beadOpacity()),
         'circle-blur': beadBlur(),
         'circle-pitch-alignment': 'map',
         'circle-pitch-scale': 'map',
@@ -664,7 +708,7 @@ export function addTrackLayers(
       paint: {
         'line-color': tint,
         'line-width': hiWidthRamp(),
-        'line-opacity': 1,
+        'line-opacity': dayGate(1),
       },
     },
     labelId,
@@ -694,16 +738,45 @@ export function addTrackLayers(
  *  and the two are set from different places. */
 let lastDay = 0
 
+/** Is this layer absent or switched off?
+ *
+ *  A hidden layer still costs. MapLibre skips it when PAINTING, but a filter
+ *  write goes through `Style._updateLayer`, which marks the whole SOURCE for
+ *  reload — every tile of it re-parsed in the worker and rebuilt — whether or
+ *  not anyone can see the result. Two of the five track layers ship hidden
+ *  (`ends.shown: false`, `nil.shown: false`) and were being filtered on every
+ *  playback step and every agent switch; the ends layer alone drags a
+ *  17,506-point source through that. Measured at z9 on this machine, a filter
+ *  write to the hidden ends layer costs the same ~680ms to settle as one to a
+ *  layer the reader is actually looking at. */
+function off(map: maplibregl.Map, id: string): boolean {
+  return !map.getLayer(id) || map.getLayoutProperty(id, 'visibility') === 'none'
+}
+
+/** Push the playhead onto every track layer. Paint only — see the note above
+ *  HAS_VOLUME. Skips layers that are off, because a write to a hidden layer
+ *  still costs and applyTracks re-runs this whenever it turns one back on. */
+function applyDayGate(map: maplibregl.Map) {
+  const set = (id: string, prop: string, o: number) => {
+    if (!off(map, id)) map.setPaintProperty(id, prop, dayGate(o) as never)
+  }
+  set(TRACK_LAYER, 'line-opacity', TRACKS.opacity)
+  set(TRACK_DIM_LAYER, 'line-opacity', TRACKS.opacity)
+  set(TRACK_NIL_LAYER, 'line-opacity', TRACKS.nil.opacity)
+  set(TRACK_MARK_LAYER, 'circle-opacity', TRACKS.opacity)
+  set(TRACK_END_LAYER, 'circle-opacity', beadOpacity())
+  set(TRACK_HI_LAYER, 'line-opacity', 1)
+}
+
 export function setTrackTime(map: maplibregl.Map, day: number) {
   lastDay = day
-  if (map.getLayer(TRACK_NIL_LAYER)) map.setFilter(TRACK_NIL_LAYER, unsprayed(day))
-  if (map.getLayer(TRACK_END_LAYER)) map.setFilter(TRACK_END_LAYER, sprayed(day))
-  if (map.getLayer(TRACK_MARK_LAYER)) map.setFilter(TRACK_MARK_LAYER, dayFilter(day))
-  // The two sprayed LINE layers are not touched here. Their filter is
-  // `day AND selection` and the selection half lives in applyTrackColour, so
-  // setting it from two places is how one of them silently wins — the taper
-  // split survived only because MapView happened to call the other one next.
-  applyTrackColour(map)
+  // It no longer calls applyTrackColour. It used to, because the sprayed
+  // layers' filter was `day AND selection` and the selection half lived there —
+  // so MapView calling setTrackTime and then setTrackAgents ran the whole
+  // colour pass twice per step. With the day out of the filters the two have
+  // nothing to share: the playhead is paint and lives here, the selection is a
+  // filter and lives there.
+  applyDayGate(map)
 }
 
 /** Isolate an agent: the selection takes the agent's hue, the rest go grey, and
@@ -719,6 +792,21 @@ export function setTrackAgents(
   tint: string,
   dim: string,
 ) {
+  // MapView calls this on every playhead step, not only when the reader picks
+  // an agent — so with the day out of the filters this was still rewriting two
+  // filters and two gradients eleven times a second to say the same thing. The
+  // selection is the one fact this function owns; if it has not changed there
+  // is nothing to push.
+  const p = paintState
+  const same =
+    p.tint === tint &&
+    p.dim === dim &&
+    (p.indices === indices ||
+      (p.indices != null &&
+        indices != null &&
+        p.indices.length === indices.length &&
+        p.indices.every((v, i) => v === indices[i])))
+  if (same) return
   paintState = { tint, dim, indices }
   applyTrackColour(map)
 }
@@ -734,9 +822,6 @@ export function setTrackAgents(
 function applyTrackColour(map: maplibregl.Map) {
   const { tint, dim, indices } = paintState
   const inSel = ['in', ['get', 'agent'], ['literal', indices ?? []]]
-  const day = lastDay
-  const both = (l: maplibregl.FilterSpecification, r: unknown) =>
-    ['all', l, r] as unknown as maplibregl.FilterSpecification
 
   const has = (id: string) => map.getLayer(id) != null
   if (TRACKS.taper > 0) {
@@ -748,14 +833,11 @@ function applyTrackColour(map: maplibregl.Map) {
     // install would paint the record in black rather than fall back to the
     // tint. (An earlier comment here claimed the opposite. It was wrong.)
     if (has(TRACK_LAYER)) {
-      map.setFilter(TRACK_LAYER, indices ? both(sprayed(day), inSel) : sprayed(day))
+      map.setFilter(TRACK_LAYER, indices ? all(HAS_VOLUME, inSel) : all(HAS_VOLUME))
       map.setPaintProperty(TRACK_LAYER, 'line-gradient', gradient(tint) as never)
     }
     if (has(TRACK_DIM_LAYER)) {
-      map.setFilter(
-        TRACK_DIM_LAYER,
-        indices ? both(sprayed(day), ['!', inSel]) : both(sprayed(day), ['==', ['literal', true], false]),
-      )
+      map.setFilter(TRACK_DIM_LAYER, indices ? all(HAS_VOLUME, ['!', inSel]) : all(NEVER))
       map.setPaintProperty(TRACK_DIM_LAYER, 'line-gradient', gradient(dim) as never)
     }
   } else {
@@ -764,26 +846,26 @@ function applyTrackColour(map: maplibregl.Map) {
       : (tint as never)
     if (has(TRACK_LAYER)) {
       map.setPaintProperty(TRACK_LAYER, 'line-gradient', undefined as never)
-      map.setFilter(TRACK_LAYER, sprayed(day))
+      map.setFilter(TRACK_LAYER, all(HAS_VOLUME))
       map.setPaintProperty(TRACK_LAYER, 'line-color', colour)
     }
     // The twin goes empty rather than hidden: an empty filter costs nothing
     // and leaves the layer ready for the next taper without a re-add.
     if (has(TRACK_DIM_LAYER)) {
-      map.setFilter(TRACK_DIM_LAYER, both(sprayed(day), ['==', ['literal', true], false]))
+      map.setFilter(TRACK_DIM_LAYER, all(NEVER))
     }
   }
   const colour = indices
     ? (['case', inSel, tint, dim] as never)
     : (tint as never)
-  if (has(TRACK_NIL_LAYER)) map.setPaintProperty(TRACK_NIL_LAYER, 'line-color', colour)
+  if (!off(map, TRACK_NIL_LAYER)) map.setPaintProperty(TRACK_NIL_LAYER, 'line-color', colour)
   // The same `case` the nil layer takes, so the highlight never changes a run's
   // hue — only its weight. Picking out a greyed-out run in the SELECTION's tint
   // would say it belonged to the isolated agent, which is the one thing the
   // grey exists to deny.
   if (has(TRACK_HI_LAYER)) map.setPaintProperty(TRACK_HI_LAYER, 'line-color', colour)
   for (const id of [TRACK_MARK_LAYER, TRACK_END_LAYER]) {
-    if (has(id)) map.setPaintProperty(id, 'circle-color', colour)
+    if (!off(map, id)) map.setPaintProperty(id, 'circle-color', colour)
   }
 }
 

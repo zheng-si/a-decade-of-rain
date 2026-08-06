@@ -182,10 +182,26 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
       ) : (
         <>
           <p className="inspect-kicker">Single Spray Run</p>
-          {/* A line's "where" is its date, not a coordinate. The waypoint card
-              keeps the coordinate because a waypoint really is one place. */}
+          {/* The same four blocks the cell card sets, in the same order:
+              title · locating pair · headline figure · stats. It had been
+              title · one line · figure · agent · stats, which put the agent
+              between the total and the counts that decompose it and skipped
+              the 12px break that separates the locating block from the figure
+              — so the whole card read tighter and in a different rhythm than
+              the one the reader had just closed.
+
+              A line's "where" is its date; the waypoint card keeps the
+              coordinate because a waypoint really is one place. */}
           <p className="inspect-coords">
             {data.km != null ? fullDate(data.day) : fmtCoords(data.coords)}
+          </p>
+          <p className="inspect-coords is-span">
+            <span
+              className="inspect-dot"
+              style={{ background: groups[data.groupIndex]?.color ?? '#999' }}
+            />{' '}
+            {groups[data.groupIndex]?.label ?? 'Unknown'}
+            {data.km == null && <> · {fullDate(data.day)}</>}
           </p>
           <p className="inspect-figure">
             {data.gallons > 0 ? (
@@ -196,14 +212,6 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
             ) : (
               'Flight path point'
             )}
-          </p>
-          <p className="inspect-sub">
-            <span
-              className="inspect-dot"
-              style={{ background: groups[data.groupIndex]?.color ?? '#999' }}
-            />{' '}
-            {groups[data.groupIndex]?.label ?? 'Unknown'}
-            {data.km == null && <> · {fullDate(data.day)}</>}
           </p>
           {/* Length and dose, in the cell card's own stats grammar. The second
               figure is the one the stroke's width encodes, so the card names
