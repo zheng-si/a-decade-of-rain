@@ -1063,3 +1063,13 @@
   color: #b4472f;
   font-variant-numeric: tabular-nums;
 }
+
+/* Why the load map is empty. Only appears when it is. */
+.archive-key .map-key-note {
+  margin: 0.4rem 0 0;
+  padding-top: 0.4rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+  font-size: 0.6rem;
+  line-height: 1.5;
+  color: #8a8d85;
+}

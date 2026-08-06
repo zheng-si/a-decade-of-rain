@@ -460,6 +460,14 @@ export default function MapView() {
    *  sprayings. Offering the switch without the lines would be offering a
    *  number the record cannot support. */
   const [metric, setMetric] = useState<DotMetric>('volume')
+  /** How many cells the load field is holding right now.
+   *
+   *  Only so the key can say why the map is empty. At the default playhead —
+   *  the end of the record — the honest answer is 8 cells nationwide, because
+   *  spraying stopped and thirty-day decay finished the job in a season. That
+   *  is the strongest sentence this reading has, and without a word on screen
+   *  it reads as a broken layer instead. */
+  const [loadCells, setLoadCells] = useState(-1)
   const dayRef = useRef(0)
   const colorsRef = useRef<string[] | null>(null)
   const playingRef = useRef(false)
@@ -716,7 +724,22 @@ export default function MapView() {
     const gridsOn = !trackLayer || map.getZoom() < (trackLayer.minzoom ?? 0)
 
     if (gridsOn) {
-      if (dataRef.current)
+      // updateVolume ONLY when the point bins are what the grids will show.
+      //
+      // Under TRACKS every one of its outputs is thrown away: it writes
+      // point-binned features into the same two sources the track/load binning
+      // overwrites two statements later, and its third tier — vol-raw — is
+      // hidden at setup because the strokes replace it.
+      //
+      // Thrown away, but not for free, and not invisibly. Two setData calls
+      // land on one source per step, MapLibre parses GeoJSON in a worker, and
+      // the first payload can reach the screen before the second replaces it.
+      // In the Residue reading the two payloads are wildly different sizes —
+      // a decade of cumulative point bins against a decayed field — so the
+      // map flickered through the whole of playback. Measured over 59 frames:
+      // 21 frame-to-frame swings of more than 200 features, worst 500, the
+      // count oscillating between 451 and 1,077.
+      if (!TRACKS && dataRef.current)
         updateVolume(map, dataRef.current, day, activeIndices, choices.find((c) => c.key === agentKey)?.color ?? null)
       // The grids are re-binned from the TRACKS, so a run's gallons land in
       // every cell it crossed. Same feature shape as binGrid, same layers.
@@ -734,8 +757,11 @@ export default function MapView() {
           advanceLoad(f.coarse, day, activeIndices)
           advanceLoad(f.fine, day, activeIndices)
           const filtered = activeIndices != null
-          coarse?.setData(loadFeatures(f.coarse, c, DOTS.dim, filtered))
-          fine?.setData(loadFeatures(f.fine, c, DOTS.dim, filtered))
+          const cf = loadFeatures(f.coarse, c, DOTS.dim, filtered)
+          const ff = loadFeatures(f.fine, c, DOTS.dim, filtered)
+          coarse?.setData(cf)
+          fine?.setData(ff)
+          setLoadCells(Math.max(cf.features.length, ff.features.length))
         } else {
           coarse?.setData(binTracks(tracksRef.current, day, activeIndices, deg.coarse, c))
           fine?.setData(binTracks(tracksRef.current, day, activeIndices, deg.fine, c))
@@ -832,13 +858,19 @@ export default function MapView() {
     const map = mapRef.current
     if (!map || !dataRef.current) return
     appliedKeyRef.current = ''
-    updateVolume(
-      map,
-      dataRef.current,
-      day,
-      activeIndices,
-      choices.find((c) => c.key === agentKey)?.color ?? null,
-    )
+    // Clearing the key is what actually re-bins — the day effect runs next and
+    // picks whichever binning the current reading calls for. This direct call
+    // is the point-bin path only, and under TRACKS it is the same discarded
+    // write that made playback flicker, so it is gated the same way.
+    if (!TRACKS)
+      updateVolume(
+        map,
+        dataRef.current,
+        day,
+        activeIndices,
+        choices.find((c) => c.key === agentKey)?.color ?? null,
+      )
+    else setGridEpoch((n) => n + 1)
   }, [day, activeIndices, choices, agentKey])
 
   // Agent selection re-bins the grids and re-filters the raw tier (the
@@ -930,6 +962,7 @@ export default function MapView() {
           tracks={TRACKS}
           metric={TRACKS ? metric : undefined}
           onMetric={TRACKS ? setMetric : undefined}
+          loadCells={metric === 'load' ? loadCells : undefined}
         >
           {inspect && (
             <ArchiveInspect

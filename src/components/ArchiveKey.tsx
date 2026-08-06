@@ -26,6 +26,9 @@ interface Props {
    *  MapView for why a passes reading needs them. */
   metric?: 'volume' | 'passes' | 'load'
   onMetric?: (m: 'volume' | 'passes' | 'load') => void
+  /** Cells the load field is holding, for the note below the legend. Only the
+   *  load reading supplies it. */
+  loadCells?: number
   /** Extra section rendered below the legend (the inspect card). */
   children?: ReactNode
 }
@@ -60,6 +63,7 @@ export default function ArchiveKey({
   tracks = false,
   metric,
   onMetric,
+  loadCells,
   children,
 }: Props) {
   const passes = metric === 'passes'
@@ -259,6 +263,19 @@ export default function ArchiveKey({
           National Border
         </li>
       </ul>
+      {/* An empty map is a result here, not a failure, and the difference has
+          to be on screen. At the end of the record this reading holds a
+          handful of cells nationwide — the cumulative map is still at its
+          maximum on the same date. */}
+      {load && loadCells != null && loadCells >= 0 && loadCells < 24 && (
+        <p className="map-key-note">
+          {loadCells === 0
+            ? 'Nothing modelled as remaining at this date.'
+            : `Only ${loadCells} cells still carry a modelled residue at this date.`}{' '}
+          Spraying has ended; thirty-day decay does the rest. Scrub back to the
+          late 1960s to see the surface at its fullest.
+        </p>
+      )}
       {children}
     </div>
   )
