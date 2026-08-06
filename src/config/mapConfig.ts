@@ -138,11 +138,25 @@ export const LABEL_FONT = 'Roboto Condensed'
  * close an import cycle.
  */
 export const Z_MID = 7.5
-/** Was 10.5, which left the raw tier half a zoom level of life before the
- *  ceiling at 11 — so a reader who zoomed all the way in was almost always
- *  still looking at the fine GRID and concluding the map never stopped
- *  aggregating. The raw events now get 9.5 → 11. */
-export const Z_NEAR = 9.5
+/** Where the grid hands off to the TRACKS.
+ *
+ *  10.5 first, which left the deepest tier half a zoom level of life before the
+ *  ceiling at 11 — a reader who zoomed all the way in was almost always still
+ *  looking at the fine GRID and concluding the map never stopped aggregating.
+ *  Then 9.5, which gave it 9.5 → 11.
+ *
+ *  Now 8.1, which is a different decision from the two above rather than a
+ *  further correction of them. Those were about giving the deepest tier room;
+ *  this is about which encoding the reader spends their time in. The strokes
+ *  are the honest mark — a run is a line, and the grid only ever summarises
+ *  them — so the band where the map draws what actually happened is worth
+ *  three zoom levels rather than one and a half. Measured over Đồng Xoài, the
+ *  hand-off moves from z9.5 to z8.1 and the strokes on screen at the moment
+ *  they appear go from 2,054 to 4,169.
+ *
+ *  Reachable from the ZOOM tab (3–12) without editing this file, but the
+ *  slider is a console and this is the shipped map. */
+export const Z_NEAR = 8.1
 
 /** The far end of the record, for ramps that need a low anchor.
  *
