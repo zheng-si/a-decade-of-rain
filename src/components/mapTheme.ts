@@ -62,6 +62,51 @@ function classify(id: string): keyof MapTheme | 'label' | null {
   return null
 }
 
+/**
+ * Scale a paint value by `factor` where `test` holds, without ever nesting a
+ * zoom expression.
+ *
+ * The obvious form — `['case', test, ['*', base, factor], base]` — is invalid
+ * whenever `base` is a zoom ramp, which is what every real basemap style uses
+ * for `line-width`. MapLibre allows `["zoom"]` only as the input to a SINGLE
+ * top-level `step`/`interpolate`, so wrapping the ramp in anything makes the
+ * write fail validation. It fails quietly: `setPaintProperty` fires an error
+ * event rather than throwing, so the property keeps its old value and the call
+ * looks like it worked.
+ *
+ * So the case goes on the OUTPUTS and the ramp stays where it is. Same shape as
+ * `hiWidthRamp()` in trackLayers.ts, which folds its bump inside each stop for
+ * exactly this reason.
+ *
+ * Returns null for a shape we can't rewrite safely — better to leave the width
+ * alone than to write an expression the style will refuse.
+ */
+function thinOutputs(
+  base: number | ExpressionSpecification,
+  test: ExpressionSpecification,
+  factor: number,
+): ExpressionSpecification | null {
+  if (typeof base === 'number') {
+    return ['case', test, base * factor, base] as ExpressionSpecification
+  }
+  const op = base[0]
+  if (op !== 'interpolate' && op !== 'interpolate-hcl' && op !== 'interpolate-lab' && op !== 'step') {
+    return null
+  }
+  // interpolate: [op, type, input, stop, out, ...]   step: [op, input, fallback, stop, out, ...]
+  const head = op === 'step' ? 3 : 3
+  const out = base.slice(0, head) as unknown[]
+  const scale = (v: unknown) =>
+    typeof v === 'number' ? v * factor : (['*', v, factor] as unknown)
+  const wrap = (v: unknown) => ['case', test, scale(v), v] as unknown
+  if (op === 'step') out[2] = wrap(out[2]) // the step's fallback output
+  for (let i = head; i < base.length; i += 2) {
+    out.push(base[i]) // stop
+    if (i + 1 < base.length) out.push(wrap(base[i + 1]))
+  }
+  return out as unknown as ExpressionSpecification
+}
+
 export function applyMapTheme(map: maplibregl.Map, theme: MapTheme = mapConfig.theme) {
   for (const layer of map.getStyle().layers ?? []) {
     const id = layer.id
@@ -94,8 +139,8 @@ export function applyMapTheme(map: maplibregl.Map, theme: MapTheme = mapConfig.t
           const subLevel: ExpressionSpecification = ['>=', ['coalesce', ['to-number', ['get', 'admin_level']], 4], 3]
           map.setPaintProperty(id, 'line-color', ['case', subLevel, '#b9bcb2', color] as ExpressionSpecification)
           const w = map.getPaintProperty(id, 'line-width') as number | ExpressionSpecification | undefined
-          const base: number | ExpressionSpecification = w != null ? w : 1
-          map.setPaintProperty(id, 'line-width', ['case', subLevel, ['*', base, 0.55], base] as ExpressionSpecification)
+          const thinned = thinOutputs(w != null ? w : 1, subLevel, 0.55)
+          if (thinned != null) map.setPaintProperty(id, 'line-width', thinned)
           map.setPaintProperty(id, 'line-opacity', ['case', subLevel, 0.5, 0.9] as ExpressionSpecification)
         }
       } else if (layer.type === 'fill-extrusion') {
