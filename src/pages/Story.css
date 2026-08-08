@@ -882,8 +882,10 @@
   text-decoration: underline;
 }
 
-/* The collapse toggle exists only on phones — see StoryQuote in Story.tsx. */
-.story-quote-toggle {
+/* The collapse toggle and the deck's node dots exist only on phones — see
+   StoryQuote and the DECK block below. */
+.story-quote-toggle,
+.story-dots {
   display: none;
 }
 
@@ -1111,32 +1113,43 @@
   .map-key {
     display: none;
   }
-  /* ── the node card on a phone ───────────────────────────────────────────
-     The card stays IN FLOW, parked at the foot of its own 100vh step. A
-     position:fixed bottom sheet was shipped briefly and reverted: fixed
-     detaches visibility from scroll position, so the active card covered the
-     hero before the story began and outlived the last step into the figure
-     sections. In flow, both failures are structurally impossible — a card
-     exists only where its step is.
+  /* ── DECK: the node card on a phone ─────────────────────────────────────
+     A fixed caption bar docked to the bottom edge, capped at 32vh; node
+     changes slide the next card in horizontally. The map's clear band is
+     therefore constant — cards never travel over it — and framePadding()
+     reserves the same 32vh + dock inset the CSS declares here.
 
-     The card does scroll through the viewport between steps; that is the
-     normal grammar of mobile scrollytelling (text passes over the pinned
-     graphic). What matters is the PARKED reading position: bottom-aligned,
-     capped, with the camera aiming the node's subject into the band above
-     it — framePadding() measures this box rather than restating it. */
+     The earlier fixed-sheet attempt died of tying visibility to is-active
+     alone, which knows nothing about the hero above the steps or the figure
+     sections below them. The deck is gated by .story-deck-live — set from
+     the SAME scrollama events that drive the camera (started && !ended) —
+     so a card can only exist while the reader is inside the story. */
   .story-step {
-    align-items: flex-end;
-    padding: 0 3vw 2.5vh;
+    padding: 0;
   }
   .story-card {
-    width: 100%;
-    padding: 1.125rem 1.25rem 1.25rem;
-    max-height: 42vh;
+    display: none;
+  }
+  .story-deck-live .story-card.is-active {
+    display: block;
+    position: fixed;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    z-index: 4;
+    width: auto;
+    max-height: 32vh;
     overflow-y: auto;
-    /* Keep the sheet's inner scroll from chaining into the page scroll and
-       skipping a story node the moment the card's content ends. */
-    overscroll-behavior: contain;
+    /* Deliberately NOT `contain`: at this cap most nodes' bodies scroll
+       inside the bar, so the thumb is usually ON the card — containment
+       would turn the card's end into a dead zone where scrolling stops.
+       Chaining lets the same gesture that finishes the card advance the
+       story, which is the reading flow a caption deck wants. */
+    overscroll-behavior: auto;
     -webkit-overflow-scrolling: touch;
+    padding: 1rem 1.125rem 1.125rem;
+    opacity: 1;
+    animation: deck-in 0.32s ease both;
     /* Scroll shadow, CSS only: the `local` layers scroll away with the
        content, uncovering the pinned `scroll` layers — a soft edge that
        appears only when there is more to read in that direction. Written
@@ -1151,8 +1164,68 @@
     background-repeat: no-repeat;
     background-attachment: local, local, scroll, scroll;
   }
+  /* Scrolling back up, the card comes in from the left instead. */
+  [data-deck-dir='up'] .story-card.is-active {
+    animation-name: deck-in-up;
+  }
+  @keyframes deck-in {
+    from {
+      opacity: 0;
+      transform: translateX(2rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes deck-in-up {
+    from {
+      opacity: 0;
+      transform: translateX(-2rem);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .story-deck-live .story-card.is-active {
+      animation: none;
+    }
+  }
+
+  /* Deck type: one size down so the median node fits 32vh without scrolling. */
+  .story-name {
+    font-size: 1.375rem;
+  }
+  .story-dek {
+    font-size: 1rem;
+  }
   .story-body {
+    font-size: 0.8125rem;
+    line-height: 1.55;
+  }
+  .story-quote p {
     font-size: 0.9375rem;
+  }
+
+  /* Node progress: the fixed bar gives no scroll affordance that more nodes
+     exist, so seven dots do. */
+  .story-dots {
+    position: absolute;
+    top: 1.125rem;
+    right: 1.125rem;
+    display: flex;
+    gap: 0.3125rem;
+  }
+  .story-dots i {
+    width: 0.3125rem;
+    height: 0.3125rem;
+    border-radius: 50%;
+    background: rgba(146, 247, 188, 0.26);
+  }
+  .story-dots i.on {
+    background: var(--accent);
   }
 
   /* ── the quote, collapsed behind a tap ─────────────────────────────── */

@@ -159,6 +159,15 @@ export default function Story() {
 
   const [active, setActive] = useState(0)
   const [started, setStarted] = useState(false)
+  // The phone deck exists only while the reader is inside the story steps:
+  // `started` opens it (step 0 entered) and `ended` closes it (last step
+  // exited downward). Both come from scrollama, so visibility is owned by the
+  // same events that own the camera — the fixed-sheet attempt died of tying
+  // visibility to is-active alone, which knows nothing about hero or tail.
+  const [ended, setEnded] = useState(false)
+  // Which way the last node change went — the deck card slides in from that
+  // side. 'down' = forward through the story (enter from the right).
+  const [deckDir, setDeckDir] = useState<'down' | 'up'>('down')
   const [is3D, setIs3D] = useState(false)
   const [monthlyCum, setMonthlyCum] = useState<number[]>([])
   const [yearStart, setYearStart] = useState(1961)
@@ -326,20 +335,16 @@ export default function Story() {
   // centred focus falls behind the card, so we pad the map's left by roughly
   // the card's reach — the map re-centres its focus into the clear area to the
   // right (industry-standard for scrollytelling maps with a side panel).
-  function framePadding(i?: number): maplibregl.PaddingOptions {
+  function framePadding(): maplibregl.PaddingOptions {
     const w = window.innerWidth
     if (w <= 640) {
-      // The phone card parks bottom-aligned in its step, capped at 42vh by
-      // CSS. Reserve exactly that parked band — measured from the rendered
-      // card when we know which node this is, so the CSS cap and the node's
-      // own content length reach the camera without being restated here.
-      // (A typed 340 lived here once; it disagreed with the real card by
-      // ~150px either way and aimed the subject into the wrong band.)
-      const cap = window.innerHeight * 0.42
-      const card = i != null ? document.querySelectorAll('.story-card')[i] : null
-      const box = card ? card.getBoundingClientRect().height : 0
-      const h = Math.round(Math.min(box > 0 ? box : cap, cap))
-      return { left: 16, right: 16, top: 40, bottom: h + 20 }
+      // The phone deck is a fixed bar docked to the bottom edge, capped at
+      // 32vh (see the DECK block in Story.css). The camera reserves the CAP,
+      // not the individual card's height: cards vary 200–270px node to node,
+      // and re-aiming the band per node would make the map breathe for no
+      // narrative reason. One constant band; short cards simply show a little
+      // more map beneath their top edge.
+      return { left: 16, right: 16, top: 40, bottom: Math.round(window.innerHeight * 0.32) + 32 }
     }
     // A modest left bias nudges the focus (and its westmost label chips) clear
     // of the card's right edge; too much and Vietnam is shoved to the far edge
@@ -496,7 +501,7 @@ export default function Story() {
     if (!map || !readyRef.current) return
     const ev = FACTS_EVENTS[i]
     if (!ev) return
-    const pad = framePadding(i)
+    const pad = framePadding()
     const pitch = is3DRef.current ? mapConfig.view.pitch3d : ev.camera.pitch ?? 0
     if (ev.bbox) {
       map.fitBounds(
@@ -687,6 +692,8 @@ export default function Story() {
       .onStepEnter(({ index }: { index: number }) => {
         setStarted(true)
         startedRef.current = true
+        setEnded(false)
+        setDeckDir(index >= activeRef.current ? 'down' : 'up')
         setActive(index)
         activeRef.current = index
         applyStep(index)
@@ -697,6 +704,7 @@ export default function Story() {
           startedRef.current = false
           setHookState()
         }
+        if (index === FACTS_EVENTS.length - 1 && direction === 'down') setEnded(true)
       })
     const onResize = () => scroller.resize()
     window.addEventListener('resize', onResize)
@@ -729,7 +737,11 @@ export default function Story() {
   }
 
   return (
-    <div className="story" ref={storyRef}>
+    <div
+      className={`story${started && !ended ? ' story-deck-live' : ''}`}
+      data-deck-dir={deckDir}
+      ref={storyRef}
+    >
       <StoryNav />
 
       <div className="story-graphic">
@@ -788,6 +800,15 @@ export default function Story() {
             <Fragment key={ev.id}>
               <section className="story-step" data-index={i} id={NAV_ANCHOR[ev.id]}>
                 <article className={`story-card${i === active ? ' is-active' : ''}`}>
+                  {/* Node progress for the phone deck (hidden on desktop): a
+                      fixed card gives no scroll affordance that more nodes
+                      exist, so the dots carry it. Inside each card rather than
+                      a separate fixed element — they ride the same slide. */}
+                  <span className="story-dots" aria-hidden="true">
+                    {FACTS_EVENTS.map((_, d) => (
+                      <i key={d} className={d === i ? 'on' : undefined} />
+                    ))}
+                  </span>
                   <p className="story-eyebrow">{ev.period}</p>
                   <h2 className="story-name">{ev.name}</h2>
                   <p className="story-dek">{ev.dek}</p>
