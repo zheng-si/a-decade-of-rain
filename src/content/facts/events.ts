@@ -73,6 +73,12 @@ export const FACTS_EVENTS: StoryEvent[] = [
     period: '1961–62',
     date: '1962-06-01',
     camera: { center: [107.6, 12.6], zoom: 6.6 },
+    // The whole of South Vietnam, Cà Mau to the DMZ — the story opens on the
+    // full stage, with both 1961–62 sites (Đắk Tô and Biên Hòa) in one frame.
+    // A bbox rather than a fixed zoom: the two crosses sit 3.7° of latitude
+    // apart, which fits a desktop's clear height at one zoom and a phone's at
+    // another, and only fitBounds knows the difference.
+    bbox: [104.4, 8.4, 109.4, 17.1],
     agent: 'all',
     cities: [
       { name: 'Đắk Tô', lng: 107.83, lat: 14.65 },

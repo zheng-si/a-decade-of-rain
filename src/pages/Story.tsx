@@ -552,9 +552,22 @@ export default function Story() {
         style,
         center: HOOK.camera.center,
         zoom: HOOK.camera.zoom,
-        minZoom: mapConfig.view.minZoom,
+        // A phone frames each node in the band above the card (~430px of an
+        // 844px screen), which changes two limits the shared config assumes:
+        // the opening whole-South-Vietnam fit needs z≈5.1 (below the 5.6
+        // floor), and placing that frame's centre in the band puts the
+        // viewport's bottom edge at ~0.7°N — south of the leash at 2°N, which
+        // otherwise clamps the centre and silently shoves the whole opener
+        // ~67px down into the card. Desktop keeps the shared limits.
+        minZoom: window.innerWidth <= 640 ? 5.0 : mapConfig.view.minZoom,
         maxZoom: mapConfig.view.maxZoom,
-        maxBounds: mapConfig.view.maxBounds,
+        maxBounds:
+          window.innerWidth <= 640
+            ? ([
+                [94.0, -2.0],
+                [122.0, 26.0],
+              ] as [[number, number], [number, number]])
+            : mapConfig.view.maxBounds,
         maxPitch: mapConfig.view.maxPitch,
         interactive: false,
         attributionControl: { compact: true },
