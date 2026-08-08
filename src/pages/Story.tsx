@@ -79,6 +79,66 @@ function monthlyCumulative(spray: SprayDataset): { months: number[]; yearStart: 
 }
 
 
+const PHONE_MQ = '(max-width: 640px)'
+
+/**
+ * A node's quote — open on desktop, collapsed behind a tap on a phone.
+ *
+ * Measured on a 390×844 phone: the node cards run 294–487px and the quote
+ * block is 86–132px of that. The mobile sheet is capped at 46vh (388px), so
+ * with the quote open four of the seven nodes need an inner scroll — and an
+ * inner scroll competes with the page's own scroll for the same gesture, which
+ * is the one thing a scrollytelling page cannot afford. Collapsed, six of the
+ * seven fit with no scroll at all.
+ *
+ * The initial state reads the media query rather than defaulting to closed, so
+ * a desktop reader never sees the toggle flash; the listener re-opens it if the
+ * viewport crosses the breakpoint (rotation, or a resized window).
+ */
+function StoryQuote({
+  quote,
+  src,
+}: {
+  quote: { text: string; speaker: string }
+  src?: { url: string; publisher: string }
+}) {
+  const [open, setOpen] = useState(() => !window.matchMedia(PHONE_MQ).matches)
+
+  useEffect(() => {
+    const m = window.matchMedia(PHONE_MQ)
+    const sync = () => setOpen(!m.matches)
+    m.addEventListener('change', sync)
+    return () => m.removeEventListener('change', sync)
+  }, [])
+
+  return (
+    <blockquote className={`story-quote${open ? ' is-open' : ''}`}>
+      <button
+        type="button"
+        className="story-quote-toggle"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        {open ? 'Hide the account' : 'Read an account'}
+      </button>
+      <div className="story-quote-body">
+        <p>“{quote.text}”</p>
+        <cite>
+          — {quote.speaker}
+          {src && (
+            <>
+              {', '}
+              <a href={src.url} target="_blank" rel="noreferrer">
+                {src.publisher}
+              </a>
+            </>
+          )}
+        </cite>
+      </div>
+    </blockquote>
+  )
+}
+
 export default function Story() {
   const containerRef = useRef<HTMLDivElement>(null)
   const storyRef = useRef<HTMLDivElement>(null)
@@ -268,9 +328,20 @@ export default function Story() {
   // centred focus falls behind the card, so we pad the map's left by roughly
   // the card's reach — the map re-centres its focus into the clear area to the
   // right (industry-standard for scrollytelling maps with a side panel).
-  function framePadding(): maplibregl.PaddingOptions {
+  function framePadding(i?: number): maplibregl.PaddingOptions {
     const w = window.innerWidth
-    if (w <= 640) return { left: 24, right: 24, top: 48, bottom: 340 }
+    if (w <= 640) {
+      // MEASURED, not assumed. This used to be a typed 340, which made the
+      // sheet's height a fact with two owners: CSS decided how tall the card
+      // was, this decided how much map to reserve, and they disagreed by
+      // ~325px — so the camera pushed the subject up out of a band the card
+      // was not actually occupying. Reading the rendered box means the cap
+      // (46vh) and the node's own content length both reach the camera without
+      // being restated here.
+      const card = i != null ? document.querySelectorAll('.story-card')[i] : null
+      const h = card ? card.getBoundingClientRect().height : window.innerHeight * 0.46
+      return { left: 16, right: 16, top: 40, bottom: Math.round(h) + 24 }
+    }
     // A modest left bias nudges the focus (and its westmost label chips) clear
     // of the card's right edge; too much and Vietnam is shoved to the far edge
     // and bbox nodes zoom out. 280 ≈ a ~105px rightward shift vs symmetric.
@@ -396,7 +467,7 @@ export default function Story() {
     if (!map || !readyRef.current) return
     const ev = FACTS_EVENTS[i]
     if (!ev) return
-    const pad = framePadding()
+    const pad = framePadding(i)
     const pitch = is3DRef.current ? mapConfig.view.pitch3d : ev.camera.pitch ?? 0
     if (ev.bbox) {
       map.fitBounds(
@@ -684,22 +755,7 @@ export default function Story() {
                       <strong>{ev.stat.value}</strong> {ev.stat.label}
                     </p>
                   )}
-                  {ev.quote && (
-                    <blockquote className="story-quote">
-                      <p>“{ev.quote.text}”</p>
-                      <cite>
-                        — {ev.quote.speaker}
-                        {src && (
-                          <>
-                            {', '}
-                            <a href={src.url} target="_blank" rel="noreferrer">
-                              {src.publisher}
-                            </a>
-                          </>
-                        )}
-                      </cite>
-                    </blockquote>
-                  )}
+                  {ev.quote && <StoryQuote quote={ev.quote} src={src} />}
                 </article>
               </section>
             </Fragment>

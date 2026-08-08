@@ -865,6 +865,11 @@
   text-decoration: underline;
 }
 
+/* The collapse toggle exists only on phones — see StoryQuote in Story.tsx. */
+.story-quote-toggle {
+  display: none;
+}
+
 /* On narrow screens the card drops to the bottom of the map; the rail hides. */
 /* ── map key: scale bar + legend, docked under the top-right nav pill ───── */
 .map-key {
@@ -1089,12 +1094,112 @@
   .map-key {
     display: none;
   }
+  /* ── the node card becomes a bottom sheet ───────────────────────────────
+     `align-items: flex-end` alone was not enough, and the way it failed is
+     worth recording. The card is an ordinary flow child of a 100vh step, so
+     bottom-alignment holds at exactly one scroll position — the instant the
+     step's top meets the viewport top. Measured on a 390×844 phone, over the
+     ~800px a reader scrolls through one step the card travelled:
+
+       +  0px   top  290  bottom  776   (the intended position)
+       +200px   top   90  bottom  576   (dead centre, over the subject)
+       +300px   top  -10  bottom  476   (a slab across the whole top)
+
+     A scrollytelling page is precisely the case where the reader does not sit
+     still, so for most of each step the card was somewhere the layout never
+     planned for.
+
+     `position: sticky` was tried first and is NOT enough: sticky clamps to its
+     containing block, so a card bottom-aligned in a 100vh step can never be
+     pushed below that step's own bottom edge — measured, it held for about the
+     first 478px and then travelled exactly as before. The card is fixed
+     instead. That is honest about what it is: the sheet shows the ACTIVE node,
+     and the active node is state the page already tracks. */
   .story-step {
     align-items: flex-end;
-    padding: 0 4vw 8vh;
+    padding: 0;
   }
   .story-card {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 4;
     width: 100%;
+    /* 46vh ≈ 388px on a 390×844 phone. Cards measure 294–487px; with the
+       quote collapsed six of seven fit here without scrolling, and the
+       seventh scrolls inside the sheet. framePadding() reads this box back
+       rather than restating the number. */
+    max-height: 46vh;
+    overflow-y: auto;
+    /* Keep an inner scroll from chaining into the page's scroll and skipping
+       a whole story node the moment the sheet reaches its end. */
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    /* Scroll shadow, CSS only: the two `local` layers are painted with the
+       content and scroll away at each end, uncovering the two `scroll` layers
+       that stay pinned to the box. The result is a soft edge that appears only
+       when there is more to read in that direction — so the two nodes whose
+       body overruns 46vh say so, and the five that fit show nothing. Written
+       against #213528 because a gradient cannot interpolate to "transparent
+       var(--forest)" without going through transparent black on the way. */
+    background-image: linear-gradient(#213528 40%, rgba(33, 53, 40, 0)),
+      linear-gradient(rgba(33, 53, 40, 0), #213528 60%),
+      linear-gradient(rgba(16, 26, 20, 0.5), rgba(16, 26, 20, 0)),
+      linear-gradient(rgba(16, 26, 20, 0), rgba(16, 26, 20, 0.5));
+    background-position: top, bottom, top, bottom;
+    background-size: 100% 1.75rem, 100% 1.75rem, 100% 0.625rem, 100% 0.625rem;
+    background-repeat: no-repeat;
+    background-attachment: local, local, scroll, scroll;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+    /* The sheet meets the map along its top edge only, so the shadow is cast
+       upward — the two hairline sides and the foot no longer exist. */
+    box-shadow: 0 -0.75rem 2rem rgba(16, 26, 20, 0.34);
+  }
+
+  /* Every card is fixed to the same place, so they are stacked on top of each
+     other and only the active one may be seen. On desktop the neighbours sit
+     at 0.42 as depth cues; here they would be a pile. */
+  .story-card:not(.is-active) {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    transition: opacity 0.4s, visibility 0s linear 0.4s;
+  }
+  .story-card.is-active {
+    visibility: visible;
+    transition: opacity 0.4s, visibility 0s;
+  }
+
+  /* ── the quote, collapsed ───────────────────────────────────────────── */
+  .story-quote-toggle {
+    display: inline-block;
+    margin: 0;
+    padding: 0.4375rem 0.75rem;
+    border: 1px solid rgba(146, 247, 188, 0.24);
+    background: rgba(146, 247, 188, 0.06);
+    color: var(--forest-text);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+  }
+
+  .story-quote:not(.is-open) {
+    /* No rule above the toggle when there is nothing above it to divide. */
+    border-top: 0;
+    padding-top: 0;
+  }
+
+  .story-quote:not(.is-open) .story-quote-body {
+    display: none;
+  }
+
+  .story-quote.is-open .story-quote-toggle {
+    margin-bottom: 0.75rem;
   }
 }
 
