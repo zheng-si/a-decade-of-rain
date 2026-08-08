@@ -165,9 +165,6 @@ export default function Story() {
   // same events that own the camera — the fixed-sheet attempt died of tying
   // visibility to is-active alone, which knows nothing about hero or tail.
   const [ended, setEnded] = useState(false)
-  // Which way the last node change went — the deck card slides in from that
-  // side. 'down' = forward through the story (enter from the right).
-  const [deckDir, setDeckDir] = useState<'down' | 'up'>('down')
   const [is3D, setIs3D] = useState(false)
   const [monthlyCum, setMonthlyCum] = useState<number[]>([])
   const [yearStart, setYearStart] = useState(1961)
@@ -335,16 +332,18 @@ export default function Story() {
   // centred focus falls behind the card, so we pad the map's left by roughly
   // the card's reach — the map re-centres its focus into the clear area to the
   // right (industry-standard for scrollytelling maps with a side panel).
-  function framePadding(): maplibregl.PaddingOptions {
+  function framePadding(i?: number): maplibregl.PaddingOptions {
     const w = window.innerWidth
     if (w <= 640) {
-      // The phone deck is a fixed bar docked to the bottom edge, capped at
-      // 32vh (see the DECK block in Story.css). The camera reserves the CAP,
-      // not the individual card's height: cards vary 200–270px node to node,
-      // and re-aiming the band per node would make the map breathe for no
-      // narrative reason. One constant band; short cards simply show a little
-      // more map beneath their top edge.
-      return { left: 16, right: 16, top: 40, bottom: Math.round(window.innerHeight * 0.32) + 32 }
+      // The phone deck card shows its full content (no inner scroll), so its
+      // height varies by node. Reserve the rendered box of the node being
+      // framed — deck cards are hidden with `visibility`, never `display`,
+      // precisely so they stay measurable here. Safety-capped at half the
+      // screen; fallback if the card is somehow not in the DOM yet.
+      const card = i != null ? document.querySelectorAll('.story-card')[i] : null
+      const box = card ? card.getBoundingClientRect().height : 0
+      const h = Math.round(Math.min(box > 0 ? box : window.innerHeight * 0.36, window.innerHeight * 0.5))
+      return { left: 16, right: 16, top: 40, bottom: h + 28 }
     }
     // A modest left bias nudges the focus (and its westmost label chips) clear
     // of the card's right edge; too much and Vietnam is shoved to the far edge
@@ -496,32 +495,54 @@ export default function Story() {
     ((pad.top ?? 0) - (pad.bottom ?? 0)) / 2,
   ]
 
+  /**
+   * Our own bbox fit — zoom and centre for a box inside the padded area.
+   *
+   * fitBounds is not used any more, for a measured reason: when its maxZoom
+   * clamp engages (the hotspots bbox is 0.22° wide), MapLibre applies the
+   * padding's centre-offset with the wrong sign and the subject lands BELOW
+   * the reserved band by exactly twice the offset. The math it should do is
+   * twelve lines, so both node kinds now go through the one call shape that
+   * measured correct on every viewport: flyTo with a per-call `offset`.
+   */
+  function fitCamera(
+    map: maplibregl.Map,
+    bbox: [number, number, number, number],
+    pad: maplibregl.PaddingOptions,
+  ): { center: [number, number]; zoom: number } {
+    const nw = maplibregl.MercatorCoordinate.fromLngLat([bbox[0], bbox[3]])
+    const se = maplibregl.MercatorCoordinate.fromLngLat([bbox[2], bbox[1]])
+    const dx = Math.abs(se.x - nw.x)
+    const dy = Math.abs(se.y - nw.y)
+    const availW = window.innerWidth - Number(pad.left ?? 0) - Number(pad.right ?? 0)
+    const availH = window.innerHeight - Number(pad.top ?? 0) - Number(pad.bottom ?? 0)
+    // world size is 512·2^z px; the box spans dx·world px on screen.
+    const zoom = Math.log2(Math.min(availW / dx, availH / dy) / 512)
+    const mid = new maplibregl.MercatorCoordinate((nw.x + se.x) / 2, (nw.y + se.y) / 2, 0)
+    const c = mid.toLngLat()
+    return {
+      center: [c.lng, c.lat],
+      zoom: Math.min(Math.max(zoom, map.getMinZoom()), map.getMaxZoom()),
+    }
+  }
+
   function applyStep(i: number) {
     const map = mapRef.current
     if (!map || !readyRef.current) return
     const ev = FACTS_EVENTS[i]
     if (!ev) return
-    const pad = framePadding()
+    const pad = framePadding(i)
     const pitch = is3DRef.current ? mapConfig.view.pitch3d : ev.camera.pitch ?? 0
-    if (ev.bbox) {
-      map.fitBounds(
-        [
-          [ev.bbox[0], ev.bbox[1]],
-          [ev.bbox[2], ev.bbox[3]],
-        ],
-        { padding: pad, maxZoom: 11, pitch, bearing: 0, duration: 1500, essential: true },
-      )
-    } else {
-      map.flyTo({
-        center: ev.camera.center,
-        zoom: ev.camera.zoom,
-        pitch,
-        bearing: ev.camera.bearing ?? 0,
-        offset: frameOffset(pad),
-        duration: 1500,
-        essential: true,
-      })
-    }
+    const cam = ev.bbox
+      ? { ...fitCamera(map, ev.bbox, pad), bearing: 0 }
+      : { center: ev.camera.center, zoom: ev.camera.zoom, bearing: ev.camera.bearing ?? 0 }
+    map.flyTo({
+      ...cam,
+      pitch,
+      offset: frameOffset(pad),
+      duration: 1500,
+      essential: true,
+    })
     // Pilot nodes show crosses instead of a (near-invisible) heatmap.
     const isPilot = !!ev.crosses
     const day = dateToDay(ev.date)
@@ -690,10 +711,16 @@ export default function Story() {
     scroller
       .setup({ step: '.story-step', offset: 0.6 })
       .onStepEnter(({ index }: { index: number }) => {
+        const first = !startedRef.current
         setStarted(true)
         startedRef.current = true
         setEnded(false)
-        setDeckDir(index >= activeRef.current ? 'down' : 'up')
+        // iOS Safari collapses and expands its toolbar WHILE the page scrolls,
+        // firing resize each time; a recomputed trigger line can re-enter the
+        // step the reader is already on. Restarting the 1500ms flight on every
+        // such re-entry means the camera never arrives and tiles never load —
+        // the map freezes on whatever was cached. Same node → nothing to do.
+        if (!first && index === activeRef.current) return
         setActive(index)
         activeRef.current = index
         applyStep(index)
@@ -706,11 +733,80 @@ export default function Story() {
         }
         if (index === FACTS_EVENTS.length - 1 && direction === 'down') setEnded(true)
       })
-    const onResize = () => scroller.resize()
+    // Recompute step thresholds only for real geometry changes. The iOS
+    // toolbar shrinks and grows innerHeight by ~60–110px during ordinary
+    // scrolling; letting each of those recompute the 0.6-offset trigger line
+    // makes the line jump across the reader's position mid-scroll and fire
+    // spurious enters (see the guard above — this attacks the same failure
+    // from the other side). Width changes and real rotations still resize.
+    let lastW = window.innerWidth
+    let lastH = window.innerHeight
+    const onResize = () => {
+      const dW = window.innerWidth !== lastW
+      const dH = Math.abs(window.innerHeight - lastH)
+      if (dW || dH > 150) {
+        lastW = window.innerWidth
+        lastH = window.innerHeight
+        scroller.resize()
+      }
+    }
     window.addEventListener('resize', onResize)
     return () => {
       window.removeEventListener('resize', onResize)
       scroller.destroy()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // DECK DRIVE (phones): the caption deck follows the finger. Each card's
+  // horizontal position is a pure function of scrollY — no discrete events, so
+  // there is nothing to mis-fire or flicker. The function writes ONE custom
+  // property (--deck-f, the fractional node index) on the story root per
+  // animation frame; the cards' transforms are CSS calc() against it, so React
+  // never re-renders during scroll. The slide happens across the middle 40% of
+  // the gap between two steps, centred exactly on scrollama's 0.6 trigger
+  // line, so the camera departs at the same moment the card is mid-hand-off.
+  useEffect(() => {
+    const mq = window.matchMedia(PHONE_MQ)
+    let steps: HTMLElement[] = []
+    let start = 0
+    let stepH = 1
+    let raf = 0
+    const measure = () => {
+      steps = Array.from(document.querySelectorAll<HTMLElement>('.story-step'))
+      if (steps.length >= 2) {
+        const a = steps[0].getBoundingClientRect().top + window.scrollY
+        const b = steps[1].getBoundingClientRect().top + window.scrollY
+        start = a
+        stepH = b - a || window.innerHeight
+      }
+    }
+    const apply = () => {
+      raf = 0
+      if (!mq.matches || steps.length < 2) return
+      const g = (window.scrollY + window.innerHeight * 0.6 - start) / stepH
+      const fRaw = Math.min(Math.max(g - 0.5, 0), FACTS_EVENTS.length - 1)
+      const i0 = Math.floor(fRaw)
+      const t = fRaw - i0
+      const tt = t < 0.3 ? 0 : t > 0.7 ? 1 : (t - 0.3) / 0.4
+      const f = i0 + tt * tt * (3 - 2 * tt)
+      storyRef.current?.style.setProperty('--deck-f', f.toFixed(4))
+    }
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(apply)
+    }
+    measure()
+    apply()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    const onResize = () => {
+      measure()
+      onScroll()
+    }
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onResize)
+      if (raf) cancelAnimationFrame(raf)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -737,11 +833,7 @@ export default function Story() {
   }
 
   return (
-    <div
-      className={`story${started && !ended ? ' story-deck-live' : ''}`}
-      data-deck-dir={deckDir}
-      ref={storyRef}
-    >
+    <div className={`story${started && !ended ? ' story-deck-live' : ''}`} ref={storyRef}>
       <StoryNav />
 
       <div className="story-graphic">
@@ -799,16 +891,10 @@ export default function Story() {
           return (
             <Fragment key={ev.id}>
               <section className="story-step" data-index={i} id={NAV_ANCHOR[ev.id]}>
-                <article className={`story-card${i === active ? ' is-active' : ''}`}>
-                  {/* Node progress for the phone deck (hidden on desktop): a
-                      fixed card gives no scroll affordance that more nodes
-                      exist, so the dots carry it. Inside each card rather than
-                      a separate fixed element — they ride the same slide. */}
-                  <span className="story-dots" aria-hidden="true">
-                    {FACTS_EVENTS.map((_, d) => (
-                      <i key={d} className={d === i ? 'on' : undefined} />
-                    ))}
-                  </span>
+                <article
+                  className={`story-card${i === active ? ' is-active' : ''}`}
+                  style={{ '--card-i': i } as React.CSSProperties}
+                >
                   <p className="story-eyebrow">{ev.period}</p>
                   <h2 className="story-name">{ev.name}</h2>
                   <p className="story-dek">{ev.dek}</p>
