@@ -865,6 +865,11 @@
   text-decoration: underline;
 }
 
+/* The collapse toggle exists only on phones — see StoryQuote in Story.tsx. */
+.story-quote-toggle {
+  display: none;
+}
+
 /* On narrow screens the card drops to the bottom of the map; the rail hides. */
 /* ── map key: scale bar + legend, docked under the top-right nav pill ───── */
 .map-key {
@@ -1089,12 +1094,73 @@
   .map-key {
     display: none;
   }
+  /* ── the node card on a phone ───────────────────────────────────────────
+     The card stays IN FLOW, parked at the foot of its own 100vh step. A
+     position:fixed bottom sheet was shipped briefly and reverted: fixed
+     detaches visibility from scroll position, so the active card covered the
+     hero before the story began and outlived the last step into the figure
+     sections. In flow, both failures are structurally impossible — a card
+     exists only where its step is.
+
+     The card does scroll through the viewport between steps; that is the
+     normal grammar of mobile scrollytelling (text passes over the pinned
+     graphic). What matters is the PARKED reading position: bottom-aligned,
+     capped, with the camera aiming the node's subject into the band above
+     it — framePadding() measures this box rather than restating it. */
   .story-step {
     align-items: flex-end;
-    padding: 0 4vw 8vh;
+    padding: 0 3vw 2.5vh;
   }
   .story-card {
     width: 100%;
+    padding: 1.125rem 1.25rem 1.25rem;
+    max-height: 42vh;
+    overflow-y: auto;
+    /* Keep the sheet's inner scroll from chaining into the page scroll and
+       skipping a story node the moment the card's content ends. */
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    /* Scroll shadow, CSS only: the `local` layers scroll away with the
+       content, uncovering the pinned `scroll` layers — a soft edge that
+       appears only when there is more to read in that direction. Written
+       against #213528 (--forest) because a gradient cannot interpolate to
+       "transparent var(--forest)" without passing through transparent black. */
+    background-image: linear-gradient(#213528 40%, rgba(33, 53, 40, 0)),
+      linear-gradient(rgba(33, 53, 40, 0), #213528 60%),
+      linear-gradient(rgba(16, 26, 20, 0.5), rgba(16, 26, 20, 0)),
+      linear-gradient(rgba(16, 26, 20, 0), rgba(16, 26, 20, 0.5));
+    background-position: top, bottom, top, bottom;
+    background-size: 100% 1.75rem, 100% 1.75rem, 100% 0.625rem, 100% 0.625rem;
+    background-repeat: no-repeat;
+    background-attachment: local, local, scroll, scroll;
+  }
+  .story-body {
+    font-size: 0.9375rem;
+  }
+
+  /* ── the quote, collapsed behind a tap ─────────────────────────────── */
+  .story-quote-toggle {
+    display: inline-block;
+    margin: 0;
+    padding: 0.4375rem 0.75rem;
+    border: 1px solid rgba(146, 247, 188, 0.24);
+    background: rgba(146, 247, 188, 0.06);
+    color: var(--forest-text);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+  }
+  .story-quote:not(.is-open) {
+    /* No rule above the toggle when there is nothing above it to divide. */
+    border-top: 0;
+    padding-top: 0;
+  }
+  .story-quote:not(.is-open) .story-quote-body {
+    display: none;
+  }
+  .story-quote.is-open .story-quote-toggle {
+    margin-bottom: 0.75rem;
   }
 }
 

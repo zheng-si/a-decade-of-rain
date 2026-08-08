@@ -79,6 +79,64 @@ function monthlyCumulative(spray: SprayDataset): { months: number[]; yearStart: 
 }
 
 
+const PHONE_MQ = '(max-width: 640px)'
+
+/**
+ * A node's quote — open on desktop, collapsed behind a tap on a phone.
+ *
+ * Measured at 390×844: node cards run 294–487px and the quote block is
+ * 86–132px of that. Collapsed, most nodes fit inside the phone card cap with
+ * no inner scrolling — which matters because an inner scroll competes with the
+ * page's own scroll for the same gesture.
+ *
+ * Initial state reads the media query rather than defaulting closed, so a
+ * desktop reader never sees the toggle flash; the listener re-opens it if the
+ * viewport crosses the breakpoint (rotation, or a resized window).
+ */
+function StoryQuote({
+  quote,
+  src,
+}: {
+  quote: { text: string; speaker: string }
+  src?: { url: string; publisher: string }
+}) {
+  const [open, setOpen] = useState(() => !window.matchMedia(PHONE_MQ).matches)
+
+  useEffect(() => {
+    const m = window.matchMedia(PHONE_MQ)
+    const sync = () => setOpen(!m.matches)
+    m.addEventListener('change', sync)
+    return () => m.removeEventListener('change', sync)
+  }, [])
+
+  return (
+    <blockquote className={`story-quote${open ? ' is-open' : ''}`}>
+      <button
+        type="button"
+        className="story-quote-toggle"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        {open ? 'Hide the account' : 'Read an account'}
+      </button>
+      <div className="story-quote-body">
+        <p>“{quote.text}”</p>
+        <cite>
+          — {quote.speaker}
+          {src && (
+            <>
+              {', '}
+              <a href={src.url} target="_blank" rel="noreferrer">
+                {src.publisher}
+              </a>
+            </>
+          )}
+        </cite>
+      </div>
+    </blockquote>
+  )
+}
+
 export default function Story() {
   const containerRef = useRef<HTMLDivElement>(null)
   const storyRef = useRef<HTMLDivElement>(null)
@@ -268,9 +326,21 @@ export default function Story() {
   // centred focus falls behind the card, so we pad the map's left by roughly
   // the card's reach — the map re-centres its focus into the clear area to the
   // right (industry-standard for scrollytelling maps with a side panel).
-  function framePadding(): maplibregl.PaddingOptions {
+  function framePadding(i?: number): maplibregl.PaddingOptions {
     const w = window.innerWidth
-    if (w <= 640) return { left: 24, right: 24, top: 48, bottom: 340 }
+    if (w <= 640) {
+      // The phone card parks bottom-aligned in its step, capped at 42vh by
+      // CSS. Reserve exactly that parked band — measured from the rendered
+      // card when we know which node this is, so the CSS cap and the node's
+      // own content length reach the camera without being restated here.
+      // (A typed 340 lived here once; it disagreed with the real card by
+      // ~150px either way and aimed the subject into the wrong band.)
+      const cap = window.innerHeight * 0.42
+      const card = i != null ? document.querySelectorAll('.story-card')[i] : null
+      const box = card ? card.getBoundingClientRect().height : 0
+      const h = Math.round(Math.min(box > 0 ? box : cap, cap))
+      return { left: 16, right: 16, top: 40, bottom: h + 20 }
+    }
     // A modest left bias nudges the focus (and its westmost label chips) clear
     // of the card's right edge; too much and Vietnam is shoved to the far edge
     // and bbox nodes zoom out. 280 ≈ a ~105px rightward shift vs symmetric.
@@ -382,7 +452,9 @@ export default function Story() {
     cancelHeatAnim()
     cancelPendingSweep()
     const pitch = is3DRef.current ? mapConfig.view.pitch3d : 0
-    map.flyTo({ ...HOOK.camera, pitch, bearing: 0, padding: { top: 40, right: 40, bottom: 40, left: 40 }, duration: 1200, essential: true })
+    // No `padding` here or anywhere — see the PADDING RULE above applyStep.
+    // (Symmetric padding shifts nothing anyway; this camera is a plain centre.)
+    map.flyTo({ ...HOOK.camera, pitch, bearing: 0, duration: 1200, essential: true })
     dayRef.current = 0
     setStoryHeatTime(map, 0) // before 1962 → nothing shown
     setStoryHeatVisible(map, true)
@@ -391,12 +463,40 @@ export default function Story() {
     applyLandmarks(null)
   }
 
+  /**
+   * PADDING RULE — never set persistent camera padding on this map.
+   *
+   * MapLibre's `flyTo({padding})` stores the padding on the transform, and
+   * `cameraForBounds` then subtracts BOTH that stored padding AND the padding
+   * option it is given:
+   *
+   *   availableHeight = tr.height - (edgePadding.top + edgePadding.bottom
+   *                                  + padding.top + padding.bottom)
+   *
+   * Every step here frames with the full card reservation, so on a phone the
+   * double count exceeds the screen: 844 − 2×(40 + card + 20) goes negative,
+   * at which point fitBounds logs a warning, returns undefined, and the
+   * camera silently does not move at all — three consecutive nodes shared one
+   * frame. When the doubled figure stays barely positive the fit degenerates
+   * instead: zoom clamps to minZoom and the centre lands in the sea. Desktop
+   * only ever paid a subtle over-zoom-out and a ~105px sideways drift, which
+   * is why the bug survived every desktop review.
+   *
+   * So: point nodes fly with an `offset` (pure per-call geometry, stores
+   * nothing), and bbox fits get the padding as their option, counted once
+   * against a transform whose stored padding is always zero.
+   */
+  const frameOffset = (pad: maplibregl.PaddingOptions): [number, number] => [
+    ((pad.left ?? 0) - (pad.right ?? 0)) / 2,
+    ((pad.top ?? 0) - (pad.bottom ?? 0)) / 2,
+  ]
+
   function applyStep(i: number) {
     const map = mapRef.current
     if (!map || !readyRef.current) return
     const ev = FACTS_EVENTS[i]
     if (!ev) return
-    const pad = framePadding()
+    const pad = framePadding(i)
     const pitch = is3DRef.current ? mapConfig.view.pitch3d : ev.camera.pitch ?? 0
     if (ev.bbox) {
       map.fitBounds(
@@ -412,7 +512,7 @@ export default function Story() {
         zoom: ev.camera.zoom,
         pitch,
         bearing: ev.camera.bearing ?? 0,
-        padding: pad,
+        offset: frameOffset(pad),
         duration: 1500,
         essential: true,
       })
@@ -684,22 +784,7 @@ export default function Story() {
                       <strong>{ev.stat.value}</strong> {ev.stat.label}
                     </p>
                   )}
-                  {ev.quote && (
-                    <blockquote className="story-quote">
-                      <p>“{ev.quote.text}”</p>
-                      <cite>
-                        — {ev.quote.speaker}
-                        {src && (
-                          <>
-                            {', '}
-                            <a href={src.url} target="_blank" rel="noreferrer">
-                              {src.publisher}
-                            </a>
-                          </>
-                        )}
-                      </cite>
-                    </blockquote>
-                  )}
+                  {ev.quote && <StoryQuote quote={ev.quote} src={src} />}
                 </article>
               </section>
             </Fragment>
