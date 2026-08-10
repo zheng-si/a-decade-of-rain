@@ -3764,3 +3764,14 @@
 .fs-note {
   text-wrap: pretty;
 }
+
+/* On phones the deck card is a narrow measure at caption size, and Safari's
+   `pretty` re-rags the whole paragraph — lines break early and the card reads
+   as if it had a huge right padding. Plain wrapping uses the full width.
+   (Must follow the site-wide rule above: same specificity, later wins.) */
+@media (max-width: 640px) {
+  .story-dek,
+  .story-body {
+    text-wrap: wrap;
+  }
+}
