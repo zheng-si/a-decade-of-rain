@@ -2998,13 +2998,144 @@
     max-width: 100%;
     padding-bottom: 0.375rem;
   }
-  /* The whole chart keeps a usable width and scrolls inside itself; all three
-     full-width rows share the min-width so bars and labels stay aligned. */
+  /* Tablets: the whole chart keeps a usable width and scrolls inside itself;
+     all three full-width rows share the min-width so bars and labels stay
+     aligned. (Phones swap to the .alt-rows variant below instead.) */
   .alt-gheads,
   .alt-chartgrid,
   .alt-xlabels,
   .alt-bands {
     min-width: 35rem;
+  }
+}
+
+/* Phone chart variant: the plot rotated into rows. Hidden everywhere else. */
+.alt-rows {
+  display: none;
+}
+@media (max-width: 640px) {
+  /* The column plot needs 560px and hover for its numbers; neither exists on
+     a phone. Swap it (arrow, axes, plot, labels, brackets, verdict row) for
+     horizontal rows that print their values. */
+  .alt-arrow,
+  .alt-gheads,
+  .alt-chartgrid,
+  .alt-xlabels,
+  .alt-bands,
+  .alt-verdicts {
+    display: none;
+  }
+  .alt-chart {
+    overflow-x: visible;
+  }
+  /* The note + reveal button drop the plot's axis gutters with the plot. */
+  .alt-reveal {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .alt-rows {
+    display: block;
+  }
+  .alt-rows-legend {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin: 0 0 0.875rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .alt-rows-legend i {
+    width: 0.625rem;
+    height: 0.625rem;
+  }
+  .alt-rows-legend i.is-co2 {
+    margin-left: 0.75rem;
+  }
+  .alt-rows-legend em {
+    font-style: normal;
+    font-weight: 400;
+    color: var(--ink-faint);
+  }
+  .alt-rowgroup {
+    margin: 0 0 1rem;
+  }
+  .alt-rowgroup h4 {
+    margin: 0 0 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1.5px solid currentColor;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .alt-rowgroup.is-containment h4 {
+    color: #6a9c81;
+  }
+  .alt-rowgroup.is-hybrid h4 {
+    color: #4d7d63;
+  }
+  .alt-rowgroup.is-treatment h4 {
+    color: #2f5c44;
+  }
+  .alt-row {
+    margin: 0 0 0.75rem;
+    transition: opacity 0.25s;
+  }
+  .alt-row:last-child {
+    margin-bottom: 0;
+  }
+  .alt-row.is-cut {
+    opacity: 0.55;
+  }
+  .alt-row-name {
+    margin: 0 0 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .alt-row-name em {
+    font-style: normal;
+    font-weight: 400;
+    color: var(--ink-faint);
+  }
+  .alt-row-bars {
+    display: grid;
+    grid-template-columns: 1fr 3.25rem;
+    align-items: center;
+    gap: 0.25rem 0.5rem;
+  }
+  .alt-row-bars i {
+    /* Width comes inline from the data, relative to this 1fr track. */
+    height: 0.5625rem;
+    justify-self: start;
+  }
+  .alt-row-bars i.is-cost,
+  .alt-rows-legend i.is-cost {
+    background: #5d5f5c;
+  }
+  .alt-row-bars i.is-co2,
+  .alt-rows-legend i.is-co2 {
+    background: #ff5449;
+  }
+  .alt-row-bars span {
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-soft);
+  }
+  .alt-row-note {
+    margin: 0.375rem 0 0;
+    font-size: 0.6875rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+  .alt-row.is-kept .alt-row-note {
+    color: #2f7049;
+    font-weight: 600;
+  }
+  .alt-row.is-cut .alt-row-note span,
+  .alt-row.is-kept .alt-row-note span {
+    font-weight: 700;
   }
 }
 
@@ -3514,6 +3645,10 @@
   .tl-band-name {
     font-size: 0.625rem;
     margin-right: 0.5rem;
+    /* Match the narrower gutter — the desktop -5.25rem offset would push the
+       names past the content edge and pin them to the viewport. */
+    left: -4rem;
+    width: 4rem;
   }
   .tl-cards {
     grid-template-columns: 1fr;
