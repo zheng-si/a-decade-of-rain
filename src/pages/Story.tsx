@@ -785,11 +785,19 @@ export default function Story() {
       raf = 0
       if (!mq.matches || steps.length < 2) return
       const g = (window.scrollY + window.innerHeight * 0.6 - start) / stepH
-      const fRaw = Math.min(Math.max(g - 0.5, 0), FACTS_EVENTS.length - 1)
+      const N = FACTS_EVENTS.length
+      const fRaw = Math.min(Math.max(g - 0.5, 0), N - 1)
       const i0 = Math.floor(fRaw)
       const t = fRaw - i0
       const tt = t < 0.3 ? 0 : t > 0.7 ? 1 : (t - 0.3) / 0.4
-      const f = i0 + tt * tt * (3 - 2 * tt)
+      let f = i0 + tt * tt * (3 - 2 * tt)
+      // Tail: the story's exit line is g = N, but the section after it is
+      // already rising through the bottom 40% of the screen before that — the
+      // last card would float over its heading. So the card slides off to the
+      // left across the final half-step, under the finger like every other
+      // hand-off, finishing exactly at the exit line (where `ended` takes over).
+      const u = Math.min(Math.max((g - (N - 0.4)) / 0.4, 0), 1)
+      if (u > 0) f = N - 1 + u * u * (3 - 2 * u)
       storyRef.current?.style.setProperty('--deck-f', f.toFixed(4))
     }
     const onScroll = () => {

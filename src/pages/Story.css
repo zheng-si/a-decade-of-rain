@@ -1275,10 +1275,11 @@
 @media (max-width: 640px) {
   .fs-dek,
   .actions .fs-dek,
-  .alternatives .fs-dek,
-  .close-body {
+  .alternatives .fs-dek {
     max-width: none;
   }
+  /* .close-body's phone override lives at the end of the file — its base rule
+     is declared far below this line, and the later declaration would win. */
 }
 
 /* Dek + chart (left) and agent card (right); card top aligns with the dek. */
@@ -3277,6 +3278,20 @@
     font-size: 0.625rem;
   }
 }
+@media (max-width: 640px) {
+  /* The layer labels hang LEFT of their anchor (right edge at ~26% of the
+     diagram). With the diagram at full panel width the longest label
+     ("Plastic (LLDPE) geomembrane", ~140px at 10px) pokes past the panel's
+     left edge and overflow:hidden clips it mid-word. Reserve the overhang:
+     tighter panel padding, and the diagram (right-aligned) leaves the label
+     room on its left. */
+  .method-open-grid {
+    padding: 1.5rem 1rem 1.375rem;
+  }
+  .method-open-grid .method-diagram {
+    max-width: calc(100% - 4.25rem);
+  }
+}
 
 /* ── Act II · The Timeline ─────────────────────────────────────────────────── */
 .tl-inner {
@@ -3773,5 +3788,11 @@
   .story-dek,
   .story-body {
     text-wrap: wrap;
+  }
+  /* Epilogue paragraph: the desktop rule caps it at half width (two action
+     cards); on a phone that is an 11-character column. Full measure here.
+     (Must also follow the .close-body base rule above — later wins.) */
+  .close-body {
+    max-width: none;
   }
 }
