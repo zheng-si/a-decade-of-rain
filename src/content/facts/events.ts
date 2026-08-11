@@ -64,6 +64,12 @@ export interface StoryEvent {
   body: string
   quote?: Quote
   stat?: { value: string; label: string }
+  /** Draw the individual spray runs instead of the heat field. Only the
+   *  handover node uses this — see addStoryTracks in mapTheme.ts. */
+  tracks?: boolean
+  /** An outbound link at the foot of the card (the handover to the Archive).
+   *  A node with one is a destination as well as a beat. */
+  cta?: { label: string; to: string }
 }
 
 export const FACTS_EVENTS: StoryEvent[] = [
@@ -216,5 +222,23 @@ export const FACTS_EVENTS: StoryEvent[] = [
     dek: 'A decade of spraying, in one number.',
     body: 'Across the whole campaign, roughly 19.5 million gallons of herbicide fell on Vietnam, at least 11 million of it Agent Orange. What follows is not just where it landed, but what it takes to clean it up.',
     stat: { value: '19.5M', label: 'gallons, 1961–1971' },
+  },
+  {
+    id: 'record',
+    name: 'The Record',
+    period: 'The Archive',
+    // The story's own last date: the handover shows the whole record at once,
+    // so the playhead sits where the reckoning left it.
+    date: '1971-12-31',
+    camera: { center: [107.4, 12.9], zoom: 6.3 },
+    // Same frame as the reckoning, deliberately: only the MARK changes, from
+    // the binned field to the runs it was binned from.
+    bbox: [104.4, 8.4, 109.4, 17.1],
+    agent: 'all',
+    tracks: true,
+    dek: 'Every flight that made this map, one line each.',
+    body: 'The heat you have been reading is a summary. Underneath it sits the HERBS tape: 11,273 spray runs flown between 1961 and 1971, each a chain of waypoints logged by the crews themselves. The Archive draws them as they were flown — filter by herbicide, scrub through the decade month by month, and follow any single run back to the day it was recorded.',
+    stat: { value: '11,273', label: 'spray runs on file' },
+    cta: { label: 'Explore the Record', to: '/archive' },
   },
 ]

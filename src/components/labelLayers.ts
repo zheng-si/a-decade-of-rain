@@ -3,6 +3,9 @@
 // basemap actually ships.
 import type maplibregl from 'maplibre-gl'
 import type { ExpressionSpecification } from 'maplibre-gl'
+import { LABEL_FONT } from '../config/mapConfig'
+import { textSizeRamp } from './mapTheme'
+import { labelTierOf, LABEL_TIERS, type LayerLike } from './mapTaxonomy'
 
 export interface LabelGroup {
   key: string
@@ -59,11 +62,57 @@ export function setGroupVisible(map: maplibregl.Map, layerIds: string[], on: boo
   }
 }
 
+/**
+ * The label TYPE system — one tier table, both maps.
+ *
+ * The two surfaces had drifted into two label styles without anyone choosing
+ * two. The Archive classifies every text layer by its vector tile's own
+ * `source-layer` and gives each tier a colour, a face, a tracking value and a
+ * size ramp (mapTaxonomy.ts, LABEL_TIERS); the Story only ever got
+ * applyMapTheme's flat treatment — one colour and one face for country, city
+ * and river alike. Same basemap, same palette, but a hierarchy on one page and
+ * none on the other, which is what reads as "two maps".
+ *
+ * This applies the tier table's TYPOGRAPHY only. Visibility and zoom staging
+ * stay with each surface, deliberately: the Archive is an instrument that
+ * quiets the basemap to let the record speak, while the Story needs province
+ * and town names to place a reader who has never seen this country. Those are
+ * different questions from "what should a river name look like", and merging
+ * the answers would silently delete labels the Story is using to orient.
+ */
+function applyLabelTypography(map: maplibregl.Map) {
+  for (const layer of map.getStyle().layers ?? []) {
+    if (layer.type !== 'symbol') continue
+    const lo = (layer as { layout?: Record<string, unknown> }).layout
+    if (!lo || lo['text-field'] == null) continue
+    const style = LABEL_TIERS[labelTierOf(layer as LayerLike)]
+    try {
+      map.setPaintProperty(layer.id, 'text-color', style.color)
+      map.setPaintProperty(layer.id, 'text-halo-color', style.halo)
+      map.setPaintProperty(layer.id, 'text-halo-width', style.haloWidth)
+      map.setLayoutProperty(layer.id, 'text-letter-spacing', style.tracking)
+      map.setLayoutProperty(layer.id, 'text-font', [style.font || LABEL_FONT])
+      map.setLayoutProperty(layer.id, 'text-size', textSizeRamp(style.size[0], style.size[1]))
+      // Which name survives a collision is a rule, not tile order: OpenMapTiles
+      // ranks 1 as most important and MapLibre places the lowest key first.
+      map.setLayoutProperty(layer.id, 'symbol-sort-key', [
+        'case',
+        ['has', 'rank'],
+        ['to-number', ['get', 'rank']],
+        100,
+      ])
+    } catch {
+      /* layer doesn't take one of these — leave it as shipped */
+    }
+  }
+}
+
 /** The curated label spec, shared by the Story and the Archive so the two maps
- *  read identically: hide the noisy tiers, normalise casing/" Ward" suffixes,
- *  and let province labels anchor the reader from a low zoom.
- *  (Full tier spec: docs/map-labels.md.) */
+ *  read identically: one tier type system, the noisy tiers hidden, casing and
+ *  " Ward" suffixes normalised, and province labels anchoring the reader from a
+ *  low zoom. (Full tier spec: docs/map-labels.md.) */
 export function applyLabelCuration(map: maplibregl.Map) {
+  applyLabelTypography(map)
   normalizePlaceLabels(map)
   for (const g of readLabelGroups(map)) {
     if (!g.visible) setGroupVisible(map, g.layerIds, false)

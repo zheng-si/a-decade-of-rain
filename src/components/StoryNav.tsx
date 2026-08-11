@@ -129,17 +129,17 @@ export default function StoryNav() {
           </div>
         ))}
 
-        {/* TEMPORARY cross-link. The Archive already links back ("← Read the
-            Story" in its panel) but the story had no way in. This is a plain
-            rail entry until M4 builds the real story↔archive deep links
-            (jumping to the moment in the record the current section is
-            describing). A Link, not a scroll button — it leaves the page. */}
-        <div className="story-rail-group">
-          <p className="story-rail-act">The Record</p>
+        {/* Cross-link to the Archive. It is not an act, so it does not get an
+            act heading — a rule sets it apart from the four acts above and it
+            reads as one more rail entry, which is what it is. The label names
+            the destination the way the Archive names itself ("Explore the
+            Record" over the same data), rather than the filing-cabinet word.
+            A Link, not a scroll button: it leaves the page. */}
+        <div className="story-rail-group story-rail-group--out">
           <ul>
             <li>
               <Link className="story-rail-link story-rail-out" to="/archive">
-                <span className="story-rail-label">Archive</span>
+                <span className="story-rail-label">Explore the Record</span>
                 <span className="story-rail-out-arrow" aria-hidden="true">
                   →
                 </span>

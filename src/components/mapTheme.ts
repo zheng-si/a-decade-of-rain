@@ -117,6 +117,9 @@ export function applyMapTheme(map: maplibregl.Map, theme: MapTheme = mapConfig.t
         map.setPaintProperty(id, 'text-color', theme.label.color)
         map.setPaintProperty(id, 'text-halo-color', theme.label.halo)
         map.setPaintProperty(id, 'text-halo-width', theme.label.haloWidth)
+        // Lay the labels on the ground plane so they tilt with the map in 3D
+        // (at pitch 0 this is identical to viewport, so it needs no toggling).
+        map.setLayoutProperty(id, 'text-pitch-alignment', 'map')
         if (theme.label.font) map.setLayoutProperty(id, 'text-font', theme.label.font)
         if (theme.label.sizeScale !== 1) {
           const size = map.getLayoutProperty(id, 'text-size')
@@ -295,6 +298,8 @@ export function addMilitaryRegions(
       'text-size': textSizeRamp(8, 14),
       'text-transform': 'uppercase',
       'text-letter-spacing': 0.1,
+      // A region tag names ground, so it lies on the ground (see applyMapTheme).
+      'text-pitch-alignment': 'map',
     },
     paint: { 'text-color': '#cf3720', 'text-halo-color': 'rgba(250,249,244,0.95)', 'text-halo-width': 2 },
   })
@@ -332,6 +337,7 @@ export function addIslandMarks(map: maplibregl.Map) {
       'text-size': textSizeRamp(8.5, 11),
       'text-anchor': 'center',
       'text-max-width': 9,
+      'text-pitch-alignment': 'map',
     },
     // Deliberately the quietest tier on the map (4.4:1): these are notes about
     // sovereignty, not geography, and they should sit a step behind the place
@@ -389,6 +395,47 @@ export function setStoryHeatTime(map: maplibregl.Map, day: number) {
 export function setStoryHeatVisible(map: maplibregl.Map, on: boolean) {
   if (map.getLayer(STORY_HEAT_LAYER)) {
     map.setLayoutProperty(STORY_HEAT_LAYER, 'visibility', on ? 'visible' : 'none')
+  }
+}
+
+// ── story mode: the record itself, as flight paths ────────────────────────
+// The closing node hands the reader over to the Archive, and the handover is
+// made ON the map: the heat field it has been reading for seven nodes gives way
+// to the 8,753 individual runs the field was binned FROM. Same country, same
+// frame, different mark — "what you have been looking at is a summary; here is
+// the record."
+//
+// Deliberately NOT the Archive's track layers. Those are a tuned instrument —
+// zoom-gated at Z_NEAR, four layers deep, hover highlight, direction taper,
+// per-agent tint — and none of that survives at the whole-country zoom this
+// node sits at, where they would simply draw nothing. This is one line layer at
+// one width: texture, not an instrument. The instrument is one click away.
+export const STORY_TRACK_LAYER = 'spray-track-story'
+
+export function addStoryTracks(map: maplibregl.Map, lines: GeoJSON.GeoJSON) {
+  if (map.getLayer(STORY_TRACK_LAYER)) return
+  map.addSource(STORY_TRACK_LAYER, { type: 'geojson', data: lines })
+  map.addLayer(
+    {
+      id: STORY_TRACK_LAYER,
+      type: 'line',
+      source: STORY_TRACK_LAYER,
+      layout: { 'line-cap': 'round', 'line-join': 'round', visibility: 'none' },
+      paint: {
+        'line-color': '#c2331f',
+        // Hairline at the overview: at 0.5px and 8,753 strokes the mass is
+        // what reads, and any thicker turns the dense south into a solid slab.
+        'line-width': ['interpolate', ['linear'], ['zoom'], 5, 0.5, 11, 1.6],
+        'line-opacity': 0.5,
+      },
+    },
+    firstLabelLayerId(map),
+  )
+}
+
+export function setStoryTracksVisible(map: maplibregl.Map, on: boolean) {
+  if (map.getLayer(STORY_TRACK_LAYER)) {
+    map.setLayoutProperty(STORY_TRACK_LAYER, 'visibility', on ? 'visible' : 'none')
   }
 }
 

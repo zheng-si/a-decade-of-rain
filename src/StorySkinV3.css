@@ -67,6 +67,16 @@
      to lift off a photograph, not off paper. Still far below the 0.42 it was. */
   --v3-shadow-dark: 0 10px 32px rgba(16, 26, 20, 0.16);
 
+  /* §3 removed the strokes, and on the dark map that was right — a white
+     control there has the map to sit against. On PAPER it has nothing: #fff on
+     #faf9f4 is a 1.03:1 edge, so the white half of a switch simply stopped
+     having a shape. Measured against five alternatives (control shadow alone,
+     ink at .10 / .16, hairline + shadow, bottom rule): the shadow alone leaves
+     the TOP edge invisible, .16 reads as the border that was removed. Ink at
+     .10 is a surface definition rather than an enclosure, which is the
+     distinction §3 was drawing in the first place. */
+  --v3-hairline: inset 0 0 0 1px rgba(33, 53, 40, 0.1);
+
   font-family: var(--font-sans);
 }
 
@@ -315,6 +325,50 @@
   box-shadow: var(--v3-shadow-control);
 }
 
+/* ── AGENT SWITCH · one form across both surfaces ─────────────────────────
+   The agent chips were the last control still floating as separate pills with
+   a gap, and they were the one control the Story and the Archive BOTH have —
+   so the two pages disagreed on the same switch. They are a segmented control
+   (pick one of five), which is the grammar declared just above, so they take
+   it: butted rectangles, one hairline and one shadow on the group, a short
+   seam between neighbours, and the selected chip's own colour as its fill.
+   Identical rules live under `.map-wrap` in ArchiveSkinV2.css. */
+.story .rainbow-switch {
+  gap: 0;
+  width: fit-content;
+  box-shadow: var(--v3-hairline), var(--v3-shadow-control);
+}
+
+.story .rainbow-chip {
+  position: relative;
+  padding: 0.375rem 0.75rem;
+}
+
+/* The seam: inset from top and bottom so it divides rather than outlines, and
+   suppressed on both sides of the selected chip, whose fill draws its own. */
+.story .rainbow-chip + .rainbow-chip::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 0.875rem;
+  background: rgba(33, 53, 40, 0.14);
+}
+.story .rainbow-chip.is-active::before,
+.story .rainbow-chip.is-active + .rainbow-chip::before {
+  display: none;
+}
+
+/* Controls that stand ALONE on paper (no group to carry the edge) take the
+   hairline themselves. The method tabs are a bare two-toggle row — the note
+   above explains why they get no container treatment. */
+.story .method-tab:not(.is-on),
+.story .alt-reveal-btn:not(.is-banner) {
+  box-shadow: var(--v3-hairline), var(--v3-shadow-control);
+}
+
 /* Selected state is --forest ONLY where it carries no other meaning — these
    three are view switches (flat/3D, accumulation/each year, sort order), and
    which side is chosen is not a category. The two controls that look like they
@@ -336,16 +390,21 @@
   font-weight: 500;
 }
 
-/* The hook's call to action was an outlined pill. Filled rectangle, same
-   grammar as every other primary control on the site. */
+/* The hook's scroll cue is NOT a control, and this rule used to treat it as
+   one — an outlined pill first, then a filled forest rectangle. Nothing is
+   being chosen: it names the gesture the reader is about to make anyway. A
+   container around that is a button drawn for a decision that does not exist,
+   and on the banner it was the heaviest object on an otherwise open screen.
+   Plain ink type and an arrow; the arrow nudges down on hover. */
 .story .story-hook-cta {
-  background: var(--forest);
-  color: var(--forest-text);
-  font-weight: 500;
+  background: none;
+  color: var(--ink);
+  font-weight: 600;
 }
 
 .story .story-hook-cta:hover {
-  background: var(--forest-2);
+  background: none;
+  color: var(--accent-deep);
 }
 
 /* ── labels · §2 ──────────────────────────────────────────────────────────

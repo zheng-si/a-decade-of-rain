@@ -3,8 +3,10 @@ import maplibregl from 'maplibre-gl'
 import type { FeatureCollection } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import scrollama from 'scrollama'
+import { Link } from 'react-router-dom'
 import { loadSpray, dateToDay, dayToDate, fmtGallons, type SprayDataset } from '../data/spray'
 import { loadHeat } from '../data/heat'
+import { loadTracks } from '../data/tracks'
 import { mapConfig } from '../config/mapConfig'
 import {
   resolveMapStyle,
@@ -16,6 +18,8 @@ import {
   setHillshade,
   addMilitaryRegions,
   addIslandMarks,
+  addStoryTracks,
+  setStoryTracksVisible,
   STORY_HEAT_LAYER,
 } from '../components/mapTheme'
 import { FACTS_EVENTS, type StoryEvent } from '../content/facts/events'
@@ -154,6 +158,9 @@ export default function Story() {
   const startedRef = useRef(false)
   const activeRef = useRef(0)
   const landmarksRef = useRef<FeatureCollection | null>(null)
+  /** Whether the current node wants the track layer — read by the (async)
+   *  track load, so arriving before the data does still ends up correct. */
+  const wantTracksRef = useRef(false)
   const landmarkMarkersRef = useRef<maplibregl.Marker[]>([])
   const veilRef = useRef<HTMLDivElement>(null)
 
@@ -462,6 +469,8 @@ export default function Story() {
     dayRef.current = 0
     setStoryHeatTime(map, 0) // before 1962 → nothing shown
     setStoryHeatVisible(map, true)
+    wantTracksRef.current = false
+    setStoryTracksVisible(map, false)
     setSVVisible(true)
     clearCrosses()
     applyLandmarks(null)
@@ -543,10 +552,22 @@ export default function Story() {
       duration: 1500,
       essential: true,
     })
+    // The handover node swaps the binned field for the runs themselves.
+    wantTracksRef.current = !!ev.tracks
+    setStoryTracksVisible(map, !!ev.tracks)
+
     // Pilot nodes show crosses instead of a (near-invisible) heatmap.
     const isPilot = !!ev.crosses
     const day = dateToDay(ev.date)
-    if (isPilot) {
+    if (ev.tracks) {
+      // Heat off, lines on: the same country, redrawn as the record.
+      cancelHeatAnim()
+      cancelPendingSweep()
+      dayRef.current = day
+      setStoryHeatTime(map, day)
+      setStoryHeatVisible(map, false)
+      clearCrosses()
+    } else if (isPilot) {
       // No heat here; keep the filter in sync (invisibly) so the next heat node
       // blooms from the right starting point, and show the pulsing crosses.
       cancelHeatAnim()
@@ -666,6 +687,19 @@ export default function Story() {
 
         // Disputed-island labels — shared with the Archive.
         addIslandMarks(map)
+
+        // The handover node's mark: the individual runs. Loaded AFTER the map
+        // is up and drawing, not alongside the story's own data — it is 560 kB
+        // serving the last card, and making the first card wait on it would be
+        // the wrong trade. If the reader gets there before it lands, applyStep
+        // has already set the flag and the load turns the layer on itself.
+        loadTracks([], [], `${import.meta.env.BASE_URL}data/spray-tracks.json`)
+          .then((t) => {
+            if (!mapRef.current) return
+            addStoryTracks(map, t.lines)
+            if (wantTracksRef.current) setStoryTracksVisible(map, true)
+          })
+          .catch((e) => console.error('story tracks failed to load', e))
 
         readyRef.current = true
         setMapReady(true)
@@ -913,6 +947,12 @@ export default function Story() {
                     </p>
                   )}
                   {ev.quote && <StoryQuote quote={ev.quote} src={src} />}
+                  {ev.cta && (
+                    <Link className="story-card-cta" to={ev.cta.to}>
+                      {ev.cta.label}
+                      <span aria-hidden="true">→</span>
+                    </Link>
+                  )}
                 </article>
               </section>
             </Fragment>

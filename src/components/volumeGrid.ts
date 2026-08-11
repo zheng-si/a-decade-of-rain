@@ -790,6 +790,8 @@ export function addVietnamLabel(map: maplibregl.Map) {
         'text-size': COUNTRY_TEXT.size,
         'text-transform': 'uppercase',
         'text-letter-spacing': 0.2,
+        // On the ground plane, like every other label (see applyMapTheme).
+        'text-pitch-alignment': 'map',
       },
       paint: {
         'text-color': COUNTRY_TEXT.color,
