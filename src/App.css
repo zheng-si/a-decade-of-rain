@@ -85,52 +85,9 @@
   inset: 0;
 }
 
-/* ── site nav (Story ⇄ Archive) ───────────────────────────────────────── */
-.site-nav {
-  position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
-  z-index: 10;
-  display: inline-flex;
-  gap: 0.125rem;
-  padding: 0.1875rem;
-  /* Near-opaque paper instead of frosted glass: backdrop-filter on a fixed
-     panel re-samples the scrolling banner beneath it every frame (flicker). */
-  background: rgba(252, 251, 247, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 0.25rem;
-  box-shadow: 0 0.25rem 1.125rem rgba(40, 38, 30, 0.1);
-}
-
-.site-nav-link {
-  padding: 0.3125rem 0.8125rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: var(--track-tight);
-  color: var(--ink-soft);
-  text-decoration: none;
-  border-radius: 0.25rem;
-}
-
-.site-nav-link.is-active {
-  background: var(--ink);
-  color: #fff;
-}
-
-.site-nav-sep {
-  width: 1px;
-  align-self: stretch;
-  margin: 3px 2px;
-  background: var(--rule);
-}
-
-/* 3D toggle sits in the same pill; button reset so it matches the nav links. */
-.site-nav-btn {
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-family: inherit;
-}
+/* The `.site-nav*` block that stood here is gone with the TopBar component it
+   styled — see the note in App.tsx. Six rules, 46 lines, all of them minifying
+   into the shipped stylesheet for markup no route rendered. */
 
 .map-wrap {
   position: absolute;
@@ -565,7 +522,8 @@
 
 /* ── Archive map key ──────────────────────────────────────────────────────
    Top-right, in the story MapKey's language (near-opaque paper, no backdrop
-   filter — see .site-nav note). Inner furniture reuses the shared .map-key-*
+   filter — this one sits over the map, not over a scrolling page). Inner
+   furniture reuses the shared .map-key-*
    classes from Story.css; only the container and the archive-specific rows
    live here. */
 .archive-key {
@@ -611,15 +569,12 @@
 
 /* Uniform 12px rhythm for the key's control half (label→capsule stays a
    tight pair); the kicker matches the inspect section's spec. */
-/* Structural labels take the darkest ink: size and tracking set them apart
-   from the content they introduce, so colour can mark them as structure.
-   (Three tiers: ink = titles and labels · soft = content · faint = notes.) */
-.archive-key .map-key-view-label {
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  color: var(--ink);
-}
+/* The `.archive-key .map-key-view-label` override that used to sit here is
+   gone: it was correcting the base rule in Story.css toward the structural-
+   label spec, which meant the Story kept the wrong values. The spec now lives
+   on the base rule itself, so both surfaces get it and neither needs an
+   override. (Three tiers: ink = titles and labels · soft = content ·
+   faint = notes.) */
 
 .archive-key .map-key-view {
   margin-bottom: 0.75rem;

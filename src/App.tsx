@@ -1,6 +1,5 @@
-import type { ReactNode } from 'react'
 import { Suspense, lazy } from 'react'
-import { BrowserRouter, Routes, Route, NavLink, Navigate, useLocation } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Story from './pages/Story'
 import Archive from './pages/Archive'
 import './App.css'
@@ -14,24 +13,12 @@ import './App.css'
 // the spike costs nothing to anyone who does not open it.
 const MapboxSpike = lazy(() => import('./components/MapboxSpike'))
 
-const linkCls = ({ isActive }: { isActive: boolean }) =>
-  isActive ? 'site-nav-link is-active' : 'site-nav-link'
-
-/** Top-right control panel: Story/Archive tabs, plus any page controls. */
-export function TopBar({ children }: { children?: ReactNode }) {
-  return (
-    <nav className="site-nav">
-      <NavLink to="/" end className={linkCls}>
-        Story
-      </NavLink>
-      <NavLink to="/archive" className={linkCls}>
-        Archive
-      </NavLink>
-      {children && <span className="site-nav-sep" />}
-      {children}
-    </nav>
-  )
-}
+// The Story/Archive tab pill that used to live here is gone. It was exported
+// and rendered by nothing — each surface grew its own way across: the Story's
+// rail carries "Explore the Record", the Archive's panel carries "Read the
+// Story". Two cross-links in the places a reader is already looking beat one
+// floating pill in a corner, and the pill had stopped being drawn long before
+// this deleted it.
 
 /** The Archive lived at /explore in earlier versions — keep old links working
  *  (including any query string, which is the Archive's whole view state). */

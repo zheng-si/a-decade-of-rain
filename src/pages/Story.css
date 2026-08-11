@@ -393,7 +393,7 @@
 
 .story-rail-link.is-on {
   color: #fff;
-  font-weight: 700;
+  font-weight: 600;
   background: rgba(255, 255, 255, 0.12);
 }
 
@@ -606,10 +606,10 @@
   pointer-events: auto;
 }
 
-/* The nav pill and map key drop BELOW the scroll overlay inside the story:
-   the banner's opaque orange wash simply covers them (no mount/unmount, no
-   opacity dance), and they surface again over the transparent step sections. */
-.story .site-nav,
+/* The map key drops BELOW the scroll overlay inside the story: the banner's
+   opaque orange wash simply covers it (no mount/unmount, no opacity dance),
+   and it surfaces again over the transparent step sections. (`.story .site-nav`
+   used to share this rule; it went with the TopBar component.) */
 .story .map-key {
   z-index: 1;
 }
@@ -825,7 +825,7 @@
 .story-stat strong {
   color: var(--accent-bright); /* AA on the dark stat pill */
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .story-name {
@@ -867,7 +867,7 @@
   background: var(--accent-deep);
   color: #fff;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: var(--track-tight);
   text-decoration: none;
   transition: background 0.15s;
@@ -926,7 +926,8 @@
   z-index: 6;
   width: 10.75rem;
   padding: 0.6875rem 0.8125rem 0.75rem;
-  /* Near-opaque paper, no backdrop-filter (see .site-nav note). */
+  /* Near-opaque paper, not frosted glass: backdrop-filter on a FIXED panel
+     re-samples the scrolling page beneath it every frame, which flickers. */
   background: rgba(252, 251, 247, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.6);
   border-radius: 0.25rem;
@@ -946,11 +947,18 @@
 
 /* Flat/3D switch, first row of the key — same capsule as the rainbow
    chart's Accumulation/Each-year toggle. */
+/* Structural labels take the darkest ink, 600, and caps tracking. That rule is
+   written out in App.css above the `.archive-key` copy of this selector, and
+   this base rule predates it: the same class was shipping 500/untracked/faint
+   on the Story and 600/0.06em/ink on the Archive — one label, two labels. The
+   Archive's is the one that follows the stated rule (ink = titles and labels ·
+   soft = content · faint = notes), so it moves here and the override goes. */
 .map-key-view-label {
   margin: 0 0 0.3125rem;
   font-size: 0.625rem;
-  font-weight: 500;
-  color: var(--ink-faint);
+  font-weight: 600;
+  letter-spacing: var(--track-caps);
+  color: var(--ink);
 }
 .map-key-view {
   display: flex;
@@ -974,9 +982,13 @@
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
+/* --forest-text, not #fff: this fill is always --forest, and the token exists
+   for exactly that pairing. The Story's skin already corrected it here and the
+   Archive kept inheriting the raw white, so one control was painting its
+   selected label two different whites depending on the page. */
 .map-key-view-btn.is-active {
   background: var(--forest);
-  color: #fff;
+  color: var(--forest-text);
 }
 
 .map-key-top {
@@ -1005,7 +1017,7 @@
 
 .map-key-compass-n {
   font-size: 0.625rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1;
   color: var(--ink-soft);
 }
@@ -1882,7 +1894,7 @@
 
 .eco-type-pct {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink-soft);
 }
 
@@ -2049,7 +2061,7 @@
 }
 
 .rainbow-bd-val {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* Shared caption for the interlude / Act II sections. */
@@ -2315,7 +2327,7 @@
   white-space: nowrap;
   padding: 0.25rem 0.625rem;
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--pin);
   background: #fff;
   border-radius: 0.25rem;
@@ -2806,7 +2818,7 @@
 .alt-axis-title {
   flex: 0 0 var(--alt-gutter-l);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.3;
   color: var(--ink-soft);
 }
@@ -2965,7 +2977,7 @@
   display: inline-block;
   margin-top: 0.4375rem;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .alt-band-group.is-containment {
   color: #6a9c81;
@@ -3036,7 +3048,7 @@
 }
 .alt-verdict-mark {
   font-size: 1.0625rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1;
 }
 .alt-verdict.is-kept .alt-verdict-mark {
@@ -3064,6 +3076,35 @@
 .alt-verdict.is-cut .alt-verdict-chip {
   background: var(--accent);
   text-align: left;
+}
+
+/* The Act II row needs 1100, not 900, and between those two numbers the page
+   scrolled sideways. `.act2-main` is `1fr auto`: three hotspot cards with a
+   204px floor in the flexible track, a 234px locator map in the fixed one. At
+   901 the cards need 662 and the track can only give ~532, so the auto column
+   was pushed past the viewport — 130px of horizontal scroll at 901, 14 at
+   1024, which is iPad landscape.
+
+   minmax(0, 1fr) is the reflex fix here and it is the wrong one: it stops the
+   PAGE overflowing by letting the cards run under the map instead, measured at
+   50px of overlap at 1024. So the collapse moves up to where the two-column
+   layout actually stops fitting. The map goes above the cards, which is the
+   arrangement ≤900 already uses; the cards keep their three columns and get
+   wider than they were (255 against 204). Measured 0 overflow at every width
+   from 901 to 1440. */
+@media (max-width: 1100px) {
+  .act2-main {
+    grid-template-columns: 1fr;
+    gap: 1.125rem;
+  }
+  .act2-map {
+    position: static;
+    order: -1;
+  }
+  .act2-map-fig {
+    width: 17.1875rem;
+    margin: 0 auto;
+  }
 }
 
 @media (max-width: 900px) {
@@ -3171,7 +3212,7 @@
     padding-bottom: 0.25rem;
     border-bottom: 1.5px solid currentColor;
     font-size: 0.6875rem;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
@@ -3241,7 +3282,7 @@
   }
   .alt-row.is-cut .alt-row-note span,
   .alt-row.is-kept .alt-row-note span {
-    font-weight: 700;
+    font-weight: 600;
   }
 }
 
@@ -3857,7 +3898,7 @@
 .close-action-cta {
   margin: auto 0 0;
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 600;
   color: #9fd4b4;
 }
 .close-action:hover .close-action-cta {

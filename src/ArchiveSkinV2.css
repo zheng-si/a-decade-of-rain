@@ -331,6 +331,19 @@
    inset from the top and bottom so it divides rather than outlines — restores
    the seams without giving anything back its stroke. It is suppressed on both
    sides of the active chip, whose fill already draws its own edges. */
+/* The chip row is `nowrap` and `fit-content`, so it cannot reflow when the
+   panel runs out of room — it just hangs past the edge, and on a 360 screen
+   the 'Other' chip was clipped by 9.5px (313.5 of chips in a 304 content box).
+   Nothing changes above 400: the clamp's upper bound IS the padding above, so
+   every phone with room keeps exactly what it had, and only the narrow ones
+   give any back. Measured 320 to 430: one row, positive slack throughout. */
+@media (max-width: 400px) {
+  .map-wrap .agent-chip {
+    padding-left: clamp(0.3125rem, 2.1vw, 0.75rem);
+    padding-right: clamp(0.3125rem, 2.1vw, 0.75rem);
+  }
+}
+
 .map-wrap .agent-chip + .agent-chip::before {
   content: '';
   position: absolute;
