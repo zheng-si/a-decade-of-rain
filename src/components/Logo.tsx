@@ -11,10 +11,16 @@
  * edges on fractional pixels and blur. The fifth is a deliberate half-unit
  * hairline and is left exactly as drawn.
  *
- * `currentColor`, so every placement takes the colour of the text around it —
- * the rail's white, the epilogue's white, the agent card's own herbicide
- * colour. public/favicon.svg carries the same geometry with the brand orange
- * baked in, since a favicon has no inherited colour to take.
+ * Two placements, both on `currentColor` so each takes the colour of the text
+ * around it: the rail mark and the epilogue mark, which are the two places the
+ * site signs its own name. The agent card keeps the biohazard trefoil — on a
+ * card naming a herbicide that symbol is saying what the drum held, which is
+ * not what a wordmark is for.
+ *
+ * public/favicon.svg carries the same geometry with #ff5449 baked in, since a
+ * favicon has no inherited colour to take. The supplied artwork came in
+ * #FB4D46; the site keeps ONE orange and it is #ff5449, which is also what
+ * index.html declares as its theme-color.
  */
 export const LOGO_SIZE = 20
 

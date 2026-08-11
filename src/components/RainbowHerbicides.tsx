@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { AGENTS, RAINBOW, type AgentInfo } from '../content/facts/agents'
 import { SOURCES } from '../content/sources'
 import { fmtGallons } from '../data/spray'
-import Logo from './Logo'
+import { BIOHAZARD } from './biohazard'
 
 export interface AgentSeries {
   key: AgentInfo['key']
@@ -28,7 +28,11 @@ const PAPER_SAFE: Record<AgentInfo['key'], string> = { O: '#b8560b', W: '#6b6f68
 
 function Biohazard() {
   return (
-    <Logo className="rainbow-card-icon" />
+    <svg viewBox="0 0 38 35" className="rainbow-card-icon" fill="currentColor" aria-hidden="true">
+      {BIOHAZARD.map((d, i) => (
+        <path key={i} d={d} />
+      ))}
+    </svg>
   )
 }
 
