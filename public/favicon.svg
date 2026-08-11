@@ -1,1 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 24 24"><g fill="#ff5449"><rect x="0" y="0" width="4" height="20"/><rect x="5" y="0" width="3" height="20"/><rect x="10" y="0" width="2" height="20"/><rect x="15" y="0" width="1" height="20"/><rect x="19.5" y="0" width="0.5" height="20"/></g></svg>
+<!-- A REDUCED cut of the mark in src/components/Logo.tsx: five bars instead of
+     nine, same flat top, same taper, same symmetry. The full artwork's outer
+     bars are 2 units on a 120 grid, which is a quarter of a pixel at 16px —
+     they vanish, and the taper they carry goes with them, leaving a blob.
+     Nothing here is under 8 units. Rendered side by side at 16/24/32/48 and on
+     a dark tab before choosing. #ff5449 baked in: a favicon has no inherited
+     colour to take. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-4 -4 128 128"><g fill="#ff5449"><rect x="4" y="0" width="8" height="60"/><rect x="26" y="0" width="12" height="90"/><rect x="52" y="0" width="16" height="120"/><rect x="82" y="0" width="12" height="90"/><rect x="108" y="0" width="8" height="60"/></g></svg>

@@ -1,36 +1,46 @@
 /**
- * The mark: five bars, thinning left to right, on a 20×20 square.
+ * The mark: nine bars hanging from a flat top, longest and widest at the
+ * centre, tapering to hairlines at both edges — rain falling, heaviest in the
+ * middle of the decade.
  *
- * Geometry is the supplied artwork's own, not a trace of it: widths 4, 3, 2, 1,
- * 0.5 on a pitch of 5, with the last bar flush to the right edge. The ink
- * halves away while the rhythm holds, which is the whole idea — a decade of
- * spraying tapering off, drawn as the record thinning out.
+ * Which is the point of choosing it over a row of even bars: the profile is
+ * the story's own shape. Ranch Hand starts small in 1961, climbs to a peak in
+ * 1967–69 and stops in 1971, and the chart on the Herbicides screen draws
+ * exactly that curve. The mark and the figure it sits above are then one
+ * argument rather than two decorations.
  *
- * Kept as rects rather than path data. Four of the five sit on integers and
- * survive being drawn at 16px in a browser tab; a traced path would land its
- * edges on fractional pixels and blur. The fifth is a deliberate half-unit
- * hairline and is left exactly as drawn.
+ * Geometry is the supplied artwork's, on its 120×120 square. The source
+ * expressed the left half as mirrored rects — `matrix(-1 0 0 1 T 0)`, which
+ * spans (T − w) to T — and those are flattened to plain coordinates here: the
+ * numbers a reader needs are the ones on screen, not the ones before a
+ * transform. Widths 2/4/6/10/14 and heights 40/60/80/100/120, symmetric about
+ * the centre bar at x 53–67.
  *
  * Two placements, both on `currentColor` so each takes the colour of the text
  * around it: the rail mark and the epilogue mark, which are the two places the
  * site signs its own name. The agent card keeps the biohazard trefoil — on a
  * card naming a herbicide that symbol is saying what the drum held, which is
- * not what a wordmark is for.
+ * not a job a wordmark can take over.
  *
- * public/favicon.svg carries the same geometry with #ff5449 baked in, since a
- * favicon has no inherited colour to take. The supplied artwork came in
- * #FB4D46; the site keeps ONE orange and it is #ff5449, which is also what
- * index.html declares as its theme-color.
+ * public/favicon.svg carries a REDUCED cut of this, not the same file: at 16px
+ * the 2-unit edge bars land on a quarter of a pixel and disappear, taking the
+ * taper with them. See the note there. The artwork came in #FB4D46; the site
+ * keeps one orange and it is #ff5449, which index.html also declares as its
+ * theme-color.
  */
-export const LOGO_SIZE = 20
+export const LOGO_SIZE = 120
 
-/** [x, width] per bar. Height is always the full square. */
-export const LOGO_BARS: readonly (readonly [number, number])[] = [
-  [0, 4],
-  [5, 3],
-  [10, 2],
-  [15, 1],
-  [19.5, 0.5],
+/** [x, width, height] per bar, left to right. All hang from y = 0. */
+export const LOGO_BARS: readonly (readonly [number, number, number])[] = [
+  [0, 2, 40],
+  [13, 4, 60],
+  [27, 6, 80],
+  [40, 10, 100],
+  [53, 14, 120],
+  [70, 10, 100],
+  [87, 6, 80],
+  [103, 4, 60],
+  [118, 2, 40],
 ]
 
 export default function Logo({ className }: { className?: string }) {
@@ -41,8 +51,8 @@ export default function Logo({ className }: { className?: string }) {
       fill="currentColor"
       aria-hidden="true"
     >
-      {LOGO_BARS.map(([x, w]) => (
-        <rect key={x} x={x} y={0} width={w} height={LOGO_SIZE} />
+      {LOGO_BARS.map(([x, w, h]) => (
+        <rect key={x} x={x} y={0} width={w} height={h} />
       ))}
     </svg>
   )
