@@ -346,6 +346,23 @@ export function addIslandMarks(map: maplibregl.Map) {
   })
 }
 
+/**
+ * The Story's sea — green where the Archive's is blue, and deliberately so.
+ *
+ * The two pages run one cartography now, but they do not run one palette: the
+ * Story is built out of orange (the spray) against green (the forest it fell
+ * on), and a blue sea is the one thing on that map belonging to neither. The
+ * Archive is an instrument and takes the neutral cool blue.
+ *
+ * This is NOT the old story water (#e9ece7). That one failed for a measured
+ * reason: it sat 3% below the land in luminance and 5 apart in green-minus-red,
+ * so the sea read only as "very slightly darker paper" and the coastline
+ * dissolved. This tone keeps the green (blue-minus-red +1, against the
+ * Archive's +21) and takes the Archive's SEPARATION: 8.9% below the land,
+ * versus the Archive's 9%. Hue from the Story, contrast from the instrument.
+ */
+export const STORY_WATER = '#d5e0d6'
+
 // ── story mode: one combined heatmap in the brand orange ──────────────────
 // The scrollytelling uses a single, all-agents heatmap (no per-agent layers
 // stacking into a muddy overlap). A warm ramp keeps dense cores orange rather

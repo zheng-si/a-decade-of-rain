@@ -21,6 +21,7 @@ import {
   addStoryTracks,
   setStoryTracksVisible,
   STORY_HEAT_LAYER,
+  STORY_WATER,
 } from '../components/mapTheme'
 import { FACTS_EVENTS, type StoryEvent } from '../content/facts/events'
 import { HOOK } from '../content/facts/hook'
@@ -683,7 +684,7 @@ export default function Story() {
         // ground pass fixes all three; `labels: false` keeps the Story's own
         // label policy, which shows the province and town names the Archive
         // deliberately hides.
-        quietBasemap(map, { labels: false })
+        quietBasemap(map, { labels: false, water: STORY_WATER })
 
 
         // Real terrain relief from free AWS Terrarium tiles. Added first so it

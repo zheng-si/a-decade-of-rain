@@ -62,6 +62,10 @@
   /* The two shadows of §6. Same values as the Archive: a surface against the
      map, and a control sitting ON that surface. */
   --v3-shadow: 0 8px 28px rgba(40, 38, 30, 0.02);
+  /* Still used by the two controls that sit on the MAP rather than on paper
+     (.act2-chip, .story-stat), where there is no hairline and depth is the
+     only thing separating them from what is behind. Every white-on-paper
+     control dropped it — see the hairline note below. */
   --v3-shadow-control: 0 1px 3px rgba(40, 38, 30, 0.07);
   /* A dark card on a bright map is the one case neither token covers — it has
      to lift off a photograph, not off paper. Still far below the 0.42 it was. */
@@ -77,7 +81,13 @@
      border §3 had just removed — an enclosure again, only fainter. At .04 it
      is barely a value at all (#f6f6f5 on white) and that is the point: it
      stops the top edge dissolving without ever announcing itself as a stroke.
-     Anything at or above .10 loses that distinction. */
+     Anything at or above .10 loses that distinction.
+
+     And the hairline is now the WHOLE treatment — the control shadow that used
+     to ride with it is gone. The two were solving the same problem twice: the
+     line already closes all four edges, so the shadow was only adding lift
+     nothing on this page is meant to have. Paper is flat; §6's depth belongs
+     to things floating over the map, not to a switch sitting on a panel. */
   --v3-hairline: inset 0 0 0 1px rgba(33, 53, 40, 0.04);
 
   font-family: var(--font-sans);
@@ -325,12 +335,12 @@
 .story .eco-sort {
   gap: 0;
   padding: 0;
-  /* Hairline AND shadow, matching `.archive-key .map-key-view` in
-     ArchiveSkinV2.css. These three are the same segmented control as the agent
-     switch above, and the Flat/3D pair is literally the same control on both
-     pages — it had the shadow here and the shadow-plus-hairline there, so the
-     white half sat on a defined edge on one page and dissolved on the other. */
-  box-shadow: var(--v3-hairline), var(--v3-shadow-control);
+  /* Hairline only, matching `.archive-key .map-key-view` in ArchiveSkinV2.css.
+     These three are the same segmented control as the agent switch above, and
+     the Flat/3D pair is literally the same control on both pages — it had the
+     shadow here and shadow-plus-hairline there, so the white half sat on a
+     defined edge on one page and dissolved on the other. */
+  box-shadow: var(--v3-hairline);
 }
 
 /* The key's own label, uppercased to match the Archive's. Both are the 10px
@@ -350,7 +360,7 @@
 .story .rainbow-switch {
   gap: 0;
   width: fit-content;
-  box-shadow: var(--v3-hairline), var(--v3-shadow-control);
+  box-shadow: var(--v3-hairline);
 }
 
 .story .rainbow-chip {
@@ -380,7 +390,7 @@
 .story .method-tab:not(.is-on),
 .story .alt-reveal-btn:not(.is-banner),
 .story .wall-consent-btn {
-  box-shadow: var(--v3-hairline), var(--v3-shadow-control);
+  box-shadow: var(--v3-hairline);
 }
 
 /* Selected state is --forest ONLY where it carries no other meaning — these

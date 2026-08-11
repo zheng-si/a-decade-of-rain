@@ -538,8 +538,12 @@ export function stampEventColors(spray: SprayDataset, colors: string[], groupOf?
  *  speaks, while the Story needs those names to tell a reader where they are.
  *  Before the split the Story simply never ran any of this, so the two maps
  *  disagreed about the colour of the sea. */
-export function quietBasemap(map: maplibregl.Map, opts: { labels?: boolean } = {}) {
+export function quietBasemap(
+  map: maplibregl.Map,
+  opts: { labels?: boolean; water?: string } = {},
+) {
   const doLabels = opts.labels !== false
+  const waterTone = opts.water ?? WATER_FILL
   for (const layer of map.getStyle().layers ?? []) {
     const id = layer.id
     try {
@@ -570,11 +574,11 @@ export function quietBasemap(map: maplibregl.Map, opts: { labels?: boolean } = {
       // lightness. The river line is the same hue two steps down so
       // waterways stay legible against land instead of against the sea.
       if (layer.type === 'fill' && WATER_FILL_RE.test(id)) {
-        map.setPaintProperty(id, 'fill-color', WATER_FILL)
+        map.setPaintProperty(id, 'fill-color', waterTone)
         continue
       }
       if (layer.type === 'line' && WATER_LINE_RE.test(id)) {
-        map.setPaintProperty(id, 'line-color', WATER_LINE)
+        map.setPaintProperty(id, 'line-color', waterTone)
         continue
       }
       if (layer.type === 'line' && /highway|road|street|bridge|tunnel|transportation/.test(id)) {

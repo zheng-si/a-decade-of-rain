@@ -167,7 +167,7 @@
    separate circles — squares with a gap would read as two unrelated things. */
 .map-wrap .transport-buttons {
   gap: 0;
-  box-shadow: var(--v2-hairline), var(--v2-shadow-control);
+  box-shadow: var(--v2-hairline);
 }
 
 .map-wrap .transport-btn.is-primary,
@@ -297,7 +297,7 @@
   /* Hairline first, then the control shadow — the white chips inside are
      otherwise a 1.03:1 edge against the panel. Matches `.rainbow-switch` in
      StorySkinV3.css, which is the same switch on the other page. */
-  box-shadow: var(--v2-hairline), var(--v2-shadow-control);
+  box-shadow: var(--v2-hairline);
 }
 
 /* Medium, not SemiBold. These are switches, not headings — at 600 the whole
@@ -366,7 +366,7 @@
    the edge the switch is made of. */
 .map-wrap .archive-key .map-key-view {
   padding: 0;
-  box-shadow: var(--v2-hairline), var(--v2-shadow-control);
+  box-shadow: var(--v2-hairline);
 }
 
 .map-wrap .archive-key .map-key-view-btn.is-active {
