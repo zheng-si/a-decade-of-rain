@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { BIOHAZARD } from './biohazard'
+import Logo from './Logo'
 import usaidWhite from '../assets/brand/usaid-white.png'
 
 // Persistent left rail: a table of contents for the (now long) story. Each
@@ -95,11 +95,7 @@ export default function StoryNav() {
           window.scrollTo({ top: 0, behavior: 'smooth' })
         }}
       >
-        <svg viewBox="0 0 38 35" className="story-rail-bio" fill="currentColor" aria-hidden="true">
-          {BIOHAZARD.map((d, i) => (
-            <path key={i} d={d} />
-          ))}
-        </svg>
+        <Logo className="story-rail-bio" />
         <span>
           A Decade
           <br />

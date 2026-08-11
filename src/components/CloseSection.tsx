@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { CLOSE_ACTIONS, CLOSE_HEAD, COLOPHON, REF_GROUPS } from '../content/close'
 import { SOURCES } from '../content/sources'
-import { BIOHAZARD } from './biohazard'
+import Logo from './Logo'
 
 // The hook's rain, winding down: sparse pale drops that thin out over ~14s
 // once the section is on screen, settling to a last occasional drizzle.
@@ -164,11 +164,7 @@ export default function CloseSection() {
               <a href={`mailto:${COLOPHON.email}`}>{COLOPHON.email}</a>
             </p>
             <div className="close-mark" aria-hidden="true">
-              <svg viewBox="0 0 38 35" fill="currentColor">
-                {BIOHAZARD.map((d, i) => (
-                  <path key={i} d={d} />
-                ))}
-              </svg>
+              <Logo />
               <span>A Decade of Rain</span>
             </div>
 
