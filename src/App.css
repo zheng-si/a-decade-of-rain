@@ -650,12 +650,14 @@
   opacity: 0.7;
 }
 
+/* The same two composited values as .key-mr / .key-border in Story.css -- see
+   the note there. Both are what the map COMPOSITES to, not its paint value. */
 .archive-key .key-mr {
   border-top: 1.5px dashed #ec7066;
 }
 
 .archive-key .key-border {
-  border-top: 1px solid #a8ada2;
+  border-top: 1px solid #c6c9c2;
 }
 
 /* ── small screens: the panel becomes a bottom sheet, the key retires ──── */

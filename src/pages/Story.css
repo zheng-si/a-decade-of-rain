@@ -425,7 +425,7 @@
   left: 0;
   top: 50%;
   bottom: 50%;
-  width: 2px;
+  width: 0.125rem;
   background: #fff;
   opacity: 0;
   transition: top 0.18s ease, bottom 0.18s ease, opacity 0.18s;
@@ -546,9 +546,9 @@
 
 .timeline-year {
   position: absolute;
-  left: 3px;
+  left: 0.1875rem;
   transform: translateY(-100%);
-  padding-bottom: 3px;
+  padding-bottom: 0.1875rem;
   font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: var(--track-tight);
@@ -594,7 +594,7 @@
 }
 
 .timeline-scan-unit {
-  margin-top: 3px;
+  margin-top: 0.1875rem;
   font-size: 0.625rem;
   font-weight: 500;
   letter-spacing: var(--track-tight);
@@ -983,7 +983,7 @@
 .map-key-view {
   display: flex;
   gap: 0;
-  padding: 2px;
+  padding: 0.125rem;
   margin-bottom: 0.625rem;
   background: rgba(33, 53, 40, 0.06);
   border-radius: 62.4375rem;
@@ -1032,7 +1032,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 0.125rem;
 }
 
 .map-key-compass-n {
@@ -1113,7 +1113,7 @@
 .map-key-heat-labels {
   display: flex;
   justify-content: space-between;
-  margin-top: 3px;
+  margin-top: 0.1875rem;
   font-size: 0.625rem;
   color: var(--ink-faint);
 }
@@ -1140,14 +1140,26 @@
   width: 1.25rem;
 }
 
+/* A SWATCH IS A SAMPLE OF THE MAP, so it carries what the layer composites to,
+   not the paint value it is set to before opacity.
+
+   Military region: the layer draws #ec7066 at width 1.2 / opacity 0.55 ->
+   #f0aba5. This swatch was --accent-line at full opacity, dE00 23.7 from the
+   line it claims to sample. The Archive's copy already had #ec7066.
+
+   National border: the layer is #a8ada2 at width 0.7 / opacity 0.6 on BOTH
+   surfaces -> #c6c9c2. This swatch rendered #626f65, which is --forest: a UI
+   ink standing in for a cartographic line (dE00 30.1). The Archive's rendered
+   the uncomposited #a8ada2, dE00 22.6 from this one. One value now, written
+   into both files in the same edit so they cannot drift apart again. */
 .key-mr {
   height: 0;
-  border-top: 2px dashed var(--accent-line);
+  border-top: 1.5px dashed #ec7066;
 }
 
 .key-border {
   height: 0;
-  border-top: 1.5px solid rgba(33, 53, 40, 0.7);
+  border-top: 1px solid #c6c9c2;
 }
 
 .key-veg {
@@ -1405,7 +1417,7 @@
 .rainbow-mode {
   display: inline-flex;
   flex: none;
-  padding: 2px;
+  padding: 0.125rem;
   background: rgba(33, 53, 40, 0.06);
   border-radius: 62.4375rem;
 }
@@ -1589,12 +1601,12 @@
   flex: none;
   width: 2rem;
   height: 2rem;
-  margin-top: 3px; /* optically centred on the name + first tagline line */
+  margin-top: 0.1875rem; /* optically centred on the name + first tagline line */
   color: var(--agent-ink);
 }
 
 .rainbow-card-name {
-  margin: 0 0 3px;
+  margin: 0 0 0.1875rem;
   font-family: var(--font-serif);
   font-weight: 400;
   font-size: 1.1875rem;
@@ -1819,13 +1831,16 @@
 
 .eco-sort {
   display: inline-flex;
-  padding: 2px;
+  padding: 0.125rem;
   background: rgba(33, 53, 40, 0.06);
   border-radius: 62.4375rem;
 }
 
 .eco-sort-btn {
-  padding: 0.4375rem 0.8125rem;
+  /* 0.375/0.75, the canonical chip padding. 0.4375/0.8125 appears nowhere else
+     on either surface and made this group 24.88px tall against 19.78 for the
+     two switches beside it. */
+  padding: 0.375rem 0.75rem;
   font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 600;
@@ -2270,7 +2285,7 @@
 }
 .wall-cap em {
   display: block;
-  margin-top: 2px;
+  margin-top: 0.125rem;
   font-style: normal;
   opacity: 0.68;
 }
@@ -2618,7 +2633,7 @@
   display: inline-flex;
   align-items: baseline;
   gap: 0.25rem;
-  padding: 3px 0.4375rem;
+  padding: 0.1875rem 0.4375rem;
   font-size: 0.6875rem;
   font-weight: 600;
   border-radius: 3px;
@@ -2655,7 +2670,7 @@
   border-top: 1px solid var(--rule);
 }
 .act2-facts dt {
-  margin: 0 0 3px;
+  margin: 0 0 0.1875rem;
   font-size: 0.6875rem;
   font-weight: 500;
 }
@@ -2825,7 +2840,7 @@
 }
 .alt-arrow-line {
   position: relative;
-  height: 2.5px;
+  height: 0.15625rem;
   background: linear-gradient(90deg, #b9beba 0%, #e2766b 55%, #ff5449 100%);
 }
 .alt-arrow-line::after {
@@ -2856,7 +2871,10 @@
 }
 .alt-axis-title.is-co2 {
   flex: 0 0 var(--alt-gutter-r);
-  color: #ff5449;
+  /* 3.01:1 on paper. --accent is geometry-only and --accent-deep is the
+     accent-text-on-paper tone at 4.72 -- the same swap already applied to
+     .alt-arrow span a few rules above. */
+  color: var(--accent-deep);
   text-align: right;
 }
 .alt-axis-title em {
@@ -2891,7 +2909,7 @@
 }
 .alt-axis.is-co2 span {
   left: 0.75rem;
-  color: #ff5449;
+  color: var(--accent-deep);
 }
 
 .alt-plot {
@@ -2963,7 +2981,7 @@
 }
 .alt-xlabel {
   flex: 1;
-  padding: 2px 0.375rem 0;
+  padding: 0.125rem 0.375rem 0;
   font-size: 0.75rem;
   line-height: 1.4;
   text-align: center;
@@ -3658,7 +3676,7 @@
 }
 .tl-band-name {
   position: absolute;
-  right: calc(100% - 0px);
+  right: calc(100% - 0rem);
   top: 50%;
   transform: translateY(-50%);
   padding-right: 0;
@@ -3670,8 +3688,8 @@
 }
 .tl-band {
   position: absolute;
-  top: 2px;
-  bottom: 2px;
+  top: 0.125rem;
+  bottom: 0.125rem;
   display: flex;
   align-items: center;
   border-radius: 3px;
@@ -3753,7 +3771,7 @@
   color: var(--tlc);
 }
 .tl-card-stat {
-  margin: 2px 0 0.3125rem;
+  margin: 0.125rem 0 0.3125rem;
   display: flex;
   align-items: baseline;
   gap: 0.4375rem;
@@ -3883,7 +3901,8 @@
   max-width: calc(50% - 0.375rem);
   font-size: 0.8125rem;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.82);
+  /* 4.10:1 measured -- body copy has to clear 4.5. */
+  color: var(--forest-text);
 }
 
 /* Wordmark-style action cards: no logos (licensing + visual consistency);
@@ -3916,7 +3935,9 @@
   margin: 0 0 0.5rem;
   font-size: 0.6875rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  /* 3.14:1 measured on the gradient. The token tier is 7.66 and, unlike an
+     alpha over a gradient, does not drift with viewport height. */
+  color: var(--forest-text-soft);
 }
 .close-action-name {
   margin: 0 0 0.4375rem;
@@ -3935,7 +3956,8 @@
   margin: auto 0 0;
   font-size: 0.6875rem;
   font-weight: 600;
-  color: #9fd4b4;
+  /* 4.20:1 measured. The token tier instead of a one-off mint. */
+  color: var(--forest-text-soft);
 }
 .close-action:hover .close-action-cta {
   color: #c4ecd3;
@@ -4008,7 +4030,7 @@
   color: rgba(255, 255, 255, 0.85) !important;
 }
 .close-email {
-  margin: 2px 0 0 !important;
+  margin: 0.125rem 0 0 !important;
 }
 .close-email a {
   font-size: 0.75rem;
@@ -4026,7 +4048,9 @@
   align-items: center;
   gap: 0.5625rem;
   margin-top: 1.625rem;
-  color: #ff7a68;
+  /* Was #ff7a68 -- 2.36 dE from --accent-bright, which is the same colour
+     typed twice. It reaches the wordmark SVG by inheritance. */
+  color: var(--accent-bright);
 }
 .close-mark svg {
   width: 1.25rem;
