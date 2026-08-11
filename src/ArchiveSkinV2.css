@@ -75,7 +75,22 @@
    panel is sized to; it must never be the thing that reflows. Hence both the
    headroom and the nowrap below. */
 .map-wrap .explorer-panel {
-  width: min(372px, calc(100vw - 48px));
+  width: min(23.25rem, calc(100vw - 3rem));
+}
+
+/* The phone sheet's width, restated here because it was never being applied.
+   App.css sets it inside `@media (max-width: 700px)` on `.explorer-panel` —
+   one class, against the two above — so the media query lost on specificity
+   and the sheet kept the desktop `calc(100vw - 3rem)`. On a 390 screen that is
+   342 against a 366 the sheet asked for, and the 24 it gave away came off the
+   agent row: the 'Other' chip was being clipped by the panel's own edge. Same
+   trap as the phone `.close-body` rule in Story.css — an override that reads
+   correctly and never runs. Sized to the row, not to taste: 366 puts the
+   content box at 334 against a row that measures 313.5. */
+@media (max-width: 700px) {
+  .map-wrap .explorer-panel {
+    width: calc(100vw - 1.5rem);
+  }
 }
 
 .map-wrap .explorer-panel,
@@ -90,16 +105,16 @@
 
 /* ── the identity block ────────────────────────────────────────────────── */
 .map-wrap .explorer-eyebrow {
-  margin: 0 0 12px;
+  margin: 0 0 0.75rem;
   font-weight: 500;
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.1;
 }
 
 .map-wrap .explorer-title {
-  margin: 0 0 8px;
+  margin: 0 0 0.5rem;
   font-weight: 500;
-  font-size: 20px;
+  font-size: 1.25rem;
   line-height: 1.1;
 }
 
@@ -107,9 +122,9 @@
    deck expands the line above it — so they sit closer than the 16 that
    separates the identity block from the controls. */
 .map-wrap .explorer-subtitle {
-  margin: 0 0 12px;
+  margin: 0 0 0.75rem;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 0.875rem;
   line-height: 1.3;
 }
 
@@ -119,10 +134,10 @@
    padding-top, so the rule sits exactly between the prose and the controls
    instead of 24 above and 16 below. */
 .map-wrap .explorer-dek {
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
   font-weight: 400;
-  font-size: 12px;
-  line-height: 20px;
+  font-size: 0.75rem;
+  line-height: 1.65;
 }
 
 /* ── transport ─────────────────────────────────────────────────────────── */
@@ -130,15 +145,15 @@
    controls, so it survives the no-strokes pass. */
 .map-wrap .explorer-transport {
   align-items: center;
-  gap: 14px;
-  padding-top: 16px;
+  gap: 0.875rem;
+  padding-top: 1rem;
 }
 
 /* Two lines beside the buttons: what is counted and when, then the counts. */
 .map-wrap .transport-readout {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 0.3125rem;
   min-width: 0;
 }
 
@@ -148,14 +163,14 @@
 .map-wrap .transport-head {
   display: flex;
   align-items: baseline;
-  gap: 12px;
+  gap: 0.75rem;
   margin: 0;
 }
 
 .map-wrap .transport-head .explorer-section-label,
 .map-wrap .transport-head .explorer-date {
   margin: 0;
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: 0.04em;
@@ -176,8 +191,8 @@
 }
 
 .map-wrap .transport-btn {
-  width: 30px;
-  height: 30px;
+  width: 1.875rem;
+  height: 1.875rem;
   border-radius: 0;
 }
 
@@ -192,7 +207,7 @@
 
 .map-wrap .explorer-date {
   font-weight: 500;
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1.2;
 }
 
@@ -207,9 +222,9 @@
    two of them — so it has to carry that gap itself, or it collides with the
    readout above it. */
 .map-wrap .explorer-section-label {
-  margin: 16px 0 8px;
+  margin: 1rem 0 0.5rem;
   display: block;
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: 0.04em;
@@ -238,8 +253,8 @@
    is the spacing, so no margin here. */
 .map-wrap .explorer-statline {
   margin: 0;
-  gap: 10px;
-  font-size: 11px;
+  gap: 0.625rem;
+  font-size: 0.6875rem;
   text-transform: none;
   letter-spacing: 0;
 }
@@ -268,11 +283,11 @@
    only thing holding the chart off the row above it — the tallest bars were
    landing straight against the Gallons figure. The chart owns that gap now. */
 .map-wrap .explorer-chart {
-  margin-top: 14px;
+  margin-top: 0.875rem;
 }
 
 .map-wrap .explorer-axis {
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 500;
 }
 
@@ -304,8 +319,8 @@
    row read as a title bar. Same call on the Flat/3D pair below. */
 .map-wrap .agent-chip {
   position: relative;
-  gap: 4px;
-  padding: 6px 12px;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
   border: none;
   border-radius: 0;
   font-weight: 500;
@@ -323,7 +338,7 @@
   top: 50%;
   transform: translateY(-50%);
   width: 1px;
-  height: 14px;
+  height: 0.875rem;
   background: rgba(33, 53, 40, 0.14);
 }
 
@@ -351,7 +366,7 @@
 }
 
 .map-wrap .explorer-links {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -378,7 +393,7 @@
 }
 
 .map-wrap .archive-key .map-key-view-btn {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
@@ -390,12 +405,12 @@
    wins on source order. */
 .map-wrap .adr-popup strong,
 .map-wrap .adr-popup.adr-hover strong {
-  font-size: 11px;
+  font-size: 0.6875rem;
   line-height: 1.5;
 }
 
 .map-wrap .adr-popup .maplibregl-popup-content {
-  padding: 6px 9px 7px;
+  padding: 0.375rem 0.5625rem 0.4375rem;
   border-radius: 0;
   box-shadow: var(--v2-shadow-control);
 }
@@ -417,20 +432,20 @@
    0.02em tracking was there to open up an all-caps-ish string of digits; at
    this size it buys nothing and costs ~6px. */
 .map-wrap .inspect-coords {
-  margin-bottom: 4px;
-  font-size: 10px;
+  margin-bottom: 0.25rem;
+  font-size: 0.625rem;
   letter-spacing: 0;
 }
 
 .map-wrap .inspect-coords.is-span {
-  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
 }
 
 /* 4px, not 6. The total and the counts that decompose it are one statement —
    'this much, arriving like this' — so they set as one block, and the card's
    real gaps are the ones between blocks. */
 .map-wrap .inspect-figure {
-  margin-bottom: 4px;
+  margin-bottom: 0.25rem;
 }
 
 /* ONE SIZE for every piece of data in the card. It had been carrying four
@@ -446,7 +461,7 @@
 .map-wrap .inspect-group-row,
 .map-wrap .inspect-year-labels,
 .map-wrap .inspect-note {
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 /* ONE stat grammar on all three surfaces that carry counts — the panel's
@@ -490,10 +505,10 @@
    labels, and each one takes over the rule that used to sit on top of the
    block it heads — otherwise the label would float above its own divider. */
 .map-wrap .inspect-section-label {
-  margin: 12px 0 8px;
-  padding-top: 12px;
+  margin: 0.75rem 0 0.5rem;
+  padding-top: 0.75rem;
   border-top: 1px solid var(--rule);
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: 0.04em;
@@ -527,7 +542,7 @@
 }
 
 .map-wrap .axis-year {
-  top: 6px;
+  top: 0.375rem;
 }
 
 /* The inspect card's mini chart gets a ruler of its own — one tick per year,
@@ -535,8 +550,8 @@
    Same flex geometry as the bars above, so tick and column line up. */
 .map-wrap .inspect-year-ticks {
   display: flex;
-  gap: 2px;
-  margin-top: 2px;
+  gap: 0.125rem;
+  margin-top: 0.125rem;
 }
 
 .map-wrap .inspect-year-tick {
@@ -553,7 +568,7 @@
 }
 
 .map-wrap .inspect-year-labels {
-  margin-top: 3px;
+  margin-top: 0.1875rem;
 }
 
 /* MapLibre's own controls are part of the surface too. */

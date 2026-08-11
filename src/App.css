@@ -92,8 +92,8 @@
   right: 1.5rem;
   z-index: 10;
   display: inline-flex;
-  gap: 2px;
-  padding: 3px;
+  gap: 0.125rem;
+  padding: 0.1875rem;
   /* Near-opaque paper instead of frosted glass: backdrop-filter on a fixed
      panel re-samples the scrolling banner beneath it every frame (flicker). */
   background: rgba(252, 251, 247, 0.92);
@@ -153,7 +153,7 @@
 .explorer-panel {
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 4px;
+  border-radius: 0.25rem;
   box-shadow: 0 6px 24px rgba(40, 38, 30, 0.1);
   -webkit-backdrop-filter: blur(18px) saturate(1.35);
   backdrop-filter: blur(18px) saturate(1.35);
@@ -165,46 +165,46 @@
    ladder — serif eyebrow/title, 13 body, 12 UI, 10–11 chart furniture. */
 .explorer-panel {
   position: absolute;
-  top: 24px;
-  left: 24px;
+  top: 1.5rem;
+  left: 1.5rem;
   z-index: 2;
-  width: min(400px, calc(100vw - 48px));
-  padding: 24px 24px 22px;
-  border-radius: 6px;
+  width: min(25rem, calc(100vw - 3rem));
+  padding: 1.5rem 1.5rem 1.375rem;
+  border-radius: 0.375rem;
 }
 
 /* Year eyebrow sits on the same serif tier as the title (story-card rule). */
 .explorer-eyebrow {
-  margin: 0 0 14px;
+  margin: 0 0 0.875rem;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 24px;
+  font-size: 1.5rem;
   line-height: 1.05;
   color: var(--accent-deep);
 }
 
 .explorer-title {
-  margin: 0 0 14px;
+  margin: 0 0 0.875rem;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 24px;
+  font-size: 1.5rem;
   line-height: 1.1;
   color: var(--ink);
 }
 
 .explorer-subtitle {
-  margin: 0 0 16px;
+  margin: 0 0 1rem;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 17px;
+  font-size: 1.0625rem;
   line-height: 1.3;
   color: var(--ink);
 }
 
 .explorer-dek {
-  margin: 0 0 24px;
+  margin: 0 0 1.5rem;
   font-weight: 300;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1.65;
   color: var(--ink-soft);
 }
@@ -212,7 +212,7 @@
 .explorer-dek a {
   color: inherit;
   text-decoration: underline;
-  text-underline-offset: 2px;
+  text-underline-offset: 0.125rem;
   text-decoration-color: rgba(78, 99, 85, 0.45);
 }
 
@@ -226,13 +226,13 @@
    convention; no interpuncts between styled stat pairs). */
 .explorer-statline {
   display: flex;
-  gap: 12px;
-  margin: 14px 0 12px;
+  gap: 0.75rem;
+  margin: 0.875rem 0 0.75rem;
   line-height: 1.3;
 }
 
 .explorer-statline .stat-pair {
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 400;
   color: var(--ink-soft);
 }
@@ -241,7 +241,7 @@
    tooltip): figures carry accent red at medium weight, labels stay
    regular in ink-soft. */
 .explorer-statline strong {
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 500;
   color: var(--accent-deep);
 }
@@ -250,23 +250,23 @@
 .explorer-transport {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 18px 0 0;
+  gap: 1rem;
+  padding: 1.125rem 0 0;
   border-top: 1px solid var(--rule);
 }
 
 .transport-buttons {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .transport-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 2rem;
+  height: 2rem;
   padding: 0;
   border: none;
   border-radius: 50%;
@@ -277,14 +277,14 @@
 }
 
 .transport-btn svg {
-  width: 11px;
-  height: 11px;
+  width: 0.6875rem;
+  height: 0.6875rem;
   fill: currentColor;
 }
 
 .transport-btn .icon-reset {
-  width: 16px;
-  height: 16px;
+  width: 1rem;
+  height: 1rem;
   fill: currentColor;
 }
 
@@ -322,7 +322,7 @@
   margin: 0;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 19px;
+  font-size: 1.1875rem;
   line-height: 1.2;
   color: var(--ink);
 }
@@ -341,7 +341,7 @@
 .explorer-chart svg {
   display: block;
   width: 100%;
-  height: 104px;
+  height: 6.5rem;
 }
 
 .explorer-chart .is-future {
@@ -372,16 +372,16 @@
 
 .explorer-chart:focus-within {
   outline: 2px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: 2px;
+  outline-offset: 0.1875rem;
+  border-radius: 0.125rem;
 }
 
 /* Ruler under the chart: yearly major ticks (labelled), quarterly minors. */
 .explorer-axis {
   position: relative;
-  height: 24px;
+  height: 1.5rem;
   margin: 0;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 400;
   color: var(--ink-faint);
 }
@@ -401,7 +401,7 @@
 
 .axis-year {
   position: absolute;
-  top: 10px;
+  top: 0.625rem;
   transform: translateX(-50%);
 }
 
@@ -412,9 +412,9 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 2px;
-  margin-top: 24px;
-  padding: 3px;
+  gap: 0.125rem;
+  margin-top: 1.5rem;
+  padding: 0.1875rem;
   background: rgba(255, 255, 255, 0.85);
   border-radius: 999px;
   box-shadow: 0 1px 4px rgba(40, 38, 30, 0.08);
@@ -423,10 +423,10 @@
 /* Per-agent primer under the chips — a FIXED-height slot (two 11px lines),
    so switching agents never changes the card's height. */
 .explorer-agent-note {
-  height: 34px;
-  margin: 12px 0 0;
+  height: 2.125rem;
+  margin: 0.75rem 0 0;
   overflow: hidden;
-  font-size: 11px;
+  font-size: 0.6875rem;
   line-height: 1.55;
   color: var(--ink-faint);
 }
@@ -437,14 +437,14 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px;
-  margin: 14px 0 0;
+  gap: 0.375rem;
+  margin: 0.875rem 0 0;
 }
 
 .explorer-flyto .flyto-label {
   flex-basis: 100%;
-  margin-bottom: 2px;
-  font-size: 10px;
+  margin-bottom: 0.125rem;
+  font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -454,10 +454,10 @@
 .explorer-flyto button {
   border: 1px solid var(--rule);
   background: rgba(255, 255, 255, 0.7);
-  padding: 4px 10px;
+  padding: 0.25rem 0.625rem;
   border-radius: 999px;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 500;
   color: var(--ink-soft);
   cursor: pointer;
@@ -470,8 +470,8 @@
 }
 
 .explorer-links {
-  margin: 16px 0 0;
-  font-size: 13px;
+  margin: 1rem 0 0;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 
@@ -488,14 +488,14 @@
 .agent-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 0.375rem;
   border: 1px solid transparent;
   background: transparent;
   color: var(--ink-soft);
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
-  padding: 5px 10px;
+  padding: 0.3125rem 0.625rem;
   border-radius: 999px;
   cursor: pointer;
   transition: color 0.15s, background 0.15s;
@@ -549,7 +549,7 @@
   content: '';
   display: block;
   width: 2.125rem;
-  height: 2px;
+  height: 0.125rem;
   margin-top: 0.875rem;
   background: var(--ink);
   opacity: 0.85;
@@ -570,17 +570,17 @@
    live here. */
 .archive-key {
   position: absolute;
-  top: 24px;
-  right: 24px;
+  top: 1.5rem;
+  right: 1.5rem;
   z-index: 5;
-  width: 172px;
-  padding: 11px 13px 16px;
+  width: 10.75rem;
+  padding: 0.6875rem 0.8125rem 1rem;
   /* Same glass as the left panel — this one sits over the map too, so the
      "near-opaque paper, no filter" recipe (which exists because a fixed
      panel over a SCROLLING page flickers) does not apply here. */
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 4px;
+  border-radius: 0.25rem;
   box-shadow: 0 8px 24px rgba(33, 53, 40, 0.14);
   -webkit-backdrop-filter: blur(18px) saturate(1.35);
   backdrop-filter: blur(18px) saturate(1.35);
@@ -590,13 +590,13 @@
 .archive-key-share {
   display: block;
   width: 100%;
-  margin: -3px 0 12px;
-  padding: 5px 0;
+  margin: -0.1875rem 0 0.75rem;
+  padding: 0.3125rem 0;
   border: 1px solid var(--rule);
   border-radius: 999px;
   background: transparent;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--ink-soft);
@@ -615,29 +615,29 @@
    from the content they introduce, so colour can mark them as structure.
    (Three tiers: ink = titles and labels · soft = content · faint = notes.) */
 .archive-key .map-key-view-label {
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   color: var(--ink);
 }
 
 .archive-key .map-key-view {
-  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
 }
 
 .archive-key .map-key-view-btn {
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 /* The scale row's rule is not needed here — legend rows follow directly. */
 .archive-key .map-key-top {
   border-bottom: none;
   padding-bottom: 0;
-  margin-bottom: 12px;
+  margin-bottom: 0.75rem;
 }
 
 .archive-key .map-key-list {
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .archive-key .map-key-scale-label {
@@ -647,8 +647,8 @@
 /* Legend swatches specific to the volume-symbol map. */
 .archive-key .key-dot {
   display: block;
-  width: 10px;
-  height: 10px;
+  width: 0.625rem;
+  height: 0.625rem;
   margin: 0 auto;
   border-radius: 50%;
   opacity: 0.8;
@@ -664,7 +664,7 @@
    reads as a sample of the map rather than as an icon of it. */
 .archive-key .key-line {
   display: block;
-  width: 14px;
+  width: 0.875rem;
   height: 3px;
   margin: 0 auto;
   opacity: 0.75;
@@ -672,7 +672,7 @@
 
 .archive-key .key-line-dash {
   display: block;
-  width: 14px;
+  width: 0.875rem;
   height: 0;
   margin: 0 auto;
   border-top: 1.5px dashed;
@@ -685,8 +685,8 @@
    inline from the current selection, like the dot above it. */
 .archive-key .key-ring {
   display: block;
-  width: 8px;
-  height: 8px;
+  width: 0.5rem;
+  height: 0.5rem;
   margin: 0 auto;
   border: 1px solid;
   border-radius: 50%;
@@ -705,12 +705,12 @@
 @media (max-width: 700px) {
   .explorer-panel {
     top: auto;
-    bottom: 12px;
-    left: 12px;
-    width: calc(100vw - 24px);
+    bottom: 0.75rem;
+    left: 0.75rem;
+    width: calc(100vw - 1.5rem);
     max-height: 58vh;
     overflow-y: auto;
-    padding: 14px 16px 12px;
+    padding: 0.875rem 1rem 0.75rem;
   }
 
   .explorer-dek {
@@ -727,20 +727,20 @@
    bottom section of the map key panel. */
 .archive-inspect {
   position: relative;
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: 0.875rem;
+  padding-top: 0.875rem;
   border-top: 1px solid var(--rule);
   font-family: var(--font-sans);
 }
 
 .inspect-close {
   position: absolute;
-  top: 2px;
-  right: -6px;
-  padding: 6px;
+  top: 0.125rem;
+  right: -0.375rem;
+  padding: 0.375rem;
   border: none;
   background: none;
-  font-size: 16px;
+  font-size: 1rem;
   line-height: 1;
   color: var(--ink-faint);
   cursor: pointer;
@@ -751,8 +751,8 @@
 }
 
 .inspect-kicker {
-  margin: 0 0 4px;
-  font-size: 10px;
+  margin: 0 0 0.25rem;
+  font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -760,37 +760,37 @@
 }
 
 .inspect-coords {
-  margin: 0 0 12px;
-  font-size: 10px;
+  margin: 0 0 0.75rem;
+  font-size: 0.625rem;
   letter-spacing: 0.02em;
   color: var(--ink-faint);
 }
 
 /* Figure and its unit share one line, meeting on the text baseline. */
 .inspect-figure {
-  margin: 0 0 12px;
+  margin: 0 0 0.75rem;
   line-height: 1.1;
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--ink-soft);
 }
 
 /* Same serif tier as the panel's playhead date — the two anchor figures. */
 .inspect-figure strong {
   font-family: var(--font-serif);
-  font-size: 19px;
+  font-size: 1.1875rem;
   font-weight: 500;
   color: var(--accent-deep);
 }
 
 .inspect-figure-unit {
-  margin-left: 4px;
-  font-size: 11px;
+  margin-left: 0.25rem;
+  font-size: 0.6875rem;
   color: var(--ink-soft);
 }
 
 .inspect-sub {
-  margin: 0 0 4px;
-  font-size: 11px;
+  margin: 0 0 0.25rem;
+  font-size: 0.6875rem;
   color: var(--ink-soft);
 }
 
@@ -802,21 +802,21 @@
 /* Stat pairs separate by space, not dots (same rule as the statline). */
 .inspect-sub.is-stats {
   display: flex;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .inspect-note {
-  margin: 6px 0 0;
-  font-size: 10px;
+  margin: 0.375rem 0 0;
+  font-size: 0.625rem;
   line-height: 1.5;
   color: var(--ink-faint);
 }
 
 .inspect-dot {
   display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 2px;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.125rem;
   border-radius: 50%;
   vertical-align: -1px;
 }
@@ -825,29 +825,29 @@
 .inspect-groups {
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  margin: 14px 0 0;
-  padding-top: 14px;
+  gap: 0.4375rem;
+  margin: 0.875rem 0 0;
+  padding-top: 0.875rem;
   border-top: 1px solid var(--rule);
 }
 
 .inspect-group-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 10px;
+  gap: 0.375rem;
+  font-size: 0.625rem;
   color: var(--ink-soft);
 }
 
 .inspect-group-label {
-  width: 40px;
+  width: 2.5rem;
   flex: none;
 }
 
 .inspect-bar-track {
   flex: 1;
-  height: 5px;
-  border-radius: 2px;
+  height: 0.3125rem;
+  border-radius: 0.125rem;
   background: rgba(33, 53, 40, 0.07);
   overflow: hidden;
 }
@@ -855,12 +855,12 @@
 .inspect-bar {
   display: block;
   height: 100%;
-  border-radius: 2px;
+  border-radius: 0.125rem;
   opacity: 0.85;
 }
 
 .inspect-group-value {
-  width: 34px;
+  width: 2.125rem;
   flex: none;
   text-align: right;
   color: var(--ink-soft);
@@ -870,10 +870,10 @@
 .inspect-years {
   display: flex;
   align-items: flex-end;
-  gap: 2px;
-  height: 46px;
-  margin: 14px 0 0;
-  padding-top: 14px;
+  gap: 0.125rem;
+  height: 2.875rem;
+  margin: 0.875rem 0 0;
+  padding-top: 0.875rem;
   border-top: 1px solid var(--rule);
   /* Baseline axis under the year bars, same weight as the main chart's. */
   border-bottom: 1px solid rgba(33, 53, 40, 0.28);
@@ -897,8 +897,8 @@
 .inspect-year-labels {
   display: flex;
   justify-content: space-between;
-  margin-top: 5px;
-  font-size: 10px;
+  margin-top: 0.3125rem;
+  font-size: 0.625rem;
   color: var(--ink-faint);
 }
 
@@ -909,11 +909,11 @@
    visible seam; at 0.92 it is ~4/255, which is not. Tip and content must keep
    the identical fill for the join to disappear. */
 .adr-popup .maplibregl-popup-content {
-  padding: 10px 13px 11px;
+  padding: 0.625rem 0.8125rem 0.6875rem;
   font-family: var(--font-sans);
   background: rgba(255, 255, 255, 0.92);
   border: 1px solid var(--rule);
-  border-radius: 4px;
+  border-radius: 0.25rem;
   box-shadow: 0 8px 24px rgba(33, 53, 40, 0.16);
   -webkit-backdrop-filter: blur(14px) saturate(1.3);
   backdrop-filter: blur(14px) saturate(1.3);
@@ -933,8 +933,8 @@
    ABOVE the content (same fill, no border, so the join is seamless);
    underneath, the content's drop shadow would grey it out. */
 .adr-hover .maplibregl-popup-tip {
-  width: 11px;
-  height: 11px;
+  width: 0.6875rem;
+  height: 0.6875rem;
   border: none;
   /* Must match .adr-popup .maplibregl-popup-content exactly — see the note
      there. No backdrop-filter of its own: over the content its backdrop IS
@@ -945,22 +945,22 @@
 }
 
 .adr-hover.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
-  margin-top: -7px;
+  margin-top: -0.4375rem;
   border-bottom-right-radius: 2px;
 }
 
 .adr-hover.maplibregl-popup-anchor-top .maplibregl-popup-tip {
-  margin-bottom: -7px;
+  margin-bottom: -0.4375rem;
   border-top-left-radius: 2px;
 }
 
 .adr-hover.maplibregl-popup-anchor-left .maplibregl-popup-tip {
-  margin-right: -7px;
+  margin-right: -0.4375rem;
   border-bottom-left-radius: 2px;
 }
 
 .adr-hover.maplibregl-popup-anchor-right .maplibregl-popup-tip {
-  margin-left: -7px;
+  margin-left: -0.4375rem;
   border-top-right-radius: 2px;
 }
 
@@ -975,21 +975,21 @@
 
 /* …so keep every corner rounded when the tip is gone. */
 .adr-hover .maplibregl-popup-content {
-  border-radius: 4px;
+  border-radius: 0.25rem;
 }
 
 /* Second line joins the 11px annotation tier (the generic popup span rule
    sets an off-ladder 11.5px). */
 .adr-popup.adr-hover span {
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 /* Statline grammar: heavier red figures over regular quiet words. */
 .adr-popup.adr-hover strong {
   font-family: var(--font-sans);
   font-weight: 400;
-  font-size: 13px;
-  margin: 0 0 2px;
+  font-size: 0.8125rem;
+  margin: 0 0 0.125rem;
   color: var(--ink-soft);
 }
 
@@ -1007,7 +1007,7 @@
 
 .adr-popup.adr-hover strong .gap {
   display: inline-block;
-  width: 12px;
+  width: 0.75rem;
   max-width: none;
   font-size: inherit;
   line-height: inherit;
@@ -1015,17 +1015,17 @@
 
 .adr-popup strong {
   display: block;
-  margin: 0 0 3px;
+  margin: 0 0 0.1875rem;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--ink);
 }
 
 .adr-popup span {
   display: block;
-  max-width: 210px;
-  font-size: 11.5px;
+  max-width: 13.125rem;
+  font-size: 0.71875rem;
   line-height: 1.5;
   color: var(--ink-soft);
 }

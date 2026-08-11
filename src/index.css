@@ -5,10 +5,23 @@
 /* ── Root scale ──────────────────────────────────────────────────────────
    Every size in the CSS is rem-based, so the root font-size is the ONE dial
    for overall display density. 1rem = 16px on 16" screens and larger;
-   laptops step to 14px (= 87.5%, tuned on a 14" MacBook) and every
-   component scales together. Phones (≤640px) keep the full-size scale —
-   their layouts were tuned at 16. Hairline borders and ticks stay in px so
-   they never blur. */
+   laptops step to 13.6px (= 85%, tuned on a 14" MacBook) and every component
+   scales together. Phones (≤640px) keep the full-size scale — their layouts
+   were tuned at 16.
+
+   FOUR THINGS STAY IN px, and only these four:
+     · hairlines — any 1px or 1.5px border, rule, seam or divider, plus the
+       playhead and the .site-nav separator, which ARE hairlines. A rem
+       hairline lands on a fraction of a device pixel and greys out.
+     · ticks — the axis ticks and the inspect card's year ticks. Same reason:
+       a 2px mark at 85% is 1.7px and blurs into a smudge.
+     · shadow and blur geometry — box-shadow offsets, spreads and
+       backdrop-filter radii. These are optical depth, not layout; they read
+       the same at either density.
+     · media-query breakpoints, which cannot use rem reliably here because the
+       root size itself changes across them.
+   Everything else — every font-size, margin, padding, gap, width and height —
+   is rem. Divide the px value by 16. */
 html {
   font-size: 16px;
 }
