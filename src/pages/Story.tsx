@@ -185,6 +185,11 @@ export default function Story() {
   const [monthlyCum, setMonthlyCum] = useState<number[]>([])
   const [yearStart, setYearStart] = useState(1961)
   const [mapReady, setMapReady] = useState(false)
+  /** The basemap or the record failed to load. Deliberately NOT wired to
+   *  `mapReady`: on a style rejection mapRef.current is null, and the chrome
+   *  behind that flag (the key, the ruler, the deck) reads the map. Flipping it
+   *  here would trade a blank page for a crash. */
+  const [loadError, setLoadError] = useState(false)
 
   // Each node's position on the ruler (0–1), from its playhead date.
   const nodeFracs = useMemo(() => {
@@ -611,6 +616,12 @@ export default function Story() {
     if (!containerRef.current || mapRef.current) return
     let cancelled = false
 
+    const failed = (where: string) => (err: unknown) => {
+      if (cancelled) return
+      console.error(`story map: ${where}`, err)
+      setLoadError(true)
+    }
+
     resolveMapStyle().then((style) => {
       if (cancelled || !containerRef.current) return
       const map = new maplibregl.Map({
@@ -669,7 +680,15 @@ export default function Story() {
         obs.observe(attribEl, { attributes: true, attributeFilter: ['class'] })
       }
 
-      const asset = (f: string) => fetch(`${import.meta.env.BASE_URL}${f}`).then((r) => r.json())
+      // `r.ok` first, not straight to .json(): vercel.json rewrites unknown
+      // paths to index.html with a 200, so a renamed data file arrives as HTML
+      // and fails inside the parser with a SyntaxError that names neither the
+      // file nor the status. Same guard spray.ts and heat.ts already carry.
+      const asset = (f: string) =>
+        fetch(`${import.meta.env.BASE_URL}${f}`).then((r) => {
+          if (!r.ok) throw new Error(`${f}: HTTP ${r.status}`)
+          return r.json()
+        })
       Promise.all([
         loadSpray(),
         loadHeat(),
@@ -769,8 +788,8 @@ export default function Story() {
         // catch the map up to that node instead of resetting to the hook.
         if (startedRef.current) applyStep(activeRef.current)
         else setHookState()
-      })
-    })
+      }, failed('the record failed to load'))
+    }, failed('the basemap failed to load'))
 
     return () => {
       cancelled = true
@@ -949,6 +968,17 @@ export default function Story() {
 
       <div className="story-graphic">
         <div ref={containerRef} className={`story-map${mapReady ? ' is-ready' : ''}`} />
+        {/* Says so when the map cannot be drawn. The basemap comes from a
+            third party and the record comes from six static files; before this,
+            any one of them failing left the reader on a permanently empty
+            green rectangle with the story scrolling over it and nothing
+            anywhere admitting that something had broken. The prose still
+            reads without the map, so this is a notice, not a takeover. */}
+        {loadError && (
+          <p className="story-map-error" role="status">
+            The map could not be loaded. The reporting below is unaffected.
+          </p>
+        )}
         {/* Progressive frosted blur for the banner. It lives INSIDE the sticky
             container so it never moves relative to the map it blurs — the
             blurred result rasterizes once instead of every scroll frame (which

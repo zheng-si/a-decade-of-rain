@@ -376,6 +376,11 @@ export default function MapView() {
   const dataRef = useRef<SprayDataset | null>(null)
 
   const [ready, setReady] = useState(false)
+  /** The basemap or the record failed to load. Deliberately NOT wired to
+   *  `ready`: on a style rejection mapRef.current is null, and both MapTuner
+   *  and Timeline take the map without null-checking it, so flipping `ready`
+   *  in a catch would trade a blank page for a crash. */
+  const [loadError, setLoadError] = useState(false)
   const [bounds, setBounds] = useState({ min: 0, max: 0 })
   const [choices, setChoices] = useState<AgentChoice[]>([])
   const [day, setDay] = useState(0)
@@ -458,6 +463,12 @@ export default function MapView() {
     if (!containerRef.current || mapRef.current) return
     let cancelled = false
 
+    const failed = (where: string) => (err: unknown) => {
+      if (cancelled) return
+      console.error(`archive map: ${where}`, err)
+      setLoadError(true)
+    }
+
     resolveMapStyle().then((style) => {
       if (cancelled || !containerRef.current) return
 
@@ -510,7 +521,14 @@ export default function MapView() {
       // load blocked its first paint on two round trips for a layer that
       // SHOW_MILITARY_REGIONS has turned off — small files (5 KB and 0.5 KB),
       // but two serial waits in front of the map for nothing at all.
-      const asset = (f: string) => fetch(`${import.meta.env.BASE_URL}${f}`).then((r) => r.json())
+      // `r.ok` first — vercel.json rewrites unknown paths to index.html with a
+      // 200, so a renamed data file arrives as HTML and dies inside the parser
+      // with a SyntaxError naming neither the file nor the status.
+      const asset = (f: string) =>
+        fetch(`${import.meta.env.BASE_URL}${f}`).then((r) => {
+          if (!r.ok) throw new Error(`${f}: HTTP ${r.status}`)
+          return r.json()
+        })
       Promise.all([
         loadSpray(),
         SHOW_MILITARY_REGIONS ? asset('data/military-region-dividers.geojson') : null,
@@ -775,10 +793,10 @@ export default function MapView() {
           applyView(map, true, homeRef.current, false)
         }
         setReady(true)
-      })
+      }, failed('the record failed to load'))
 
       // Hotspot ring markers retired — the volume symbols carry the story.
-    })
+    }, failed('the basemap failed to load'))
 
     return () => {
       cancelled = true
@@ -1033,6 +1051,16 @@ export default function MapView() {
   return (
     <div className="map-wrap">
       <div ref={containerRef} className="map-root" />
+      {/* The Archive IS the map — there is no prose to fall back to — so when
+          the basemap or the record cannot be fetched, saying so is the whole
+          of what this surface can still do. Rendered outside the `ready` gate
+          on purpose: `ready` mounts chrome that reads the map, and on a style
+          rejection there is no map to read. */}
+      {loadError && (
+        <p className="map-load-error" role="status">
+          The archive could not be loaded. Please try again.
+        </p>
+      )}
       {ready && (
         <ArchiveKey
           map={mapRef.current}
@@ -1058,9 +1086,13 @@ export default function MapView() {
           )}
         </ArchiveKey>
       )}
-      {/* The tuner is UNMOUNTED — the palette and the label tiers are settled
-          and live in mapTaxonomy.ts. The file and its styles are kept: putting
-          the element back is this one line, and `?tune=1` still gates it. */}
+      {/* The tuner IS mounted, on both routes, for every reader. It renders
+          nothing for them — tunerEnabled() short-circuits its render and both
+          its effects unless the build is dev or the URL carries ?tune=1 — so
+          the panel never appears, but the module is a static import and its
+          ~48 KB of JS and ~8 KB of CSS are in the entry chunk regardless.
+          This note used to say the opposite: it was written when the element
+          was commented out, and it outlived the commit that put it back. */}
       {ready && <MapTuner map={mapRef.current} onRegrid={regrid} />}
       {ready && (
         <Timeline

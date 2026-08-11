@@ -4037,3 +4037,33 @@
     max-width: none;
   }
 }
+
+/* ── the map said nothing when it failed ──────────────────────────────────
+   Both bootstrap chains now reject into a flag, and this is what the flag
+   draws: a notice on the map's own surface, not a takeover. The Story's
+   argument is its prose, and the prose is unaffected by a basemap that will
+   not load, so the notice says exactly that and gets out of the way.
+
+   Centred on the sticky graphic rather than pinned to a corner, because a
+   corner note on an empty rectangle reads as furniture rather than as the
+   answer to "why is this blank". Paper and the same hairline every card on
+   this page carries, so it belongs to the page rather than to the browser. */
+.story-map-error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  margin: 0;
+  max-width: 20rem;
+  padding: 0.75rem 1rem;
+  background: var(--paper-solid);
+  box-shadow: var(--v3-hairline);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--ink-soft);
+}

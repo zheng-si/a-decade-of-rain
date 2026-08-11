@@ -323,6 +323,11 @@ export default function Timeline({
             <button
               key={c.key}
               className={`agent-chip${active ? ' is-active' : ''}`}
+              // The selected agent was announced by a class name and an inline
+              // background, neither of which reaches assistive tech: five
+              // chips, all read identically, none of them saying which one the
+              // map is filtered to.
+              aria-pressed={active}
               style={active && c.color ? { background: c.color, borderColor: c.color } : undefined}
               onClick={() => onSelectAgent(c.key)}
             >

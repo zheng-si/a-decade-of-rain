@@ -1059,3 +1059,29 @@
   line-height: 1.5;
   color: #8a8d85;
 }
+
+/* ── the archive said nothing when it failed ──────────────────────────────
+   Unlike the Story, this surface has no prose to fall back on: the map IS the
+   Archive, so when the basemap or the record cannot be fetched, saying so is
+   all that is left to do. Same paper and hairline as the panels beside it.
+   Rendered outside the `ready` gate, so it is reachable in exactly the state
+   where nothing else is. */
+.map-load-error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+  margin: 0;
+  max-width: 20rem;
+  padding: 0.75rem 1rem;
+  background: var(--paper-solid);
+  box-shadow: var(--v2-hairline, inset 0 0 0 1px rgba(33, 53, 40, 0.06));
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--ink-soft);
+}

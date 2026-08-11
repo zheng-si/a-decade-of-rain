@@ -28,7 +28,6 @@ export function dateToDay(iso: string): number {
   return Math.floor((Date.parse(iso) - EPOCH_MS) / DAY_MS) + 1
 }
 
-/** Compact gallon label: 5.1M / 494k / 12. */
 /** Gallons for display: 19.5M / 494K / 812.
  *
  *  THE one implementation. There were three -- this, and byte-identical copies

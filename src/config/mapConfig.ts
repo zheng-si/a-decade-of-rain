@@ -196,8 +196,11 @@ export const Z_FAR = 5.6
 export const mapConfig: MapConfig = {
   baseStyleUrl: 'https://tiles.openfreemap.org/styles/positron',
 
-  // Self-hosted Public Sans glyphs (see scripts/build-glyphs.mjs) label the map in
-  // the project font instead of OpenFreeMap's Noto.
+  // Self-hosted SDF glyphs (see scripts/build-glyphs.mjs) label the map instead
+  // of OpenFreeMap's Noto. The face is Roboto Condensed, not the UI's own — see
+  // LABEL_FONT above for why a narrower one is the right call for Vietnamese
+  // place names. This line said "Public Sans" for as long as that was the UI
+  // face, and stayed put through two changes of both.
   glyphsUrl: '/fonts/{fontstack}/{range}.pbf',
 
   view: {

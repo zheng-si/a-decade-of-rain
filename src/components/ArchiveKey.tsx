@@ -95,9 +95,16 @@ export default function ArchiveKey({
     <div className="archive-key">
       <p className="map-key-view-label">Map View</p>
       <div className="map-key-view" role="group" aria-label="Map view">
+        {/* aria-pressed, not the class alone: `is-active` is a paint
+            instruction and carries nothing to a screen reader, which was
+            hearing two unlabelled buttons and no way to tell which view the
+            map was in. The house pattern already — EcosystemsFigure,
+            ActionsMap, ConsequencesInterlude and AlternativesSection all set
+            it; this control and the agent chips were the two that did not. */}
         <button
           type="button"
           className={`map-key-view-btn${is3D ? '' : ' is-active'}`}
+          aria-pressed={!is3D}
           onClick={() => is3D && onToggle3D()}
         >
           Flat
@@ -105,6 +112,7 @@ export default function ArchiveKey({
         <button
           type="button"
           className={`map-key-view-btn${is3D ? ' is-active' : ''}`}
+          aria-pressed={is3D}
           onClick={() => !is3D && onToggle3D()}
         >
           3D
