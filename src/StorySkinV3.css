@@ -260,14 +260,28 @@
 }
 
 /* The reveal button's green outline was the only thing marking it as an
-   action. With the stroke gone it needs the fill instead. */
+   action. With the stroke gone it needs the fill instead.
+   
+   `:not(.is-banner)` is load-bearing, the same way it is at the chip rules
+   above. Story.css paints the REVEALED state with `.alt-reveal-btn.is-banner`
+   -- two classes, the same specificity as a bare `.story .alt-reveal-btn` --
+   and this file loads second, so without the guard this rule tied and won, and
+   the banner state never painted at all. Measured after a real click with the
+   pointer parked off-element: the class flipped, the label changed, and the
+   background stayed rgb(33,53,40). */
+/* The stroke goes in BOTH states -- §3 is not state-dependent, and guarding the
+   border alongside the fill handed the banner back the 1px green outline the
+   pass had just removed. */
 .story .alt-reveal-btn {
   border: none;
+}
+
+.story .alt-reveal-btn:not(.is-banner) {
   background: var(--forest);
   color: var(--forest-text);
 }
 
-.story .alt-reveal-btn:hover {
+.story .alt-reveal-btn:not(.is-banner):hover {
   background: var(--forest-2);
 }
 
@@ -301,9 +315,16 @@
 }
 
 .story .act2-chip,
-.story .alt-reveal-btn,
 .story .story-stat {
   box-shadow: var(--v3-shadow-control);
+}
+
+/* The revealed banner is a white surface on paper, which is the case the
+   hairline recipe exists for. It only reaches the screen at all as of this
+   pass -- the state was unreachable before -- so this is the first time it has
+   had to answer the question. */
+.story .alt-reveal-btn.is-banner {
+  box-shadow: var(--v3-hairline);
 }
 
 .story .act2-pin:hover .act2-chip {
@@ -394,7 +415,15 @@
 .story .rainbow-switch {
   gap: 0;
   width: fit-content;
-  box-shadow: var(--v3-hairline);
+  /* OUTSET, not var(--v3-hairline). The five chips sum to 311.51 against a
+     group width of 311.52 and paint opaque #fff, and an inset shadow is drawn
+     UNDER its children's backgrounds -- so the declared hairline measured Δ0 on
+     all four edges while getComputedStyle happily reported it as present. The
+     same token measures Δ8–13 on .rainbow-card, .tl-card and .method-tab,
+     which is how we know the value is right and the form is wrong here.
+     ArchiveSkinV2's inset copy measures Δ5 and stays as it is: its chips are
+     60% white, so the line shows through. */
+  box-shadow: 0 0 0 1px rgba(33, 53, 40, 0.06);
 }
 
 .story .rainbow-chip {
@@ -480,11 +509,17 @@
 
 /* ── labels · §2 ──────────────────────────────────────────────────────────
    The 10px uppercase tier, matched to the Archive's so a reader moving between
-   the two pages meets one label system rather than two. */
-.story .story-eyebrow,
-.story .rainbow-card-agent,
+   the two pages meets one label system rather than two.
+
+   TWO SELECTORS LEFT THIS LIST, and one was deleted. `.story-eyebrow` and
+   `.close-mark span` are set in PLAYFAIR, not Geist -- the first at 20.4px, the
+   second at 11.05px -- and App.css's own tracking note says serif display sets
+   solid. Worse, this rule (0,2,0) was beating Story.css:821's deliberate
+   `letter-spacing: normal` on source order alone, so a decision made in the
+   base file was being quietly reversed by the skin. `.rainbow-card-agent`
+   matched no markup at all. `.act2-badge` and `.alt-verdict-chip` stay: both
+   are Geist, uppercase, and correctly on this tier. */
 .story .act2-badge,
-.story .alt-verdict-chip,
-.story .close-mark span {
+.story .alt-verdict-chip {
   letter-spacing: 0.04em;
 }

@@ -3069,10 +3069,13 @@
   background: #4bae79;
   border-color: #4bae79;
 }
+/* #31734d, not #3f9e6c. This state was unreachable until the skin's fill rule
+   was guarded, so its 3.32:1 on white had never been on screen to be caught.
+   #31734d is the same hue at 5.69:1. border-color is dropped with the border
+   itself -- see the skin. */
 .alt-reveal-btn.is-banner {
   background: #fff;
-  border-color: #5abe88;
-  color: #3f9e6c;
+  color: #31734d;
 }
 .alt-reveal-btn.is-banner:hover {
   background: #f3faf6;
