@@ -20,6 +20,7 @@ import {
   addIslandMarks,
   addStoryTracks,
   crossfadeStoryMarks,
+  cancelStoryXfade,
   resetStoryMarks,
   STORY_HEAT_LAYER,
   STORY_WATER,
@@ -776,6 +777,12 @@ export default function Story() {
       stopPulse()
       cancelHeatAnim()
       cancelPendingSweep()
+      // The cross-fade was the one animation missing from this list, and it is
+      // the one on the exit path: the record node starts a 900ms fade to the
+      // tracks and carries the "Explore the Record" link, so a reader who takes
+      // that link mid-fade unmounts the map while a rAF is still queued. The
+      // next frame then calls setPaintProperty on a map whose style is gone.
+      cancelStoryXfade()
       clearCrosses()
       clearLandmarkPoints()
       mapRef.current?.remove()

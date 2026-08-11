@@ -29,9 +29,17 @@ export function dateToDay(iso: string): number {
 }
 
 /** Compact gallon label: 5.1M / 494k / 12. */
+/** Gallons for display: 19.5M / 494K / 812.
+ *
+ *  THE one implementation. There were three -- this, and byte-identical copies
+ *  in Timeline.tsx and ArchiveInspect.tsx -- and they did not agree: this one
+ *  spelled the thousands suffix lowercase, so the Herbicides section read
+ *  "494k Gallons" while the timeline directly above it and the whole Archive
+ *  read "494K". Uppercase wins because the millions suffix beside it has always
+ *  been an uppercase M, and one figure cannot carry two conventions. */
 export function fmtGallons(v: number): string {
   if (v >= 1e6) return `${(v / 1e6).toFixed(1)}M`
-  if (v >= 1e3) return `${(v / 1e3).toFixed(0)}k`
+  if (v >= 1e3) return `${Math.round(v / 1e3)}K`
   return `${Math.round(v)}`
 }
 

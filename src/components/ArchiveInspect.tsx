@@ -1,4 +1,4 @@
-import { dayToDate } from '../data/spray'
+import { dayToDate, fmtGallons } from '../data/spray'
 
 // ── click-to-inspect card ─────────────────────────────────────────────────
 // Clicking a grid dot opens this card with the cell's FULL-record story:
@@ -51,8 +51,10 @@ export interface RunInspect {
 
 export type Inspect = CellInspect | RunInspect
 
-export const fmtGallons = (g: number) =>
-  g >= 1_000_000 ? `${(g / 1_000_000).toFixed(1)}M` : g >= 1000 ? `${Math.round(g / 1000)}K` : `${g}`
+// Imported and re-exported, not redefined: this card uses it, and MapView
+// imports it from here for the popups it builds, whose figures have to be the
+// ones the card beside them shows.
+export { fmtGallons }
 
 const fmtCoords = ([lng, lat]: [number, number]) =>
   `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? 'N' : 'S'} ${Math.abs(lng).toFixed(2)}°${lng >= 0 ? 'E' : 'W'}`

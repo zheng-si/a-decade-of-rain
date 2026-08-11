@@ -1,7 +1,7 @@
 import { useMemo, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import type { AgentChoice } from './agentChoices'
-import { dayToDate, dateToDay, type SprayDataset } from '../data/spray'
+import { dayToDate, dateToDay, fmtGallons, type SprayDataset } from '../data/spray'
 
 // ── the Explorer's control panel ──────────────────────────────────────────
 // One frosted-glass card, top-left, in the story's paper language: identity
@@ -65,9 +65,6 @@ interface TimelineProps {
   onReset: () => void
   onSelectAgent: (key: string) => void
 }
-
-const fmtGallons = (g: number) =>
-  g >= 1_000_000 ? `${(g / 1_000_000).toFixed(1)}M` : g >= 1000 ? `${Math.round(g / 1000)}K` : `${g}`
 
 /** Grey for de-emphasised volume — the same DIM the map uses. */
 const CHART_DIM = '#c9cdc4'
