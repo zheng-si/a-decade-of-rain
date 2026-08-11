@@ -1529,7 +1529,14 @@
   align-items: flex-start;
   gap: 0.875rem;
   padding: 1.25rem 1.375rem 1rem;
-  background: var(--paper-solid);
+  /* NO background here, and none on .rainbow-card-body either. Both used to
+     paint --paper-solid, the same colour the card already paints, so the only
+     thing they did was cover the card's own inset hairline: a child's
+     background renders ABOVE the parent's inset shadow, and these two span the
+     full width, so all four edges were painted over. The card looked like the
+     one card on the page with no boundary — and it computed as though it had
+     one, which is how reading getComputedStyle instead of the pixels missed
+     it. The card paints the paper; its parts do not. */
   /* 3px, not 4: the timeline and hotspot cards band at 3 and this is the same
      device saying the same thing. */
   border-top: 3px solid var(--agent);
@@ -1563,7 +1570,6 @@
 
 .rainbow-card-body {
   padding: 0.25rem 1.375rem 1.25rem;
-  background: var(--paper-solid);
   color: var(--ink-soft);
 }
 
