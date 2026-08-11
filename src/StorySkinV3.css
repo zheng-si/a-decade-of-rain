@@ -59,16 +59,12 @@
      merely inherits. */
   --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* The card shadow of §6.
-
-     Two layers, because one cannot do both jobs: the tight 1px pass draws the
-     CONTACT edge — where the card meets the paper — and the wide pass is the
-     lift. §4 took this to a single `0 8px 28px` at .02 alpha, and against warm
-     paper that is not a light shadow, it is no shadow: a big white card on
-     #faf9f4 had nothing marking where it ended, since the same pass had
-     already removed its border. This is still far under the .10 the system
-     was reacting against, and it is the whole reason a card reads as a card
-     rather than as a lighter patch of the page. */
+  /* The float shadow of §6 — now only for the two surfaces that genuinely
+     float, since every card on paper takes the hairline instead (see the
+     elevation section). Two layers: a tight contact pass and a wide lift.
+     §4's single `0 8px 28px` at .02 was not a light shadow but no shadow, and
+     .map-key has to separate from a whole map. Still far under the .10 the
+     system was reacting against. */
   --v3-shadow: 0 1px 2px rgba(40, 38, 30, 0.04), 0 6px 20px rgba(40, 38, 30, 0.05);
   /* Still used by the two controls that sit on the MAP rather than on paper
      (.act2-chip, .story-stat), where there is no hairline and depth is the
@@ -278,17 +274,29 @@
 /* ── elevation · §6 ───────────────────────────────────────────────────────
    Chrome takes the two tokens. Map geometry and narrative art keep what they
    have — .map-dot-core, .map-dot-label, .act2-dot, .act2-pin, .timeline-scan-*
-   and .eco-swatch are all absent here on purpose. */
-.story .map-key,
+   and .eco-swatch are all absent here on purpose.
+
+   The split below is WHAT THE THING SITS ON, which turns out to be the only
+   question that matters here. A card on paper needs a boundary, not altitude:
+   it is printed on the page, not floating above it, and a drop shadow says the
+   opposite of that. It takes the same hairline as the controls, so a card and
+   a button are edged by one mechanism instead of two. Only the surfaces that
+   genuinely float keep a shadow — and they keep it because a hairline cannot
+   help them: .map-key hangs over the map, .close-action sits on the dark
+   epilogue where a 6%-ink line is invisible. */
 .story .rainbow-card,
 .story .method-panel,
 .story .tl-card,
-.story .close-action,
 .story .alt-family,
-/* The three hotspot cards were missing from this list entirely — §3 took their
-   border and §6 never gave them the shadow, so the biggest white surfaces on
-   the page had no edge of any kind. */
+/* The three hotspot cards were missing from the elevation list entirely — §3
+   took their border and §6 never gave them anything, so the biggest white
+   surfaces on the page had no edge of any kind. */
 .story .act2-card {
+  box-shadow: var(--v3-hairline);
+}
+
+.story .map-key,
+.story .close-action {
   box-shadow: var(--v3-shadow);
 }
 
@@ -312,18 +320,25 @@
 /* Active-state rings on the actions cards were 2px outlines in three greens
    plus a coloured glow. The ring is the outline §3 removes; the state moves to
    a left marker, which is a rule rather than an enclosure. */
+/* Both jobs in ONE rule, and the status classes are repeated here for a
+   load-bearing reason. Story.css paints the selected card with a 2px coloured
+   ring via `.act2-card.is-active.is-completed` and its two siblings; §3 removes
+   that ring. Killing it in its own block and applying the marker in a plainer
+   `.is-active` block below looked tidier and was broken: the kill selector
+   carries three classes and the marker selector two, so on every real card —
+   which always has a status — the kill won and the selected state ended up
+   with `box-shadow: none`. No ring, no marker, no edge. Measured on the live
+   page: the active card computed to none.
+
+   So the ring is replaced rather than merely cancelled, at the specificity
+   that actually wins. */
+.story .act2-card.is-active,
 .story .act2-card.is-active.is-completed,
 .story .act2-card.is-active.is-ongoing,
 .story .act2-card.is-active.is-contained {
-  box-shadow: none;
+  box-shadow: inset 3px 0 0 currentColor, var(--v3-hairline);
 }
 
-/* The marker rides ON the card shadow rather than replacing it — otherwise
-   choosing a card is the one thing that drops it flat into the page while its
-   two siblings stay lifted. */
-.story .act2-card.is-active {
-  box-shadow: inset 3px 0 0 currentColor, var(--v3-shadow);
-}
 
 .story .act2-card.is-active.is-completed {
   color: #3f8f5f;
