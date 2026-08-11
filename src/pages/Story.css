@@ -159,7 +159,10 @@
   background: var(--accent-chip);
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 0.25rem;
-  box-shadow: 0 0.25rem 0.875rem rgba(214, 51, 40, 0.35);
+  /* The chip's own colour at 35%, said once. This was rgba(214, 51, 40, 0.35)
+     -- the rgb of --accent-chip, retyped as a literal two lines below the
+     `background: var(--accent-chip)` it has to match. */
+  box-shadow: 0 0.25rem 0.875rem color-mix(in srgb, var(--accent-chip) 35%, transparent);
 }
 
 .map-dot-label::after {
@@ -2815,7 +2818,10 @@
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: var(--track-tight);
-  color: #ff564b;
+  /* Was #ff564b -- a fifth orange, indistinguishable from --accent, and 2.98:1
+     on the paper this label actually sits on. --accent-deep is the tone the
+     sheet defines for accent text on paper. */
+  color: var(--accent-deep);
 }
 .alt-arrow-line {
   position: relative;
