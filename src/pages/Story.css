@@ -1597,6 +1597,26 @@
   text-decoration: underline;
 }
 
+/* Hold the agent card at its tallest so switching agents does not move its
+   bottom edge.
+ *
+ * Measured across the five chips at 1440×900: All agents 275px, Orange 400,
+ * the other three 366 — a 125px jump on every switch, and now that the card
+ * carries a visible hairline it is the boundary itself that lurches.
+ *
+ * The floor is FREE in this layout and only in this layout: the chart beside
+ * it runs 477px, so the grid row is 477 whatever the card does, and reserving
+ * 400 fills space the row already occupies. Below 820px the two columns become
+ * one and the card sits under the chart with nothing to fill — there the same
+ * floor would be 185px of dead paper beneath the short "All agents" face, which
+ * is a worse trade than the jump. Hence the query, and hence no floor on
+ * phones. Same reasoning as .act2-card's min-height, one breakpoint narrower. */
+@media (min-width: 821px) {
+  .rainbow-card {
+    min-height: 29.5rem;
+  }
+}
+
 @media (max-width: 820px) {
   .rainbow-grid {
     grid-template-columns: 1fr;
