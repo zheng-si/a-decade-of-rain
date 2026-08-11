@@ -357,11 +357,16 @@ export function addIslandMarks(map: maplibregl.Map) {
  * This is NOT the old story water (#e9ece7). That one failed for a measured
  * reason: it sat 3% below the land in luminance and 5 apart in green-minus-red,
  * so the sea read only as "very slightly darker paper" and the coastline
- * dissolved. This tone keeps the green (blue-minus-red +1, against the
- * Archive's +21) and takes the Archive's SEPARATION: 8.9% below the land,
- * versus the Archive's 9%. Hue from the Story, contrast from the instrument.
+ * dissolved. What matters is the SEPARATION, and this tone has it: 7.6% below
+ * the land, against the Archive's 9.3% and the old tone's 3.1%.
+ *
+ * Chroma 9, down from a first pass at 11 (#d5e0d6) that read as too saturated
+ * a sage — a sea should be the quietest surface on a map whose subject is what
+ * was sprayed onto the land. The hue stays out of the Archive's blue
+ * (blue-minus-red +7 against its +21) while sitting a touch cooler than pure
+ * green, which is what keeps it reading as water rather than as pale forest.
  */
-export const STORY_WATER = '#d5e0d6'
+export const STORY_WATER = '#d9e2e0'
 
 // ── story mode: one combined heatmap in the brand orange ──────────────────
 // The scrollytelling uses a single, all-agents heatmap (no per-agent layers
