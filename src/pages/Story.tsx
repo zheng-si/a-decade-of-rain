@@ -39,6 +39,7 @@ import TimelineSection from '../components/TimelineSection'
 import CloseSection from '../components/CloseSection'
 import StoryNav from '../components/StoryNav'
 import { applyLabelCuration } from '../components/labelLayers'
+import { quietBasemap } from '../components/volumeGrid'
 import './Story.css'
 // v3 skin — one scoped file over Story.css. See the header of StorySkinV3.css.
 import '../StorySkinV3.css'
@@ -48,6 +49,11 @@ import '../fontsGeist.css'
 const SPRAY_SOURCE = 'spray'
 const LANDMARK_SOURCE = 'landmark-boundary'
 const DEM_SOURCE = 'terrain-dem'
+
+// Hillshade strength flat vs tilted — the Archive's values, so the ground
+// reads the same on both surfaces.
+const RELIEF_FLAT = 0.28
+const RELIEF_TILTED = 0.6
 
 // Left-rail nav anchors: which story nodes carry a jump target.
 const NAV_ANCHOR: Record<string, string | undefined> = {
@@ -621,6 +627,35 @@ export default function Story() {
       })
       mapRef.current = map
 
+      /**
+       * Collapse the credit line to its ⓘ.
+       *
+       * MapLibre's compact attribution renders EXPANDED and folds on the map's
+       * `drag` event — that is the only thing bound to
+       * `_updateCompactMinimize`. The Archive therefore folds itself the first
+       * time a reader pans, but this map is `interactive: false`, so the drag
+       * never comes and the full "OpenFreeMap © OpenMapTiles Data from
+       * OpenStreetMap" string sat across the corner for the whole story.
+       *
+       * Timing is the whole difficulty. The class is not there at load: traced
+       * against this style, MapLibre adds it once at ~2.3s, when the source's
+       * attribution first resolves. Anything that fires earlier — `load`,
+       * `idle` — removes a class that has not been added yet and silently does
+       * nothing, which is exactly how the first attempt failed. So watch for
+       * it instead, fold it the moment it appears, and disconnect: one add,
+       * one removal, and the reader's own click on the ⓘ still works.
+       */
+      const attribEl = map.getContainer().querySelector('.maplibregl-ctrl-attrib')
+      if (attribEl) {
+        const obs = new MutationObserver(() => {
+          if (attribEl.classList.contains('maplibregl-compact-show')) {
+            attribEl.classList.remove('maplibregl-compact-show')
+            obs.disconnect()
+          }
+        })
+        obs.observe(attribEl, { attributes: true, attributeFilter: ['class'] })
+      }
+
       const asset = (f: string) => fetch(`${import.meta.env.BASE_URL}${f}`).then((r) => r.json())
       Promise.all([
         loadSpray(),
@@ -641,10 +676,21 @@ export default function Story() {
         // Curated labels — shared with the Archive (see labelLayers.ts).
         applyLabelCuration(map)
 
+        // …and the same GROUND as the Archive. This map used to stop at
+        // applyMapTheme, so the sea sat a point or two off the land and the
+        // coastline barely read, today's forest cover showed as green blobs on
+        // a map about defoliation, and every minor road was still drawn. The
+        // ground pass fixes all three; `labels: false` keeps the Story's own
+        // label policy, which shows the province and town names the Archive
+        // deliberately hides.
+        quietBasemap(map, { labels: false })
 
-        // 3D view: real terrain relief (hidden until the 3D toggle). The DEM is
-        // free AWS Terrarium tiles; a hillshade shades the slopes. Added first so
-        // it sits beneath the spray heatmap.
+
+        // Real terrain relief from free AWS Terrarium tiles. Added first so it
+        // sits beneath the spray heatmap. Soft relief is always on, as on the
+        // Archive: the highlands are why the valleys were sprayed, and a map
+        // that only shows them once you press 3D hides that for the whole
+        // story. The toggle deepens it rather than switching it on.
         if (mapConfig.terrain && !map.getSource(DEM_SOURCE)) {
           map.addSource(DEM_SOURCE, {
             type: 'raster-dem',
@@ -654,6 +700,7 @@ export default function Story() {
             maxzoom: 15,
           })
           addHillshade(map, DEM_SOURCE)
+          setHillshade(map, true, is3DRef.current ? RELIEF_TILTED : RELIEF_FLAT)
         }
 
         // One combined, brand-orange heatmap (all agents merged) — no muddy
@@ -865,7 +912,8 @@ export default function Story() {
     if (mapConfig.terrain && map.getSource(DEM_SOURCE)) {
       try {
         map.setTerrain(next ? { source: DEM_SOURCE, exaggeration: mapConfig.terrain.exaggeration } : null)
-        setHillshade(map, next)
+        // Relief stays on in both views; tilting only deepens it.
+        setHillshade(map, true, next ? RELIEF_TILTED : RELIEF_FLAT)
       } catch {
         /* terrain is optional */
       }

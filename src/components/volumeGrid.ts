@@ -527,10 +527,19 @@ export function stampEventColors(spray: SprayDataset, colors: string[], groupOf?
 }
 
 
-/** CF-style quiet basemap for the explorer: buildings off, water carrying its
- *  own blue, town-and-below labels gone, remaining labels set as small tracked
- *  grey caps so the data owns the page. */
-export function quietBasemap(map: maplibregl.Map) {
+/** CF-style quiet basemap: buildings off, water carrying its own blue,
+ *  town-and-below labels gone, remaining labels set as small tracked grey caps
+ *  so the data owns the page.
+ *
+ *  `labels: false` runs the GROUND pass only — water, vegetation, buildings,
+ *  roads, boundaries, settlement dots — and leaves every text layer alone.
+ *  That split exists because the two surfaces want the same ground and
+ *  different words on it: the Archive hides towns and provinces so the record
+ *  speaks, while the Story needs those names to tell a reader where they are.
+ *  Before the split the Story simply never ran any of this, so the two maps
+ *  disagreed about the colour of the sea. */
+export function quietBasemap(map: maplibregl.Map, opts: { labels?: boolean } = {}) {
+  const doLabels = opts.labels !== false
   for (const layer of map.getStyle().layers ?? []) {
     const id = layer.id
     try {
@@ -613,6 +622,8 @@ export function quietBasemap(map: maplibregl.Map) {
         continue
       }
       if (layer.type === 'symbol' && map.getLayoutProperty(id, 'text-field') != null) {
+        // Ground-only pass: the caller owns its own label policy.
+        if (!doLabels) continue
         // Wards, hamlets and quarters stay gone at every zoom — post-reform
         // OSM names them things like "P.9" and they are noise here. Provinces
         // too: the military regions already divide the country for us, and two
