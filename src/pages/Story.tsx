@@ -19,7 +19,8 @@ import {
   addMilitaryRegions,
   addIslandMarks,
   addStoryTracks,
-  setStoryTracksVisible,
+  crossfadeStoryMarks,
+  resetStoryMarks,
   STORY_HEAT_LAYER,
   STORY_WATER,
 } from '../components/mapTheme'
@@ -477,7 +478,9 @@ export default function Story() {
     setStoryHeatTime(map, 0) // before 1962 → nothing shown
     setStoryHeatVisible(map, true)
     wantTracksRef.current = false
-    setStoryTracksVisible(map, false)
+    // Back at the hook, so no dissolve to preserve: park the lines and give
+    // the heat its alpha back outright.
+    resetStoryMarks(map)
     setSVVisible(true)
     clearCrosses()
     applyLandmarks(null)
@@ -560,19 +563,27 @@ export default function Story() {
       essential: true,
     })
     // The handover node swaps the binned field for the runs themselves.
+    const wasTracks = wantTracksRef.current
     wantTracksRef.current = !!ev.tracks
-    setStoryTracksVisible(map, !!ev.tracks)
 
     // Pilot nodes show crosses instead of a (near-invisible) heatmap.
     const isPilot = !!ev.crosses
     const day = dateToDay(ev.date)
+    // WHICH MARK is drawn, decided before and independently of what the heat
+    // is doing. Entering or leaving the handover dissolves between the two;
+    // every other step just parks the tracks and restores the heat's alpha,
+    // which the fade leaves at 0 when the lines win.
+    if (ev.tracks || wasTracks) crossfadeStoryMarks(map, !!ev.tracks)
+    else resetStoryMarks(map)
+
     if (ev.tracks) {
-      // Heat off, lines on: the same country, redrawn as the record.
+      // The same country, redrawn as the record. The camera does not move
+      // between the reckoning and here — they share a bbox — so the dissolve
+      // IS the transition the reader gets.
       cancelHeatAnim()
       cancelPendingSweep()
       dayRef.current = day
       setStoryHeatTime(map, day)
-      setStoryHeatVisible(map, false)
       clearCrosses()
     } else if (isPilot) {
       // No heat here; keep the filter in sync (invisibly) so the next heat node
@@ -745,7 +756,9 @@ export default function Story() {
           .then((t) => {
             if (!mapRef.current) return
             addStoryTracks(map, t.lines)
-            if (wantTracksRef.current) setStoryTracksVisible(map, true)
+            // The reader can reach the handover before this 560 kB lands, in
+            // which case the lines still arrive by dissolve rather than pop.
+            if (wantTracksRef.current) crossfadeStoryMarks(map, true)
           })
           .catch((e) => console.error('story tracks failed to load', e))
 

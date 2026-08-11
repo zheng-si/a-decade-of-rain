@@ -457,11 +457,88 @@ export function addStoryTracks(map: maplibregl.Map, lines: GeoJSON.GeoJSON) {
         // 0.22 is where the dense cores keep visible internal structure while a
         // single isolated flight in the north still reads against the paper
         // (at 0.15 those lone runs drop out).
-        'line-opacity': 0.22,
+        'line-opacity': TRACK_OPACITY,
       },
     },
     firstLabelLayerId(map),
   )
+}
+
+/** Resting alpha of a single run. Named because the cross-fade below has to
+ *  return to exactly this number, and two copies would drift. */
+export const TRACK_OPACITY = 0.22
+
+let xfadeRaf: number | null = null
+
+/** Stop a cross-fade mid-flight. Called before starting another and on the
+ *  hook reset, so a fast scroll cannot leave two fades writing the same
+ *  paint properties. */
+export function cancelStoryXfade() {
+  if (xfadeRaf != null) {
+    cancelAnimationFrame(xfadeRaf)
+    xfadeRaf = null
+  }
+}
+
+/**
+ * Dissolve between the binned heat field and the 8,753 runs it was binned
+ * from — the handover from the story's summary to the record underneath it.
+ *
+ * This used to be two `visibility` writes in the same tick: the heat vanished
+ * and the lines appeared, in one frame, on a camera that does not move between
+ * those two nodes (they share a bbox). The reader saw the map change without
+ * seeing it happen, which is exactly backwards for the one moment whose whole
+ * point is that these are the same gallons drawn two ways.
+ *
+ * So both layers stay VISIBLE for the length of the fade and opacity does the
+ * work; whichever one loses is parked at the end so it costs nothing and
+ * cannot flash on the next step. Deliberately a true cross-fade rather than
+ * out-then-in: the muddy middle where both are drawn is the frame that says
+ * "same data", and it is worth more than a clean hand-off.
+ */
+export function crossfadeStoryMarks(map: maplibregl.Map, toTracks: boolean, duration = 900) {
+  cancelStoryXfade()
+  if (!map.getLayer(STORY_HEAT_LAYER)) return
+  const hasTracks = !!map.getLayer(STORY_TRACK_LAYER)
+  map.setLayoutProperty(STORY_HEAT_LAYER, 'visibility', 'visible')
+  if (hasTracks) map.setLayoutProperty(STORY_TRACK_LAYER, 'visibility', 'visible')
+
+  const t0 = performance.now()
+  const step = (now: number) => {
+    const t = Math.min(1, (now - t0) / duration)
+    const e = t * t * (3 - 2 * t) // smoothstep, so it eases at both ends
+    const heatA = toTracks ? 1 - e : e
+    const trackA = toTracks ? e : 1 - e
+    map.setPaintProperty(STORY_HEAT_LAYER, 'heatmap-opacity', mapConfig.heatmap.opacity * heatA)
+    if (hasTracks) map.setPaintProperty(STORY_TRACK_LAYER, 'line-opacity', TRACK_OPACITY * trackA)
+    if (t < 1) {
+      xfadeRaf = requestAnimationFrame(step)
+      return
+    }
+    xfadeRaf = null
+    if (toTracks) map.setLayoutProperty(STORY_HEAT_LAYER, 'visibility', 'none')
+    else if (hasTracks) map.setLayoutProperty(STORY_TRACK_LAYER, 'visibility', 'none')
+  }
+  xfadeRaf = requestAnimationFrame(step)
+}
+
+/**
+ * Put the two marks back to their resting values without animating.
+ *
+ * The fade leaves the heat at opacity 0 when the tracks win. Any node that is
+ * NOT the handover has to undo that, and most of them are nowhere near it —
+ * jumping from the record to Act I via the rail should not play a 900ms
+ * dissolve on a map that is flying somewhere else entirely.
+ */
+export function resetStoryMarks(map: maplibregl.Map) {
+  cancelStoryXfade()
+  if (map.getLayer(STORY_HEAT_LAYER)) {
+    map.setPaintProperty(STORY_HEAT_LAYER, 'heatmap-opacity', mapConfig.heatmap.opacity)
+  }
+  if (map.getLayer(STORY_TRACK_LAYER)) {
+    map.setPaintProperty(STORY_TRACK_LAYER, 'line-opacity', TRACK_OPACITY)
+    map.setLayoutProperty(STORY_TRACK_LAYER, 'visibility', 'none')
+  }
 }
 
 export function setStoryTracksVisible(map: maplibregl.Map, on: boolean) {

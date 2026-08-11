@@ -59,9 +59,17 @@
      merely inherits. */
   --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
-  /* The two shadows of §6. Same values as the Archive: a surface against the
-     map, and a control sitting ON that surface. */
-  --v3-shadow: 0 8px 28px rgba(40, 38, 30, 0.02);
+  /* The card shadow of §6.
+
+     Two layers, because one cannot do both jobs: the tight 1px pass draws the
+     CONTACT edge — where the card meets the paper — and the wide pass is the
+     lift. §4 took this to a single `0 8px 28px` at .02 alpha, and against warm
+     paper that is not a light shadow, it is no shadow: a big white card on
+     #faf9f4 had nothing marking where it ended, since the same pass had
+     already removed its border. This is still far under the .10 the system
+     was reacting against, and it is the whole reason a card reads as a card
+     rather than as a lighter patch of the page. */
+  --v3-shadow: 0 1px 2px rgba(40, 38, 30, 0.04), 0 6px 20px rgba(40, 38, 30, 0.05);
   /* Still used by the two controls that sit on the MAP rather than on paper
      (.act2-chip, .story-stat), where there is no hairline and depth is the
      only thing separating them from what is behind. Every white-on-paper
@@ -77,18 +85,19 @@
      having a shape. The shadow alone leaves the TOP edge invisible, so the
      edge has to come from an inset line.
 
-     4%, down from the 10% first shipped. At .10 the line was reading as the
-     border §3 had just removed — an enclosure again, only fainter. At .04 it
-     is barely a value at all (#f6f6f5 on white) and that is the point: it
-     stops the top edge dissolving without ever announcing itself as a stroke.
-     Anything at or above .10 loses that distinction.
+     6%. It went 10 → 4 → 6, and the middle step is why: at .10 the line read
+     as the border §3 had just removed, but .04 rendered (246,247,246) against
+     (250,249,244) paper — a 4/255 delta, at the perception threshold — and
+     once the shadow came off there was nothing else holding the edge, so a
+     control's outer boundary read as absent rather than quiet. .06 is the
+     value that is present without being a stroke.
 
      And the hairline is now the WHOLE treatment — the control shadow that used
      to ride with it is gone. The two were solving the same problem twice: the
      line already closes all four edges, so the shadow was only adding lift
      nothing on this page is meant to have. Paper is flat; §6's depth belongs
      to things floating over the map, not to a switch sitting on a panel. */
-  --v3-hairline: inset 0 0 0 1px rgba(33, 53, 40, 0.04);
+  --v3-hairline: inset 0 0 0 1px rgba(33, 53, 40, 0.06);
 
   font-family: var(--font-sans);
 }
@@ -275,7 +284,11 @@
 .story .method-panel,
 .story .tl-card,
 .story .close-action,
-.story .alt-family {
+.story .alt-family,
+/* The three hotspot cards were missing from this list entirely — §3 took their
+   border and §6 never gave them the shadow, so the biggest white surfaces on
+   the page had no edge of any kind. */
+.story .act2-card {
   box-shadow: var(--v3-shadow);
 }
 
@@ -305,8 +318,11 @@
   box-shadow: none;
 }
 
+/* The marker rides ON the card shadow rather than replacing it — otherwise
+   choosing a card is the one thing that drops it flat into the page while its
+   two siblings stay lifted. */
 .story .act2-card.is-active {
-  box-shadow: inset 3px 0 0 currentColor;
+  box-shadow: inset 3px 0 0 currentColor, var(--v3-shadow);
 }
 
 .story .act2-card.is-active.is-completed {

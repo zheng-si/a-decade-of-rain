@@ -38,7 +38,7 @@
      defines its bottom and nothing else. This defines the other three without
      re-enclosing it; see the note on --v3-hairline for the comparison it came
      out of. Both surfaces take the same value. */
-  --v2-hairline: inset 0 0 0 1px rgba(33, 53, 40, 0.04);
+  --v2-hairline: inset 0 0 0 1px rgba(33, 53, 40, 0.06);
 
   /* One dark. The play button, the active Flat/3D tab and the All-agents chip
      are the same kind of thing — the selected state of a control — so they get
