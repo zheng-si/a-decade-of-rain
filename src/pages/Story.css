@@ -798,13 +798,17 @@
   opacity: 1;
 }
 
+/* --accent-bright, not --accent. The token sheet scopes --accent to GEOMETRY
+   -- dots, pulse rings, heat, rain -- and gives text on a forest surface its
+   own tuned tone for exactly this reason: #ff5449 on --forest measures 4.12:1
+   and fails AA, while --accent-bright measures 5.15. The card year is text. */
 .story-eyebrow {
   margin: 0 0 0.5rem;
   font-family: var(--font-serif);
   font-size: var(--type-h3-size);
   font-weight: 400;
   letter-spacing: normal;
-  color: var(--accent);
+  color: var(--accent-bright);
 }
 
 /* Stat chip — a lifted pill inside the card. */
@@ -3054,8 +3058,12 @@
 .alt-verdict.is-kept .alt-verdict-mark {
   color: #3f9e6c;
 }
+/* Same swap, other ground: the ✕ sits on paper, where --accent measures
+   3.01:1. --accent-deep is the sheet's accent-text-on-paper tone, 4.72. The
+   mark carries which alternative was cut, so it is information, not ornament,
+   and has to meet text contrast. */
 .alt-verdict.is-cut .alt-verdict-mark {
-  color: var(--accent);
+  color: var(--accent-deep);
 }
 .alt-verdict-chip {
   width: 100%;
