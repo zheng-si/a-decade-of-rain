@@ -49,3 +49,24 @@ body,
 body {
   font-variant-numeric: lining-nums;
 }
+
+/* ── controls inherit the page's face ─────────────────────────────────────
+   `button`, `input`, `select` and `textarea` do not inherit font-family from
+   their ancestors; the UA gives them its own default and every stylesheet has
+   to remember to say otherwise. Four rules did (three in App.css, one in
+   Story.css) and the rest did not, so five control classes were rendering in
+   Arial on a site that ships Geist and Playfair. The visible ones were the
+   three airbase pins on the Hotspots map -- `Phú Cát Airbase`, `Đà Nẵng
+   Airbase`, `Biên Hòa Airbase`, set in a fallback face, with the diacritics
+   the project self-hosts a Vietnamese subset for -- and the phone-only quote
+   toggle.
+
+   family ONLY, not the `font` shorthand: `font: inherit` would also reset
+   size and weight, and every one of these controls sets its own or wants the
+   UA default it already has. This changes the face and nothing else. */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
