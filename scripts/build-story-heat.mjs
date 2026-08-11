@@ -139,5 +139,21 @@ writeFileSync(
 const uniqueCells = new Set(cells.map((c) => `${c[0]},${c[1]}`)).size
 console.log(`${cells.length.toLocaleString()} (cell, month) points over ${uniqueCells.toLocaleString()} cells`)
 console.log(`${(total / 1e6).toFixed(3)}M gallons — must equal the record's total`)
+
+// The line above said "must" and checked nothing, which is how it went on
+// printing a reassuring number while 22,018 gallons of a double-count in
+// build-spray-tracks.mjs passed straight through it. Say it in code instead.
+// The input is spray-tracks.json, so that is what this has to balance against;
+// its own agreement with the source record is asserted at the end of the
+// track build. Tolerance is the per-cell rounding, one gallon a cell, not a
+// percentage — a percentage would have swallowed the leak this is here for.
+const inGallons =
+  T.tracks.reduce((a, t) => a + t[2], 0) + T.marks.reduce((a, m) => a + m[2], 0)
+if (Math.abs(total - inGallons) > cells.length) {
+  throw new Error(
+    `heat total ${total} does not balance spray-tracks' ${inGallons} ` +
+      `(${total - inGallons > 0 ? '+' : ''}${total - inGallons}, tolerance ±${cells.length})`,
+  )
+}
 console.log(`weight reference (p90 of cell-months): ${ref.toLocaleString()} gallons`)
 console.log(`${sampled.toLocaleString()} samples taken along ${T.tracks.length.toLocaleString()} runs`)

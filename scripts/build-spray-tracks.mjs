@@ -199,6 +199,7 @@ async function main() {
   let dropped = 0
   let totalGallons = 0
   let spreadGallons = 0
+  let markGallons = 0
 
   for (const rows of runs.values()) {
     const day = dateToDay(rows[0].Date)
@@ -229,8 +230,29 @@ async function main() {
     if (total <= 0) {
       // No line to draw — a run recorded at one place. Its gallons stay put,
       // which for a point is not an approximation but the whole record.
+      //
+      // "Stay put" has to mean SPLIT once a run has more than one point, and
+      // that is what this replaces: the old line handed EVERY single-point
+      // segment the run's full volume, so a run logged at three places
+      // published three times its gallons. Measured across the record it put
+      // 22,018 gallons into the marks that the source never recorded — 0.11%
+      // against 19.5M, which is small, and wrong in a file whose entire claim
+      // is that it is the record.
+      //
+      // Length-share is unavailable here by definition, so count is the only
+      // weight the source supports. The remainder rides on the first point so
+      // the parts sum to the whole exactly rather than to within a rounding.
+      const points = segs.reduce((n, s) => n + (s.length === 1 ? 1 : 0), 0)
+      const each = points ? Math.floor(gallons / points) : 0
+      let rest = gallons - each * points
       for (const s of segs) {
-        marks.push([agent, day, s.length === 1 ? gallons : 0, s[0][0], s[0][1]])
+        let g = 0
+        if (s.length === 1) {
+          g = each + rest
+          rest = 0
+        }
+        markGallons += g
+        marks.push([agent, day, g, s[0][0], s[0][1]])
       }
       continue
     }
@@ -273,7 +295,25 @@ async function main() {
   console.log(`✓ wrote ${OUT}`)
   console.log(`  runs:      ${runs.size} → ${tracks.length} tracks + ${marks.length} marks`)
   console.log(`  dropped:   ${dropped} rows`)
-  console.log(`  gallons:   ${totalGallons.toLocaleString()} in, ${spreadGallons.toLocaleString()} spread along tracks`)
+  console.log(
+    `  gallons:   ${totalGallons.toLocaleString()} in, ${spreadGallons.toLocaleString()} along tracks + ` +
+      `${markGallons.toLocaleString()} on marks`,
+  )
+
+  // The guard that would have caught the point-run double-count on the day it
+  // was written. Every gallon the source records leaves by exactly one of two
+  // doors — spread along a track, or parked on a mark — so the two have to sum
+  // to the input. Rounding per segment is allowed to move a gallon between
+  // runs; it is not allowed to invent or lose one, so the tolerance is the
+  // number of rounded segments, not a percentage.
+  const leak = spreadGallons + markGallons - totalGallons
+  if (Math.abs(leak) > tracks.length) {
+    throw new Error(
+      `gallons do not balance: ${spreadGallons} along tracks + ${markGallons} on marks ` +
+        `= ${spreadGallons + markGallons}, against ${totalGallons} in (${leak > 0 ? '+' : ''}${leak})`,
+    )
+  }
+  console.log(`  balance:   ${leak > 0 ? '+' : ''}${leak} gallons (rounding, tolerance ±${tracks.length})`)
   console.log(`  track km:  p50 ${q(lens, 0.5)}  p90 ${q(lens, 0.9)}  max ${lens[lens.length - 1]}`)
   console.log(
     `  gal/km:    p10 ${Math.round(q(gpk, 0.1))}  p50 ${Math.round(q(gpk, 0.5))}  ` +
