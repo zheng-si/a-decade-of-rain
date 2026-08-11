@@ -426,7 +426,16 @@ export function addStoryTracks(map: maplibregl.Map, lines: GeoJSON.GeoJSON) {
         // Hairline at the overview: at 0.5px and 8,753 strokes the mass is
         // what reads, and any thicker turns the dense south into a solid slab.
         'line-width': ['interpolate', ['linear'], ['zoom'], 5, 0.5, 11, 1.6],
-        'line-opacity': 0.5,
+        // Alpha is what makes this a density map rather than a silhouette.
+        // Strokes composite as 1 − (1 − a)ⁿ, so at the old 0.5 any pixel
+        // carrying four or more runs was already solid: War Zone D and the
+        // coastal strip read as flat slabs with no gradient inside them, and
+        // the difference between "flown twice" and "flown forty times" was
+        // invisible. Measured at 0.5 / 0.32 / 0.22 / 0.15 on the record node:
+        // 0.22 is where the dense cores keep visible internal structure while a
+        // single isolated flight in the north still reads against the paper
+        // (at 0.15 those lone runs drop out).
+        'line-opacity': 0.22,
       },
     },
     firstLabelLayerId(map),

@@ -892,7 +892,14 @@ export default function Story() {
         </div>
       </div>
 
-      <MapKey map={mapRef.current} ready={mapReady} started={started} is3D={is3D} onToggle3D={toggle3D} />
+      <MapKey
+        map={mapRef.current}
+        ready={mapReady}
+        started={started}
+        is3D={is3D}
+        onToggle3D={toggle3D}
+        tracks={!!FACTS_EVENTS[active]?.tracks}
+      />
 
       <TimelineRuler
         monthlyCum={monthlyCum}

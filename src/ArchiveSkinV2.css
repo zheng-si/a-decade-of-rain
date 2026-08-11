@@ -289,21 +289,18 @@
   flex-wrap: nowrap;
   width: fit-content;
   justify-content: flex-start;
-  gap: 0;
+  /* Detached chips, matching `.rainbow-switch` in StorySkinV3.css — the note
+     there records why the butted bar was undone. */
+  gap: 6px;
   margin-top: 0;
   padding: 0;
   background: none;
   border-radius: 0;
-  /* Hairline first, then the control shadow — the white chips inside are
-     otherwise a 1.03:1 edge against the panel. Matches `.rainbow-switch` in
-     StorySkinV3.css, which is the same switch on the other page. */
-  box-shadow: var(--v2-hairline), var(--v2-shadow-control);
 }
 
 /* Medium, not SemiBold. These are switches, not headings — at 600 the whole
    row read as a title bar. Same call on the Flat/3D pair below. */
 .map-wrap .agent-chip {
-  position: relative;
   gap: 4px;
   padding: 6px 12px;
   border: none;
@@ -311,39 +308,22 @@
   font-weight: 500;
 }
 
-/* With the gap at 0 and no per-chip borders, the five buttons ran together as
-   one white bar and only the dots said where one ended. A short hairline —
-   inset from the top and bottom so it divides rather than outlines — restores
-   the seams without giving anything back its stroke. It is suppressed on both
-   sides of the active chip, whose fill already draws its own edges. */
-.map-wrap .agent-chip + .agent-chip::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1px;
-  height: 14px;
-  background: rgba(33, 53, 40, 0.14);
-}
-
-.map-wrap .agent-chip.is-active::before,
-.map-wrap .agent-chip.is-active + .agent-chip::before {
-  display: none;
-}
-
 /* Only the neutral "All" chip reaches this — the per-agent chips carry their
-   entity colour as an inline style, which is the point of them. */
+   entity colour as an inline style, which is the point of them. The selected
+   chip keeps the shadow and drops the hairline; see StorySkinV3.css. */
 .map-wrap .agent-chip.is-active {
   background: var(--v2-fill);
   border-color: var(--v2-fill);
+  box-shadow: var(--v2-shadow-control);
 }
 
 /* Inactive chips keep the rounded pill in the Figma; that contradicts the
    no-radii rule the same file applies to every other control, so it is read
-   as a leftover and squared off with the rest. */
+   as a leftover and squared off with the rest. Each carries its own hairline
+   now that there is no group box to draw the edge for them. */
 .map-wrap .agent-chip:not(.is-active) {
   background: rgba(255, 255, 255, 0.6);
+  box-shadow: var(--v2-hairline), var(--v2-shadow-control);
 }
 
 .map-wrap .agent-chip:hover:not(.is-active) {

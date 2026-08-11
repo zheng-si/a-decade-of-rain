@@ -7,6 +7,10 @@ interface Props {
   started: boolean
   is3D: boolean
   onToggle3D: () => void
+  /** The handover node swaps the binned heat field for the 8,753 individual
+   *  runs, so the key has to swap with it: a gradient ramp explains nothing
+   *  about a map that is no longer drawing a gradient. */
+  tracks?: boolean
 }
 
 // Round down to a 1/2/3/5 × 10ⁿ value for a clean scale-bar label.
@@ -33,7 +37,7 @@ function computeScale(map: maplibregl.Map): { label: string; w: number } {
 
 // One top-right panel: the Flat/3D view switch, scale bar and curated legend
 // together (they were two stacked panels before).
-export default function MapKey({ map, ready, started, is3D, onToggle3D }: Props) {
+export default function MapKey({ map, ready, started, is3D, onToggle3D, tracks }: Props) {
   const [scale, setScale] = useState<{ label: string; w: number }>({ label: '', w: 0 })
 
   useEffect(() => {
@@ -81,13 +85,29 @@ export default function MapKey({ map, ready, started, is3D, onToggle3D }: Props)
         </div>
       </div>
 
-      <div className="map-key-heat" aria-hidden="true">
-        <span className="map-key-heat-bar" />
-        <div className="map-key-heat-labels">
-          <span>Less</span>
-          <span>More sprayed</span>
+      {tracks ? (
+        // One stroke = one run, and the darkness is the overlap: the same fact
+        // the ramp used to state, but stated in the mark the map is actually
+        // drawing. The samples are the track colour at one and at many passes.
+        <div className="map-key-heat" aria-hidden="true">
+          <span className="map-key-track-bar">
+            <i className="is-one" />
+            <i className="is-many" />
+          </span>
+          <div className="map-key-heat-labels">
+            <span>One run</span>
+            <span>Flown repeatedly</span>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="map-key-heat" aria-hidden="true">
+          <span className="map-key-heat-bar" />
+          <div className="map-key-heat-labels">
+            <span>Less</span>
+            <span>More sprayed</span>
+          </div>
+        </div>
+      )}
 
       <ul className="map-key-list" aria-hidden="true">
         <li>

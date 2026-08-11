@@ -405,34 +405,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.3125rem;
   text-decoration: none;
 }
 
 .story-rail-link.story-rail-out:not(.is-on) {
   color: rgba(255, 255, 255, 0.82);
-}
-
-/* One rule separates the destination from the sections — the same divider the
-   groups already use between acts, so nothing new is introduced. */
-.story-rail-group--out {
-  margin-top: 0.375rem;
-  padding-top: 0.625rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.24);
-}
-
-.story-rail-out-arrow {
-  transition: transform 0.15s;
-}
-
-.story-rail-link.story-rail-out:hover .story-rail-out-arrow {
-  transform: translateX(2px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .story-rail-out-arrow {
-    transition: none;
-  }
 }
 
 /* Active marker: a 4px white bar on the rail's left edge — it never collides
@@ -1074,6 +1051,29 @@
   height: 0.5rem;
   border-radius: 2px;
   background: linear-gradient(to right, rgba(255, 84, 73, 0.16), #ff8a5a 55%, #cf3720);
+}
+
+/* Tracks key (handover node): two stroke samples rather than a ramp — the
+   left one is a single run at the map's own alpha, the right one is what the
+   same red becomes where many runs overlap. Drawn as strokes, at the width the
+   overview actually uses, so the key shows the mark and not an abstraction. */
+.map-key-track-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 0.5rem;
+}
+.map-key-track-bar i {
+  display: block;
+  flex: 1;
+  height: 2px;
+  background: #c2331f;
+}
+.map-key-track-bar i.is-one {
+  opacity: 0.22;
+}
+.map-key-track-bar i.is-many {
+  opacity: 1;
 }
 
 .map-key-heat-labels {

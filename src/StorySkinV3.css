@@ -326,47 +326,44 @@
 }
 
 /* ── AGENT SWITCH · one form across both surfaces ─────────────────────────
-   The agent chips were the last control still floating as separate pills with
-   a gap, and they were the one control the Story and the Archive BOTH have —
-   so the two pages disagreed on the same switch. They are a segmented control
-   (pick one of five), which is the grammar declared just above, so they take
-   it: butted rectangles, one hairline and one shadow on the group, a short
-   seam between neighbours, and the selected chip's own colour as its fill.
-   Identical rules live under `.map-wrap` in ArchiveSkinV2.css. */
+   Detached chips, not a segmented bar. The butted version grouped the five
+   correctly but cost more than it bought: the seam hairline, the two rules
+   suppressing it around the selection, and the group's own hairline were four
+   mechanisms doing what a gap does on its own — and the selected chip, whose
+   whole job is to carry an agent's colour, had to fight the enclosure it sat
+   inside to read as chosen. Separated, each chip is one object: white fill,
+   its own hairline, its own shadow; the selected one swaps the fill for the
+   agent's colour and nothing else changes.
+
+   This also settles the white-control question in one place. A chip is now
+   built exactly like `.method-tab` below — same fill, same hairline, same
+   shadow — so every standalone white control on paper is one recipe rather
+   than a group treatment here and a chip treatment there. Identical rules
+   live under `.map-wrap` in ArchiveSkinV2.css. */
 .story .rainbow-switch {
-  gap: 0;
+  gap: 0.375rem;
   width: fit-content;
-  box-shadow: var(--v3-hairline), var(--v3-shadow-control);
 }
 
 .story .rainbow-chip {
-  position: relative;
   padding: 0.375rem 0.75rem;
 }
 
-/* The seam: inset from top and bottom so it divides rather than outlines, and
-   suppressed on both sides of the selected chip, whose fill draws its own. */
-.story .rainbow-chip + .rainbow-chip::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 1px;
-  height: 0.875rem;
-  background: rgba(33, 53, 40, 0.14);
-}
-.story .rainbow-chip.is-active::before,
-.story .rainbow-chip.is-active + .rainbow-chip::before {
-  display: none;
+/* Controls that stand ALONE on paper (no group to carry the edge) take the
+   hairline themselves — which, since the chips detached, is all of them. */
+.story .rainbow-chip:not(.is-active),
+.story .method-tab:not(.is-on),
+.story .alt-reveal-btn:not(.is-banner),
+.story .wall-consent-btn {
+  box-shadow: var(--v3-hairline), var(--v3-shadow-control);
 }
 
-/* Controls that stand ALONE on paper (no group to carry the edge) take the
-   hairline themselves. The method tabs are a bare two-toggle row — the note
-   above explains why they get no container treatment. */
-.story .method-tab:not(.is-on),
-.story .alt-reveal-btn:not(.is-banner) {
-  box-shadow: var(--v3-hairline), var(--v3-shadow-control);
+/* The selected chip keeps the shadow so it sits on the same plane as its
+   neighbours, but takes no hairline: its fill already draws all four edges,
+   and an inset line over a saturated colour reads as a darker rim. */
+.story .rainbow-chip.is-active,
+.story .method-tab.is-on {
+  box-shadow: var(--v3-shadow-control);
 }
 
 /* Selected state is --forest ONLY where it carries no other meaning — these
@@ -380,6 +377,19 @@
 .story .eco-sort-btn.is-active {
   background: var(--forest);
   color: var(--forest-text);
+}
+
+/* The "All agents" chip is the one selected state on this page that carries no
+   category — no single agent is chosen — so it takes the same neutral dark as
+   the view switches above rather than its own. It was --ink (#101a14, which
+   reads black) while the Archive drew the identical chip in --forest
+   (#213528): the same control, two darks, on two pages a reader moves between.
+   The Archive's rule is the one worth keeping — one dark for every selected
+   control — so the Story adopts it. The four agent chips are untouched: their
+   fill is the agent's own colour, which is information. */
+.story .rainbow-chip.is-active {
+  background: var(--forest);
+  border-color: var(--forest);
 }
 
 .story .map-key-view-btn,
