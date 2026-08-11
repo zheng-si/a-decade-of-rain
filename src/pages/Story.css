@@ -462,6 +462,12 @@
 .story-rail-foot img {
   display: block;
   width: 3.875rem;
+  /* REQUIRED, not tidiness. The width/height attributes on this img are
+     presentational hints, so `height: 191` applies as CSS unless something
+     overrides it — and with a CSS width AND an attribute height both resolved,
+     `aspect-ratio` has nothing to correct and the mark renders 52.7 x 191.
+     One of the two axes has to be auto for the ratio to do its job. */
+  height: auto;
   margin: 0 auto 0.375rem;
   opacity: 0.9;
 }
@@ -639,6 +645,9 @@
 }
 .story-hook-credit img {
   height: 1.25rem;
+  /* Same reason as .story-rail-foot img — the other axis must be auto or the
+     attribute's width hint wins and the mark stretches. */
+  width: auto;
   opacity: 0.9;
 }
 
