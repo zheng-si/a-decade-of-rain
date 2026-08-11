@@ -1,8 +1,10 @@
 /* ══════════════════════════════════════════════════════════════════════════
    DESIGN TOKENS — the single sheet to edit for colours and type.
    Full spec + contrast table: docs/design-system.md
-   (fonts are declared in src/fonts.css: --font-sans Public Sans, --font-serif
-   Playfair Display)
+   (Geist is declared in src/fontsGeist.css and set as --font-sans by BOTH
+   surface skins; Playfair Display comes from src/fonts.css and holds the
+   Story's display tier. The --font-sans default in fonts.css is Public Sans
+   and no longer resolves on either route — see the design system, §2.)
    ══════════════════════════════════════════════════════════════════════════ */
 :root {
   /* ── surfaces ─────────────────────────────────────────────────────────── */

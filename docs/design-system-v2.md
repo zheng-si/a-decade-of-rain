@@ -1,3 +1,7 @@
+> **HISTORICAL.** This is the Figma-derived *proposal* for the Archive spike,
+> not the shipped system. The live reference is [`design-system.md`](./design-system.md).
+> Kept as a decision record.
+
 # A Decade of Rain — Design System v2
 
 Spec for redrawing the pages in Figma. Every value here is either **shipped**

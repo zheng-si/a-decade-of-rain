@@ -1,531 +1,456 @@
 # Design system — A Decade of Rain
 
+**This is the live reference.** Every value below was read out of the running
+build, and every contrast ratio was recomputed rather than copied forward — the
+old edition of this file carried three that had stopped being true.
+
 Design idea in one line: **warm paper cartography, forest-green ink, and one
 orange accent family — orange draws, forest speaks.**
 
-**Sources of truth**, in the order you should reach for them:
+Two surfaces share one system:
+
+| | route | files |
+|---|---|---|
+| **Story** | `/` | `src/pages/Story.tsx` · `Story.css` · `StorySkinV3.css` |
+| **Archive** | `/archive` | `src/components/MapView.tsx` · `App.css` · `ArchiveSkinV2.css` |
+
+They differ in exactly two ways on purpose, and everywhere else a difference is
+a bug: the Story pairs a display serif with the sans while the Archive is
+sans-only, and the two maps carry their own water tone. Section 9 says why.
+
+**Sources of truth**, in the order to reach for them:
 
 | File | Holds |
 |---|---|
-| `src/index.css` | the root scale (one density dial) + the numerals rule |
-| `src/App.css` `:root` | colour and type tokens; all shell/panel styles |
-| `src/fonts.css` | the two live faces (Public Sans, Playfair Display) + the retired Gambarino rollback |
-| `src/pages/Story.css` | the story's own components (cards, charts, map key) |
-| `docs/design-tokens.tokens.json` | the same tokens for Tokens Studio → Figma |
+| `src/index.css` | the root scale (the one density dial) and the px exception list |
+| `src/App.css` `:root` | colour and type tokens; the Archive's shell |
+| `src/fontsGeist.css` | Geist, four weights × three subsets |
+| `src/fonts.css` | Playfair Display (the display tier), plus two retired faces |
+| `src/config/mapConfig.ts` | map palette, zoom hand-offs, label font |
+| `src/components/mapTaxonomy.ts` | the label tier spec |
 
-`docs/design-system.html` is the interactive companion to this document — open it
-in a browser (it embeds its own faces, so it works offline and from a file URL).
-It is built in the system's own tokens, so every sheet doubles as a specimen of
-itself, and each rule ships with a toggle that reproduces the bug we actually
-had: the off-ladder sizes, serif applied below 17px, the four stat-line variants,
-MapLibre's border-triangle tip. Prose rules live here; the html is where you go
-to see one.
-
-Edit `docs/design-system.src.html` (the page without its fonts inlined), then run
-`node scripts/build-design-system-doc.mjs` to regenerate the standalone file.
-
-This document is the **specification** — read it before drawing a new surface,
-not after. Anything here that reads like a rule (§2–§4) is meant to be applied
-to *new* work without re-deriving it from review.
-
-> **State note.** §2–§4 and §7 describe the system as of the Explorer branch
-> (`claude/archive-v1`) plus the merged master passes (#153 editorial, #154
-> palette, #155 density). The Explorer branch is still based on pre-#155 master
-> and has not inherited the rem root scale (#155) or the palette pass (#154);
-> rebasing it is the one outstanding task before these two halves are literally
-> the same code. The one piece of #153 that couldn't wait — retiring Gambarino
-> in favour of a single site-wide `--font-serif: Playfair Display` — was ported
-> onto this branch directly rather than left stale, since a design system that
-> still shows a retired face is worse than no preview at all. Values below are
-> the canonical ones.
+The `*Skin*.css` files began as scoped spikes and are now load-bearing. Both are
+still scoped (`.story`, `.map-wrap`), which is what lets one surface be changed
+without touching the other.
 
 ---
 
-## 1 · Colour
+## 1 · The root scale
 
-### Surfaces
+`src/index.css` holds one dial:
 
-| Token | Value | Use |
-|---|---|---|
-| `--paper` | `250,249,244` (rgb tuple) | page background, glass panels (with alpha) |
-| `--paper-solid` | `#fdfdfd` | solid paper: popups, map-key panel |
-| `--forest` | `#213528` | dark surfaces: story cards, filled controls |
-| `--forest-2` | `#2c3730` | raised dark surface (stat pill bg) |
+```css
+html { font-size: 16px }
+@media (min-width: 641px) and (max-width: 1600px) { html { font-size: 13.6px } }
+```
 
-### Ink — three semantic tiers
+16px on phones and on 16-inch-and-larger screens; **13.6px (85%) on laptops**,
+tuned by eye on a 14-inch MacBook. Every component scales together because
+every size is `rem`. Divide the px value by 16.
 
-The ink scale is **semantic, not just a lightness ramp**. Pick by role, never by
-"how grey does this feel":
+**Four things stay in px, and only these four.** The list is in `index.css` too,
+because a fifth exception invented in a hurry is how a scale stops being one:
 
-| Token | Value | Role | Contrast on paper |
-|---|---|---|---|
-| `--ink` | `#213528` | titles **and structural labels** (the small tracked caps that name a section) | 12.4:1 |
-| `--ink-soft` | `#4e6355` | content: body copy, legend rows, stat labels, dates | 6.2:1 |
-| `--ink-faint` | `#647468` | notes about the content: coordinates, axis years, table values | 4.7:1 — AA floor for small text; don't lighten |
-| `--rule` | `#dfe3d9` | hairline dividers (non-text) | — |
+1. **Hairlines** — any 1px or 1.5px border, rule, seam or divider, plus the
+   playhead. A rem hairline lands on a fraction of a device pixel and greys out.
+2. **Ticks** — axis ticks and the inspect card's year ticks. Same reason: a 2px
+   mark at 85% is 1.7px and smudges.
+3. **Shadow and blur geometry** — `box-shadow` offsets and spreads,
+   `backdrop-filter` radii. Optical depth, not layout.
+4. **Media-query breakpoints** — the root size is the thing changing across
+   them, so rem there is circular.
 
-Why structural labels take the *darkest* ink: their size and tracking already
-separate them from the content they introduce, so colour is free to mark them as
-structure. Painting them faint (the old behaviour) made a label lighter than its
-own content and inverted the hierarchy.
-
-### Text on forest (dark cards)
-
-| Token | Value | Role | Contrast on forest |
-|---|---|---|---|
-| `--forest-text` | `#e8ece6` | primary | 11.0:1 |
-| `--forest-text-soft` | `#b4ccba` | secondary | 7.7:1 |
-| `--mint` | `#92f7bc` | decorative borders only — never text | — |
-
-### The accent family — one hue, four jobs
-
-The brand orange stays vivid where it's *drawing* and gets tuned one step where
-it's *carrying text*, so every pairing passes AA:
-
-| Token | Value | Job | Ratio |
-|---|---|---|---|
-| `--accent` | `#ff5449` | **geometry**: dots, pulse rings, heat, rain, chart bars | n/a (decorative) |
-| `--accent-chip` | `#d63328` | **chip fill** behind white text | 4.8:1 vs #fff |
-| `--accent-bright` | `#ff7a70` | accent **text on forest** | 5.2:1 |
-| `--accent-deep` | `#cf3720` | accent **text on paper**: every figure in a stat line | 4.7:1 |
-| `--accent-line` | `#e8443a` | **map linework** on paper | 3.5:1 (non-text ≥3) |
-
-Rule of thumb: shape → `--accent`; line → `--accent-line`; chip →
-`--accent-chip`; orange *words and figures* → `--accent-bright` on dark,
-`--accent-deep` on light.
-
-### Data palette (the Explorer)
-
-Categorical hues for the four herbicide families, plus the grey that carries
-de-emphasised context. These are **data colours** — they may not be borrowed for
-UI chrome:
-
-| Series | Value | Note |
-|---|---|---|
-| Agent Orange | `#ef7d1a` | |
-| Agent White | `#93a1b3` | slate **blue**-grey on purpose: a neutral silver was indistinguishable from the context grey below |
-| Agent Blue | `#5aa6e0` | |
-| Other (Purple, Pink, unattributed) | `#9a6cc4` | |
-| context grey (`DIM`) | `#c9cdc4` | the *unselected* record — green-leaning, so every series reads apart from it |
-
-Selection model: one hue at a time. With no filter the whole field is
-`--accent`; isolating a series tints it with that series' hue and **greys the
-rest rather than hiding it** (map, chart and legend all follow).
-
-### Status colours (the three hotspots)
-
-| Colour | Value | Meaning |
-|---|---|---|
-| completed green | `#3f8f5f` | Đà Nẵng, done |
-| ongoing red | `--accent-deep` `#cf3720` | Biên Hòa, running |
-| contained forest | `#2c5a40` | Phú Cát, sealed |
-
-*Contained* used to be a blue (`#5a7ca8`). It was retired in the palette
-purification: the palette is **two families — forest green and brand orange** —
-and a lone blue read as out-of-system. (The Explorer branch still carries the
-old blue until it rebases.)
+Everything else is rem. The Archive was the last holdout and was converted in
+one pass (188 values); before that its controls rendered at 12px against the
+Story's 10.2px, which is one site at two type sizes.
 
 ---
 
 ## 2 · Type
 
-### 2.1 Root scale — one density dial
+### Families
 
-All CSS lengths are `rem` (÷16 from px; anything under 4px and all media
-conditions stay px). `src/index.css` sets the only dial:
-
-```css
-html { font-size: 16px; }                                   /* phones, ≥1601px */
-@media (min-width: 641px) and (max-width: 1600px) {
-  html { font-size: 13.6px; }                               /* 85% — laptops */
-}
-```
-
-Everything — type, padding, panel widths, chart heights — scales together, which
-is why laptop density is a single-line change and not a per-component pass.
-
-### 2.2 The ladder
-
-One modular scale, site-wide. **Every `font-size` sits on a tick — no one-offs:**
-
-```
-10 · 11 · 12 · 13 · 14 · 15 · 17 · 19 · 24 · 28
-```
-
-plus three fluid display steps: `clamp(27→38)` section titles ·
-`clamp(30→44)` statements and big percentages · `clamp(40→72)` masthead and
-photo-wall figures.
-
-Values that drifted off the ladder are bugs, and they hide well: `11.5px`
-buttons, a `20px` figure, a `9px` label and an `8px` coordinate line all had to
-be found by measuring rather than by eye.
-
-### 2.3 Role ladder — what each tick is for
-
-| Tick | Role |
-|---|---|
-| 10–11 | chart furniture, footnotes, structural labels (10 = tracked caps) |
-| 12 | UI controls, badges, chips |
-| 13 | body copy |
-| 14 | deks, primary buttons |
-| 15 | wall captions |
-| 17 | quotes, card deks (serif) |
-| 19 | card titles, **display anchor figures** (serif) |
-| 24 | section subtitles, card years (serif) |
-| 28 | stat figures (serif) |
-
-### 2.4 The serif rule
-
-> **Serif is a display role, not a content type.** It belongs to anchor text —
-> 17px and up — and each surface gets **exactly one** anchor. Below 17px,
-> everything is sans, no matter what the words refer to.
-
-Two consequences worth stating, because both came up as "inconsistencies" and
-are in fact the rule working:
-
-- A date can be serif in one place and sans in another (`Dec 1971` at 19px is
-  the panel's anchor; `Sep 1966 – May 1969` at 11px is a note).
-- So can a figure (`81K` at 19px anchors the inspect card; `24,604` at 11px sits
-  in a stat line).
-
-The physical reason is Playfair Display's high stroke contrast: its thin
-strokes disintegrate below ~15px. A "serif = data" rule would force serif onto
-10–11px table values and break them.
-
-Faces:
-
-| Token | Face | Where |
+| Tier | Face | Where |
 |---|---|---|
-| `--font-sans` | Public Sans (300/400/500 only) | body, UI, map glyph fallback |
-| `--font-serif` | Playfair Display | the display face, site-wide — Story and Archive both |
+| Display | **Playfair Display** (variable, 400–900) | Story headings, card titles and years, pull quotes, section subtitles |
+| Text / UI | **Geist** (300 · 400 · 500 · 600) | everything else on both surfaces |
+| Map labels | **Roboto Condensed** (SDF glyph stacks) | the map canvas only |
 
-There is **one** serif token, not one per surface. Gambarino was the Story's
-original headline face; it lost that slot in #153 (see the state note above)
-and is only still declared in `src/fonts.css` for a one-line rollback — it is
-not referenced by any component and should never appear rendered on the site
-or in this document.
+Geist ships three subsets each — latin, latin-ext and **vietnamese**. The
+vietnamese subset is not optional: the latin subset stops at U+00FF, so without
+it `Đà Nẵng` and `Phù Cát` render half in Geist and half in a fallback.
 
-**Public Sans ships 300/400/500 — there is no 600 or 700 face.** Anything bolder
-is a synthesised faux-bold; use 500 and let colour or size carry the rest. (The
-`600`s that remain in small tracked caps are deliberate and legible; don't add
-new ones at display sizes.)
+The Archive is **Geist only**: `ArchiveSkinV2.css` deliberately points
+`--font-serif` at the sans, so any rule still reaching for the serif tier inside
+`.map-wrap` gets Geist rather than silently keeping Playfair. That is the one
+intended typographic difference between the surfaces.
 
-### 2.5 Tracking — three ticks
+Map labels are a separate problem — MapLibre renders from SDF glyph PBFs, not
+webfonts — and use a narrower face because Vietnamese place names run long
+(`Buôn Ma Thuột`, `Bà Rịa – Vũng Tàu`) and a condensed face fits more of them
+before the collision detector starts dropping names outright.
 
-| Token | Value | Use |
-|---|---|---|
-| `--track-tight` | `0.02em` | small-caps-adjacent emphasis |
-| `--track-caps` | `0.06em` | uppercase tags, badges, structural labels |
-| `--track-caps-wide` | `0.1em` | wide uppercase, eyebrow scale |
+**`button`, `input`, `select` and `textarea` do not inherit `font-family`.**
+`index.css` sets it for them site-wide. Before that rule existed, five control
+classes rendered in the browser's default face — including the three airbase
+pins on the Hotspots map, in Arial, with the very diacritics the vietnamese
+subset exists to serve.
 
-Serif display sets solid — no tracking.
+### The scale
 
-### 2.6 Numerals
+One modular scale, both surfaces. In rem, with the px each becomes at the two
+root sizes:
 
-`body { font-variant-numeric: lining-nums }` in `src/index.css`, inherited
-site-wide. **Proportional lining figures everywhere; `tabular-nums` nowhere** —
-Public Sans's tabular digits carry a uniform full-width advance that reads gappy,
-and nothing in the site aligns digits column-on-column. Note that
-`font-variant-numeric` does *not* merge with inherited values: if a component
-sets its own, it must restate `lining-nums` or oldstyle figures creep back into
-the serif.
-
----
-
-## 3 · Editorial grammar
-
-### 3.1 Caps
-
-**Initial Caps for every label, badge, chip and button.** Decorative all-caps was
-retired site-wide. Uppercase survives in exactly two places, both of which are
-signposts rather than content:
-
-- **10px structural labels** — `MAP VIEW`, `13 KM GRID CELL`, `JUMP TO`
-  (10/600/`--track-caps`/`--ink`).
-- **Map linework tags and basemap labels** — `MILITARY REGION III`, place names
-  (see §9).
-
-### 3.2 Stat grammar
-
-Any "figure + label" pair, on any surface, is written the same way:
-
-| Part | Spec |
-|---|---|
-| figure | weight **500**, `--accent-deep` |
-| label | weight **400**, `--ink-soft`, same size as the figure |
-| between pairs | **12px of space** — no separator glyph |
-
-Applied by the panel stat line, the inspect counts and the hover tooltip. When
-these three disagreed on colour, weight, gap *and* tracking, the discrepancy was
-invisible in review and obvious in a measurement.
-
-### 3.3 Interpuncts
-
-> **`·` joins parallel phrases of equal rank and equal formatting. The moment
-> the two sides carry their own hierarchy, use white space.**
-
-Keep: source lines (`W. A. Buckingham · U.S. Air Force Office of History`),
-eyebrows (`Act II · The timeline`), map annotations
-(`Đắk Tô · test spray, Aug 1961`), and running prose inside a tooltip
-(`Mostly Orange · Sep 1966 – May 1969`).
-
-Drop: between styled stat pairs — the red figure already marks where each pair
-begins, so the dot is a second, redundant separator and reads as grit at 11px.
-This matches news-graphics practice (NYT/FT/Bloomberg stat blocks separate by
-space or column; interpuncts live in bylines and source lines).
-
-### 3.4 Units and approximations
-
-Write the unit as a word beside the figure (`81K Gallons`), sharing a baseline.
-Prefer a round number over an `≈` glyph: `13 km Grid Cell` says "about" by being
-round, and reads as a noun phrase parallel to `Single Spray Run`.
-
----
-
-## 4 · Panels and surfaces
-
-### 4.1 Two surface recipes
-
-**Frosted glass** — for panels that float over the map and want it to show
-through (`.explorer-panel`, `.intro-card`):
-
-```css
-background: rgba(255, 255, 255, 0.5);
-border: 1px solid rgba(255, 255, 255, 0.55);
-border-radius: 4px;                 /* 6px on the Explorer panel */
-box-shadow: 0 6px 24px rgba(40, 38, 30, 0.08);
-backdrop-filter: blur(18px) saturate(1.35);
-```
-
-**Near-opaque paper** — for panels that must stay legible over anything, and for
-anything *fixed* over scrolling content (`.site-nav`, `.map-key`,
-`.archive-key`):
-
-```css
-background: rgba(252, 251, 247, 0.94);
-border: 1px solid rgba(255, 255, 255, 0.6);
-box-shadow: 0 8px 24px rgba(33, 53, 40, 0.14);
-```
-
-Why the split: `backdrop-filter` on a *fixed* panel re-samples the scrolling
-content beneath it every frame and flickers. Glass is for panels over a map;
-paper is for panels over a page.
-
-### 4.2 Spacing rhythms
-
-| Surface | Rhythm |
-|---|---|
-| Explorer left panel | **24px** between blocks (header → rule → transport → chart → chips → note → jump → link), 24px padding |
-| Map key, control half | **12px** between rows (label→capsule stays a tight 5px pair) |
-| Map key, inspect half | **14px** between sections, each opened by a hairline rule |
-| Tooltip | 10/13/11px padding; 2px between the two lines |
-
-Content-vs-control is a legitimate reason for two rhythms in one panel; drifting
-between 9, 10 and 16 in the same stack is not.
-
-### 4.3 Explorer left panel (`.explorer-panel`)
-
-| Element | Spec |
-|---|---|
-| surface | glass, radius 6, `min(400px, 100vw − 48px)`, 24px padding, docked 24/24 |
-| year eyebrow | serif **24** / `--accent-deep` |
-| title | serif **24** / lh 1.1 / `--ink` |
-| subtitle | serif **17** / lh 1.3 / `--ink` |
-| dek | sans **13**/300 / lh 1.65 / `--ink-soft`; inline link underlined, warms to accent on hover |
-| transport | play/pause toggle = 32px `--forest` circle; reset = 32px white circle, Material `refresh` glyph mirrored |
-| playhead date | serif **19** / `--ink` — the panel's anchor |
-| stat line | §3.2, 12px gaps |
-| chart | 104px; bars `--accent` @0.85, future months @0.22; playhead 1px `--ink`; 1px baseline `rgba(33,53,40,0.28)` |
-| axis | ruler: **major tick per year** (7px @0.45) + **minor per quarter** (4px @0.3); labels every second year, 11/400/`--ink-faint` |
-| agent filter | one white capsule (radius 999, 0.85 alpha) holding borderless 12/600 chips; active chip fills with the series hue |
-| agent note | **fixed 34px** slot, 11/400/`--ink-faint` — switching series must not resize the card |
-| Jump To | 10px structural label on its own line + ghost pills (11/500, `--rule` border, white 0.7) |
-| back link | 13/600 / `--accent-deep` |
-
-### 4.4 Map key + inspect (`.archive-key`)
-
-One panel, two halves separated by a hairline: the **control half** (view
-switch, share, scale bar, compass, legend) and the **inspect half**, which
-appears when a symbol is clicked and disappears with it — never a second
-floating card.
-
-| Element | Spec |
-|---|---|
-| surface | paper, 172px wide, 11/13/16px padding, docked 24/24 |
-| `MAP VIEW` | 10/600/`--track-caps`/`--ink` |
-| Flat / 3D | capsule on `rgba(33,53,40,0.06)`; buttons **11**/600; active = `--forest` fill, white text |
-| Share This View | full-width pill, `--rule` border, 11/600/`--ink-soft` |
-| scale + compass | bar 5px with 1.5px `--ink-soft` rule, label 10.5/600; compass = 17px ring + 1.6px needle, **no "N"** |
-| legend rows | 11/400/`--ink-soft`, 20px swatch column, 8px row gap |
-| inspect kicker | 10/600/`--track-caps`/`--ink` |
-| coordinates | 10/400/`--ink-faint` |
-| figure | serif **19**/500/`--accent-deep` + unit 11/`--ink-soft` on the same baseline |
-| counts | §3.2 at 11px |
-| agent mix | label 40px · 5px track (`rgba(33,53,40,0.07)`) · bar in the series hue @0.85 · value 34px right-aligned |
-| year sparkline | 46px, bars `--accent` @0.9, 1px baseline axis, 10px end labels |
-| close | 16px glyph with 6px padding for a real hit area |
-
-### 4.5 Hover tooltip (`.adr-popup.adr-hover`)
-
-A transient utility surface: **no serif, no border, and only what a glance
-needs** (volume and count — missions belong to the click, which is the "look
-closer" gesture).
-
-| Element | Spec |
-|---|---|
-| box | `--paper-solid`, radius 4, no border, `0 8px 24px rgba(33,53,40,0.16)`, offset 12 |
-| headline | 13px; figures 500/`--accent-deep`, words 400/`--ink-soft`, 12px gap |
-| second line | 11/400/`--ink-soft` |
-
-**The rounded tip.** MapLibre's tip is a border triangle (`border: 10px solid
-transparent`), which cannot take a radius. Replace it with a rotated square:
-
-```css
-.adr-hover .maplibregl-popup-tip {
-  width: 11px; height: 11px; border: none;
-  background: var(--paper-solid);
-  transform: rotate(45deg);
-  z-index: 2;                       /* above the content… */
-}
-.adr-hover.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
-  margin-top: -7px;                 /* …tucked back in */
-  border-bottom-right-radius: 2px;  /* the outer corner, per anchor */
-}
-```
-
-Two traps: the tip must paint **above** the content, or the box's drop shadow
-greys it out; and at MapLibre's four *corner* anchors a rotated square points the
-wrong way, so hide it and keep all four corners rounded.
-
-Also beware the generic `.adr-popup span { display: block; font-size: 11.5px }`
-rule: any nested span in a tooltip must restate `display: inline` and inherit its
-size, or figures silently drop half a step and break the line.
-
----
-
-## 5 · Map markers — one system
-
-Spec implemented by `.map-dot` / `.map-area-label` in `src/pages/Story.css`.
-
-**Point** (`.map-dot`) — anything that points at a *place*: solid `--accent` dot
-(12px, white halo) + pulsing ring, plus a chip (`--accent-chip` fill, white text,
-4px radius). Chip placement:
-
-| Variant | Placement | Pointer |
-|---|---|---|
-| default | above the dot | triangle pointing down |
-| `--below` | below the dot | triangle pointing up |
-| `--leader` | led `--leader`px right on an `--accent-line` hairline (90px on mobile) | none — the line is the pointer |
-
-**Area** (`.map-area-label`) — anything that names a *region* (Cà Mau, A Lưới):
-the pulsing `--accent-line` boundary outline is the pointer, so the chip floats
-alone at the label anchor, centred, **no pointer triangle, no dot**.
-
----
-
-## 6 · Map linework
-
-| Element | Style |
-|---|---|
-| Military-region dividers | `--accent-line`, 2.2px, dash 2.4/1.8 — internal lines only |
-| MILITARY REGION tags | `--accent-deep` text, uppercase, paper halo, ≤z8.5 |
-| Landmark boundary outline | `--accent-line`, 3px, opacity pulsing 0.5–0.95 |
-| National border / provinces | basemap's own, knocked back (`mapTheme.ts`) |
-
----
-
-## 7 · The Explorer's symbol map
-
-The Story and the Explorer deliberately encode the same data two ways, and the
-contrast between them *is* the product narrative:
-
-- **Story** = a KDE heat field. The metaphor is rain on land; the job is feeling.
-- **Explorer** = countable proportional symbols. The job is inspection.
-
-Because the HERBS data is homogeneous (timestamped points, one category, one
-absolute quantity), the Explorer follows the CLEVER°FRANKE model: **one
-representational language — the dot — at every zoom, with only the aggregation
-cell size changing.**
-
-| Tier | Zoom | Aggregation | Symbol |
+| rem | @16 | @13.6 | Role |
 |---|---|---|---|
-| Far | ≤ 7.0 | 0.12° grid (≈13 km) | dot at cell centre |
-| Mid | 7.0 – 9.2 | 0.03° grid (≈3 km) | same encoding, finer grid |
-| Near | ≥ 9.2 | none — raw runs | dot at true position |
+| 0.625 | 10 | 8.5 | structural labels (uppercase), chart furniture |
+| 0.6875 | 11 | 9.35 | footnotes, stat figures, map-pin chips |
+| 0.75 | 12 | 10.2 | UI controls, chips, badges |
+| 0.8125 | 13 | 11.05 | body |
+| 0.875 | 14 | 11.9 | deks, primary buttons |
+| 0.9375 | 15 | 12.75 | wall captions |
+| 1.0625 | 17 | 14.45 | quotes and card deks (serif) |
+| 1.1875 | 19 | 16.15 | card titles (serif) |
+| 1.5 | 24 | 20.4 | section subtitles, card years (serif) |
+| 1.75 | 28 | 23.8 | stat figures (serif) |
 
-Shared rules: radius = k·√gallons (**area-true**), capped below the cell width;
-no stroke — overlap darkens by alpha stacking, the closest WebGL gets to a
-multiply blend; `circle-pitch-alignment: map` so discs lie on the terrain plane
-and foreshorten in 3D. Two MapLibre traps: a zoom `interpolate` must be the
-**outermost** expression (wrapping it in `min` kills the layer silently — put the
-cap inside each stop), and `circle-sort-key` is what keeps grey context beneath
-tinted selection.
+Plus three fluid display steps: `clamp(2.5rem, 6.5vw, 4.5rem)` masthead,
+`clamp(30→44)` statements, `clamp(27→38)` section titles.
 
-See `docs/explorer-m2-plan.md` for the cartographic rationale and roadmap.
+**Every font-size sits on a tick.** A new size needs a reason that is not "this
+felt big".
 
----
+### Weight
 
-## 8 · Motion
+**Four weights ship: 300 / 400 / 500 / 600.** There is no 700. Thirteen
+selectors used to ask for one; Chrome matches the 600 face and does not
+synthesise, so they rendered at 600 while the stylesheet claimed otherwise —
+measured, `Handgloves 8,360 Đà Nẵng` at 40px is 519.84px wide at 600, 700 and
+800 alike.
 
-- Map first paint: `.story-map` holds at opacity 0 behind the hook banner and
-  fades in (~0.35s) once tiles + data are ready, so the basemap never hard-pops
-  (instant under reduced motion). If the reader scrolls into the story before the
-  map is ready, it catches up to the current node rather than resetting.
-- Hook rain: plays at the top, fades out (~1.4s) after half a viewport of
-  scroll, parks (rAF stopped), fades back in (~0.8s) at the very top.
-- Pulses: dot ring (CSS, 2.2s), landmark outline (rAF sine).
-- Spray bloom: on each Act I step the heat filter's day threshold is *animated*
-  (rAF, easeOutCubic, ~1.5–2.8s) from the previous event's date to the new one,
-  so newly sprayed area grows outward in chronological order. Armed on the
-  camera's `moveend` (with a fallback timer) so long flights don't finish it
-  before the reader arrives; scrolling up recedes symmetrically. Throttled to
-  ~60 filter re-applies per reveal.
-- Explorer playback: 28s for the full decade, re-binning throttled to one step
-  per 12 simulated days — re-tessellating 24k points every frame is what made
-  the old heatmap stutter.
-- Also fading/animated: act2 card cross-fade · alternatives check pop · methods
-  open-grid fade · timeline card fade-in · closing rain.
-- **`prefers-reduced-motion: reduce` disables all of the above** (one shared
-  media block in `Story.css` + per-component JS guards) — keep this invariant
-  when adding any animation.
+The discipline, on both surfaces: **Medium (500) names things, Regular (400)
+says them**, and 600 is for figures and structural labels. Playfair carries its
+own emphasis in the letterforms and stays at 400 — giving it a semibold gives it
+a weight it was never drawn to need.
 
----
+### Tracking
 
-## 9 · Basemap labels
+Four ticks. Three are tokens; the fourth is not, and that is worth knowing:
 
-See `docs/map-labels.md` for the tier system and `normalizePlaceLabels()`
-(casing + " Ward"-suffix normalisation).
-
-The Explorer quiets the basemap further (`quietBasemap()` in `volumeGrid.ts`):
-vegetation and buildings off, water at half strength, only motorway/trunk/primary
-kept as hairlines, admin level ≤ 4, town-and-below labels hidden until z6.4.
-Remaining labels are **Cuprum** tracked caps at 15 (country) / 12 (rest) — water
-names in `#7d9ba1`, settlements in `#6f7568`. Map glyph stacks are built by
-`npm run build:glyphs` (see `scripts/build-glyphs.mjs`); a new map face needs a
-built stack before `text-font` can name it.
-
----
-
-## 10 · Recorded contrast exceptions
-
-- Rail resting links are 11px white on the gradient top (`#e0644f`) ≈ 3.2:1.
-  A deliberate exception for the look; links use `rgba(255,255,255,0.92)` and the
-  active item (white on the highlight fill, bold) passes.
-- Micro text (<12px) on paper keeps to `--ink-soft`; `--ink-faint` only at 11px+
-  (its 4.7:1 floor).
-- **Banner text is `--ink` (forest), not white.** On the orange→pink wash white
-  fails everywhere (1.5–2.8:1) and forest passes everywhere (4.7:1 at the salmon
-  top → 8.8:1 near the bottom), so it carries the banner with no text-shadow.
-- Inverted timeline cards use `rgba(255,255,255,0.92)` for their smallest labels.
-
----
-
-## 11 · Act II palette extensions
-
-| Colour | Value | Where |
+| | value | Where |
 |---|---|---|
-| family containment | `#6a9c81` (`--fam`) | alternatives family card accents |
-| family hybrid | `#4d7d63` | " |
-| family treatment | `#2f5c44` | " |
-| USAID green | `#5abe88` | reveal button (Figma-mandated) |
-| epilogue sage | `#9fd4b4` | source-group heads / CTA text on forest |
+| `--track-tight` | 0.02em | small-caps-adjacent emphasis |
+| **0.04em** | *raw literal* | the 10px uppercase structural-label tier, both surfaces |
+| `--track-caps` | 0.06em | uppercase tags and badges |
+| `--track-caps-wide` | 0.1em | wide uppercase, eyebrow scale — **declared, currently unused** |
+
+Serif display sets solid, no tracking.
+
+### Case
+
+Uppercase is reserved for the 10px label tier and for map labels. Body copy,
+titles and stat words are sentence or initial case. Uppercase at 11px reads
+visually larger than lowercase at 11px, which is why the label tier sits one
+step down at 10 rather than matching.
+
+### The stat grammar
+
+Four surfaces carry counts — the panel readout, the inspect card, the hover
+tooltip, and the story's own statline. They render **identically**:
+
+| | size | weight | colour |
+|---|---|---|---|
+| Figure | 0.6875rem | 600 | `--accent-deep` |
+| The word attached to it | 0.6875rem | 500 | `--ink` |
+
+`8,360 Spray Runs` and `19.5M Gallons` are the same kind of statement about the
+same record. One `fmtGallons` renders them, in `src/data/spray.ts` — there were
+three, and one spelled the thousands suffix lowercase, so one section read
+`494k` while everything else read `494K`.
+
+Numerals: proportional lining figures everywhere (`body` sets `lining-nums`).
+No `tabular-nums` anywhere — Geist's tabular digits carry a uniform full-width
+advance that reads gappy, and nothing here aligns digits column-on-column.
+
+---
+
+## 3 · Colour
+
+Every ratio below was recomputed for this edition against the real ground.
+
+### Ink, on paper `#faf9f4`
+
+| Token | Value | Ratio | Role |
+|---|---|---|---|
+| `--ink` | `#101a14` | **16.88** | headings, titles, **structural labels** |
+| `--ink-soft` | `#33443a` | **9.82** | secondary text, **content** |
+| `--ink-faint` | `#4b5a50` | **6.92** | captions, **notes**, smallest text |
+| `--rule` | `#dfe3d9` | 1.24 | hairline dividers (not text) |
+| `--rule-strong` | `#647468` | 4.70 | decorative 3px card accents (not text) |
+
+**The three tiers are a rule, not a palette:** ink = titles and labels · soft =
+content · faint = notes. Size and tracking set a structural label apart from
+what it introduces, so colour is free to mark it as structure. This is the rule
+the map key's own label was breaking — it shipped at faint/500/untracked on one
+surface and ink/600/0.06em on the other.
+
+### Accent — one hue, four jobs
+
+The job decides the contrast requirement, which is the whole reason there are
+four:
+
+| Token | Value | Ratio | Job |
+|---|---|---|---|
+| `--accent` | `#ff5449` | 3.01 on paper | **GEOMETRY ONLY** — dots, pulse rings, heat, rain |
+| `--accent-deep` | `#cf3720` | **4.72** on paper | accent TEXT on paper |
+| `--accent-chip` | `#d63328` | **4.81** vs white | chip FILL behind white text |
+| `--accent-bright` | `#ff7a70` | **5.15** on forest | accent TEXT on forest |
+| `--accent-line` | `#e8443a` | 3.75 on paper | map linework (non-text, needs ≥3) |
+
+`--accent` is 3.01:1 and **must never carry text**. Two rules did — the card
+years on forest at 4.12 and the cut-mark on paper at 3.01 — and both were fixed
+by swapping to the token that already existed for their ground.
+
+`#ff5449` is also the theme-color in `index.html` and the favicon's baked fill.
+One orange, site-wide.
+
+### Dark surfaces
+
+| Token | Value | On `--forest` |
+|---|---|---|
+| `--forest` | `#213528` | the one dark: selected controls, story cards |
+| `--forest-2` | `#2c3730` | raised dark |
+| `--forest-text` | `#e8ece6` | **10.95** |
+| `--forest-text-soft` | `#b4ccba` | **7.66** |
+| `--mint` | `#92f7bc` | 10.13 — decorative borders only |
+
+`--forest` is the selected state of **every** control that carries no other
+meaning: the play button, the active Flat/3D tab, the All-agents chip, the
+accumulation toggle, the sort switch. One dark, not three that drifted apart.
+
+Where a selected state *does* carry meaning it keeps its own colour — the agent
+chips take the agent's colour, the method tabs take the method's. That fill is
+information, not decoration.
+
+### Agents
+
+| | | |
+|---|---|---|
+| Orange | `#ef7d1a` | |
+| White | `#93a1b3` | blue-leaning silver, so an isolated White stays apart from the neutral grey |
+| Blue | `#5aa6e0` | |
+| Other | `#9a6cc4` | |
+| De-emphasised | `#c9cdc4` | context volume when one agent is isolated |
+
+⚠️ White-on-`#5aa6e0` is ~2.2:1. The Blue chip keeps dark text; do not fill it
+and put white on top.
+
+---
+
+## 4 · Surfaces and elevation
+
+| | Story | Archive |
+|---|---|---|
+| Paper | `--paper` `250,249,244` · `--paper-solid` `#fdfdfd` | same |
+| Panel glass | `rgba(252,251,247,0.94)`, no filter | `rgba(255,255,255,0.90)` + `blur(20px)` |
+| Radius | 0 | 0 |
+| Border | none | none |
+
+The Story's fixed panels take near-opaque paper and **no** `backdrop-filter`: a
+filtered element fixed over a *scrolling* page re-samples its backdrop every
+frame and flickers. The Archive's panels sit over a map that does not scroll
+under them, so they can be glass.
+
+Glass alpha and blur move **together and in the same direction**. At 0.65/8px
+the spray field came through as recognisable dots and competed with the panel's
+own chart — the two reddest things on screen read as one. At 0.90/20px it
+arrives as tone. Raising opacity without raising blur makes the remaining
+transmission *more* legible, not less.
+
+### The white-control recipe
+
+This is the most-revised decision in the system, so it is written out in full.
+
+**A white control on a paper ground takes a hairline and no shadow.**
+
+```css
+--v3-hairline: inset 0 0 0 1px rgba(33, 53, 40, 0.06);  /* .story  */
+--v2-hairline: inset 0 0 0 1px rgba(33, 53, 40, 0.06);  /* .map-wrap */
+```
+
+Byte-identical on purpose. 6% went 10 → 4 → 6: at 0.10 the line read as the
+border that had just been removed; at 0.04 it rendered `(246,247,246)` against
+`(250,249,244)` paper, a 4/255 delta at the perception threshold, and a
+control's outer boundary read as absent rather than quiet.
+
+The hairline is the **whole** treatment. The control shadow that used to ride
+with it is gone: the line already closes all four edges, so the shadow was only
+adding lift that a flat paper page is not meant to have.
+
+Shadows survive for exactly three cases, all of them things that genuinely float:
+
+| Token | Value | For |
+|---|---|---|
+| `--v3-shadow` | `0 1px 2px /.04`, `0 6px 20px /.05` | `.map-key`, `.close-action` — over a map, or on a dark ground where a 6% ink line is invisible |
+| `--v3-shadow-control` | `0 1px 3px /.07` | controls sitting on the MAP rather than on paper |
+| `--v3-shadow-dark` | `0 10px 32px /.16` | a card floating over a photograph |
+
+**The trap, which has caught this project twice:** an inset shadow is painted
+*under* its children's backgrounds. A card that sets the hairline and whose
+child paints an opaque background of the same colour has a hairline that never
+reaches the screen — and `getComputedStyle` will report it as present, because
+it *is* set. Verify with `elementFromPoint` at the element's own border pixel.
+
+---
+
+## 5 · Shape
+
+Radius is **0** everywhere except where roundness is the meaning: agent dots,
+the compass dial, colour swatches, the map's own circles.
+
+Buttons, panels, chips, switches and tooltips are rectangles. Chips butt
+together into one block, divided by a 1px seam inset top and bottom, suppressed
+on both sides of the active chip whose fill draws its own edges.
+
+CSS triangles (`.act2-chip::after`, the pin tails) are geometry, not strokes,
+and are not covered by the no-strokes rule. Neither is an instrument's own line
+— the compass dial and the scale bar *are* their outline.
+
+---
+
+## 6 · The segmented switch
+
+Five instances, one form, and they agree exactly:
+
+| | |
+|---|---|
+| Story | `.rainbow-switch` / `.rainbow-chip` · `.map-key-view` · `.rainbow-mode` · `.eco-sort` |
+| Archive | `.explorer-agents` / `.agent-chip` · `.archive-key .map-key-view` |
+
+The form: `gap: 0`, one hairline on the **group** (not per member — per-chip
+shadows bleed into the seams and draw vertical lines through what is meant to
+read as one control), a 1px `::before` seam between neighbours, seams suppressed
+either side of the active chip, active chip filled `--forest`.
+
+`.method-tabs` looks like a sixth and is not: it is a bare flex row of two
+independent toggles with no background for a group hairline to sit on. It takes
+the button treatment and none of the container treatment.
+
+---
+
+## 7 · Space
+
+No formal spacing scale is declared; the values in use cluster on
+0.25 / 0.375 / 0.5 / 0.75 / 1 / 1.5 rem, and a new one-off should be pulled to
+the nearest of those.
+
+The Archive panel's block rhythm, which is the most deliberate part:
+
+| Gap | rem |
+|---|---|
+| Between blocks (identity → controls) | 1 |
+| Within a block (title → subtitle) | 0.5 |
+| Subtitle → deck | 0.75 |
+| Section label → its content | 0.5 |
+| Label above a section | 1 |
+| Inside a statement (figure → its counts) | 0.25 |
+
+1rem rather than the Figma's 1.5: at 1.5 the panel read as five loose islands
+rather than one instrument. **A divider sits equidistant** — the deck's bottom
+margin and the transport's top padding are both 1rem, so the hairline between
+them is centred by construction rather than by eye.
+
+Panel width is **23.25rem** (316px on a laptop, 372 at full size), sized to the
+agent row with headroom: an exact fit left 3.3px and the row wrapped on the
+first machine whose subpixel rounding went the other way.
+
+### Breakpoints
+
+| | |
+|---|---|
+| 1600 / 641 | the density step (root 16 ↔ 13.6) |
+| 1100 | Act II's two-column row collapses |
+| 900 / 860 / 820 | Story section layouts |
+| 700 | the Archive panel becomes a bottom sheet |
+| 640 | the phone layer, both surfaces |
+| 400 | agent-chip padding clamps for narrow phones |
+
+Eight numbers is more than a system wants. 700 and 640 in particular do the same
+job on two surfaces and should probably be one.
+
+---
+
+## 8 · Components
+
+**Transport button.** 1.875rem square, no radius. Primary = `--forest` fill,
+`--forest-text` glyph. Ghost = translucent white, ink glyph. The pair butts into
+one block carrying one hairline.
+
+**Chip (agent filter).** 0.375rem/0.75rem padding, weight 500, no radius, no
+border. Padding clamps below 400px so the row never overflows the sheet.
+
+**Rule.** `1px solid var(--rule)`. Divides blocks. Never encloses.
+
+**Tooltip.** 0.375/0.5625/0.4375rem padding, radius 0, control shadow. Both
+lines at 0.6875rem; the tip is a rotated square.
+
+**Inspect card.** Title states the subject and its span, not the container.
+Data at 0.6875rem, labels at 0.625rem, one grammar for the figures (§2). Section
+headings each take over the rule that would otherwise sit above the block they
+head.
+
+**Error notice.** Both surfaces say so when the map cannot be drawn — paper, the
+hairline, 0.75rem ink-soft, centred on the map. The Story adds that its
+reporting is unaffected, because it is; the Archive does not, because the map
+*is* the Archive.
+
+---
+
+## 9 · The map
+
+*(This section is being revised against the cartography and label audit now in
+flight; the palette and zoom tables below are read from `mapConfig.ts` and
+`mapTaxonomy.ts` as they stand.)*
+
+Both surfaces run one **ground pass** — `quietBasemap()` — which turns off
+buildings, vegetation and settlement dots, greys the boundaries, drops minor
+roads, and gives water its own tone. Vegetation is off for a reason that belongs
+in the system rather than in the code: positron's green is *today's* cover, half
+a century after the record, and inviting a reader to read it as the forest that
+was sprayed is the wrong inference to offer.
+
+The two intended differences:
+
+- **Water.** The Story uses `STORY_WATER` `#d9e2e0`, which sits in its
+  orange–green system and measures 7.6% below the land tone; the Archive keeps
+  its own cooler tone.
+- **Label visibility.** The Story passes `{ labels: false }` and curates its own
+  set; the Archive runs the basemap's. The label *type system* is shared — one
+  face, one tier ladder, one halo recipe — and only the visibility policy is
+  per-surface.
+
+Zoom, from `mapConfig.ts`:
+
+| | |
+|---|---|
+| Floor | derived per viewport by fitting `recordBounds`, minus 0.35 (≈5.3 phone, ≈6.6 on a 27") |
+| `Z_NEAR` | 9 — fine grid hands off to raw runs |
+| Ceiling | 11 — stops where the data does; past z12 a dot carries no more information |
+
+Relief is always on at 0.28 and deepens to 0.6 when the reader tilts, on both
+surfaces.
+
+---
+
+## 10 · Where the older documents went
+
+`design-system-v2.md`, `design-system-v3.md` and `design-system-v3-serif.md` are
+**historical**. They record how the Archive spike was proposed and then read
+back, and the branch comparison (all-Geist vs Playfair) that the Story resolved
+in favour of the pairing. They are kept as decision records and are no longer
+accurate as specs — v3 §2 in particular says "Geist everywhere, no serif/sans
+pairing", which describes a branch that did not win.
+
+`design-system.html` is a generated specimen page built from
+`design-system.src.html`. Its tokens are stale — it still carries the pre-ramp
+`--ink: #213528` — so treat this file, not that page, as the reference.

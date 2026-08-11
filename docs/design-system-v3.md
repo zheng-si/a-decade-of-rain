@@ -1,3 +1,8 @@
+> **HISTORICAL.** This reads back the Archive spike as it stood, and its §2
+> ("Geist everywhere, no serif/sans pairing") describes the branch that did
+> NOT win — the Story ships Playfair for its display tier. The live reference
+> is [`design-system.md`](./design-system.md). Kept as a decision record.
+
 # A Decade of Rain — design system v3
 
 The system as the Archive actually embodies it after the v2 spike and the

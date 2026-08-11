@@ -1,3 +1,7 @@
+> **HISTORICAL.** The delta that the Story actually took. Its conclusion is
+> folded into the live reference, [`design-system.md`](./design-system.md).
+> Kept as a decision record.
+
 # Design system v3 — serif variant
 
 **This document is a delta, not a fork.** It replaces exactly two sections of
