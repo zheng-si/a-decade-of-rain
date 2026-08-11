@@ -964,9 +964,13 @@
   letter-spacing: var(--track-caps);
   color: var(--ink);
 }
+/* gap 0, not 2px. Both skins square this control and butt its halves together;
+   the Story's skin zeroed the gap and the Archive's zeroed only the padding, so
+   the identical switch shipped with a 2px seam on one page and none on the
+   other. Zeroed at the base so neither skin has to remember. */
 .map-key-view {
   display: flex;
-  gap: 2px;
+  gap: 0;
   padding: 2px;
   margin-bottom: 0.625rem;
   background: rgba(33, 53, 40, 0.06);
@@ -1447,9 +1451,16 @@
   transition: fill-opacity 0.25s, fill 0.25s;
 }
 
+/* nowrap, matching `.explorer-agents` under .map-wrap. This is the same
+   segmented control on the other page, and a segmented control cannot reflow:
+   two of five chips on a second row is no longer one control, it is two rows
+   of buttons that happen to share a hairline. It fits at every width measured,
+   but `wrap` meant the first machine whose rounding went the other way would
+   break it -- which is the same failure the Archive's own width comment
+   describes and pinned nowrap to prevent. */
 .rainbow-switch {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.4375rem;
   margin-top: 0.875rem;
 }
@@ -1457,7 +1468,9 @@
 .rainbow-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.4375rem;
+  /* 0.25rem, matching .agent-chip. Same chip, same dot, and the gap between
+     them was 0.4375 here against 0.25 there. */
+  gap: 0.25rem;
   padding: 0.375rem 0.75rem;
   font-family: var(--font-sans);
   font-size: 0.75rem;

@@ -1008,13 +1008,20 @@
 
 /* The legend's one explanatory line. The rows name the marks; this says what
    the size and the fade MEAN, once, instead of once per row. */
+/* Three corrections, all of them to values that were off the sheet:
+   0.6rem was the only font-size on either surface not on the ladder -- it is
+   the 0.625 tick now; 0.45rem was the only spacing value that is not a whole
+   pixel at either root size; and #8a8d85 measures 3.37:1 on this panel, which
+   fails AA for text. --ink-faint is the token for a note and measures 6.92.
+   The divider is drawn in black alpha where every other divider on both
+   surfaces uses --rule, which carries the system's green cast. */
 .archive-key .map-key-note {
-  margin: 0.45rem 0 0;
-  padding-top: 0.45rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.07);
-  font-size: 0.6rem;
+  margin: 0.5rem 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.625rem;
   line-height: 1.5;
-  color: #8a8d85;
+  color: var(--ink-faint);
 }
 
 /* ── the archive said nothing when it failed ──────────────────────────────
