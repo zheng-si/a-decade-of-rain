@@ -626,7 +626,23 @@ export function quietBasemap(
         continue
       }
       if (layer.type === 'symbol' && map.getLayoutProperty(id, 'text-field') != null) {
-        // Ground-only pass: the caller owns its own label policy.
+        // THE SETTLEMENT DOT IS GROUND, NOT LABEL POLICY, and it has to be
+        // taken off before the guard below. positron ships a black circle
+        // under every settlement name and parks the name above it; the Story
+        // passes `labels: false` and so kept both, which is why its map showed
+        // a black dot under Long Xuyên, Tân An, Mỹ Tho, Vũng Tàu, Sóc Trăng,
+        // Bạc Liêu and Cà Mau — on a map whose own key legends a filled circle
+        // as "Marked site". This function's docblock already promised that
+        // `labels: false` still runs the ground pass; it just did not.
+        try {
+          map.setLayoutProperty(id, 'icon-image', undefined)
+        } catch {
+          map.setPaintProperty(id, 'icon-opacity', 0)
+        }
+        map.setLayoutProperty(id, 'text-anchor', 'center')
+        map.setLayoutProperty(id, 'text-offset', [0, 0])
+
+        // Ground-only pass: the caller owns its own label policy from here.
         if (!doLabels) continue
         // Wards, hamlets and quarters stay gone at every zoom — post-reform
         // OSM names them things like "P.9" and they are noise here. Provinces
@@ -669,19 +685,15 @@ export function quietBasemap(
         map.setPaintProperty(id, 'text-color', style.color)
         map.setPaintProperty(id, 'text-halo-color', style.halo)
         map.setPaintProperty(id, 'text-halo-width', style.haloWidth)
-        map.setLayoutProperty(id, 'text-transform', 'uppercase')
+        // `text-transform` is NOT set here. labelLayers.ts writes 'none' on both
+        // surfaces and docs/map-labels.md records that as the settled answer;
+        // this line used to run after it, on the Archive only, and reverse it —
+        // so the same place read "Tân Uyên" on the Story and "TÂN UYÊN" on the
+        // Archive. Casing is type, and the type system is one system.
         map.setLayoutProperty(id, 'text-letter-spacing', style.tracking)
         map.setLayoutProperty(id, 'text-font', [style.font || LABEL_FONT])
-        // Drop any dot the label layer carries with it, and re-centre the
-        // text on the point it names — positron parks the name above the
-        // icon, so without this the label floats clear of its own location.
-        try {
-          map.setLayoutProperty(id, 'icon-image', undefined)
-        } catch {
-          map.setPaintProperty(id, 'icon-opacity', 0)
-        }
-        map.setLayoutProperty(id, 'text-anchor', 'center')
-        map.setLayoutProperty(id, 'text-offset', [0, 0])
+        // (The dot removal and re-centring moved above the `doLabels` guard —
+        // they are ground, not label policy. See the note there.)
         // Which name survives a collision is now a rule rather than an
         // accident of tile order: OpenMapTiles ranks places with 1 as the most
         // important, and MapLibre places the lowest sort key first. Anything
