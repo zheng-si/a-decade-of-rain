@@ -1482,6 +1482,28 @@
   box-shadow: 0 0.625rem 1.875rem rgba(33, 53, 40, 0.12);
   border: 1px solid var(--rule);
   background: var(--paper-solid);
+  /* The head and body each paint their own paper, so any height the card holds
+     BEYOND its content showed as a band of bare card under the body — a tonal
+     seam a few pixels below the sources line. Harmless while the card was
+     sized by its content; visible the moment it got a floor to hold the short
+     agents at the tall one's height. The column makes the body absorb the
+     slack, so the card is one continuous surface at every height. */
+  display: flex;
+  flex-direction: column;
+}
+/* `1 0 auto`, not `1`. The shorthand's basis is 0%, which tells the column to
+   ignore what is actually inside it — the card then sits at exactly its floor
+   while the two longest agents (Orange, White) spill 3–4px past it, and this
+   card clips its overflow, so the sources line lost its descenders. Basis auto
+   sizes from the content and grow still absorbs any slack, so the floor stops
+   the jump without ever being able to cut anything off. */
+.rainbow-card-inner {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+.rainbow-card-body {
+  flex: 1 0 auto;
 }
 
 /* Only the inner content crossfades on agent switch — the card frame stays
@@ -1508,7 +1530,9 @@
   gap: 0.875rem;
   padding: 1.25rem 1.375rem 1rem;
   background: var(--paper-solid);
-  border-top: 0.25rem solid var(--agent);
+  /* 3px, not 4: the timeline and hotspot cards band at 3 and this is the same
+     device saying the same thing. */
+  border-top: 3px solid var(--agent);
 }
 
 .rainbow-card-icon {
@@ -1613,7 +1637,7 @@
  * phones. Same reasoning as .act2-card's min-height, one breakpoint narrower. */
 @media (min-width: 821px) {
   .rainbow-card {
-    min-height: 29.5rem;
+    min-height: 30rem;
   }
 }
 
@@ -3018,7 +3042,10 @@
   padding: 0.4375rem 0.5625rem;
   border-radius: 0.25rem;
   font-size: 0.6875rem;
-  font-weight: 600;
+  /* 500, down from 600. These carry a sentence apiece, not a label, and at
+     semibold on a saturated fill a three-line screening note read as shouting
+     — the fill is already doing the emphasis. */
+  font-weight: 500;
   line-height: 1.45;
   text-align: center;
   color: #fff;

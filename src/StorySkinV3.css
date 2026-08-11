@@ -336,7 +336,10 @@
 .story .act2-card.is-active.is-completed,
 .story .act2-card.is-active.is-ongoing,
 .story .act2-card.is-active.is-contained {
-  box-shadow: inset 3px 0 0 currentColor, var(--v3-hairline);
+  /* Along the TOP, matching the herbicide and timeline cards. Those two already
+     banded there and this one banded left, and one page cannot hold two answers
+     to where a card's colour lives. */
+  box-shadow: inset 0 3px 0 currentColor, var(--v3-hairline);
 }
 
 
