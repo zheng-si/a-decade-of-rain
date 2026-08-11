@@ -145,7 +145,7 @@ export default function StoryNav() {
 
       <div className="story-rail-foot">
         <p>Data and Reporting</p>
-        <img src={usaidWhite} alt="USAID" />
+        <img src={usaidWhite} alt="USAID" width={640} height={191} loading="lazy" />
         <p className="story-rail-foot-more">UNDP · U.S. National Archives</p>
       </div>
     </nav>

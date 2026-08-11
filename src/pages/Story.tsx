@@ -986,7 +986,7 @@ export default function Story() {
           <div className="story-hook-inner">
             <p className="story-hook-credit">
               <span>Built on data &amp; reporting from</span>
-              <img src={usaidInk} alt="USAID" />
+              <img src={usaidInk} alt="USAID" width={640} height={191} />
               <span>UNDP · U.S. National Archives</span>
             </p>
             <h1 className="story-hook-title">{HOOK.title}</h1>

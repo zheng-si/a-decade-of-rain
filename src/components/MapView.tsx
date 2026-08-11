@@ -505,11 +505,16 @@ export default function MapView() {
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
       map.on('moveend', () => setCamTick((t) => t + 1))
 
+      // The two military-region files are fetched ONLY when they will be drawn.
+      // They used to sit in this Promise.all unconditionally, so every Archive
+      // load blocked its first paint on two round trips for a layer that
+      // SHOW_MILITARY_REGIONS has turned off — small files (5 KB and 0.5 KB),
+      // but two serial waits in front of the map for nothing at all.
       const asset = (f: string) => fetch(`${import.meta.env.BASE_URL}${f}`).then((r) => r.json())
       Promise.all([
         loadSpray(),
-        asset('data/military-region-dividers.geojson'),
-        asset('data/military-region-labels.geojson'),
+        SHOW_MILITARY_REGIONS ? asset('data/military-region-dividers.geojson') : null,
+        SHOW_MILITARY_REGIONS ? asset('data/military-region-labels.geojson') : null,
         new Promise<void>((resolve) => map.once('load', () => resolve())),
       ]).then(([spray, mrGeo, mrLabelsGeo]) => {
         if (!mapRef.current) return
