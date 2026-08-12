@@ -1,0 +1,566 @@
+/* ═════════════════════════════════════════════════════════════════════════
+   Story skin v3, SERIF VARIANT — design-system-v3-serif.md applied to the
+   scrollytelling page.
+
+   This branch and `claude/ds-v3-geist` carry the same subtractive system and
+   differ in exactly one thing: what the display tier is set in. Everything
+   from `── shape` down is byte-identical between them, so `git diff` against
+   that branch shows the type decision and nothing else. That is the point of
+   running them as a pair — the comparison is only fair if the only variable
+   is the one being compared.
+
+   Here Playfair Display stays. All 28 rules in Story.css that reach for
+   --font-serif keep it, which means the type answer is a PAIRING: Geist sets
+   the sans tier — running text, labels, controls, data — and Playfair keeps
+   the display tier it already had. The all-Geist branch collapses both into
+   one family.
+
+   The consequences run further than swapping a token, which is why the type
+   section below is short here and long there. Playfair at 400 already carries
+   its emphasis in the letterforms: high stroke contrast, a small x-height
+   against tall ascenders, real serifs terminating each stem. It does not need
+   weight to read as a heading. Geist does, so that branch lifts twenty heading
+   classes to 500 and tightens three tracking values to compensate. None of
+   that applies here, and applying it anyway would give Playfair a semibold it
+   was never drawn to need.
+
+   Same architecture as ArchiveSkinV2.css and for the same reasons: one file
+   scoped under `.story`, one import, `Story.css` untouched. The experiment
+   reads as a single diff, reverts by deleting two lines, and if it survives
+   its values move into Story.css rather than being re-derived.
+
+   The four subtractive moves (§1 of the doc) applied to CHROME only — cards,
+   panels, chips, buttons, rules. §10 is explicit that the narrative art is not
+   chrome: the rain, the pulse rings, the map dots and their shadows are the
+   subject, and subtracting from them would be subtracting from the story.
+
+   WHAT IS DELIBERATELY LEFT ALONE, so the next reader does not "fix" it:
+     · 9 border-radius: 50% — dots, the compass dial, colour swatches. Round
+       is the meaning there, which is the one exception §5 names.
+     · .act2-chip::after — those `border` declarations are CSS triangles, the
+       speech-bubble tails on the map pins. Not strokes.
+     · .map-key-compass-dial / -scale-bar borders — the instrument IS its line.
+       .eco-scale-bar is the same case: its outline is drawn in --accent-line,
+       the same colour as the unit-segment dividers inside it, so the outline is
+       the track's extent. Remove it and the segments float in nothing.
+     · Coloured 3px card tops (--agent, --tlc). They encode category; removing
+       them removes information, not decoration. The NEUTRAL ones go.
+     · .maplibregl-ctrl-attrib-button — MapLibre's own round "i" badge. Left at
+       the vendor default here for the same reason the Archive leaves it: the
+       two pages should meet the map with the same chrome, and changing it in
+       one place only would make them differ.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.story {
+  /* The sans tier moves to Geist; --font-serif is deliberately NOT redefined,
+     so the 28 rules that declare it keep Playfair Display. The explicit
+     font-family below is still required: `body`'s family resolves in the root
+     scope, so redefining --font-sans here alone would not reach anything that
+     merely inherits. */
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* The float shadow of §6 — now only for the two surfaces that genuinely
+     float, since every card on paper takes the hairline instead (see the
+     elevation section). Two layers: a tight contact pass and a wide lift.
+     §4's single `0 8px 28px` at .02 was not a light shadow but no shadow, and
+     .map-key has to separate from a whole map. Still far under the .10 the
+     system was reacting against. */
+  --v3-shadow: var(--v3-stroke), 0 1px 2px rgba(40, 38, 30, 0.04), 0 6px 20px rgba(40, 38, 30, 0.05);
+  /* The two controls that sit on the MAP rather than on paper (.act2-chip,
+     .story-stat). They keep a deeper shadow than the paper recipe: a busy
+     photographic ground gives an edge nothing to sit against, and dropping
+     them to the whisper would take away depth they are actually using. The
+     stroke rides along, so every white surface on the site now carries the
+     same line and only the separation differs. */
+  --v3-shadow-control: var(--v3-stroke), 0 1px 3px rgba(40, 38, 30, 0.07);
+  /* A dark card on a bright map is the one case neither token covers — it has
+     to lift off a photograph, not off paper. Still far below the 0.42 it was. */
+  --v3-shadow-dark: 0 10px 32px rgba(16, 26, 20, 0.16);
+
+  /* ── the elevation recipe · stroke + whisper ────────────────────────────
+     Two parts, and they are two parts on purpose, because they hold different
+     edges. The stroke closes all four sides equally — including the TOP, which
+     a shadow can never draw, since light comes from above and a box with only
+     a shadow reads as sliding off the page. The shadow does the one thing the
+     stroke cannot: it separates the surface from the surface behind it.
+
+     Because each has a job the other cannot do, NEITHER has to be loud. That
+     is the whole argument for this pair, and it is also the answer to why the
+     stroke is back at .04 after .04 was already rejected once. The note that
+     used to sit here read: ".04 rendered (246,247,246) against (250,249,244)
+     paper — a 4/255 delta, at the perception threshold — and once the shadow
+     came off there was nothing else holding the edge." That is exactly right,
+     and the operative clause is the last one. .04 failed as a SOLE treatment.
+     With 2px of contact shadow under it, the edge no longer has to carry the
+     separation by itself, so it can sit at the threshold and be quiet rather
+     than absent. .06 was the value that "is present without being a stroke"
+     only because it was working alone.
+
+     Measured, composited over the card (#fdfdfd):
+       .04  #f4f5f4  1.074:1     ← here
+       .06  #f0f1f0  1.113:1     the previous sole treatment
+       .136 #dee1df  1.295:1     = --rule, the 1px border §3 removed
+
+     OUTSET, never inset. An inset shadow paints on the padding box, beneath
+     children — so any child with an opaque, full-bleed background erases it,
+     and `getComputedStyle` still cheerfully reports it. That is not
+     hypothetical: `.explorer-agents` on the Archive had exactly this, and its
+     dark active chip wiped the container's left end to nothing (measured: 4.07
+     of 255 under the translucent chips, 0 under the opaque one). Outset is
+     drawn outside the border box, where no child can reach it. */
+  --v3-stroke: 0 0 0 1px rgba(33, 53, 40, 0.04);
+  --v3-whisper: 0 1px 2px rgba(40, 38, 30, 0.05);
+
+  /* What every white surface on paper takes: cards, panels, switches, chips.
+     One recipe, so "how does a white thing sit on this page" has one answer. */
+  --v3-lift: var(--v3-stroke), var(--v3-whisper);
+
+
+  font-family: var(--font-sans);
+}
+
+/* ── type ─────────────────────────────────────────────────────────────────
+   Nothing. That is not an omission, it is the result.
+
+   Story.css already tuned its serif tier for Playfair — sizes, weights and
+   tracking were chosen against these letterforms, and the family is not
+   changing, so there is nothing to compensate for. The twenty weight-500
+   overrides and three tracking tightenings on the all-Geist branch exist
+   solely to make a neutral sans carry emphasis a high-contrast serif carries
+   on its own. Copying them here would restate values that are already correct
+   and quietly bold a face that does not want it.
+
+   What DOES change is the sans tier: everything not marked --font-serif moves
+   from Public Sans to Geist via the token above. That is the half of §2 both
+   branches share.
+
+   The one thing worth watching, and the reason the review pass measured it
+   rather than trusting it: Playfair's vietnamese coverage. fonts.css subsets
+   it with the vietnamese range precisely so `Đà Nẵng` and `Phù Cát` do not
+   render half in Playfair and half in a fallback. Verified below in the
+   commit — the diacritics resolve in Playfair at every heading tier. */
+
+/* ── shape · §5 ───────────────────────────────────────────────────────────
+   Every pill and every rounded rectangle to 0. The 50% circles are absent
+   from this list on purpose (see the header). */
+.story .story-hook-cta,
+.story .map-key-view,
+.story .map-key-view-btn,
+.story .rainbow-mode,
+.story .rainbow-mode-btn,
+.story .rainbow-chip,
+.story .eco-sort,
+.story .eco-sort-btn,
+.story .wall-consent-btn,
+.story .method-tab,
+.story .close-top,
+.story .map-dot-label,
+.story .timeline-scan-vol,
+.story .story-card,
+.story .story-stat,
+.story .map-key,
+.story .map-key-heat-bar,
+.story .key-area,
+.story .rainbow-card,
+.story .eco-scale-bar,
+.story .eco-type,
+.story .eco-est,
+.story .eco-bar-track,
+.story .act2-chip,
+.story .act2-volbar,
+.story .act2-volbar i,
+.story .act2-card,
+.story .act2-badge,
+.story .alt-family,
+.story .alt-reveal-btn,
+.story .alt-verdict-chip,
+.story .method-panel,
+.story .tl-band,
+.story .tl-card,
+.story .timeline-scan-line,
+.story .close-action,
+.story .maplibregl-ctrl-group,
+.story .maplibregl-ctrl-group button {
+  border-radius: 0;
+}
+
+/* ── strokes · §3 ─────────────────────────────────────────────────────────
+   Outlines go. A rule divides; a border encloses; only the second is being
+   removed here. */
+.story .story-hook-cta,
+.story .story-card,
+.story .story-stat,
+.story .map-key,
+.story .rainbow-chip,
+.story .rainbow-card,
+.story .eco-est,
+.story .method-tab,
+.story .method-panel,
+.story .close-action,
+.story .close-top {
+  border: none;
+}
+
+/* The timeline card carries BOTH: a neutral 1px enclosure and a 3px --tlc top
+   that says which base the card is about. Only the enclosure goes. */
+.story .tl-card {
+  border: none;
+  border-top: 3px solid var(--tlc);
+}
+
+/* The running-total chip is a filled accent rectangle with a white outline on
+   top of it — an enclosure drawn in a colour that carries nothing. Its accent
+   glow stays: that belongs to the scan line's own signal, which §10 keeps. */
+.story .timeline-scan-vol {
+  border: none;
+}
+
+/* Neutral 3px card tops encode nothing — they are the accent bar that turns up
+   on every generic card. The COLOURED ones (--agent on rainbow, --tlc on the
+   timeline) stay: those carry the category. */
+.story .act2-card,
+.story .alt-family {
+  border: none;
+  border-top: none;
+}
+
+/* §3 removes a stroke; it does not remove the surface the stroke was drawing.
+   Four of these were defined by their outline and nothing else — three sat on
+   a 0.6 white that only read as a chip because a 1px rule closed it, and
+   `.eco-est` had no background at all, so without its border it stopped being
+   a tag and became loose grey words. Each one gets the fill the stroke was
+   standing in for. This is the same move as .alt-reveal-btn below, and the
+   reason the audit for pass 2 looked at rest states and not just shape.
+
+   `:not()` is load-bearing here, not tidiness. Story.css sets the selected
+   fills with `.method-tab.is-on` and `.rainbow-chip.is-active` — two classes,
+   the same specificity as a bare `.story .method-tab`. This file loads second,
+   so a plain rule would TIE and win, silently erasing the selected state of
+   both controls. Excluding the selected case is what keeps that from
+   happening. */
+.story .rainbow-chip:not(.is-active),
+.story .method-tab:not(.is-on) {
+  background: #fff;
+}
+
+.story .rainbow-chip:not(.is-active):hover,
+.story .method-tab:not(.is-on):hover {
+  background: #f0eee7;
+}
+
+/* No `.is-active` rule for the chips. RainbowHerbicides.tsx sets the selected
+   chip's fill INLINE to the agent's own colour, so the selected state already
+   says which agent — the same category-carrying fill as .method-tab.is-on, and
+   it stays for the same reason. --ink is only ever the "All agents" chip,
+   where neutral is the correct answer because no single agent is chosen. */
+
+.story .eco-est {
+  background: rgba(40, 38, 30, 0.05);
+}
+
+/* On the dark closing section the same problem runs the other way: 0.05 white
+   over forest was a border's worth of surface, not a fill's. Raised so the
+   card still reads, and the hover step raised with it — hover used to be
+   carried mostly by the border going 0.24 → 0.44, which is now a no-op. */
+.story .close-action {
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.story .close-action:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.story .close-top {
+  background: rgba(255, 255, 255, 0.13);
+}
+
+.story .close-top:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* The reveal button's green outline was the only thing marking it as an
+   action. With the stroke gone it needs the fill instead.
+   
+   `:not(.is-banner)` is load-bearing, the same way it is at the chip rules
+   above. Story.css paints the REVEALED state with `.alt-reveal-btn.is-banner`
+   -- two classes, the same specificity as a bare `.story .alt-reveal-btn` --
+   and this file loads second, so without the guard this rule tied and won, and
+   the banner state never painted at all. Measured after a real click with the
+   pointer parked off-element: the class flipped, the label changed, and the
+   background stayed rgb(33,53,40). */
+/* The stroke goes in BOTH states -- §3 is not state-dependent, and guarding the
+   border alongside the fill handed the banner back the 1px green outline the
+   pass had just removed. */
+.story .alt-reveal-btn {
+  border: none;
+}
+
+.story .alt-reveal-btn:not(.is-banner) {
+  background: var(--forest);
+  color: var(--forest-text);
+}
+
+.story .alt-reveal-btn:not(.is-banner):hover {
+  background: var(--forest-2);
+}
+
+/* ── elevation · §6 ───────────────────────────────────────────────────────
+   Chrome takes the two tokens. Map geometry and narrative art keep what they
+   have — .map-dot-core, .map-dot-label, .act2-dot, .act2-pin, .timeline-scan-*
+   and .eco-swatch are all absent here on purpose.
+
+   The split below is WHAT THE THING SITS ON, which turns out to be the only
+   question that matters here. A card on paper needs a boundary, not altitude:
+   it is printed on the page, not floating above it, and a drop shadow says the
+   opposite of that. It takes the same hairline as the controls, so a card and
+   a button are edged by one mechanism instead of two. Only the surfaces that
+   genuinely float keep a shadow — and they keep it because a hairline cannot
+   help them: .map-key hangs over the map, .close-action sits on the dark
+   epilogue where a 6%-ink line is invisible. */
+.story .rainbow-card,
+.story .method-panel,
+.story .tl-card,
+.story .alt-family,
+/* The three hotspot cards were missing from the elevation list entirely — §3
+   took their border and §6 never gave them anything, so the biggest white
+   surfaces on the page had no edge of any kind. */
+.story .act2-card {
+  box-shadow: var(--v3-lift);
+}
+
+.story .map-key,
+.story .close-action {
+  box-shadow: var(--v3-shadow);
+}
+
+.story .act2-chip,
+.story .story-stat {
+  box-shadow: var(--v3-shadow-control);
+}
+
+/* The revealed banner is a white surface on paper, which is the case the
+   hairline recipe exists for. It only reaches the screen at all as of this
+   pass -- the state was unreachable before -- so this is the first time it has
+   had to answer the question. */
+.story .alt-reveal-btn.is-banner {
+  box-shadow: var(--v3-lift);
+}
+
+.story .act2-pin:hover .act2-chip {
+  box-shadow: var(--v3-shadow-control);
+}
+
+/* The narrative card floats over a photograph rather than over paper, so it
+   keeps a shadow with some weight — but 0.42 alpha was a drop shadow doing a
+   scrim's job. */
+.story .story-card {
+  box-shadow: var(--v3-shadow-dark);
+}
+
+/* Active-state rings on the actions cards were 2px outlines in three greens
+   plus a coloured glow. The ring is the outline §3 removes; the state moves to
+   a left marker, which is a rule rather than an enclosure. */
+/* Both jobs in ONE rule, and the status classes are repeated here for a
+   load-bearing reason. Story.css paints the selected card with a 2px coloured
+   ring via `.act2-card.is-active.is-completed` and its two siblings; §3 removes
+   that ring. Killing it in its own block and applying the marker in a plainer
+   `.is-active` block below looked tidier and was broken: the kill selector
+   carries three classes and the marker selector two, so on every real card —
+   which always has a status — the kill won and the selected state ended up
+   with `box-shadow: none`. No ring, no marker, no edge. Measured on the live
+   page: the active card computed to none.
+
+   So the ring is replaced rather than merely cancelled, at the specificity
+   that actually wins. */
+.story .act2-card.is-active,
+.story .act2-card.is-active.is-completed,
+.story .act2-card.is-active.is-ongoing,
+.story .act2-card.is-active.is-contained {
+  /* Along the TOP, matching the herbicide and timeline cards. Those two already
+     banded there and this one banded left, and one page cannot hold two answers
+     to where a card's colour lives. */
+  box-shadow: inset 0 3px 0 currentColor, var(--v3-lift);
+}
+
+
+.story .act2-card.is-active.is-completed {
+  color: #35784f;
+}
+
+.story .act2-card.is-active.is-ongoing {
+  color: var(--accent-deep);
+}
+
+.story .act2-card.is-active.is-contained {
+  color: #2c5a40;
+}
+
+/* ── controls · §8 ────────────────────────────────────────────────────────
+   The Archive's switch grammar: rectangles butted together, one shadow on the
+   group, the selected state in --forest.
+
+   THREE groups qualify, not four. `.method-tabs` looks like a fourth but is a
+   bare flex row of two independent toggles — no background, no border, nothing
+   for a group shadow to sit on. Putting one there drew a shadow across the
+   whole content width under nothing at all. It gets the button treatment
+   below and none of the container treatment. */
+.story .map-key-view,
+.story .rainbow-mode,
+.story .eco-sort {
+  gap: 0;
+  padding: 0;
+  /* Hairline only, matching `.archive-key .map-key-view` in ArchiveSkinV2.css.
+     These three are the same segmented control as the agent switch above, and
+     the Flat/3D pair is literally the same control on both pages — it had the
+     shadow here and shadow-plus-hairline there, so the white half sat on a
+     defined edge on one page and dissolved on the other. */
+  box-shadow: var(--v3-lift);
+}
+
+/* The key's own label, uppercased to match the Archive's. Both are the 10px
+   uppercase tier the two pages already share everywhere else; the Story was
+   the only place it stayed title case. */
+.story .map-key-view-label {
+  text-transform: uppercase;
+}
+
+/* ── AGENT SWITCH · one form across both surfaces ─────────────────────────
+   A segmented control: butted rectangles under one hairline and one shadow,
+   with a short seam between neighbours. Pick-one-of-five is what the form
+   says, and the five belong to each other — separated chips read as five
+   independent buttons that happen to sit in a row. Identical rules live under
+   `.map-wrap` in ArchiveSkinV2.css, so the switch a reader meets on one page
+   is the switch they meet on the other. */
+.story .rainbow-switch {
+  gap: 0;
+  width: fit-content;
+  /* Back on the token, because the token is outset now. This rule used to
+     hardcode the outset form and carry a note explaining why it had to differ
+     from --v3-hairline: the five chips sum to 311.51 against a group width of
+     311.52 and paint opaque #fff, so an inset shadow — drawn UNDER its
+     children's backgrounds — measured Δ0 on all four edges while
+     getComputedStyle reported it present.
+     That note also said ArchiveSkinV2's inset copy "measures Δ5 and stays as
+     it is: its chips are 60% white, so the line shows through." That was
+     half right and the wrong half mattered. Measured on the shipped build,
+     `.explorer-agents` reads 4.07 of 255 under the translucent chips and
+     exactly 0 under the opaque dark "All" — so the Archive's switch had no
+     edge at the end a reader looks at first. Both are outset now, from one
+     token, and neither can drift back. */
+  box-shadow: var(--v3-lift);
+}
+
+.story .rainbow-chip {
+  position: relative;
+  padding: 0.375rem 0.75rem;
+}
+
+/* The other half of the nowrap change, which I shipped without it. Pinning the
+   switch to `nowrap` stops it breaking into two ragged rows -- correct, and
+   what the Archive's identical row already did -- but a row that cannot reflow
+   has to be able to SHRINK instead, and this one could not: measured 11px of
+   horizontal page scroll at 360 and 49px at 320, caused by these five chips.
+   Identical treatment and identical numbers to `.agent-chip` under .map-wrap,
+   because it is the same control. Nothing changes above 400: the clamp's upper
+   bound IS the padding above, so every phone with room keeps exactly what it
+   had, and only the narrow ones give any back. */
+@media (max-width: 400px) {
+  .story .rainbow-chip {
+    padding-left: clamp(0.3125rem, 2.1vw, 0.75rem);
+    padding-right: clamp(0.3125rem, 2.1vw, 0.75rem);
+  }
+}
+
+/* The seam: inset from top and bottom so it divides rather than outlines, and
+   suppressed on both sides of the selected chip, whose fill draws its own. */
+.story .rainbow-chip + .rainbow-chip::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 0.875rem;
+  background: rgba(33, 53, 40, 0.14);
+}
+.story .rainbow-chip.is-active::before,
+.story .rainbow-chip.is-active + .rainbow-chip::before {
+  display: none;
+}
+
+/* Controls that stand ALONE on paper — no group box to carry the edge — take
+   the hairline themselves. The chips are not here: their group has it. */
+.story .method-tab:not(.is-on),
+.story .alt-reveal-btn:not(.is-banner),
+.story .wall-consent-btn {
+  box-shadow: var(--v3-lift);
+}
+
+/* Selected state is --forest ONLY where it carries no other meaning — these
+   three are view switches (flat/3D, accumulation/each year, sort order), and
+   which side is chosen is not a category. The two controls that look like they
+   belong here and do not are `.method-tab.is-on` and `.rainbow-chip.is-active`:
+   both paint the selected state in the colour of the THING selected, which is
+   information, and both keep it. See the note above the chip rules. */
+.story .map-key-view-btn.is-active,
+.story .rainbow-mode-btn.is-active,
+.story .eco-sort-btn.is-active {
+  background: var(--forest);
+  color: var(--forest-text);
+}
+
+/* The "All agents" chip is the one selected state on this page that carries no
+   category — no single agent is chosen — so it takes the same neutral dark as
+   the view switches above rather than its own. It was --ink (#101a14, which
+   reads black) while the Archive drew the identical chip in --forest
+   (#213528): the same control, two darks, on two pages a reader moves between.
+   The Archive's rule is the one worth keeping — one dark for every selected
+   control — so the Story adopts it. The four agent chips are untouched: their
+   fill is the agent's own colour, which is information. */
+.story .rainbow-chip.is-active {
+  background: var(--forest);
+  border-color: var(--forest);
+}
+
+.story .map-key-view-btn,
+.story .rainbow-mode-btn,
+.story .eco-sort-btn,
+.story .rainbow-chip,
+.story .method-tab {
+  font-weight: 500;
+}
+
+/* The hook's scroll cue is NOT a control, and this rule used to treat it as
+   one — an outlined pill first, then a filled forest rectangle. Nothing is
+   being chosen: it names the gesture the reader is about to make anyway. A
+   container around that is a button drawn for a decision that does not exist,
+   and on the banner it was the heaviest object on an otherwise open screen.
+   Plain ink type and an arrow; the arrow nudges down on hover. */
+.story .story-hook-cta {
+  background: none;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+
+.story .story-hook-cta:hover {
+  background: none;
+  color: var(--accent-deep);
+}
+
+/* ── labels · §2 ──────────────────────────────────────────────────────────
+   The 10px uppercase tier, matched to the Archive's so a reader moving between
+   the two pages meets one label system rather than two.
+
+   TWO SELECTORS LEFT THIS LIST, and one was deleted. `.story-eyebrow` and
+   `.close-mark span` are set in PLAYFAIR, not Geist -- the first at 20.4px, the
+   second at 11.05px -- and App.css's own tracking note says serif display sets
+   solid. Worse, this rule (0,2,0) was beating Story.css:821's deliberate
+   `letter-spacing: normal` on source order alone, so a decision made in the
+   base file was being quietly reversed by the skin. `.rainbow-card-agent`
+   matched no markup at all. `.act2-badge` and `.alt-verdict-chip` stay: both
+   are Geist, uppercase, and correctly on this tier. */
+.story .act2-badge,
+.story .alt-verdict-chip {
+  letter-spacing: 0.04em;
+}

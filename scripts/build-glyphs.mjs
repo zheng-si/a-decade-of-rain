@@ -26,7 +26,29 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 const ROOT = join(__dirname, '..')
 
 // Primary font + the fallback that fills its gaps.
-const FONTS = [{ file: 'fonts/PublicSans-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Public Sans Medium' }]
+const FONTS = [
+  { file: 'fonts/PublicSans-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Public Sans Medium' },
+  { file: 'fonts/Westgate-Regular.otf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Westgate' },
+  { file: 'fonts/DanhDa-Bold.otf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Danh Da' },
+  { file: 'fonts/FamiljenGrotesk-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Familjen Grotesk' },
+  { file: 'fonts/Cuprum-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Cuprum' },
+  // The map-label face. Condensed earns its place here: Vietnamese place names
+  // run long ("Buôn Ma Thuột", "Bà Rịa – Vũng Tàu") and a narrower face fits
+  // more of them before the collision detector starts dropping names. Covers
+  // Vietnamese natively (verified against ầ ư Đ ễ ợ ắ ộ), so a name renders in
+  // one face rather than half-composited from Noto.
+  { file: 'fonts/RobotoCondensed-Medium.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Roboto Condensed' },
+  // WEIGHT is a font stack in MapLibre, not a number — there is no
+  // `text-font-weight`, and asking for Bold means asking for a different set of
+  // SDF glyphs. So the three other weights of the label face ship as three more
+  // stacks, and the tuner's "weight" control picks between them.
+  { file: 'fonts/RobotoCondensed-Light.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Roboto Condensed Light' },
+  { file: 'fonts/RobotoCondensed-Regular.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Roboto Condensed Regular' },
+  { file: 'fonts/RobotoCondensed-Bold.ttf', fallback: 'fonts/NotoSans-Medium.ttf', stack: 'Roboto Condensed Bold' },
+]
+
+// Only rebuild these stacks when given as args: `npm run build:glyphs -- Geist`
+const ONLY = process.argv.slice(2)
 
 const LAST_RANGE = 32 // ranges 0..32 → codepoints 0–8447 (Latin + Vietnamese)
 
@@ -110,7 +132,7 @@ function composite(primaryBuf, fallbackBuf) {
 }
 
 async function main() {
-  for (const { file, fallback, stack } of FONTS) {
+  for (const { file, fallback, stack } of FONTS.filter((f) => !ONLY.length || ONLY.includes(f.stack))) {
     const buf = await readFile(join(__dirname, file))
     const fbBuf = await readFile(join(__dirname, fallback))
     const outDir = join(ROOT, 'public', 'fonts', stack)

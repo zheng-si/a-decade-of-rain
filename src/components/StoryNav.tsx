@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { BIOHAZARD } from './biohazard'
+import { Link } from 'react-router-dom'
+import Logo from './Logo'
 import usaidWhite from '../assets/brand/usaid-white.png'
 
 // Persistent left rail: a table of contents for the (now long) story. Each
@@ -94,11 +95,7 @@ export default function StoryNav() {
           window.scrollTo({ top: 0, behavior: 'smooth' })
         }}
       >
-        <svg viewBox="0 0 38 35" className="story-rail-bio" fill="currentColor" aria-hidden="true">
-          {BIOHAZARD.map((d, i) => (
-            <path key={i} d={d} />
-          ))}
-        </svg>
+        <Logo className="story-rail-bio" />
         <span>
           A Decade
           <br />
@@ -127,11 +124,28 @@ export default function StoryNav() {
             </ul>
           </div>
         ))}
+
+        {/* Cross-link to the Archive. It is not an act, so it does not get an
+            act heading: the divider every group already carries is what sets
+            it apart, and it otherwise reads as one more rail entry, which is
+            what it is. The label names the destination the way the Archive
+            names itself ("Explore the Record" over the same data), rather than
+            the filing-cabinet word. A Link, not a scroll button: it leaves the
+            page. */}
+        <div className="story-rail-group">
+          <ul>
+            <li>
+              <Link className="story-rail-link story-rail-out" to="/archive">
+                <span className="story-rail-label">Explore the Record</span>
+              </Link>
+            </li>
+          </ul>
+        </div>
       </div>
 
       <div className="story-rail-foot">
         <p>Data and Reporting</p>
-        <img src={usaidWhite} alt="USAID" />
+        <img src={usaidWhite} alt="USAID" width={640} height={191} loading="lazy" />
         <p className="story-rail-foot-more">UNDP · U.S. National Archives</p>
       </div>
     </nav>

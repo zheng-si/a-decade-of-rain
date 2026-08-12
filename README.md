@@ -64,11 +64,14 @@ Edit it and save — nothing else needs touching.
 
 ### Fonts
 
-Self-hosted **Switzer** (UI, body, map labels) + **Gambarino** (editorial
-headlines) — both Fontshare / Indian Type Foundry, free for commercial use.
+Self-hosted **Switzer** (UI, body, map labels) + **Playfair Display**
+(editorial headlines, site-wide) — Fontshare / Indian Type Foundry and SIL OFL,
+free for commercial use.
 
 - UI/webfonts live in `public/fonts/ui/`, declared in `src/fonts.css` as
-  `--font-sans` (Switzer) and `--font-serif` (Gambarino).
+  `--font-sans` (Switzer) and `--font-serif` (Playfair Display). Gambarino, the
+  original headline face, is retired — kept declared only for a one-line
+  rollback, not used anywhere.
 - Map labels are drawn by MapLibre from **SDF glyph PBFs**, not CSS, so Switzer
   is also self-hosted as glyphs under `public/fonts/Switzer Medium/`, generated
   by `scripts/build-glyphs.mjs` (`npm run build:glyphs`, needs `fontnik`) from

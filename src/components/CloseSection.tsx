@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { CLOSE_ACTIONS, CLOSE_HEAD, COLOPHON, REF_GROUPS } from '../content/close'
 import { SOURCES } from '../content/sources'
-import { BIOHAZARD } from './biohazard'
+import Logo from './Logo'
 
 // The hook's rain, winding down: sparse pale drops that thin out over ~14s
 // once the section is on screen, settling to a last occasional drizzle.
@@ -72,14 +72,31 @@ function ClosingRain() {
       raf = requestAnimationFrame(frame)
     }
 
-    // Start only once the section is actually on screen.
+    // Start once the section is on screen, and PARK when it leaves. The
+    // observer used to disconnect itself on the first intersection, which
+    // started the loop and then had no way to stop it: the epilogue is the last
+    // section, so every reader who reached the end left a 60fps canvas clearing
+    // and stroking ~31 drops for the rest of their session, on a tab they had
+    // usually scrolled away from. The wind-down bottoms out at 0.07 intensity
+    // and holds there forever, so it never stops on its own either.
+    //
+    // Parking rather than ending it: the rain is meant to be still falling,
+    // faintly, whenever the reader is looking at it. Freezing the canvas at the
+    // floor would leave drops hanging mid-air, which says the opposite. `last`
+    // is cleared on resume so the first frame back computes a sane dt instead
+    // of teleporting every drop by however long the reader was away.
     const io = new IntersectionObserver(
       (entries) => {
-        if (entries.some((e) => e.isIntersecting) && !running) {
+        const visible = entries.some((e) => e.isIntersecting)
+        if (visible && !running) {
           running = true
           resize()
+          last = 0
           raf = requestAnimationFrame(frame)
-          io.disconnect()
+        } else if (!visible && running) {
+          running = false
+          cancelAnimationFrame(raf)
+          raf = 0
         }
       },
       { threshold: 0.2 },
@@ -164,11 +181,7 @@ export default function CloseSection() {
               <a href={`mailto:${COLOPHON.email}`}>{COLOPHON.email}</a>
             </p>
             <div className="close-mark" aria-hidden="true">
-              <svg viewBox="0 0 38 35" fill="currentColor">
-                {BIOHAZARD.map((d, i) => (
-                  <path key={i} d={d} />
-                ))}
-              </svg>
+              <Logo />
               <span>A Decade of Rain</span>
             </div>
 

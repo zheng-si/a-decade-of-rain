@@ -1,0 +1,669 @@
+/* ═════════════════════════════════════════════════════════════════════════
+   Archive UI v2 — a spike, not the design system.
+
+   Ported from the Figma "A Decade of Rain · Archive UI" frame. Four moves,
+   all of them subtractive:
+
+     1. ONE typeface. Geist everywhere; the serif/sans pairing is gone.
+     2. NO corner radii. Panels, buttons, chips and the view switch are
+        rectangles. Round stays only where roundness is meaning — the agent
+        dots, the compass dial, the map's own circles.
+     3. NO strokes, almost. Panel borders go; the two hairline RULES that
+        separate blocks stay, because they divide rather than outline.
+     4. Shadows drop from 0.10 alpha to 0.02 — present as depth, absent as
+        decoration.
+
+   Scoped entirely under `.map-wrap`, so the story is untouched and the whole
+   experiment is one file plus one import. If it survives, its values move
+   into the tokens in App.css and this file disappears.
+
+   Where the Figma and the stated intent disagree, the intent wins — noted
+   inline at each spot.
+   ═════════════════════════════════════════════════════════════════════════ */
+
+.map-wrap {
+  /* One family for everything inside the explorer. --font-serif is
+     deliberately pointed at Geist too, so any rule still reaching for the
+     serif tier gets the sans instead of silently keeping Playfair. */
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: var(--font-sans);
+
+  /* Two shadows, two jobs. The panel's is wide and almost absent — it
+     separates glass from map. A control sitting ON that glass has the harder
+     problem: white on white, with no border left to help, so it needs a tight
+     close one to stop dissolving into the surface it floats on. */
+  --v2-shadow: 0 8px 28px rgba(40, 38, 30, 0.02);
+
+  /* ── the elevation recipe, shared verbatim with the Story ───────────────
+     Same two parts, same values, same reasoning — the long version lives on
+     --v3-stroke in StorySkinV3.css and is not repeated here, because the
+     point of these being identical is that there is one decision, not two
+     that happen to agree. The stroke holds all four edges (a shadow cannot
+     draw a top edge); the whisper does the separating; neither has to be
+     loud because neither is working alone.
+
+     OUTSET. This file is where that mattered most: --v2-hairline used to be
+     `inset`, and `.explorer-agents` is a zero-padding row of full-bleed
+     chips, so its own buttons painted over the container's outline — 4.07 of
+     255 left under the translucent chips and nothing at all under the opaque
+     dark one. The switch had no edge exactly where the eye lands first. */
+  --v2-stroke: 0 0 0 1px rgba(33, 53, 40, 0.04);
+  --v2-whisper: 0 1px 2px rgba(40, 38, 30, 0.05);
+  --v2-lift: var(--v2-stroke), var(--v2-whisper);
+
+  /* Controls on the glass keep the tighter, deeper close — they sit on a
+     panel that is itself floating over a map, and the whisper alone would
+     give them less separation than they have now. */
+  --v2-shadow-control: var(--v2-stroke), 0 1px 3px rgba(40, 38, 30, 0.07);
+
+
+  /* One dark. The play button, the active Flat/3D tab and the All-agents chip
+     are the same kind of thing — the selected state of a control — so they get
+     the same fill. They had drifted to two different darks. */
+  --v2-fill: var(--forest);
+  /* Panel glass. The Figma has the left panel at 0.65 and the key at 0.62 —
+     close enough that the difference reads as drift, so both take one value.
+     0.90, not the Figma's 0.65: at 0.65 the spray field showing through was
+     competing with the panel's own chart, and the two reddest things on screen
+     were reading as one. The blur goes up with the alpha rather than down —
+     at 8px the little that still came through arrived as recognisable DOTS,
+     which is exactly the thing that competed; at 20 it arrives as tone. */
+  --v2-panel: rgba(255, 255, 255, 0.9);
+  --v2-blur: blur(20px);
+
+  /* Redefining --font-sans is not enough on its own. `body` declares
+     `font-family: var(--font-sans)` and resolves it in the ROOT scope, so
+     every element that merely inherits its font — the dek, the Jump To
+     buttons, the legend — kept Public Sans while only the handful of rules
+     that name the token directly switched. Declaring the family here gives
+     the whole subtree something Geist to inherit. */
+  font-family: var(--font-sans);
+}
+
+/* ── surfaces ──────────────────────────────────────────────────────────── */
+/* 372, not the old 400. The width never changed from v1 — what changed is that
+   the body text dropped 13→12px, so the same 352px measure started carrying
+   ~60 characters a line and the panel began to read as a wide slab.
+
+   372 puts the content box at 324 against an agent row that measures 308.7.
+   Sizing the panel to the row EXACTLY (360/312) left 3.3px, and App.css puts
+   `flex-wrap: wrap` on that row — so the first machine whose subpixel rounding
+   went the other way broke 'Other' onto its own line. The row is the thing the
+   panel is sized to; it must never be the thing that reflows. Hence both the
+   headroom and the nowrap below. */
+.map-wrap .explorer-panel {
+  width: min(23.25rem, calc(100vw - 3rem));
+}
+
+/* The phone sheet's width, restated here because it was never being applied.
+   App.css sets it inside `@media (max-width: 640px)` on `.explorer-panel` —
+   one class, against the two above — so the media query lost on specificity
+   and the sheet kept the desktop `calc(100vw - 3rem)`. On a 390 screen that is
+   342 against a 366 the sheet asked for, and the 24 it gave away came off the
+   agent row: the 'Other' chip was being clipped by the panel's own edge. Same
+   trap as the phone `.close-body` rule in Story.css — an override that reads
+   correctly and never runs. Sized to the row, not to taste: 366 puts the
+   content box at 334 against a row that measures 313.5. */
+@media (max-width: 640px) {
+  .map-wrap .explorer-panel {
+    width: calc(100vw - 1.5rem);
+  }
+}
+
+.map-wrap .explorer-panel,
+.map-wrap .archive-key {
+  background: var(--v2-panel);
+  border: none;
+  border-radius: 0;
+  /* The stroke, plus their own wide float rather than the whisper. These are
+     the two biggest surfaces on the Archive and they hang over a moving map,
+     so they need more separation than a card on paper does -- but they had NO
+     edge of any kind, which is why the panel's top corner dissolved into a
+     pale patch of basemap. The line is the new part; the float is unchanged. */
+  box-shadow: var(--v2-stroke), var(--v2-shadow);
+  -webkit-backdrop-filter: var(--v2-blur);
+  backdrop-filter: var(--v2-blur);
+}
+
+/* ── the identity block ────────────────────────────────────────────────── */
+/* The year joins the two lines below it in the display serif — see the note on
+   .explorer-title. It is the third element of the same block, and leaving it in
+   Geist left that block reading sans / serif / serif.
+
+   Its size moves with the family: 1rem was the only font-size on this surface
+   that was not on the type ladder, and the Story card sets its own eyebrow at
+   the SAME tier as its title. So this lands on 1.5rem alongside .explorer-title
+   and fixes the off-ladder value in the same edit rather than leaving it for a
+   later sweep. */
+.map-wrap .explorer-eyebrow {
+  /* All three values are .story-eyebrow's, measured off it rather than guessed:
+     `normal` leading (1.324 for Playfair) against the 1.05 this used to carry,
+     and 0.5rem below against 0.25. Same face, same size, same tier — and the
+     year-to-title baseline was landing 26.6px apart here against 30.9 there. */
+  margin: 0 0 0.5rem;
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: normal;
+}
+
+/* THE ONE DELIBERATE EXCEPTION TO §1's "one typeface", and it is worth stating
+   plainly rather than leaving as a mystery in the diff.
+
+   This block is the Archive's answer to the Story's node card: same job (a
+   year, a name, a line that says what you are looking at), read by the same
+   person minutes apart. In Geist it read as a different KIND of thing —
+   interface chrome rather than the head of a document — and the two surfaces
+   stopped rhyming at the one place a reader compares them directly.
+
+   The values are not invented: App.css already set exactly these before the v2
+   spike overrode them, and they are exactly `.story-name` and `.story-dek`'s
+   tier (1.5rem / 1.0625rem, weight 400). So this restores an agreement rather
+   than proposing one. Weight stays 400 because Playfair carries its emphasis
+   in the letterforms; 500 would give it a semibold it was never drawn to need.
+
+   Everything else in the panel stays Geist. --font-serif is still pointed at
+   the sans for the subtree, so nothing else drifts back by accident — these two
+   rules name the face explicitly, which is what makes them the exception
+   rather than a hole in the rule. */
+.map-wrap .explorer-title,
+.map-wrap .explorer-subtitle {
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+}
+
+.map-wrap .explorer-title {
+  /* 0.625rem below, which is .story-name's — the title-to-subtitle baseline was
+     3.4px tighter here for the same reason the line above it was. */
+  margin: 0 0 0.625rem;
+  font-size: 1.5rem;
+  line-height: 1.14;
+}
+
+/* 12, not 16. The subtitle and the paragraph under it are one thought — the
+   deck expands the line above it — so they sit closer than the 16 that
+   separates the identity block from the controls. */
+.map-wrap .explorer-subtitle {
+  margin: 0 0 0.75rem;
+  font-size: 1.0625rem;
+  line-height: 1.4;
+}
+
+/* Regular 12px. Light was too thin to hold at 12 against a Medium title and
+   subtitle — the panel had three weights where it needs two: Medium names
+   things, Regular says them. The bottom margin matches the transport's
+   padding-top, so the rule sits exactly between the prose and the controls
+   instead of 24 above and 16 below. */
+.map-wrap .explorer-dek {
+  margin-bottom: 1rem;
+  font-weight: 400;
+  font-size: 0.75rem;
+  line-height: 1.65;
+}
+
+/* ── transport ─────────────────────────────────────────────────────────── */
+/* A rule, not an outline: this line divides the identity block from the
+   controls, so it survives the no-strokes pass. */
+.map-wrap .explorer-transport {
+  align-items: center;
+  gap: 0.875rem;
+  padding-top: 1rem;
+}
+
+/* Two lines beside the buttons: what is counted and when, then the counts. */
+.map-wrap .transport-readout {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3125rem;
+  min-width: 0;
+}
+
+/* Heading and date are one compound label, so they share a size and a case
+   rather than the date keeping its own 16px display tier — at that size it
+   competed with the panel title two blocks up. */
+.map-wrap .transport-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.map-wrap .transport-head .explorer-section-label,
+.map-wrap .transport-head .explorer-date {
+  margin: 0;
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* The two buttons butt together into one 60×30 block rather than floating as
+   separate circles — squares with a gap would read as two unrelated things. */
+.map-wrap .transport-buttons {
+  gap: 0;
+  box-shadow: var(--v2-lift);
+}
+
+.map-wrap .transport-btn.is-primary,
+.map-wrap .transport-btn.is-primary:disabled {
+  background: var(--v2-fill);
+}
+
+.map-wrap .transport-btn {
+  width: 1.875rem;
+  height: 1.875rem;
+  border-radius: 0;
+}
+
+/* The reset button. It used to say `box-shadow: none` -- written when the
+   skin's position was that white-on-glass takes no depth at all, which is the
+   position this pass reverses. It is a 30px white square on a white panel; if
+   anything on this surface needs the recipe, it is this. */
+.map-wrap .transport-btn.is-ghost {
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: var(--v2-lift);
+}
+
+.map-wrap .transport-btn.is-ghost:hover:not(:disabled) {
+  background: #fff;
+}
+
+.map-wrap .explorer-date {
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.2;
+}
+
+/* ── section labels ────────────────────────────────────────────────────── */
+/* v2 gives the panel's blocks explicit headings (SPRAYING VOLUME / SPRAYING
+   AGENTS) where v1 relied on spacing alone. Same 10px uppercase tier the
+   Jump To label already used, so this is a promotion of an existing rung
+   rather than a new one. */
+/* The block gap. 16px, not the Figma's 24 — at 24 the panel reads as five
+   loose islands; 16 groups the heading with what it heads. v1's panel spaces its
+   blocks with margins instead, and the label is a NEW element sitting between
+   two of them — so it has to carry that gap itself, or it collides with the
+   readout above it. */
+.map-wrap .explorer-section-label {
+  margin: 1rem 0 0.5rem;
+  display: block;
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+/* ── stat line ─────────────────────────────────────────────────────────── */
+/* Its 14px top margin was the gap to the transport; the section label owns
+   that job now, so the statline sits tight under its own heading. */
+/* Initial caps, matching the inspect card on the right. The two panels count
+   the same three things and had been shouting on one side and speaking on the
+   other. */
+/* Same block as the inspect card's figures, so the same grammar: 11/600/accent
+   for the figures, 11/500/ink for the words attached to them. The two had
+   drifted to 400/ink-soft on the words here and 500/ink there — one idea
+   rendered two ways on two halves of the same screen.
+
+   11 on the container, not the 10 that used to sit here: App.css sizes
+   .stat-pair and strong directly at 11, so the container's value only ever
+   applied to whitespace between the pairs. It rendered at 11 and declared 10,
+   which is the kind of gap that makes the next person mistrust the file. */
+/* Back inside the readout column under the heading. Three pairs measured
+   288px against that column's 250px and the Gallons pair was clipped; two
+   measure 175px and fit with room to spare. The readout's own 5px column gap
+   is the spacing, so no margin here. */
+.map-wrap .explorer-statline {
+  margin: 0;
+  gap: 0.625rem;
+  font-size: 0.6875rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.map-wrap .explorer-statline .stat-pair {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* At 360 the readout has 238px beside the buttons, and three pairs need ~228 —
+   close enough that without this each pair broke between its figure and its
+   word and the row became a 3×2 grid. The pairs are atoms; they wrap as
+   wholes or not at all. */
+.map-wrap .explorer-statline .stat-pair {
+  white-space: nowrap;
+}
+
+.map-wrap .explorer-statline strong {
+  /* The Figma leaves these on Public Sans SemiBold — the one place the old
+     pairing survives. Treated as a leftover, not an exception. */
+  font-family: inherit;
+  font-weight: 600;
+}
+
+/* The counts moved up into the transport last round, and they had been the
+   only thing holding the chart off the row above it — the tallest bars were
+   landing straight against the Gallons figure. The chart owns that gap now. */
+.map-wrap .explorer-chart {
+  margin-top: 0.875rem;
+}
+
+.map-wrap .explorer-axis {
+  font-size: 0.625rem;
+  font-weight: 500;
+}
+
+/* ── agent chips ───────────────────────────────────────────────────────── */
+/* The capsule that held the chips is gone: with square chips there is nothing
+   for a rounded track to align to, and the track was only ever there to give
+   the pills something to sit in. */
+/* The row casts the shadow, not each chip. Per-chip shadows bled into the
+   seams between buttons and drew four vertical lines through what is meant to
+   read as one control. `fit-content` keeps the shadow on the chips instead of
+   stretching it across the empty rest of the panel. */
+.map-wrap .explorer-agents {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  width: fit-content;
+  justify-content: flex-start;
+  gap: 0;
+  margin-top: 0;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  /* THE bug this pass was really about. This said "Hairline first, then the
+     control shadow" and shipped only a hairline -- and an INSET one, on a row
+     with zero padding whose children are full-bleed. An inset shadow paints on
+     the padding box, beneath children, so the chips painted over their own
+     container's outline: 4.07 of 255 left under the translucent ones, and
+     exactly 0 under the opaque dark "All". The switch had no edge at the end
+     the eye reaches first, which is why it read as a dark block with four
+     labels beside it rather than as one control. `getComputedStyle` reported
+     the shadow the whole time; it takes `elementFromPoint` or a pixel sample
+     to see that it is not there.
+
+     The comment also claimed it matched `.rainbow-switch` in StorySkinV3.css.
+     It had stopped matching -- that rule went outset one pass earlier. Both
+     now take their skin's --*-lift, which is outset, so they cannot diverge
+     again without someone editing two tokens. */
+  box-shadow: var(--v2-lift);
+}
+
+/* Medium, not SemiBold. These are switches, not headings — at 600 the whole
+   row read as a title bar. Same call on the Flat/3D pair below. */
+.map-wrap .agent-chip {
+  position: relative;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 0;
+  font-weight: 500;
+}
+
+/* With the gap at 0 and no per-chip borders, the five buttons ran together as
+   one white bar and only the dots said where one ended. A short hairline —
+   inset from the top and bottom so it divides rather than outlines — restores
+   the seams without giving anything back its stroke. It is suppressed on both
+   sides of the active chip, whose fill already draws its own edges. */
+/* The chip row is `nowrap` and `fit-content`, so it cannot reflow when the
+   panel runs out of room — it just hangs past the edge, and on a 360 screen
+   the 'Other' chip was clipped by 9.5px (313.5 of chips in a 304 content box).
+   Nothing changes above 400: the clamp's upper bound IS the padding above, so
+   every phone with room keeps exactly what it had, and only the narrow ones
+   give any back. Measured 320 to 430: one row, positive slack throughout. */
+@media (max-width: 400px) {
+  .map-wrap .agent-chip {
+    padding-left: clamp(0.3125rem, 2.1vw, 0.75rem);
+    padding-right: clamp(0.3125rem, 2.1vw, 0.75rem);
+  }
+}
+
+.map-wrap .agent-chip + .agent-chip::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 0.875rem;
+  background: rgba(33, 53, 40, 0.14);
+}
+
+.map-wrap .agent-chip.is-active::before,
+.map-wrap .agent-chip.is-active + .agent-chip::before {
+  display: none;
+}
+
+/* Only the neutral "All" chip reaches this — the per-agent chips carry their
+   entity colour as an inline style, which is the point of them. */
+.map-wrap .agent-chip.is-active {
+  background: var(--v2-fill);
+  border-color: var(--v2-fill);
+}
+
+/* Inactive chips keep the rounded pill in the Figma; that contradicts the
+   no-radii rule the same file applies to every other control, so it is read
+   as a leftover and squared off with the rest. */
+.map-wrap .agent-chip:not(.is-active) {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.map-wrap .agent-chip:hover:not(.is-active) {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.map-wrap .explorer-links {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* ── the key ───────────────────────────────────────────────────────────── */
+.map-wrap .archive-key .map-key-view,
+.map-wrap .archive-key .map-key-view-btn {
+  border-radius: 0;
+}
+
+/* The 2px inset existed to let a rounded thumb sit inside a rounded track.
+   With both square there is nothing to inset for, and the gap only blurred
+   the edge the switch is made of. */
+.map-wrap .archive-key .map-key-view {
+  padding: 0;
+  box-shadow: var(--v2-lift);
+}
+
+.map-wrap .archive-key .map-key-view-btn.is-active {
+  background: var(--v2-fill);
+}
+
+.map-wrap .archive-key .map-key-view-label {
+  text-transform: uppercase;
+}
+
+.map-wrap .archive-key .map-key-view-btn {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ── inspect card + map tooltip ────────────────────────────────────────── */
+/* The figures line was 15px (13 on the hover variant) over an 11px sub — a
+   size jump inside a two-line box. Both lines sit at 11 now; colour and
+   weight still mark the numbers. .adr-hover is named explicitly because
+   App.css's .adr-popup.adr-hover strong ties this rule on specificity and
+   wins on source order. */
+.map-wrap .adr-popup strong,
+.map-wrap .adr-popup.adr-hover strong {
+  font-size: 0.6875rem;
+  line-height: 1.5;
+}
+
+.map-wrap .adr-popup .maplibregl-popup-content {
+  padding: 0.375rem 0.5625rem 0.4375rem;
+  border-radius: 0;
+  box-shadow: var(--v2-shadow-control);
+}
+
+/* The rounded tip was a rotated square faking a radius on the callout. With
+   the callout square, the tip is just a rotated square — same trick, one less
+   reason for it. */
+.map-wrap .adr-popup .maplibregl-popup-tip {
+  border-radius: 0;
+}
+
+/* The locating block — coordinates, cell size, span. One step below the data
+   at 10px, because it says WHERE and WHEN the record was taken, not what it
+   says; at 11 it was competing with the answer. Its two lines sit tight
+   together and the block carries the gap down to the figures.
+
+   letter-spacing 0: the cell size joined this line, and at the widest
+   coordinate the result measured 146.6 in a 146px card — a hairline wrap. The
+   0.02em tracking was there to open up an all-caps-ish string of digits; at
+   this size it buys nothing and costs ~6px. */
+.map-wrap .inspect-coords {
+  margin-bottom: 0.25rem;
+  font-size: 0.625rem;
+  letter-spacing: 0;
+}
+
+.map-wrap .inspect-coords.is-span {
+  margin-bottom: 0.75rem;
+}
+
+/* 4px, not 6. The total and the counts that decompose it are one statement —
+   'this much, arriving like this' — so they set as one block, and the card's
+   real gaps are the ones between blocks. */
+.map-wrap .inspect-figure {
+  margin-bottom: 0.25rem;
+}
+
+/* ONE SIZE for every piece of data in the card. It had been carrying four
+   (10 coords / 11 counts / 13 figure / 10 bar rows) inside 146px, which is
+   what made it read as a stack of unrelated fragments rather than one record.
+   Hierarchy comes from weight and colour instead. Two tiers now, not three:
+   the DATA at 11 and the LABELS (uppercase headings, the locating block) at
+   10 — uppercase at 11 sits visually taller than lowercase at 11 anyway. */
+.map-wrap .inspect-figure,
+.map-wrap .inspect-figure strong,
+.map-wrap .inspect-figure-unit,
+.map-wrap .inspect-sub,
+.map-wrap .inspect-group-row,
+.map-wrap .inspect-year-labels,
+.map-wrap .inspect-note {
+  font-size: 0.6875rem;
+}
+
+/* ONE stat grammar on all three surfaces that carry counts — the panel's
+   readout, the inspect card, and the hover tooltip. 12K Gallons / 5 Missions
+   9 Runs / 39K Gallons 13 Runs all say the same kind of thing about the same
+   place, and they had drifted into three renderings of it. FIGURES are 600
+   accent; the WORDS attached to them are 500 ink. What sets the card's total
+   apart is that it comes first, which is enough.
+
+   The tooltip had this exactly inverted — its <strong> wraps figure AND word
+   together, so the 600 landed on 'Gallons' while the .n spans inside pulled
+   the numbers down to 500. The strong is the word tier here; .n is the figure
+   tier, and it has to out-specify App.css's own .adr-popup.adr-hover strong .n
+   to say so. */
+.map-wrap .inspect-figure strong,
+.map-wrap .inspect-sub.is-stats strong,
+.map-wrap .adr-popup strong .n,
+.map-wrap .adr-popup.adr-hover strong .n {
+  font-weight: 600;
+  color: var(--accent-deep);
+}
+
+.map-wrap .inspect-figure,
+.map-wrap .inspect-figure-unit,
+.map-wrap .inspect-sub.is-stats,
+.map-wrap .inspect-sub.is-stats .stat-pair,
+.map-wrap .adr-popup strong,
+.map-wrap .adr-popup.adr-hover strong {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* Same rule the panel's statline has, for the same reason: a pair wraps as a
+   whole or not at all. The card never needed it while both pairs were one
+   short word; the run card's "23.8 km" broke away from its unit. */
+.map-wrap .inspect-sub.is-stats .stat-pair {
+  white-space: nowrap;
+}
+
+/* Headings for the two breakdowns. Same 10px tier as the panel's own section
+   labels, and each one takes over the rule that used to sit on top of the
+   block it heads — otherwise the label would float above its own divider. */
+.map-wrap .inspect-section-label {
+  margin: 0.75rem 0 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.map-wrap .inspect-groups,
+.map-wrap .inspect-years {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+/* The per-agent bars kept their 2px radius through the no-radii pass. */
+.map-wrap .inspect-bar-track,
+.map-wrap .inspect-bar {
+  border-radius: 0;
+}
+
+/* ── rulers ────────────────────────────────────────────────────────────── */
+/* Half height, both tiers. A tick only has to say "here"; at 4/7px the ruler
+   was competing with the bars it measures. The year labels come up to match,
+   or they float away from the marks they belong to. */
+.map-wrap .axis-tick {
+  height: 2px;
+}
+
+.map-wrap .axis-tick.is-major {
+  height: 3.5px;
+}
+
+.map-wrap .axis-year {
+  top: 0.375rem;
+}
+
+/* The inspect card's mini chart gets a ruler of its own — one tick per year,
+   so its two labels read as the ends of a scale rather than a pair of dates.
+   Same flex geometry as the bars above, so tick and column line up. */
+.map-wrap .inspect-year-ticks {
+  display: flex;
+  gap: 0.125rem;
+  margin-top: 0.125rem;
+}
+
+.map-wrap .inspect-year-tick {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.map-wrap .inspect-year-tick::before {
+  content: '';
+  width: 1px;
+  height: 3.5px;
+  background: rgba(33, 53, 40, 0.45);
+}
+
+.map-wrap .inspect-year-labels {
+  margin-top: 0.1875rem;
+}
+
+/* MapLibre's own controls are part of the surface too. */
+.map-wrap .maplibregl-ctrl-group,
+.map-wrap .maplibregl-ctrl-group button {
+  border-radius: 0;
+  box-shadow: var(--v2-shadow);
+}

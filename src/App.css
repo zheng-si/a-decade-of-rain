@@ -1,8 +1,10 @@
 /* ══════════════════════════════════════════════════════════════════════════
    DESIGN TOKENS — the single sheet to edit for colours and type.
    Full spec + contrast table: docs/design-system.md
-   (fonts are declared in src/fonts.css: --font-sans Public Sans, --font-serif
-   Gambarino)
+   (Geist is declared in src/fontsGeist.css and set as --font-sans by BOTH
+   surface skins; Playfair Display comes from src/fonts.css and holds the
+   Story's display tier. The --font-sans default in fonts.css is Public Sans
+   and no longer resolves on either route — see the design system, §2.)
    ══════════════════════════════════════════════════════════════════════════ */
 :root {
   /* ── surfaces ─────────────────────────────────────────────────────────── */
@@ -11,16 +13,60 @@
   --forest: #213528; /* dark surface: story cards, stat pills */
   --forest-2: #2c3730; /* raised dark surface (stat pill bg) */
 
-  /* ── ink (text on paper) ──────────────────────────────────────────────── */
-  --ink: #213528; /* headings & primary text · 12.4:1 on paper */
-  --ink-soft: #4e6355; /* secondary text, UI labels · 6.2:1 */
-  --ink-faint: #647468; /* captions, smallest text · 4.7:1 (AA floor for small) */
+  /* ── ink (text on paper) ──────────────────────────────────────────────────
+     One ramp, one hue (~145°, low chroma): the green cast that ties the text
+     to the map's land and vegetation, carried from near-black down through two
+     grey tiers. The old ramp bottomed out near the AA floor, which read as
+     washed-out on a warm paper — every tier here is a full step darker, and
+     the gaps between them are wide enough to be seen as tiers rather than as
+     three attempts at the same grey. */
+  --ink: #101a14; /* headings & primary text · 16.9:1 on paper — reads as black */
+  --ink-soft: #33443a; /* secondary text, UI labels · 9.8:1 */
+  --ink-faint: #4b5a50; /* captions, smallest text · 6.9:1 */
   --rule: #dfe3d9; /* hairline dividers */
+  /* Decorative 3px card accents, kept at the old --ink-faint. They are rules,
+     not text: darkening them with the ink ramp would restyle the story cards
+     rather than make anything more readable. */
+  --rule-strong: #647468;
 
   /* ── text on forest (dark cards) ──────────────────────────────────────── */
   --forest-text: #e8ece6; /* primary · 11.0:1 */
   --forest-text-soft: #b4ccba; /* secondary · 7.7:1 */
   --mint: #92f7bc; /* decorative borders only (never text) */
+
+  /* ── text on PHOTOGRAPHS and dark map ─────────────────────────────────────
+     The same three-tier idea as the ink ramp, in white-with-alpha rather than
+     a solid colour, because these sit over images: the alpha is what lets the
+     photograph read through the type instead of the type sitting on it as a
+     patch.
+
+     There were fifteen of them, from 0.40 to 0.92, and no two surfaces
+     agreed — a photo credit at 0.85 in one act and 0.75 in another, a caption
+     at 0.68 next to a tag at 0.88. Three tiers, assigned by what a line IS
+     rather than by which value it happened to be nearest:
+
+       primary   what you are reading — body, titles, place names
+       soft      what supports it — credits, tags, captions, secondary links
+       faint     what is not active yet — the rail's upcoming nodes
+
+     Ratios are against --forest #213528; over a photograph the veil behind
+     each block carries the rest.
+
+     0.50 for the faint tier is a floor, not a taste: the rail's inactive and
+     upcoming links were 0.40 and 0.42, which are 3.44:1 and 3.64:1 and fail
+     AA outright. 0.50 is the lowest alpha that passes, so the quietest tier
+     is as quiet as it is allowed to be.
+
+     Plain `#fff` is NOT a fourth tier and is deliberately left where it is —
+     the rail's active and hovered links use it, and full white against a
+     graded scale is what makes "this one is selected" read instantly. These
+     three are the graded values; opaque white is the emphasis above them.
+
+     The EPILOGUE is excluded on purpose: seven more white alphas live in the
+     `.close-*` rules and stay as they are. */
+  --on-photo: rgba(255, 255, 255, 0.92); /* 11.3:1 */
+  --on-photo-soft: rgba(255, 255, 255, 0.72); /* 7.6:1 */
+  --on-photo-faint: rgba(255, 255, 255, 0.5); /* 4.5:1 — the AA floor exactly */
 
   /* ── accent family (brand orange) — one hue, four jobs ────────────────────
      GRAPHICS get the vivid brand tone; TEXT gets a tuned tone per surface so
@@ -75,52 +121,9 @@
   inset: 0;
 }
 
-/* ── site nav (Story ⇄ Explore) ───────────────────────────────────────── */
-.site-nav {
-  position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
-  z-index: 10;
-  display: inline-flex;
-  gap: 2px;
-  padding: 3px;
-  /* Near-opaque paper instead of frosted glass: backdrop-filter on a fixed
-     panel re-samples the scrolling banner beneath it every frame (flicker). */
-  background: rgba(252, 251, 247, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 0.25rem;
-  box-shadow: 0 0.25rem 1.125rem rgba(40, 38, 30, 0.1);
-}
-
-.site-nav-link {
-  padding: 0.3125rem 0.8125rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: var(--track-tight);
-  color: var(--ink-soft);
-  text-decoration: none;
-  border-radius: 0.25rem;
-}
-
-.site-nav-link.is-active {
-  background: var(--ink);
-  color: #fff;
-}
-
-.site-nav-sep {
-  width: 1px;
-  align-self: stretch;
-  margin: 3px 2px;
-  background: var(--rule);
-}
-
-/* 3D toggle sits in the same pill; button reset so it matches the nav links. */
-.site-nav-btn {
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-family: inherit;
-}
+/* The `.site-nav*` block that stood here is gone with the TopBar component it
+   styled — see the note in App.tsx. Six rules, 46 lines, all of them minifying
+   into the shipped stylesheet for markup no route rendered. */
 
 .map-wrap {
   position: absolute;
@@ -135,168 +138,329 @@
 }
 
 /* ── shared panel surface (frosted glass) ─────────────────────────────── */
-.intro-card,
-.timeline,
-.view-toggle {
-  background: rgba(255, 255, 255, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.6);
+/* Frosted glass over the map. The white is carried high (0.82) because the
+   basemap is warm paper at almost the same lightness — at the old 0.5 the
+   panel dissolved into it. The blur still does its job: the map's own
+   texture and the spray symbols stay legible through the glass. */
+.explorer-panel {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.7);
   border-radius: 0.25rem;
-  box-shadow: 0 0.5rem 1.75rem rgba(40, 38, 30, 0.12);
-  -webkit-backdrop-filter: blur(1rem) saturate(1.3);
-  backdrop-filter: blur(1rem) saturate(1.3);
+  box-shadow: 0 6px 24px rgba(40, 38, 30, 0.1);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  backdrop-filter: blur(18px) saturate(1.35);
 }
 
-.view-toggle {
+/* ── the Explorer's control panel ─────────────────────────────────────────
+   One frosted card, top-left: identity block, transport, the volume chart
+   as the scrubber, and the agent filter. Type follows the story's role
+   ladder — serif eyebrow/title, 13 body, 12 UI, 10–11 chart furniture. */
+.explorer-panel {
   position: absolute;
-  top: 6rem;
-  right: 0.625rem;
+  top: 1.5rem;
+  left: 1.5rem;
   z-index: 2;
-  display: inline-flex;
+  width: min(25rem, calc(100vw - 3rem));
+  padding: 1.5rem 1.5rem 1.375rem;
+  border-radius: 0.375rem;
+}
+
+/* Year eyebrow sits on the same serif tier as the title (story-card rule). */
+.explorer-eyebrow {
+  margin: 0 0 0.875rem;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1.05;
+  color: var(--accent-deep);
+}
+
+.explorer-title {
+  margin: 0 0 0.875rem;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1.1;
+  color: var(--ink);
+}
+
+.explorer-subtitle {
+  margin: 0 0 1rem;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.0625rem;
+  line-height: 1.3;
+  color: var(--ink);
+}
+
+.explorer-dek {
+  margin: 0 0 1.5rem;
+  font-weight: 300;
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.explorer-dek a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.125rem;
+  text-decoration-color: rgba(78, 99, 85, 0.45);
+}
+
+.explorer-dek a:hover {
+  color: var(--accent-deep);
+  text-decoration-color: var(--accent-deep);
+}
+
+/* Cumulative counters: red figures over quiet labels, pairs separated by
+   space alone — the figure's colour marks each pair's start (news-graphics
+   convention; no interpuncts between styled stat pairs). */
+.explorer-statline {
+  display: flex;
+  gap: 0.75rem;
+  margin: 0.875rem 0 0.75rem;
+  line-height: 1.3;
+}
+
+.explorer-statline .stat-pair {
+  font-size: 0.6875rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+/* One grammar on every surface (panel statline, inspect counts, hover
+   tooltip): figures carry accent red at medium weight, labels stay
+   regular in ink-soft. */
+.explorer-statline strong {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--accent-deep);
+}
+
+/* ── transport (play / pause / reset) + readout ───────────────────────── */
+.explorer-transport {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.125rem 0 0;
+  border-top: 1px solid var(--rule);
+}
+
+.transport-buttons {
+  display: flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.4375rem 0.6875rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--ink);
-  cursor: pointer;
-  transition: background 0.15s;
 }
 
-.view-toggle:hover {
-  background: rgba(255, 255, 255, 0.72);
-}
-
-/* ── timeline ─────────────────────────────────────────────────────────── */
-.timeline {
-  position: absolute;
-  left: 50%;
-  bottom: 1.75rem;
-  transform: translateX(-50%);
-  width: min(35rem, calc(100% - 3rem));
-  padding: 0.9375rem 1.125rem 1rem;
-  z-index: 2;
-}
-
-.timeline-row {
-  display: flex;
+.transport-btn {
+  display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-}
-
-.timeline-play {
-  flex: none;
-  width: 2.375rem;
-  height: 2.375rem;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
   border: none;
   border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  font-size: 0.8125rem;
+  background: transparent;
+  color: var(--ink);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, opacity 0.15s;
 }
 
-.timeline-play:hover {
-  background: #c0452f;
+.transport-btn svg {
+  width: 0.6875rem;
+  height: 0.6875rem;
+  fill: currentColor;
 }
 
-.timeline-readout {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.25;
+.transport-btn .icon-reset {
+  width: 1rem;
+  height: 1rem;
+  fill: currentColor;
 }
 
-.timeline-date {
-  font-size: 1.0625rem;
-  font-weight: 600;
+.transport-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* The play button is the panel's one filled control — forest, not red. */
+.transport-btn.is-primary {
+  background: var(--forest);
+  color: #fff;
+}
+
+.transport-btn.is-primary:hover:not(:disabled) {
+  background: #2c4636;
+}
+
+.transport-btn.is-primary:disabled {
+  opacity: 0.4;
+}
+
+/* Reset: a white circle beside the filled play/pause toggle. */
+.transport-btn.is-ghost {
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 1px 4px rgba(40, 38, 30, 0.08);
+}
+
+.transport-btn.is-ghost:hover:not(:disabled) {
+  background: #fff;
+}
+
+/* The playhead date, in the display serif beside the transport. */
+.explorer-date {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 1.1875rem;
+  line-height: 1.2;
   color: var(--ink);
 }
 
-.timeline-stat {
-  font-size: 0.75rem;
+
+/* ── the scrubber IS a chart ──────────────────────────────────────────────
+   Monthly spray volume in the map's own encoding: one hue for the whole
+   record; with a selection the agent's share sits tinted on the baseline
+   and the rest stacks grey above. A transparent native range input overlays
+   the chart (native drag + keyboard for free). */
+.explorer-chart {
+  position: relative;
+  border-bottom: 1px solid rgba(33, 53, 40, 0.28);
+}
+
+.explorer-chart svg {
+  display: block;
+  width: 100%;
+  height: 6.5rem;
+}
+
+.explorer-chart .is-future {
+  opacity: 0.22; /* months still to fall */
+}
+
+.explorer-playhead {
+  position: absolute;
+  top: -2px;
+  bottom: -1px;
+  width: 1px;
+  background: var(--ink);
+  pointer-events: none;
+}
+
+.explorer-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  background: transparent;
+  opacity: 0;
+  cursor: ew-resize;
+}
+
+.explorer-chart:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 0.1875rem;
+  border-radius: 0.125rem;
+}
+
+/* Ruler under the chart: yearly major ticks (labelled), quarterly minors. */
+.explorer-axis {
+  position: relative;
+  height: 1.5rem;
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 400;
   color: var(--ink-faint);
 }
 
-/* 2px scrubber: solid white played-portion over a 10%-white track, no stroke.
-   --progress (0–100%) is set inline from the playhead. */
-.timeline-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 2px;
-  margin: 1rem 0 0.8125rem;
-  background: transparent;
-  cursor: pointer;
+.axis-tick {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 4px;
+  background: rgba(33, 53, 40, 0.3);
 }
 
-.timeline-slider::-webkit-slider-runnable-track {
-  height: 2px;
-  border: none;
-  background: linear-gradient(
-    to right,
-    #fff 0 var(--progress, 0%),
-    rgba(255, 255, 255, 0.1) var(--progress, 0%) 100%
-  );
+.axis-tick.is-major {
+  height: 7px;
+  background: rgba(33, 53, 40, 0.45);
 }
 
-.timeline-slider::-moz-range-track {
-  height: 2px;
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
+.axis-year {
+  position: absolute;
+  top: 0.625rem;
+  transform: translateX(-50%);
 }
 
-.timeline-slider::-moz-range-progress {
-  height: 2px;
-  background: #fff;
-}
-
-.timeline-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 0.75rem;
-  height: 0.75rem;
-  margin-top: -0.3125rem;
-  border: none;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 0.25rem rgba(0, 0, 0, 0.35);
-}
-
-.timeline-slider::-moz-range-thumb {
-  width: 0.75rem;
-  height: 0.75rem;
-  border: none;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 0.25rem rgba(0, 0, 0, 0.35);
-}
-
-.timeline-agents {
+/* Agent filter: one white capsule spanning the content width, chips spread
+   so the capsule's edges align with the panel's other blocks. */
+.explorer-agents {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.375rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.125rem;
+  margin-top: 1.5rem;
+  padding: 0.1875rem;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(40, 38, 30, 0.08);
 }
 
-/* Canonical filter chip — the same spec as .rainbow-chip (Story.css):
-   paper pill, colour dot, active = filled with the entity colour. */
+/* Per-agent primer under the chips — a FIXED-height slot (two 11px lines),
+   so switching agents never changes the card's height. */
+.explorer-agent-note {
+  height: 2.125rem;
+  margin: 0.75rem 0 0;
+  overflow: hidden;
+  font-size: 0.6875rem;
+  line-height: 1.55;
+  color: var(--ink-faint);
+}
+
+/* The `.explorer-flyto` bookmark pills that stood here are gone with the row
+   that rendered them — the panel's fly-to shortcuts were replaced by the map's
+   own hotspot markers, and the CSS outlived the markup by several versions. */
+
+.explorer-links {
+  margin: 1rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.explorer-links a {
+  color: var(--accent-deep);
+  text-decoration: none;
+}
+
+.explorer-links a:hover {
+  text-decoration: underline;
+}
+
+/* Borderless chip inside the capsule; active = filled with entity colour. */
 .agent-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.4375rem;
-  border: 1px solid var(--rule);
-  background: rgba(255, 255, 255, 0.6);
+  gap: 0.375rem;
+  border: 1px solid transparent;
+  background: transparent;
   color: var(--ink-soft);
   font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 600;
-  padding: 0.375rem 0.75rem;
-  border-radius: 62.4375rem;
+  padding: 0.3125rem 0.625rem;
+  border-radius: 999px;
   cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
 
 .agent-chip:hover {
-  border-color: #cfccc0;
+  background: rgba(33, 53, 40, 0.05);
 }
 
 .agent-dot {
@@ -318,52 +482,522 @@
   background: #fff !important;
 }
 
-/* ── intro card ───────────────────────────────────────────────────────── */
-.intro-card {
+/* The `.intro-card` block that stood here is gone. It was the Archive's first
+   framing device — a floating card over the top-left of the map — and the
+   explorer panel took that job over long ago. Its identity type has since been
+   rewritten twice in ArchiveSkinV2.css, on the panel. */
+
+/* ── Archive map key ──────────────────────────────────────────────────────
+   Top-right, in the story MapKey's language (near-opaque paper, no backdrop
+   filter — this one sits over the map, not over a scrolling page). Inner
+   furniture reuses the shared .map-key-*
+   classes from Story.css; only the container and the archive-specific rows
+   live here. */
+.archive-key {
   position: absolute;
   top: 1.5rem;
-  left: 1.5rem;
-  max-width: 20rem;
-  padding: 1.25rem 1.375rem 1.375rem;
-  z-index: 1;
+  right: 1.5rem;
+  z-index: 5;
+  width: 12rem;
+  padding: 0.6875rem 0.8125rem 1rem;
+  /* Same glass as the left panel — this one sits over the map too, so the
+     "near-opaque paper, no filter" recipe (which exists because a fixed
+     panel over a SCROLLING page flickers) does not apply here. */
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 0.25rem;
+  box-shadow: 0 8px 24px rgba(33, 53, 40, 0.14);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+  backdrop-filter: blur(18px) saturate(1.35);
+  font-family: var(--font-sans);
 }
 
-.intro-card h1 {
-  margin: 0 0 0.875rem;
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: 1.5rem;
-  line-height: 1.14;
-  letter-spacing: normal;
+/* The `.archive-key-share` pill is gone with the copy-link button it styled;
+   the Archive's view state lives in the URL, so the browser's own address bar
+   does that job. */
+
+/* Uniform 12px rhythm for the key's control half (label→capsule stays a
+   tight pair); the kicker matches the inspect section's spec. */
+/* The `.archive-key .map-key-view-label` override that used to sit here is
+   gone: it was correcting the base rule in Story.css toward the structural-
+   label spec, which meant the Story kept the wrong values. The spec now lives
+   on the base rule itself, so both surfaces get it and neither needs an
+   override. (Three tiers: ink = titles and labels · soft = content ·
+   faint = notes.) */
+
+.archive-key .map-key-view {
+  margin-bottom: 0.75rem;
+}
+
+.archive-key .map-key-view-btn {
+  font-size: 0.6875rem;
+}
+
+/* The scale row's rule is not needed here — legend rows follow directly. */
+.archive-key .map-key-top {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0.75rem;
+}
+
+.archive-key .map-key-list {
+  gap: 0.5rem;
+}
+
+.archive-key .map-key-scale-label {
+  white-space: nowrap;
+}
+
+/* Legend swatches specific to the volume-symbol map. */
+.archive-key .key-dot {
+  display: block;
+  width: 0.625rem;
+  height: 0.625rem;
+  margin: 0 auto;
+  border-radius: 50%;
+  /* The map draws its dots at DOTS.opacity 0.9 (volumeGrid.ts). A key is a
+     sample of the map, so the swatch is drawn at the map's alpha rather than
+     at a slightly quieter one chosen for the panel. */
+  opacity: 0.9;
+}
+
+.archive-key .key-dot-dim {
+  background: #c9cdc4;
+  opacity: 1;
+}
+
+/* SPIKE A — the track map's two swatches. A line and a dashed line, at the
+   width the map itself draws them near the middle of its ramp, so the key
+   reads as a sample of the map rather than as an icon of it. */
+.archive-key .key-line {
+  display: block;
+  width: 0.875rem;
+  height: 3px;
+  margin: 0 auto;
+  opacity: 0.75;
+}
+
+.archive-key .key-line-dash {
+  display: block;
+  width: 0.875rem;
+  height: 0;
+  margin: 0 auto;
+  border-top: 1.5px dashed;
+  opacity: 0.75;
+}
+
+/* The zero-volume mark: an open ring, matching what the raw tier draws. Two
+   pixels smaller than .key-dot so the legend keeps the map's own hierarchy —
+   a ring is subordinate to a filled dot there too. The border colour is set
+   inline from the current selection, like the dot above it. */
+.archive-key .key-ring {
+  display: block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin: 0 auto;
+  border: 1px solid;
+  border-radius: 50%;
+  opacity: 0.7;
+}
+
+/* The same two composited values as .key-mr / .key-border in Story.css -- see
+   the note there. Both are what the map COMPOSITES to, not its paint value. */
+.archive-key .key-mr {
+  border-top: 1.5px dashed #ec7066;
+}
+
+.archive-key .key-border {
+  border-top: 1px solid #c6c9c2;
+}
+
+/* ── small screens: the panel becomes a bottom sheet, the key retires ────
+   640, not 700. Every other phone rule on the site breaks at 640 (Story.css's
+   deck, the rem root scale in index.css, the wall and hotspot grids); this one
+   pair was 60px out on its own, so between 641 and 700 the Archive was already
+   in its phone layout while the Story was still in its tablet one. */
+@media (max-width: 640px) {
+  .explorer-panel {
+    top: auto;
+    bottom: 0.75rem;
+    left: 0.75rem;
+    width: calc(100vw - 1.5rem);
+    max-height: 58vh;
+    overflow-y: auto;
+    padding: 0.875rem 1rem 0.75rem;
+  }
+
+  .explorer-dek {
+    display: none;
+  }
+
+  .archive-key {
+    display: none;
+  }
+}
+
+/* ── inspect section (click a dot) ────────────────────────────────────────
+   Full-record story of one grid cell (or one raw run), embedded as the
+   bottom section of the map key panel. */
+.archive-inspect {
+  position: relative;
+  margin-top: 0.875rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--rule);
+  font-family: var(--font-sans);
+}
+
+.inspect-close {
+  position: absolute;
+  top: 0.125rem;
+  right: -0.375rem;
+  padding: 0.375rem;
+  border: none;
+  background: none;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--ink-faint);
+  cursor: pointer;
+}
+
+.inspect-close:hover {
   color: var(--ink);
 }
 
-/* Short rule under the heading, echoing the Figma section style. */
-.intro-card h1::after {
-  content: '';
-  display: block;
-  width: 2.125rem;
-  height: 2px;
-  margin-top: 0.875rem;
-  background: var(--ink);
-  opacity: 0.85;
+.inspect-kicker {
+  margin: 0 0 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
 }
 
-.intro-card .lede {
-  margin: 0;
-  font-weight: 300;
-  font-size: 0.8125rem;
-  line-height: 1.62;
+.inspect-coords {
+  margin: 0 0 0.75rem;
+  font-size: 0.625rem;
+  letter-spacing: 0.02em;
+  color: var(--ink-faint);
+}
+
+/* Figure and its unit share one line, meeting on the text baseline. */
+.inspect-figure {
+  margin: 0 0 0.75rem;
+  line-height: 1.1;
+  font-size: 0.6875rem;
   color: var(--ink-soft);
 }
 
-/* ── dioxin hotspot markers (cartographic ring symbol) ────────────────── */
-.hotspot-marker {
-  width: 0.875rem;
-  height: 0.875rem;
+/* Same serif tier as the panel's playhead date — the two anchor figures. */
+.inspect-figure strong {
+  font-family: var(--font-serif);
+  font-size: 1.1875rem;
+  font-weight: 400;
+  color: var(--accent-deep);
+}
+
+.inspect-figure-unit {
+  margin-left: 0.25rem;
+  font-size: 0.6875rem;
+  color: var(--ink-soft);
+}
+
+.inspect-sub {
+  margin: 0 0 0.25rem;
+  font-size: 0.6875rem;
+  color: var(--ink-soft);
+}
+
+.inspect-sub strong {
+  font-weight: 500;
+  color: var(--accent-deep);
+}
+
+/* Stat pairs separate by space, not dots (same rule as the statline). */
+.inspect-sub.is-stats {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.inspect-note {
+  margin: 0.375rem 0 0;
+  font-size: 0.625rem;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+.inspect-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.125rem;
   border-radius: 50%;
-  border: 2px solid #33352e;
-  background: rgba(255, 255, 255, 0.55);
-  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.85);
-  cursor: pointer;
+  vertical-align: -1px;
+}
+
+/* Agent mix: label · tinted bar · value (the bar itself carries the hue). */
+.inspect-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4375rem;
+  margin: 0.875rem 0 0;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--rule);
+}
+
+.inspect-group-row {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.625rem;
+  color: var(--ink-soft);
+}
+
+.inspect-group-label {
+  width: 2.5rem;
+  flex: none;
+}
+
+.inspect-bar-track {
+  flex: 1;
+  height: 0.3125rem;
+  border-radius: 0.125rem;
+  background: rgba(33, 53, 40, 0.07);
+  overflow: hidden;
+}
+
+.inspect-bar {
+  display: block;
+  height: 100%;
+  border-radius: 0.125rem;
+  opacity: 0.85;
+}
+
+.inspect-group-value {
+  width: 2.125rem;
+  flex: none;
+  text-align: right;
+  color: var(--ink-soft);
+}
+
+/* Eleven-year sparkline. */
+.inspect-years {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.125rem;
+  height: 2.875rem;
+  margin: 0.875rem 0 0;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--rule);
+  /* Baseline axis under the year bars, same weight as the main chart's. */
+  border-bottom: 1px solid rgba(33, 53, 40, 0.28);
+}
+
+.inspect-year-col {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  height: 100%;
+}
+
+.inspect-year-bar {
+  display: block;
+  width: 100%;
+  border-radius: 1px;
+  background: var(--accent);
+  opacity: 0.9;
+}
+
+.inspect-year-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.3125rem;
+  font-size: 0.625rem;
+  color: var(--ink-faint);
+}
+
+/* ── MapLibre popups, restyled to the card language ───────────────────── */
+/* Glass, but carried higher than the panels (0.92) for a reason: the rounded
+   tip below is a rotated square tucked INTO the content, so wherever they
+   overlap the alpha compounds. At 0.82 that patch reads ~7/255 denser — a
+   visible seam; at 0.92 it is ~4/255, which is not. Tip and content must keep
+   the identical fill for the join to disappear. */
+.adr-popup .maplibregl-popup-content {
+  padding: 0.625rem 0.8125rem 0.6875rem;
+  font-family: var(--font-sans);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--rule);
+  border-radius: 0.25rem;
+  box-shadow: 0 8px 24px rgba(33, 53, 40, 0.16);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+}
+
+/* Hover tooltip: no border, so no seam where the tip meets the box; the
+   headline line is utility text (13px sans), per the serif-for-display rule. */
+.adr-hover .maplibregl-popup-content {
+  border: none;
+  position: relative;
+  z-index: 1;
+}
+
+/* Rounded, shorter tip: MapLibre's default is a border triangle, which
+   can't take a radius — this is a rotated square with its outer corner
+   rounded to the box's radius, tucked 7px back into the content. It paints
+   ABOVE the content (same fill, no border, so the join is seamless);
+   underneath, the content's drop shadow would grey it out. */
+.adr-hover .maplibregl-popup-tip {
+  width: 0.6875rem;
+  height: 0.6875rem;
+  border: none;
+  /* Must match .adr-popup .maplibregl-popup-content exactly — see the note
+     there. No backdrop-filter of its own: over the content its backdrop IS
+     the content, which would blur twice. */
+  background: rgba(255, 255, 255, 0.92);
+  transform: rotate(45deg);
+  z-index: 2;
+}
+
+.adr-hover.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  margin-top: -0.4375rem;
+  border-bottom-right-radius: 2px;
+}
+
+.adr-hover.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+  margin-bottom: -0.4375rem;
+  border-top-left-radius: 2px;
+}
+
+.adr-hover.maplibregl-popup-anchor-left .maplibregl-popup-tip {
+  margin-right: -0.4375rem;
+  border-bottom-left-radius: 2px;
+}
+
+.adr-hover.maplibregl-popup-anchor-right .maplibregl-popup-tip {
+  margin-left: -0.4375rem;
+  border-top-right-radius: 2px;
+}
+
+/* Corner anchors would point the square the wrong way; the rounded box
+   reads fine on its own there. */
+.adr-hover.maplibregl-popup-anchor-top-left .maplibregl-popup-tip,
+.adr-hover.maplibregl-popup-anchor-top-right .maplibregl-popup-tip,
+.adr-hover.maplibregl-popup-anchor-bottom-left .maplibregl-popup-tip,
+.adr-hover.maplibregl-popup-anchor-bottom-right .maplibregl-popup-tip {
+  display: none;
+}
+
+/* …so keep every corner rounded when the tip is gone. */
+.adr-hover .maplibregl-popup-content {
+  border-radius: 0.25rem;
+}
+
+/* Second line joins the 11px annotation tier (the generic popup span rule
+   sets an off-ladder 11.5px). */
+.adr-popup.adr-hover span {
+  font-size: 0.6875rem;
+}
+
+/* Statline grammar: heavier red figures over regular quiet words. */
+.adr-popup.adr-hover strong {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 0.8125rem;
+  margin: 0 0 0.125rem;
+  color: var(--ink-soft);
+}
+
+/* Figures match their labels in size and sit on the same baseline; weight
+   and colour mark them out. (The generic .adr-popup span rule below would
+   otherwise force these nested spans to block layout at 11.5px.) */
+.adr-popup.adr-hover strong .n {
+  display: inline;
+  max-width: none;
+  font-size: inherit;
+  font-weight: 500;
+  line-height: inherit;
+  color: var(--accent-deep);
+}
+
+.adr-popup.adr-hover strong .gap {
+  display: inline-block;
+  width: 0.75rem;
+  max-width: none;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.adr-popup strong {
+  display: block;
+  margin: 0 0 0.1875rem;
+  font-family: var(--font-serif);
+  font-weight: 400;
+  font-size: 0.9375rem;
+  color: var(--ink);
+}
+
+.adr-popup span {
+  display: block;
+  max-width: 13.125rem;
+  font-size: 0.71875rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.adr-popup.maplibregl-popup-anchor-bottom .maplibregl-popup-tip {
+  border-top-color: var(--paper-solid);
+}
+
+.adr-popup.maplibregl-popup-anchor-top .maplibregl-popup-tip {
+  border-bottom-color: var(--paper-solid);
+}
+
+/* The `.hotspot-marker` ring symbol is gone with src/data/hotspots.ts — the
+   Archive never drew the three airbases; the Story's Hotspots act does, from
+   its own content module, with its own pins. */
+
+/* The legend's one explanatory line. The rows name the marks; this says what
+   the size and the fade MEAN, once, instead of once per row. */
+/* Three corrections, all of them to values that were off the sheet:
+   0.6rem was the only font-size on either surface not on the ladder -- it is
+   the 0.625 tick now; 0.45rem was the only spacing value that is not a whole
+   pixel at either root size; and #8a8d85 measures 3.37:1 on this panel, which
+   fails AA for text. --ink-faint is the token for a note and measures 6.92.
+   The divider is drawn in black alpha where every other divider on both
+   surfaces uses --rule, which carries the system's green cast. */
+.archive-key .map-key-note {
+  margin: 0.5rem 0 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--rule);
+  font-size: 0.625rem;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+/* ── the archive said nothing when it failed ──────────────────────────────
+   Unlike the Story, this surface has no prose to fall back on: the map IS the
+   Archive, so when the basemap or the record cannot be fetched, saying so is
+   all that is left to do. Same paper and hairline as the panels beside it.
+   Rendered outside the `ready` gate, so it is reachable in exactly the state
+   where nothing else is. */
+.map-load-error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+  margin: 0;
+  max-width: 20rem;
+  padding: 0.75rem 1rem;
+  background: var(--paper-solid);
+  /* The fallback is what renders on the Story, where --v2-hairline is not in
+     scope, so it has to be the recipe rather than the old inset line — this
+     notice is a white card on paper like any other. */
+  box-shadow: var(--v2-lift, 0 0 0 1px rgba(33, 53, 40, 0.04), 0 1px 2px rgba(40, 38, 30, 0.05));
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--ink-soft);
 }

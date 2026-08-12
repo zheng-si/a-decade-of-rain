@@ -1,0 +1,687 @@
+/* TEMPORARY — styles for the basemap colour tuner. Delete with MapTuner.tsx. */
+
+/* Bottom-RIGHT, clear of MapLibre's own zoom buttons, which live in the same
+   corner (`addControl(..., 'bottom-right')` in MapView). 5.5rem is the pair of
+   32px buttons plus their 10px margin plus air; anything less and the panel
+   sits on top of the controls it is meant to be tuned alongside. */
+.tuner-tab,
+.tuner {
+  position: fixed;
+  right: 1rem;
+  bottom: 5.5rem;
+  z-index: 40;
+  font-family: var(--font-ui, system-ui, sans-serif);
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 6px 24px rgba(40, 38, 30, 0.14);
+  backdrop-filter: blur(18px) saturate(1.35);
+  border-radius: 0.5rem;
+}
+
+.tuner-tab {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #4a4d46;
+  cursor: pointer;
+}
+
+.tuner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 19rem;
+  max-width: calc(100vw - 2rem);
+  padding: 0.75rem 0.85rem 0.7rem;
+  color: #3f423c;
+  font-size: 0.78rem;
+}
+
+.tuner-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tuner-title {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7b7f76;
+}
+
+.tuner-x {
+  border: 0;
+  background: none;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: #7b7f76;
+  cursor: pointer;
+}
+
+.tuner-row {
+  display: grid;
+  grid-template-columns: 5.5rem 2rem 1fr;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tuner-label {
+  color: #5b5e57;
+}
+
+.tuner-swatch {
+  /* Native colour inputs default to a chunky bordered button; strip it back to
+     a plain swatch. `height` needs a block box to take effect. */
+  display: block;
+  width: 2rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: none;
+  cursor: pointer;
+}
+
+.tuner-swatch::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.tuner-swatch::-webkit-color-swatch {
+  border: 0;
+  border-radius: 0.15rem;
+}
+
+.tuner-hex {
+  width: 100%;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.7);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: #3f423c;
+}
+
+.tuner-check {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #5b5e57;
+  font-size: 0.72rem;
+}
+
+.tuner-read {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin: 0.1rem 0 0;
+  padding-top: 0.45rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 0.72rem;
+}
+
+.tuner-read > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.tuner-read dt {
+  color: #7b7f76;
+}
+
+.tuner-read dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.tuner-foot {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.tuner-foot button {
+  flex: 1;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.25rem;
+  background: rgba(255, 255, 255, 0.65);
+  font-size: 0.72rem;
+  color: #4a4d46;
+  cursor: pointer;
+}
+
+.tuner-foot button:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.tuner-note {
+  margin: 0;
+  color: #8a8d85;
+  font-size: 0.66rem;
+  line-height: 1.4;
+}
+
+.tuner-tab:focus-visible,
+.tuner-x:focus-visible,
+.tuner-hex:focus-visible,
+.tuner-swatch:focus-visible,
+.tuner-foot button:focus-visible {
+  outline: 2px solid #cf3720;
+  outline-offset: 2px;
+}
+
+.tuner-font {
+  grid-column: 2 / -1;
+  width: 100%;
+  padding: 0.2rem 0.3rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.7);
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: #3f423c;
+  cursor: pointer;
+}
+
+.tuner-font:focus-visible {
+  outline: 2px solid #cf3720;
+  outline-offset: 2px;
+}
+
+/* ── expanded console ────────────────────────────────────────────────────
+   The panel grew from three colour rows into four tabs, so it needs a width
+   and a scroll bound. Everything below is additive — the colour rows above
+   are untouched. */
+
+.tuner.is-wide {
+  width: 20rem;
+  max-height: min(78vh, 44rem);
+  overflow-y: auto;
+}
+
+.tuner-tabs {
+  display: flex;
+  gap: 1px;
+  margin-bottom: 0.7rem;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.tuner-tabs button {
+  flex: 1;
+  padding: 0.3rem 0;
+  border: none;
+  background: rgba(255, 255, 255, 0.75);
+  font: inherit;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b6e66;
+  cursor: pointer;
+}
+
+.tuner-tabs button.is-active {
+  background: #213528;
+  color: #fff;
+}
+
+.tuner-tabs button:focus-visible {
+  outline: 2px solid #cf3720;
+  outline-offset: -2px;
+}
+
+.tuner-slider {
+  display: block;
+  margin-bottom: 0.7rem;
+}
+
+.tuner-slider > span {
+  display: block;
+  margin-bottom: 0.15rem;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tuner-slider strong {
+  color: #cf3720;
+}
+
+.tuner-slider input[type='range'] {
+  width: 100%;
+}
+
+.tuner-slider em {
+  display: block;
+  margin-top: 0.1rem;
+  font-size: 0.63rem;
+  font-style: normal;
+  color: #6b6e66;
+}
+
+.tuner-ramp {
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+}
+
+.tuner-ramp-name {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.72rem;
+}
+
+.tuner-ramp-name em {
+  display: block;
+  font-size: 0.6rem;
+  font-style: normal;
+  color: #8a8d85;
+}
+
+.tuner-ramp-ends {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Controls nested INSIDE a ramp group. The group started out as a name plus a
+   row of boxes, so nothing here carried a top margin; once sliders and
+   checkboxes moved in, each one sat flush against the boxes above it and the
+   "Bead alpha" heading collided with the head/tail row. Spacing belongs to the
+   parent's layout, not to per-element margins that fight the flat rules. */
+.tuner-ramp > .tuner-slider,
+.tuner-ramp > .tuner-check {
+  margin-top: 0.5rem;
+}
+
+.tuner-ramp > .tuner-check + .tuner-check {
+  margin-top: 0.25rem;
+}
+
+.tuner-ramp-ends label {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.63rem;
+  color: #6b6e66;
+}
+
+/* "at floor" was breaking across two lines and knocking the two ends out of
+   alignment with each other. */
+.tuner-ramp-ends label > span {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* The staging pair decides whether the tier is drawn at all, which is a
+   different kind of answer from the size ramp above it. Marked with the
+   accent so the two rows cannot be skim-read as one. */
+.tuner-ramp-stage label {
+  color: #a33d28;
+}
+
+.tuner-ramp-stage input {
+  border-color: rgba(163, 61, 40, 0.28);
+}
+
+.tuner-ramp-ends input {
+  width: 100%;
+  min-width: 0;
+  padding: 0.15rem 0.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tuner-layers {
+  max-height: 14rem;
+  overflow-y: auto;
+  margin-bottom: 0.6rem;
+}
+
+.tuner-layers label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.12rem 0;
+  font-size: 0.68rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #3f423c;
+  cursor: pointer;
+}
+
+.tuner-out {
+  max-height: 11rem;
+  margin: 0 0 0.6rem;
+  padding: 0.5rem;
+  overflow: auto;
+  background: rgba(33, 53, 40, 0.055);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.63rem;
+  line-height: 1.5;
+  white-space: pre;
+  color: #3f423c;
+}
+
+/* Per-tier paint row: swatch + hex + halo width, under the two size ends. */
+.tuner-ramp-paint {
+  margin-top: 0.35rem;
+}
+
+.tuner-ramp-paint input[type='text'] {
+  min-width: 0;
+  padding: 0.15rem 0.25rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.7);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.66rem;
+}
+
+.tuner-ramp-paint .tuner-swatch {
+  flex: none;
+  width: 1.4rem;
+  height: 1.4rem;
+  padding: 0;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: none;
+  cursor: pointer;
+}
+
+.tuner-tier-read {
+  margin: 0.25rem 0 0;
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  color: #8a8d85;
+}
+
+/* "This tab is not the shipped map." Loud on purpose and pinned to the top of
+   the tab body: the state it reports survives a reload, so it has to be the
+   first thing read, not something found by scrolling. */
+.tuner-drift {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+  padding: 0.45rem 0.5rem;
+  border: 1px solid #e0b6a6;
+  border-radius: 3px;
+  background: #fdf1ec;
+  font-size: 0.62rem;
+  line-height: 1.45;
+  color: #8f3520;
+}
+
+.tuner-drift strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.tuner-drift button {
+  flex: none;
+  padding: 0.2rem 0.45rem;
+  border: 1px solid #c98a72;
+  border-radius: 2px;
+  background: #fff;
+  font: inherit;
+  color: #8f3520;
+  cursor: pointer;
+}
+
+.tuner-drift button:hover {
+  background: #8f3520;
+  color: #fff;
+}
+
+/* A readout that is reporting a live consequence rather than describing a
+   setting — the bead/stroke overlap alpha. Marked because it only appears when
+   the map is doing the thing it warns about, and a reader has to be able to
+   tell that apart from the grey prose around it. */
+.tuner-tier-read.is-warn {
+  color: #b4472f;
+  border-left: 2px solid #e8c4b8;
+  padding-left: 0.4rem;
+}
+
+.tuner-tier-read.is-warn strong {
+  color: #8f3520;
+}
+
+/* Derived boxes and sliders are live but not YOURS: their value comes from the
+   stroke while `fuse` is on. Dimmed rather than removed so the number stays
+   readable and the reason stays visible. */
+.tuner-ramp-ends input:disabled,
+.tuner-slider input:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Layer rows carry an id, a type and two zoom boxes, so they need a grid
+   rather than the flat checkbox list they started as. */
+.tuner-layers.is-detailed {
+  max-height: 18rem;
+}
+
+.tuner-layer-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.1rem 0;
+}
+
+.tuner-layer-row > label {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0;
+}
+
+.tuner-layer-row > label > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tuner-layer-row em {
+  margin-left: 0.35rem;
+  font-family: var(--font-ui, system-ui, sans-serif);
+  font-size: 0.58rem;
+  font-style: normal;
+  color: #a3a69e;
+}
+
+.tuner-layer-z {
+  display: flex;
+  flex: none;
+  gap: 0.2rem;
+}
+
+.tuner-layer-z input {
+  width: 2.6rem;
+  padding: 0.1rem 0.2rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tuner-ramp-font {
+  flex: 2;
+}
+
+.tuner-ramp-font select {
+  width: 100%;
+  min-width: 0;
+  padding: 0.12rem 0.2rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 0.63rem;
+  cursor: pointer;
+}
+
+.tuner-rank {
+  margin-top: 0.4rem;
+}
+
+.tuner-layer-row em.is-ours {
+  margin-left: 0.25rem;
+  padding: 0 0.2rem;
+  background: rgba(207, 55, 32, 0.12);
+  color: #a8412b;
+}
+
+/* Group heading inside the TYPE and LAYERS lists. Fifteen label tiers in a
+   flat list is a wall; grouped, it reads like a legend. */
+.tuner-group {
+  margin: 0.9rem 0 0.15rem;
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8e9187;
+}
+
+.tuner-group em {
+  font-style: normal;
+  color: #b3b6ac;
+}
+
+/* The layer list a tier governs, printed on the row itself — "which layers is
+   this actually changing" is the question the old panel answered wrongly. */
+.tuner-ramp-name em {
+  display: block;
+  margin-top: 0.1rem;
+  font-style: normal;
+  font-size: 0.58rem;
+  line-height: 1.35;
+  color: #9a9d93;
+}
+
+.tuner-layer-sec {
+  display: contents;
+}
+
+/* The tier's own on/off. It sits on the row heading because a tier being off
+   is a fact about the tier, not about any one of its layers. */
+.tuner-ramp-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  cursor: pointer;
+}
+
+.tuner-ramp-head input {
+  margin-top: 0.15rem;
+  flex: none;
+}
+
+/* A tier whose layers carry per-layer overrides. Loud on purpose: this is the
+   state where the row above it is telling the truth and the map still does
+   something else. */
+.tuner-conflict {
+  margin: 0.3rem 0 0;
+  padding: 0.3rem 0.4rem;
+  background: rgba(207, 55, 32, 0.07);
+  border-left: 2px solid #cf3720;
+  font-size: 0.62rem;
+  line-height: 1.4;
+  color: #8a3520;
+}
+
+.tuner-conflict strong {
+  display: block;
+  color: #cf3720;
+}
+
+.tuner-conflict button {
+  margin-top: 0.15rem;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid rgba(207, 55, 32, 0.4);
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.8);
+  font: inherit;
+  font-size: 0.62rem;
+  color: #8a3520;
+  cursor: pointer;
+}
+
+/* The falloff preview. Three dots the size ramp really produces, drawn with a
+   CSS radial-gradient that matches MapLibre's own falloff: the fill is solid
+   out to (1 − blur) of the radius, then fades linearly to nothing. It is here
+   so that the cost of raising blur — the big dot and the small one converging
+   — is visible while you drag, not only after a reload. */
+.tuner-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.1rem 0 0.5rem;
+  padding: 0.5rem 0.6rem;
+  /* A tint of the map's own land, so the dots are judged against roughly the
+     ground they will sit on rather than against panel white. */
+  background: #f2f1ec;
+}
+
+.tuner-dot {
+  flex: none;
+  border-radius: 50%;
+}
+
+.tuner-dots em {
+  font-size: 0.6rem;
+  font-style: normal;
+  line-height: 1.35;
+  color: #8a8a8a;
+}
+
+.tuner-row code {
+  font-size: 0.62rem;
+  color: #8a8a8a;
+}
+
+/* Three numbers per row instead of the type tab's two, and the labels here are
+   longer ("k at z5.6"), so the row goes to a grid with the caption ABOVE its
+   field. Side by side, the input was squeezed to about three characters and
+   0.037 read as "0.0" — a control that lies about its own value. */
+.tuner-ramp-ends.is-dots {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+}
+
+.tuner-ramp-ends.is-dots label {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.12rem;
+}
+
+/* The floor row has two fields, not three. Without this it inherits the
+   three-column grid and both inputs sit at a third of the width for no
+   reason. */
+.tuner-ramp-ends.is-dots.is-two {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* The cap-style dropdown — the panel's only select, so it needs its own line
+   to stop the browser default from towering over the rest of the furniture. */
+.tuner-row select {
+  padding: 0.12rem 0.3rem;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 0.2rem;
+  background: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 0.63rem;
+  color: #3c3f38;
+}

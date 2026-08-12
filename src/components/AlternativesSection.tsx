@@ -9,6 +9,10 @@ const COST_MAX = 700
 const CO2_MAX = 70
 const COST_TICKS = [0, 200, 400, 600]
 const CO2_TICKS = [0, 20, 40, 60]
+/* Phone rows scale CO2 to the largest value instead of the desktop axis
+   ceiling — there is no second axis to keep aligned, and a bar may not
+   overflow a row the way the incineration column overflows the plot. */
+const CO2_ROW_MAX = 80
 
 const FAMILY_ORDER: AltFamily[] = ['containment', 'hybrid', 'treatment']
 
@@ -129,6 +133,41 @@ export default function AlternativesSection() {
               <div key={s.family} className={`alt-band-group is-${s.family}`} style={{ flex: s.count }}>
                 <i />
                 <span>{ALT_FAMILIES[s.family].title}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Phone variant: the same data as horizontal rows — names get a
+              full line, the values are printed instead of hovered, nothing
+              scrolls. Desktop keeps the Figma plot; CSS swaps the two. */}
+          <div className="alt-rows">
+            <p className="alt-rows-legend" aria-hidden="true">
+              <i className="is-cost" /> Cost <em>(US$ million)</em>
+              <i className="is-co2" /> CO₂ <em>(kilotonnes)</em>
+            </p>
+            {FAMILY_ORDER.map((f) => (
+              <div key={f} className={`alt-rowgroup is-${f}`}>
+                <h4>{ALT_FAMILIES[f].title}</h4>
+                {ALTERNATIVES.filter((a) => a.family === f).map((a) => (
+                  <div key={a.key} className={`alt-row${revealed ? (a.retained ? ' is-kept' : ' is-cut') : ''}`}>
+                    <p className="alt-row-name">
+                      {a.chartLines[0]}
+                      {a.chartLines[1] && <em> · {a.chartLines[1]}</em>}
+                    </p>
+                    <div className="alt-row-bars">
+                      <i className="is-cost" style={{ width: `${(a.costM / COST_MAX) * 100}%` }} />
+                      <span>${a.costM}M</span>
+                      <i className="is-co2" style={{ width: `${(a.co2Kt / CO2_ROW_MAX) * 100}%` }} />
+                      <span>{a.co2Kt} kt</span>
+                    </div>
+                    {revealed && (
+                      <p className="alt-row-note">
+                        <span aria-hidden="true">{a.retained ? '✓' : '✕'}</span>{' '}
+                        {a.retained ? ALTS.retainedLabel : a.screenNote}
+                      </p>
+                    )}
+                  </div>
+                ))}
               </div>
             ))}
           </div>

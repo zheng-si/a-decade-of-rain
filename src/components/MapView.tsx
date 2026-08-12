@@ -1,22 +1,116 @@
-import { useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { HOTSPOTS } from '../data/hotspots'
-import { loadSpray, dayToDate, type SprayDataset } from '../data/spray'
+import { loadSpray, dayToDate, dateToDay, type SprayDataset } from '../data/spray'
 import { mapConfig } from '../config/mapConfig'
-import Timeline from './Timeline'
+import Timeline, { buildVolume, type VolumeChart } from './Timeline'
+import ArchiveKey from './ArchiveKey'
 import { buildAgentChoices, type AgentChoice } from './agentChoices'
 import {
+  resolveMapStyle,
   applyMapTheme,
-  addSprayLayers,
-  setSprayTime,
-  setAgentVisibility,
   addHillshade,
   setHillshade,
+  addMilitaryRegions,
+  addIslandMarks,
 } from './mapTheme'
+import {
+  addVolumeLayers,
+  updateVolume,
+  agentIndexColors,
+  stampEventColors,
+  quietBasemap,
+  addVietnamLabel,
+  cellDegAt,
+  VOL_COARSE_LAYER,
+  VOL_FINE_LAYER,
+  VOL_RAW_LAYER,
+  VOL_COARSE_SOURCE,
+  VOL_FINE_SOURCE,
+  gridDegrees,
+  DOTS,
+} from './volumeGrid'
+import {
+  addTrackLayers,
+  TRACK_LAYER,
+  TRACK_DIM_LAYER,
+  TRACK_NIL_LAYER,
+  setTrackHover,
+  setTrackTaper,
+  setTrackTime,
+  setTrackAgents,
+  setTrackDraw,
+  setDrawProgress,
+  setDrawVisible,
+  setLayersVisible,
+} from './trackLayers'
+import { loadTracks, type TrackDataset } from '../data/tracks'
+import { binTracks, resetTrackGrid } from './trackGrid'
+import ArchiveInspect, {
+  fmtGallons,
+  type Inspect,
+  type CellInspect,
+} from './ArchiveInspect'
+import { applyLabelCuration } from './labelLayers'
+
+/** The tuner is a development instrument — a panel for choosing label faces,
+ *  dot sizes and zoom ranges, kept in the repo because the numbers it produces
+ *  are the ones committed into the style. Nobody reading the Story or the
+ *  Archive ever opens it, so it must not be in their download: `lazy` puts its
+ *  ~48 kB of JS and ~8 kB of CSS in a chunk that is fetched only when the gate
+ *  below opens.
+ *
+ *  The gate is written out here rather than imported from MapTuner, and that
+ *  is the whole trick: importing `tunerEnabled` would be a static import of
+ *  the module the lazy() is trying to split out, and rolldown would pull the
+ *  panel straight back into the entry chunk. Measured — the naive version cost
+ *  160 B in the entry and saved nothing. The duplication is four lines and it
+ *  is what makes the split real. */
+const MapTuner = lazy(() => import('./MapTuner'))
+
+function tunerEnabled(): boolean {
+  if (import.meta.env.DEV) return true
+  try {
+    return new URLSearchParams(window.location.search).has('tune')
+  } catch {
+    return false
+  }
+}
+
+/** The Archive draws no military regions. Named rather than deleted so the
+ *  decision is visible and reversible in one place; the Story still calls
+ *  addMilitaryRegions directly. */
+const SHOW_MILITARY_REGIONS = false
+// SPIKE — Archive UI v2 (Geist, no radii, no strokes, near-flat shadows).
+// Scoped under .map-wrap; delete both imports and the two files to revert.
+import '../fontsGeist.css'
+import '../ArchiveSkinV2.css'
+
+/**
+ * Draw the record as the lines it actually is.
+ *
+ * This was `?tracks=1` while the two encodings were being compared on one
+ * deploy. The comparison is settled and lives in docs/methods.md, so the flag
+ * is gone: the grids bin from the LINES, the near tier draws them, and there is
+ * no URL that turns that off.
+ *
+ * The flag had to go rather than merely default to on. Left reachable, it was a
+ * URL that makes the map put 58% of the volume in the wrong cell — and the one
+ * thing this project has learned over and over is that a switch nobody
+ * remembers is a switch that eventually gets flipped. The old reading is still
+ * reproducible, from scripts/analyse-binning.mjs, where it is labelled.
+ *
+ * The constant stays because ~30 call sites read it, and a named constant is
+ * where the decision is visible. TO REVERT: this file's `tracks` branch plus
+ * src/components/trackLayers.ts and src/data/tracks.ts.
+ */
+const TRACKS = true
 
 const SPRAY_SOURCE = 'spray'
 const DEM_SOURCE = 'terrain-dem'
+/** Relief strength: a whisper on the flat map, deeper once the map tilts. */
+const RELIEF_FLAT = 0.28
+const RELIEF_TILTED = 0.6
 
 // Target wall-clock duration for a full 1961→1971 play-through.
 const PLAY_DURATION_MS = 28_000
@@ -26,11 +120,263 @@ const PLAY_DURATION_MS = 28_000
 // what made playback drop the heatmap and lag on agent switches.
 const FILTER_STEP_DAYS = 12
 
+/** Whether the draw-on animation is wanted at all. Reads the shipped table
+ *  rather than a second flag, so the console owns it like every other track
+ *  parameter. */
+const TRACKS_DRAW = TRACKS
+
+const EMPTY_FC: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
+
+/**
+ * The runs that arrived in (lo, hi] — the ones a playback step has just added.
+ *
+ * A linear scan of 8,753 features, which is a rounding error next to the
+ * setData it feeds; the expensive thing about a GeoJSON source is handing
+ * MapLibre the result, and the result here is a few dozen lines.
+ *
+ * Isolated agents are filtered OUT rather than drawn grey, because a layer has
+ * one gradient and a gradient cannot ask which agent a stroke belongs to — the
+ * same constraint that forced the dim twin. The consequence is small and worth
+ * naming: with an agent isolated, the greyed runs land one step later than the
+ * selected ones instead of being drawn on.
+ */
+function arriving(
+  data: TrackDataset,
+  lo: number,
+  hi: number,
+  indices: number[] | null,
+): GeoJSON.FeatureCollection {
+  const sel = indices ? new Set(indices) : null
+  const features = data.lines.features.filter((f) => {
+    const p = f.properties as { day: number; agent: number; gpk: number }
+    if (p.day <= lo || p.day > hi) return false
+    if (p.gpk <= 0) return false
+    return !sel || sel.has(p.agent)
+  })
+  return { type: 'FeatureCollection', features }
+}
+
 const monthLabel = (day: number) =>
   dayToDate(day).toLocaleDateString('en-US', { year: 'numeric', month: 'short', timeZone: 'UTC' })
 
-/** Cumulative run count + gallons up to `day`, restricted to `indices`. */
+const dayLabel = (day: number) =>
+  dayToDate(day).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  })
+
+/** Full-record aggregates for one grid cell (ignores the playhead — the
+ *  inspect card tells the place's whole story). */
+function aggregateCell(
+  data: SprayDataset,
+  cx: number,
+  cy: number,
+  deg: number,
+): CellInspect {
+  const minX = cx - deg / 2
+  const maxX = cx + deg / 2
+  const minY = cy - deg / 2
+  const maxY = cy + deg / 2
+  let gallons = 0
+  let runs = 0
+  let missions = 0
+  let firstDay = Infinity
+  let lastDay = -Infinity
+  const byGroup = [0, 0, 0, 0]
+  const byYear = new Array(11).fill(0)
+  for (const f of data.features.features) {
+    const [lng, lat] = (f.geometry as GeoJSON.Point).coordinates
+    if (lng < minX || lng >= maxX || lat < minY || lat >= maxY) continue
+    const p = f.properties as { day: number; gallons: number; gi?: number }
+    runs++
+    if (p.gallons > 0) {
+      missions++
+      gallons += p.gallons
+      if (p.gi != null && p.gi >= 0) byGroup[p.gi] += p.gallons
+      const y = dayToDate(p.day).getUTCFullYear() - 1961
+      if (y >= 0 && y < 11) byYear[y] += p.gallons
+    }
+    if (p.day < firstDay) firstDay = p.day
+    if (p.day > lastDay) lastDay = p.day
+  }
+  return {
+    kind: 'cell',
+    center: [cx, cy],
+    cellKm: Math.round(deg * 111),
+    gallons,
+    runs,
+    missions,
+    firstDay,
+    lastDay,
+    byGroup,
+    byYear,
+  }
+}
+
+// ── F1 · URL as state ─────────────────────────────────────────────────────
+// /archive?t=1968-06-15&agent=O&cam=106.5,16.2,5.8&view=3d — every control's
+// position mirrors into the query string (debounced replaceState), so any view
+// can be bookmarked, shared, or deep-linked from the story.
+interface UrlState {
+  day?: number
+  agent?: string
+  cam?: { center: [number, number]; zoom: number }
+  is3D?: boolean
+}
+
+function readUrlState(): UrlState {
+  const q = new URLSearchParams(window.location.search)
+  const out: UrlState = {}
+  const t = q.get('t')
+  if (t && /^\d{4}-\d{2}-\d{2}$/.test(t)) out.day = dateToDay(t)
+  const agent = q.get('agent')
+  if (agent) out.agent = agent
+  const cam = (q.get('cam') ?? '').split(',').map(Number)
+  if (cam.length === 3 && cam.every(Number.isFinite))
+    out.cam = { center: [cam[0], cam[1]], zoom: cam[2] }
+  if (q.get('view') === '3d') out.is3D = true
+  return out
+}
+
+/** Serialise the current view; defaults (full record, all agents, home camera,
+ *  flat) are omitted so the canonical URL stays clean. */
+function buildSearch(
+  map: maplibregl.Map | null,
+  home: Home | null,
+  day: number,
+  dayMax: number,
+  agentKey: string,
+  is3D: boolean,
+): string {
+  const q = new URLSearchParams()
+  if (Math.round(day) < dayMax) q.set('t', dayToDate(day).toISOString().slice(0, 10))
+  if (agentKey !== 'all') q.set('agent', agentKey)
+  if (map) {
+    const c = map.getCenter()
+    // The home camera is viewport-derived, so "unmoved" has to be measured
+    // against the camera we actually applied — not against the fallback.
+    const h = home ?? { center: mapConfig.view.center, zoom: mapConfig.view.zoom }
+    const moved =
+      Math.abs(c.lng - h.center[0]) > 0.02 ||
+      Math.abs(c.lat - h.center[1]) > 0.02 ||
+      Math.abs(map.getZoom() - h.zoom) > 0.05
+    if (moved) q.set('cam', `${c.lng.toFixed(3)},${c.lat.toFixed(3)},${map.getZoom().toFixed(2)}`)
+  }
+  if (is3D) q.set('view', '3d')
+  return q.toString()
+}
+
+interface Home {
+  center: [number, number]
+  zoom: number
+}
+
+/**
+ * The camera that frames the record in THIS viewport.
+ *
+ * A fixed center/zoom cannot do this: the record's box is 6.0° wide by 9.4°
+ * tall, so a phone needs to pull out to ~z5.3 while a desktop can push in to
+ * ~z6.2 and still hold all of it. Deriving the camera also gives us an honest
+ * zoom floor — "as far out as the record needs" rather than a number someone
+ * once typed.
+ */
+function homeCamera(map: maplibregl.Map): Home {
+  const { recordBounds, center, zoom } = mapConfig.view
+  try {
+    const cam = map.cameraForBounds(recordBounds, { padding: fitPaddingFor(map) })
+    if (cam?.center && cam.zoom != null) {
+      const c = maplibregl.LngLat.convert(cam.center)
+      return { center: [c.lng, c.lat], zoom: cam.zoom }
+    }
+  } catch {
+    /* transform not ready — fall through to the declared fallback */
+  }
+  return { center, zoom }
+}
+
+/**
+ * Fit padding that accounts for the panel sitting on top of the map.
+ *
+ * `cameraForBounds` centres on the whole canvas, but the explorer panel covers
+ * the left ~450px of it — so a record centred on the canvas ends up tucked
+ * under the panel with empty sea to its right. Reserving the panel's width on
+ * the left centres the record in the part of the map the reader can actually
+ * see. Skipped once the panel takes more than half the width (narrow screens),
+ * where there is no clear area left to centre anything in.
+ */
+type Padding = { top: number; right: number; bottom: number; left: number }
+
+function fitPaddingFor(map: maplibregl.Map): Padding {
+  const pad = mapConfig.view.fitPadding
+  const box = { top: pad, bottom: pad, left: pad, right: pad }
+  const panel = document.querySelector('.explorer-panel')
+  if (!panel) return box
+  const w = panel.getBoundingClientRect().width
+  const canvas = map.getContainer().clientWidth
+  if (!w || !canvas || w > canvas * 0.5) return box
+  // 24px is the panel's own left offset; the rest is its width.
+  return { ...box, left: pad + w + 24 }
+}
+
+/** Is the camera still sitting where we put it? Used to decide whether a
+ *  viewport change may re-frame: re-framing is a correction when the reader
+ *  has not moved, and theft of their position when they have. */
+function isAtHome(map: maplibregl.Map, home: Home): boolean {
+  const c = map.getCenter()
+  return (
+    Math.abs(c.lng - home.center[0]) < 0.05 &&
+    Math.abs(c.lat - home.center[1]) < 0.05 &&
+    Math.abs(map.getZoom() - home.zoom) < 0.05
+  )
+}
+
+/** Enter/leave the tilted 3D terrain view (shared by the toggle button and the
+ *  URL restore, which applies it without the fly-in). */
+function applyView(map: maplibregl.Map, next: boolean, home: Home | null, animate = true) {
+  if (mapConfig.terrain && map.getSource(DEM_SOURCE)) {
+    map.setTerrain(
+      next ? { source: DEM_SOURCE, exaggeration: mapConfig.terrain.exaggeration } : null,
+    )
+    // The relief stays visible in BOTH views — it is the flat map's ground,
+    // not a 3D-only decoration. Toggling it off on the way back to flat is
+    // what made the shading disappear for good after one 3D round-trip.
+    // Only its strength changes: soft on the flat map, deeper under tilt.
+    setHillshade(map, true, next ? RELIEF_TILTED : RELIEF_FLAT)
+  }
+  // Tilt only. Entering 3D used to also force zoom 6.6 — "terrain reads
+  // better up close" — and THAT is what cut the bottom off the record: at
+  // z6.6 the frame's south edge sits at 9.27°N, well north of the delta tip
+  // and Cà Mau at 8.3°N, which is the densest sprayed ground on the map.
+  //
+  // The tilt itself was not the cause, which is the opposite of what it looks
+  // like. Pitch only ever ADDS ground coverage: measured on 1512×900 at the
+  // same z5.94, the south edge sits at 7.98°N flat, 7.06°N at 55°, and 5.62°N
+  // at 68°. Leaning the camera back shows more of the world, not less — so
+  // holding the home zoom through the toggle is the whole fix.
+  const pitch = next ? mapConfig.view.pitch3d : 0
+  if (home && isAtHome(map, home)) {
+    map.easeTo({ ...home, pitch, duration: animate ? 1000 : 0 })
+  } else {
+    // A reader who has gone somewhere keeps their place; only the tilt moves.
+    map.easeTo({ pitch, duration: animate ? 1000 : 0 })
+  }
+}
+
+/** Cumulative spray runs, track points and gallons up to `day`, restricted to
+ *  `indices`.
+ *
+ *  HERBS records a spray run as a LINE — leg 1A, 1B, 1C … — and books the run's
+ *  whole volume against 1A, so every later waypoint reads 0. That is why the
+ *  gallons-bearing records double as the run count: one non-zero row per run.
+ *
+ *  It undercounts slightly, and knowingly: 2,913 of the source's 11,273 runs
+ *  carry no volume anywhere, and with Mission/Run/Leg dropped by our ETL there
+ *  is nothing in spray.json to group by, so those runs cannot be counted at
+ *  all. Fixing that means re-running the ETL, not renaming a variable. */
 function cumulative(data: SprayDataset, day: number, indices: number[] | null) {
+  let missions = 0
   let runs = 0
   let gallons = 0
   const set = indices ? new Set(indices) : null
@@ -39,9 +385,12 @@ function cumulative(data: SprayDataset, day: number, indices: number[] | null) {
     if (p.day > day) continue // features are day-sorted, but cheap enough to scan
     if (set && !set.has(p.agent)) continue
     runs++
-    gallons += p.gallons
+    if (p.gallons > 0) {
+      missions++
+      gallons += p.gallons
+    }
   }
-  return { runs, gallons }
+  return { missions, runs, gallons }
 }
 
 export default function MapView() {
@@ -50,20 +399,84 @@ export default function MapView() {
   const dataRef = useRef<SprayDataset | null>(null)
 
   const [ready, setReady] = useState(false)
+  /** The basemap or the record failed to load. Deliberately NOT wired to
+   *  `ready`: on a style rejection mapRef.current is null, and both MapTuner
+   *  and Timeline take the map without null-checking it, so flipping `ready`
+   *  in a catch would trade a blank page for a crash. */
+  const [loadError, setLoadError] = useState(false)
   const [bounds, setBounds] = useState({ min: 0, max: 0 })
   const [choices, setChoices] = useState<AgentChoice[]>([])
   const [day, setDay] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [agentKey, setAgentKey] = useState('all')
   const [is3D, setIs3D] = useState(false)
-  const [stats, setStats] = useState({ runs: 0, gallons: 0 })
+  const [stats, setStats] = useState({ missions: 0, runs: 0, gallons: 0 })
+  const [volume, setVolume] = useState<VolumeChart | null>(null)
+  const [inspect, setInspect] = useState<Inspect | null>(null)
+  // Bumped on moveend so the URL mirror below sees camera changes.
+  const [camTick, setCamTick] = useState(0)
 
   // Throttle key for the map filter: only re-apply when the day-bucket or the
   // agent selection actually changes.
   const appliedKeyRef = useRef('')
 
   // Refs mirror state for the animation loop to avoid stale closures.
+  const homeRef = useRef<Home | null>(null)
+  const refitRef = useRef<((animate: boolean) => void) | null>(null)
+
+  // The first fit happens before the panel exists — Timeline renders it behind
+  // the `ready` gate — so the reserved left margin has nothing to measure yet.
+  // Re-fit once the chrome is up. A reader restored from a `cam` URL is not at
+  // home, so applyHome leaves them alone.
+  useEffect(() => {
+    if (ready) refitRef.current?.(false)
+  }, [ready])
+
+  const tracksRef = useRef<TrackDataset | null>(null)
+  /** Flips once the track file has landed. The day effect short-circuits on an
+   *  unchanged throttle key, so without a dep that changes when the tracks
+   *  arrive the grids would keep the point-binned data until the reader
+   *  happened to scrub — the same class of "correct code, never runs" bug the
+   *  tuner's once('idle') had. */
+  const [tracksReady, setTracksReady] = useState(false)
+  /** The grid tiers hold data for a day/agent that is no longer the current
+   *  one, because the reader was past the hand-off when it changed.
+   *
+   *  Binning the two grids is the expensive thing this component does — it
+   *  walks every segment of every run in sub-cell steps — and past the hand-off
+   *  it produces features for layers that draw nothing. Measured at z10.2 with
+   *  only the strokes on screen, one agent switch blocked the main thread for
+   *  639 ms in a single task and 1,425 ms in total, all of it for tiers with
+   *  zero rendered features. The tracks' own update is a filter and a paint
+   *  expression and costs nothing.
+   *
+   *  So the bin is skipped and this is set instead, and the zoom watcher below
+   *  spends it the moment the grids are the visible tier again. Skipping
+   *  without recording it would be the real bug: the reader would zoom out onto
+   *  a grid still showing the agent they had deselected. */
+  const gridsStaleRef = useRef(false)
+  /** The throttle key each grid TIER was last binned for, or '' if it was
+   *  skipped because it was off screen. Per tier rather than one flag, because
+   *  only one of the two is ever visible and binning the other is pure waste. */
+  const gridTierKeyRef = useRef<Record<string, string>>({})
+  /** The day the SETTLED track layers are filtered to. While playing it trails
+   *  the playhead by one step, and the gap is exactly what the drawing layer
+   *  holds. */
+  const settledDayRef = useRef(0)
+  /** Bumped to force the throttled day effect to run again after a zoom-out
+   *  has found the grids stale. */
+  const [gridEpoch, setGridEpoch] = useState(0)
+  /** Which run the highlight is on, from two sources with one output.
+   *
+   *  Hover is transient and click PINS, because otherwise the inspect card
+   *  names a run the map has stopped pointing at the moment the reader moves
+   *  the mouse to read it — the card would be about "this one" with no "this"
+   *  left on screen. Hover wins while it lasts, so the reader can still compare
+   *  a neighbour against the pinned run without losing it. */
+  const hoverRunRef = useRef<number | null>(null)
+  const pinnedRunRef = useRef<number | null>(null)
   const dayRef = useRef(0)
+  const colorsRef = useRef<string[] | null>(null)
   const playingRef = useRef(false)
   dayRef.current = day
   playingRef.current = playing
@@ -73,17 +486,13 @@ export default function MapView() {
     if (!containerRef.current || mapRef.current) return
     let cancelled = false
 
-    // Resolve the style: a plain URL, or — when a custom glyph endpoint is
-    // configured — the style JSON with its `glyphs` swapped to it.
-    async function resolveStyle(): Promise<string | maplibregl.StyleSpecification> {
-      if (!mapConfig.glyphsUrl) return mapConfig.baseStyleUrl
-      const resp = await fetch(mapConfig.baseStyleUrl)
-      const style = (await resp.json()) as maplibregl.StyleSpecification
-      style.glyphs = mapConfig.glyphsUrl
-      return style
+    const failed = (where: string) => (err: unknown) => {
+      if (cancelled) return
+      console.error(`archive map: ${where}`, err)
+      setLoadError(true)
     }
 
-    resolveStyle().then((style) => {
+    resolveMapStyle().then((style) => {
       if (cancelled || !containerRef.current) return
 
       const map = new maplibregl.Map({
@@ -98,17 +507,64 @@ export default function MapView() {
         attributionControl: { compact: true },
       })
       mapRef.current = map
+
+      // Re-frame on the record now that the container has a real size, and set
+      // the zoom floor from the same fit so "furthest out" means "the whole
+      // record" instead of a hard-coded 5.6 that clipped the Mekong delta on
+      // every laptop.
+      const applyHome = (animate: boolean) => {
+        const prev = homeRef.current
+        // The fit is computed either way, because the zoom FLOOR comes from it
+        // even when the opening camera does not. A chosen home that sits above
+        // the fit would otherwise take "pull out to the whole record" away.
+        const fit = homeCamera(map)
+        const next = mapConfig.view.archiveHome ?? fit
+        homeRef.current = next
+        map.setMinZoom(Math.min(next.zoom, fit.zoom) - mapConfig.view.minZoomMargin)
+        // Only re-frame a reader who has not gone anywhere.
+        if (prev && !isAtHome(map, prev)) return
+        if (animate) map.easeTo({ ...next, duration: 300 })
+        else map.jumpTo(next)
+      }
+      refitRef.current = applyHome
+      applyHome(false)
+
+      // A viewport change makes the old fit wrong, not stale — recompute it.
+      let resizeTimer = 0
+      map.on('resize', () => {
+        window.clearTimeout(resizeTimer)
+        resizeTimer = window.setTimeout(() => applyHome(true), 120)
+      })
       // bottom-right keeps the top-right clear for the site nav.
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
+      map.on('moveend', () => setCamTick((t) => t + 1))
 
+      // The two military-region files are fetched ONLY when they will be drawn.
+      // They used to sit in this Promise.all unconditionally, so every Archive
+      // load blocked its first paint on two round trips for a layer that
+      // SHOW_MILITARY_REGIONS has turned off — small files (5 KB and 0.5 KB),
+      // but two serial waits in front of the map for nothing at all.
+      // `r.ok` first — vercel.json rewrites unknown paths to index.html with a
+      // 200, so a renamed data file arrives as HTML and dies inside the parser
+      // with a SyntaxError naming neither the file nor the status.
+      const asset = (f: string) =>
+        fetch(`${import.meta.env.BASE_URL}${f}`).then((r) => {
+          if (!r.ok) throw new Error(`${f}: HTTP ${r.status}`)
+          return r.json()
+        })
       Promise.all([
         loadSpray(),
+        SHOW_MILITARY_REGIONS ? asset('data/military-region-dividers.geojson') : null,
+        SHOW_MILITARY_REGIONS ? asset('data/military-region-labels.geojson') : null,
         new Promise<void>((resolve) => map.once('load', () => resolve())),
-      ]).then(([spray]) => {
+      ]).then(([spray, mrGeo, mrLabelsGeo]) => {
         if (!mapRef.current) return
         dataRef.current = spray
 
+        // Same cartography as the story: theme recolour + curated labels.
         applyMapTheme(map)
+        applyLabelCuration(map)
+        quietBasemap(map)
 
         // DEM source + hillshade for the 3D terrain (enabled on toggle).
         if (mapConfig.terrain && !map.getSource(DEM_SOURCE)) {
@@ -120,30 +576,250 @@ export default function MapView() {
             maxzoom: 15,
           })
           addHillshade(map, DEM_SOURCE)
+          // CF-style ground: soft relief always on, not just in the 3D view.
+          setHillshade(map, true, RELIEF_FLAT)
         }
 
         const agentChoices = buildAgentChoices(spray.agents)
+        // M2: gridded proportional symbols replace the heatmap — one
+        // representational language (the dot) at every zoom, only the
+        // aggregation cell size changes (docs/explorer-m2-plan.md).
+        const colors = agentIndexColors(spray)
+        colorsRef.current = colors
+        const groups = agentChoices.filter((c) => c.indices && c.color)
+        const groupOf: number[] = []
+        groups.forEach((g, gi) => (g.indices as number[]).forEach((ai) => (groupOf[ai] = gi)))
+        const groupLabels = groups.map((g) => g.label)
+        stampEventColors(spray, colors, groupOf)
         map.addSource(SPRAY_SOURCE, { type: 'geojson', data: spray.features })
-        addSprayLayers(map, SPRAY_SOURCE, agentChoices, spray.dayMax)
+        const bottomLayer = addVolumeLayers(map, SPRAY_SOURCE)
+        // The lines go in alongside the dots and one of the two is hidden, so
+        // switching is a visibility change and both are always in a state the
+        // other can be compared against.
+        if (TRACKS) {
+          loadTracks(colors, groupOf)
+            .then((t) => {
+              tracksRef.current = t
+              addTrackLayers(map, t, dayRef.current, DOTS.tint)
+              // Only the RAW dot tier steps aside — the two grid tiers keep
+              // their dots and get re-binned from the lines below, so the
+              // aggregate views gain the corrected geography without losing
+              // the mark that suits an aggregate.
+              setLayersVisible(map, [VOL_RAW_LAYER], false)
+              setTracksReady(true)
+            })
+            .catch((e) => console.error('tracks failed to load', e))
+        }
+        // The one country label positron cannot place for itself (see
+        // addVietnamLabel). Must follow the circles to draw above them, and
+        // stays under the basemap's labels so it never costs a city its name.
+        // The Story calls this too now, for the same collision.
+        addVietnamLabel(map)
+
+        // ── M3 · hover + click ────────────────────────────────────────────
+        // One tooltip follows the pointer over any symbol tier; clicking a
+        // grid dot opens the cell's full-record inspect card, clicking a raw
+        // event shows that single run. Empty clicks dismiss the card.
+        const volLayers = [VOL_COARSE_LAYER, VOL_FINE_LAYER, VOL_RAW_LAYER]
+        const hover = new maplibregl.Popup({
+          closeButton: false,
+          closeOnClick: false,
+          className: 'adr-popup adr-hover',
+          offset: 12,
+          maxWidth: '250px',
+        })
+        // The tracks are the mark the reader spends most of their time on now,
+        // and until this they were the only mark on the map that answered
+        // nothing when you pointed at it — the dots had a tooltip and a card
+        // and the strokes had neither. Queried FIRST, because in their band the
+        // grid tiers are already out and the raw dots are hidden, so anything
+        // else under the pointer is the basemap.
+        const trackLayers = () =>
+          [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER].filter((id) => map.getLayer(id))
+        /** The run under the pointer, or null. Also the one place that knows a
+         *  run is only pickable where it is actually drawn. */
+        const trackAt = (pt: maplibregl.PointLike) => {
+          const ids = trackLayers()
+          if (!ids.length) return null
+          // The playhead is a paint gate now, not a filter (see trackLayers),
+          // and queryRenderedFeatures honours filters but not opacity — so
+          // without this the reader could hover a run that has not happened yet
+          // and read a 1970 date off a map showing 1963. Take the first hit
+          // that the playhead has actually reached.
+          for (const f of map.queryRenderedFeatures(pt, { layers: ids })) {
+            const p = f.properties as Record<string, number>
+            if (p.day <= dayRef.current) return f as unknown as maplibregl.MapGeoJSONFeature
+          }
+          return null
+        }
+        /** One writer for the highlight, fed by both sources.
+         *
+         *  It passes the run out of the LOADED dataset rather than the feature
+         *  the hit test returned: queryRenderedFeatures hands back tile-clipped
+         *  geometry, and a run cut by a tile boundary would light up in pieces.
+         *  `generateId` numbers features in source order, so the rendered id is
+         *  the index here — verified on the running page. */
+        const paintHover = () => {
+          const id = hoverRunRef.current ?? pinnedRunRef.current
+          setTrackHover(map, id, id != null ? tracksRef.current?.lines.features[id] : null)
+        }
+        map.on('mousemove', (e) => {
+          const t = trackAt(e.point)
+          if (t) {
+            const p = t.properties as Record<string, number>
+            hoverRunRef.current = typeof t.id === 'number' ? t.id : null
+            paintHover()
+            map.getCanvas().style.cursor = 'pointer'
+            hover
+              .setLngLat(e.lngLat)
+              .setHTML(
+                // The cell tooltip's grammar exactly: TWO figures on the bold
+                // line, then one line of context. It had three lines with the
+                // dose on its own, which made the same kind of object read as a
+                // different kind of tooltip. The two figures are the two things
+                // the stroke encodes — its colour and its width.
+                `<strong>${
+                  p.gallons > 0
+                    ? `<span class="n">${fmtGallons(p.gallons)}</span> Gallons<span class="gap"></span><span class="n">${Math.round(p.gpk).toLocaleString()}</span> Gal/km`
+                    : 'No Volume Logged'
+                }</strong>` +
+                  `<span>${groupLabels[p.gi] ?? 'Unknown'} · ${dayLabel(p.day)} · ${p.km.toFixed(1)} km</span>`,
+              )
+              .addTo(map)
+            return
+          }
+          hoverRunRef.current = null
+          paintHover()
+          const feats = map.queryRenderedFeatures(e.point, { layers: volLayers })
+          if (!feats.length) {
+            hover.remove()
+            map.getCanvas().style.cursor = ''
+            return
+          }
+          map.getCanvas().style.cursor = 'pointer'
+          const p = feats[0].properties as Record<string, number>
+          let html: string
+          if (p.gt != null) {
+            html =
+              `<strong><span class="n">${fmtGallons(p.gt)}</span> Gallons<span class="gap"></span><span class="n">${p.rt.toLocaleString()}</span> Runs</strong>` +
+              `<span>Mostly ${groupLabels[p.dom] ?? '?'} · ${monthLabel(p.d0)} – ${monthLabel(p.d1)}</span>`
+          } else {
+            html =
+              `<strong>${p.gallons > 0 ? `<span class="n">${fmtGallons(p.gallons)}</span> Gallons` : 'Continuation Leg'}</strong>` +
+              `<span>${groupLabels[p.gi] ?? 'Unknown'} · ${dayLabel(p.day)}</span>`
+          }
+          hover.setLngLat(e.lngLat).setHTML(html).addTo(map)
+        })
+        // The pointer leaving the canvas has to clear both, or the last run the
+        // reader passed over stays lit while they are looking somewhere else.
+        map.on('mouseout', () => {
+          hover.remove()
+          map.getCanvas().style.cursor = ''
+          hoverRunRef.current = null
+          paintHover()
+        })
+        map.on('click', (e) => {
+          const t = trackAt(e.point)
+          if (t) {
+            const p = t.properties as Record<string, number>
+            pinnedRunRef.current = typeof t.id === 'number' ? t.id : null
+            paintHover()
+            setInspect({
+              kind: 'run',
+              // Unused by the track card — a line has no single position — but
+              // the shape wants it, and the click point is the honest answer to
+              // "where did you point".
+              coords: [e.lngLat.lng, e.lngLat.lat],
+              day: p.day,
+              groupIndex: p.gi ?? -1,
+              gallons: p.gallons,
+              km: p.km,
+              gpk: p.gpk,
+            })
+            return
+          }
+          // Any other click changes what the card is about, so the pin goes
+          // with it — a pinned stroke under a cell card points at the wrong
+          // subject.
+          pinnedRunRef.current = null
+          paintHover()
+          const feats = map.queryRenderedFeatures(e.point, { layers: volLayers })
+          if (!feats.length) {
+            setInspect(null)
+            return
+          }
+          const f = feats[0]
+          const p = f.properties as Record<string, number>
+          const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number]
+          if (p.gt != null) {
+            const deg = cellDegAt(map.getZoom()) ?? 0.03
+            if (dataRef.current) {
+              const cell = aggregateCell(dataRef.current, coords[0], coords[1], deg)
+              // Prefer the counts the FEATURE carries. binTracks measured them
+              // by walking the lines; aggregateCell can only count run starts.
+              // Only the line-binned grids have them, so the card falls back
+              // rather than inventing a number the point data cannot support.
+              setInspect(
+                p.nt != null
+                  ? // The headline gallons come from the feature too, so the
+                    // three numbers on the card share one denominator. Left as
+                    // they were, the card read "20K Gallons · 79 Sprayings"
+                    // where the 20K was the gallons of runs STARTING in the
+                    // cell and the 79 was runs CROSSING it — two different
+                    // cells' worth of arithmetic printed side by side.
+                    {
+                      ...cell,
+                      gallons: p.gt,
+                      crossings: p.nt,
+                      days: p.dt,
+                      byGroup: [p.b0, p.b1, p.b2, p.b3],
+                      ...(p.ld != null ? { load: p.ld } : {}),
+                    }
+                  : cell,
+              )
+            }
+          } else {
+            setInspect({
+              kind: 'run',
+              coords,
+              day: p.day,
+              groupIndex: p.gi ?? -1,
+              gallons: p.gallons,
+            })
+          }
+        })
+
+        // The military regions are OFF on the Archive — borders and tags both.
+        // The record's own geography carries this map; four administrative
+        // zones drawn over it were a second division competing with the one
+        // the reader came for. The Story still draws them, where they are
+        // narrated rather than ambient, so the function stays.
+        if (SHOW_MILITARY_REGIONS) addMilitaryRegions(map, mrGeo, mrLabelsGeo, bottomLayer)
+        addIslandMarks(map)
 
         setChoices(agentChoices)
         setBounds({ min: spray.dayMin, max: spray.dayMax })
-        setDay(spray.dayMax) // start showing the full record
-        setReady(true)
-      })
+        setVolume(buildVolume(spray, agentChoices))
 
-      HOTSPOTS.forEach((h) => {
-        const popup = new maplibregl.Popup({ offset: 14, closeButton: false }).setHTML(
-          `<strong>${h.name}</strong><br/><span style="font-size:12px;color:#555">${h.note}</span>`,
+        // Restore a deep-linked view, else start showing the full record.
+        const urlState = readUrlState()
+        if (urlState.cam) map.jumpTo({ center: urlState.cam.center, zoom: urlState.cam.zoom })
+        if (urlState.agent && agentChoices.some((c) => c.key === urlState.agent))
+          setAgentKey(urlState.agent)
+        setDay(
+          urlState.day != null
+            ? Math.min(Math.max(urlState.day, spray.dayMin), spray.dayMax)
+            : spray.dayMax,
         )
-        const el = document.createElement('div')
-        el.className = 'hotspot-marker'
-        new maplibregl.Marker({ element: el })
-          .setLngLat([h.lng, h.lat])
-          .setPopup(popup)
-          .addTo(map)
-      })
-    })
+        if (urlState.is3D) {
+          setIs3D(true)
+          applyView(map, true, homeRef.current, false)
+        }
+        setReady(true)
+      }, failed('the record failed to load'))
+
+      // Hotspot ring markers retired — the volume symbols carry the story.
+    }, failed('the basemap failed to load'))
 
     return () => {
       cancelled = true
@@ -160,44 +836,220 @@ export default function MapView() {
     const map = mapRef.current
     if (!ready || !map) return
     const atEnd = day >= bounds.max
-    const key = `${Math.floor(day / FILTER_STEP_DAYS)}|${agentKey}|${atEnd}`
+    const key = `${Math.floor(day / FILTER_STEP_DAYS)}|${agentKey}|${atEnd}|${tracksReady}|${gridEpoch}`
     if (key === appliedKeyRef.current) return
     appliedKeyRef.current = key
-    setSprayTime(map, choices, day)
-    if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
-  }, [ready, day, agentKey, activeIndices, choices, bounds.max])
+    // Are the grid tiers the encoding on screen? Asked of the track layer's own
+    // minzoom rather than of Z_NEAR, so that moving the hand-off from the
+    // console moves this with it — the key already learned that lesson.
+    const trackLayer = TRACKS ? map.getLayer(TRACK_LAYER) : null
+    const gridsOn = !trackLayer || map.getZoom() < (trackLayer.minzoom ?? 0)
 
-  // Toggle which agent layers are visible.
+    if (gridsOn) {
+      // updateVolume ONLY when the point bins are what the grids will show.
+      //
+      // Under TRACKS every one of its outputs is thrown away: it writes
+      // point-binned features into the same two sources the track/load binning
+      // overwrites two statements later, and its third tier — vol-raw — is
+      // hidden at setup because the strokes replace it.
+      //
+      // Thrown away, but not for free, and not invisibly. Two setData calls
+      // land on one source per step, MapLibre parses GeoJSON in a worker, and
+      // the first payload can reach the screen before the second replaces it.
+      // In the Residue reading the two payloads are wildly different sizes —
+      // a decade of cumulative point bins against a decayed field — so the
+      // map flickered through the whole of playback. Measured over 59 frames:
+      // 21 frame-to-frame swings of more than 200 features, worst 500, the
+      // count oscillating between 451 and 1,077.
+      if (!TRACKS && dataRef.current)
+        updateVolume(map, dataRef.current, day, activeIndices, choices.find((c) => c.key === agentKey)?.color ?? null)
+      // The grids are re-binned from the TRACKS, so a run's gallons land in
+      // every cell it crossed. Same feature shape as binGrid, same layers.
+      if (TRACKS && tracksRef.current) {
+        const c = choices.find((x) => x.key === agentKey)?.color ?? DOTS.tint
+        const deg = gridDegrees()
+        // Bin the tier that is ON SCREEN, not both. Only one of the two grid
+        // tiers is ever drawn, and a full bin of the fine grid costs 43 ms — so
+        // the opening view at z5.94, which draws the coarse tier alone, was
+        // paying for a fine grid nobody could see on every agent switch and
+        // every playhead step. A skipped tier is recorded as stale and re-binned
+        // by the zoom watcher below the moment it becomes the visible one.
+        const z = map.getZoom()
+        const binTier = (layer: string, source: string, cellDeg: number) => {
+          const l = map.getLayer(layer)
+          const on = !!l && z >= (l.minzoom ?? 0) && z < (l.maxzoom ?? 24)
+          if (!on) { gridTierKeyRef.current[layer] = ''; return }
+          if (gridTierKeyRef.current[layer] === key) return
+          gridTierKeyRef.current[layer] = key
+          const src = map.getSource(source) as maplibregl.GeoJSONSource | undefined
+          src?.setData(binTracks(tracksRef.current!, day, activeIndices, cellDeg, c))
+        }
+        binTier(VOL_COARSE_LAYER, VOL_COARSE_SOURCE, deg.coarse)
+        binTier(VOL_FINE_LAYER, VOL_FINE_SOURCE, deg.fine)
+      }
+      gridsStaleRef.current = false
+    } else {
+      gridsStaleRef.current = true
+    }
+
+    // The track LAYERS need no re-bin — the playhead is a filter and the
+    // selection is a paint expression — so they update at every zoom, whether
+    // or not the grids were spent on.
+    if (TRACKS && tracksRef.current) {
+      // Playing: hold the settled record one step back and hand the runs that
+      // arrived in this step to the drawing layer, which the rAF loop wipes in.
+      // The settled filter therefore lags by one step — about 92 ms of
+      // playback — which is the whole reason a run can be seen to arrive at
+      // all rather than appearing complete.
+      const lo = settledDayRef.current
+      const playingNow = playingRef.current && TRACKS_DRAW
+      if (playingNow && lo < day) {
+        setTrackTime(map, lo)
+        setTrackDraw(map, arriving(tracksRef.current, lo, day, activeIndices))
+        setDrawProgress(map, 0)
+        setDrawVisible(map, true)
+      } else {
+        setTrackTime(map, day)
+        setTrackDraw(map, EMPTY_FC)
+        setDrawVisible(map, false)
+      }
+      settledDayRef.current = day
+      setTrackAgents(
+        map,
+        activeIndices,
+        choices.find((c) => c.key === agentKey)?.color ?? DOTS.tint,
+        DOTS.dim,
+      )
+    }
+    if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
+  }, [ready, day, agentKey, activeIndices, choices, bounds.max, tracksReady, gridEpoch])
+
+  // Spend the skipped bin the moment the grids become the visible tier again.
+  // Without this the reader zooms out of the track band onto a grid still
+  // binned for the agent or the day they left behind — a stale map is a worse
+  // failure than a slow one, which is why the skip above has to be recorded.
   useEffect(() => {
     const map = mapRef.current
-    if (!ready || !map) return
-    setAgentVisibility(map, choices, agentKey)
-  }, [ready, agentKey, choices])
+    if (!ready || !map || !TRACKS) return
+    const check = () => {
+      const z = map.getZoom()
+      const track = map.getLayer(TRACK_LAYER)
+      const tracksOn = !!track && z >= (track.minzoom ?? 0)
+      // A tier that is visible and was never binned for the current playhead —
+      // either because the tracks owned the screen, or because it was the other
+      // tier — has to be caught up before the reader sees it.
+      const stale = [VOL_COARSE_LAYER, VOL_FINE_LAYER].some((id) => {
+        const l = map.getLayer(id)
+        if (!l || z < (l.minzoom ?? 0) || z >= (l.maxzoom ?? 24)) return false
+        return gridTierKeyRef.current[id] !== appliedKeyRef.current
+      })
+      if (!tracksOn && !stale && !gridsStaleRef.current) return
+      if (tracksOn) return
+      gridsStaleRef.current = false
+      appliedKeyRef.current = ''
+      setGridEpoch((n) => n + 1)
+    }
+    map.on('zoomend', check)
+    return () => {
+      map.off('zoomend', check)
+    }
+  }, [ready])
 
-  // Animation loop: advance the playhead in real time while playing.
+  // Lets the tuner force a re-bin after changing something the bins bake in —
+  // a cell size, or either of the two dot colours. The effect above
+  // short-circuits on an unchanged throttle key, so clearing the key is the
+  // whole trick.
+  const regrid = useCallback(() => {
+    const map = mapRef.current
+    if (!map || !dataRef.current) return
+    appliedKeyRef.current = ''
+    // The console can change the cell size and both dot colours, and the
+    // accumulated bins are keyed on exactly those. Throwing them away here is
+    // what keeps "resumable" from meaning "stale": one owner clears the cache,
+    // and it is the one that changed the thing the cache is keyed on.
+    resetTrackGrid()
+    gridTierKeyRef.current = {}
+    // Clearing the key is what actually re-bins — the day effect runs next and
+    // picks whichever binning the current reading calls for. This direct call
+    // is the point-bin path only, and under TRACKS it is the same discarded
+    // write that made playback flicker, so it is gated the same way.
+    if (!TRACKS)
+      updateVolume(
+        map,
+        dataRef.current,
+        day,
+        activeIndices,
+        choices.find((c) => c.key === agentKey)?.color ?? null,
+      )
+    else setGridEpoch((n) => n + 1)
+  }, [day, activeIndices, choices, agentKey])
+
+  // Agent selection re-bins the grids and re-filters the raw tier (the
+  // throttle key includes agentKey, so the day effect above handles it).
+
+  // Animation loop: advance the playhead in real time while playing. The loop
+  // tracks the playhead in a local — the first frame can fire before React
+  // re-renders, so an end-of-record restart read via dayRef would still see
+  // the old end value and stop the playback dead on its first tick.
+  // The taper is a line-gradient, and a line-gradient is a 256-step colour ramp
+  // MapLibre re-renders per tile whenever the layer changes — which during
+  // playback is every playhead step. Profiled at z9: median frame 733ms with it
+  // against 250ms without, on the same data. So it is suspended while the
+  // playhead moves and restored when it stops. Its own effect, not a line
+  // inside the rAF setup, so a pause caused by anything at all restores it.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map || !TRACKS) return
+    setTrackTaper(map, !playing)
+  }, [ready, playing, tracksReady])
+
   useEffect(() => {
     if (!playing) return
     let frame = 0
     let prev = performance.now()
     const span = bounds.max - bounds.min
     // If we're at (or past) the end, restart from the beginning.
-    if (dayRef.current >= bounds.max) setDay(bounds.min)
+    let cur = dayRef.current >= bounds.max ? bounds.min : dayRef.current
+    if (cur !== dayRef.current) setDay(cur)
 
     const tick = (now: number) => {
       const dt = now - prev
       prev = now
-      const next = dayRef.current + (span * dt) / PLAY_DURATION_MS
+      const next = cur + (span * dt) / PLAY_DURATION_MS
       if (next >= bounds.max) {
         setDay(bounds.max)
         setPlaying(false)
         return
       }
+      cur = next
       setDay(next)
+      // Advance the drawing front. The wipe is driven by where the playhead
+      // sits INSIDE its own filter step, not by a clock, so it finishes exactly
+      // as the next step replaces it and can never queue up behind playback.
+      // The write lands on the drawing layer's own small source — the record's
+      // 8,753 lines are not touched by this.
+      const m = mapRef.current
+      if (m && TRACKS_DRAW) {
+        const q = (next - settledDayRef.current) / FILTER_STEP_DAYS
+        setDrawProgress(m, q < 0 ? 0 : q > 1 ? 1 : q)
+      }
       frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(frame)
   }, [playing, bounds.min, bounds.max])
+
+  // Stopping mid-step would leave the last few runs half-drawn for good, so
+  // pausing settles them: the drawing layer empties and the record's own filter
+  // catches up to the playhead.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !TRACKS_DRAW || playing || !tracksReady) return
+    setTrackTime(map, dayRef.current)
+    setTrackDraw(map, EMPTY_FC)
+    setDrawVisible(map, false)
+    settledDayRef.current = dayRef.current
+  }, [playing, tracksReady])
 
   // Switch between flat (top-down) and tilted 3D terrain.
   function toggleView() {
@@ -205,28 +1057,65 @@ export default function MapView() {
     if (!map) return
     const next = !is3D
     setIs3D(next)
-    if (mapConfig.terrain && map.getSource(DEM_SOURCE)) {
-      map.setTerrain(
-        next ? { source: DEM_SOURCE, exaggeration: mapConfig.terrain.exaggeration } : null,
-      )
-      setHillshade(map, next) // shaded relief makes the elevation visible
-    }
-    // Tilt; when entering 3D also zoom in a touch — terrain reads as 3D far
-    // better up close than at the full-country overview.
-    map.easeTo({
-      pitch: next ? mapConfig.view.pitch3d : 0,
-      ...(next && map.getZoom() < 6.6 ? { zoom: 6.6 } : {}),
-      duration: 1000,
-    })
+    applyView(map, next, homeRef.current)
   }
+
+  // Mirror the current view into the query string, debounced. During playback
+  // the timer keeps postponing, so the URL settles when the playhead does.
+  useEffect(() => {
+    if (!ready) return
+    const id = window.setTimeout(() => {
+      const search = buildSearch(mapRef.current, homeRef.current, day, bounds.max, agentKey, is3D)
+      window.history.replaceState(null, '', `${window.location.pathname}${search ? `?${search}` : ''}`)
+    }, 300)
+    return () => window.clearTimeout(id)
+  }, [ready, day, agentKey, is3D, camTick, bounds.max])
 
   return (
     <div className="map-wrap">
       <div ref={containerRef} className="map-root" />
+      {/* The Archive IS the map — there is no prose to fall back to — so when
+          the basemap or the record cannot be fetched, saying so is the whole
+          of what this surface can still do. Rendered outside the `ready` gate
+          on purpose: `ready` mounts chrome that reads the map, and on a style
+          rejection there is no map to read. */}
+      {loadError && (
+        <p className="map-load-error" role="status">
+          The archive could not be loaded. Please try again.
+        </p>
+      )}
       {ready && (
-        <button className="view-toggle" onClick={toggleView}>
-          {is3D ? '▦ Flat view' : '⛰ 3D view'}
-        </button>
+        <ArchiveKey
+          map={mapRef.current}
+          ready={ready}
+          is3D={is3D}
+          onToggle3D={toggleView}
+          tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
+          filtered={agentKey !== 'all'}
+          tracks={TRACKS}
+        >
+          {inspect && (
+            <ArchiveInspect
+              data={inspect}
+              groups={choices
+                .filter((c) => c.indices && c.color)
+                .map((c) => ({ label: c.label, color: c.color! }))}
+              onClose={() => {
+                setInspect(null)
+                pinnedRunRef.current = null
+                if (mapRef.current) setTrackHover(mapRef.current, hoverRunRef.current)
+              }}
+            />
+          )}
+        </ArchiveKey>
+      )}
+      {/* Mounted only when the gate is open — dev, or ?tune on the URL. A
+          reader on the live site never evaluates this branch, so the chunk is
+          never requested and the fallback never shows. */}
+      {ready && tunerEnabled() && (
+        <Suspense fallback={null}>
+          <MapTuner map={mapRef.current} onRegrid={regrid} />
+        </Suspense>
       )}
       {ready && (
         <Timeline
@@ -235,15 +1124,22 @@ export default function MapView() {
           dayMax={bounds.max}
           playing={playing}
           dateLabel={monthLabel(day)}
-          runCount={stats.runs}
+          missionCount={stats.missions}
           gallons={stats.gallons}
           agentChoices={choices}
           activeAgentKey={agentKey}
+          volume={volume}
+          tracks={TRACKS}
           onScrub={(d) => {
             setPlaying(false)
             setDay(d)
           }}
-          onTogglePlay={() => setPlaying((p) => !p)}
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onReset={() => {
+            setPlaying(false)
+            setDay(bounds.min)
+          }}
           onSelectAgent={setAgentKey}
         />
       )}

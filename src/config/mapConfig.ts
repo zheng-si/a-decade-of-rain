@@ -61,7 +61,32 @@ export interface MapConfig {
   view: {
     center: [number, number]
     zoom: number
-    /** Furthest zoom-OUT allowed (the locked overview of Vietnam). */
+    /**
+     * The subject's own extent. The explorer derives its home camera and its
+     * zoom floor from THIS, per viewport, rather than trusting the fixed
+     * center/zoom above — a single number cannot frame the same ground on a
+     * phone and on a 27" display.
+     */
+    recordBounds: [[number, number], [number, number]]
+    /**
+     * The Archive's opening camera, chosen rather than fitted. Omit to let the
+     * explorer frame `recordBounds` itself.
+     *
+     * The fit answers "show me everything" and this answers "start me here",
+     * and they are not the same question — the fit centres the record's
+     * bounding box, which puts the eye on empty ground between the northern
+     * tail and the delta rather than on the Zone D / Iron Triangle mass where
+     * the record is densest. The cost is that one number cannot frame the same
+     * ground on a phone and a 27", which is exactly what the fit existed to
+     * fix; the zoom FLOOR is still derived from the fit, so a reader on a small
+     * screen can always pull out to the whole record.
+     */
+    archiveHome?: { center: [number, number]; zoom: number }
+    /** Screen padding (px) left around `recordBounds` when fitting. */
+    fitPadding: number
+    /** How far below the fitted zoom the reader may still pull out. */
+    minZoomMargin: number
+    /** Fallback zoom floor, used only if the fit cannot be computed. */
     minZoom: number
     /** Furthest zoom-IN allowed. */
     maxZoom: number
@@ -90,27 +115,134 @@ export interface MapConfig {
   }
 }
 
+/**
+ * The map-label face — one name, used by every text layer on both maps.
+ *
+ * Condensed is a deliberate choice, not a style preference: Vietnamese place
+ * names run long ("Buôn Ma Thuột", "Bà Rịa – Vũng Tàu"), and a narrower face
+ * fits more of them on screen before MapLibre's collision detection starts
+ * dropping names outright. It covers Vietnamese natively, so a name renders in
+ * one face instead of being half-composited from the Noto fallback.
+ *
+ * Must match a self-hosted glyph stack under public/fonts/ — see
+ * scripts/build-glyphs.mjs. A name with no stack on disk does not fall back;
+ * every label on the map disappears.
+ */
+export const LABEL_FONT = 'Roboto Condensed'
+
+/**
+ * The map's only two hand-off zooms.
+ *
+ * Everything that changes with zoom — which data tier is drawn, which label
+ * tiers are visible, which of our own annotations survive — is pinned to one
+ * of these two numbers. The explorer used to have five thresholds (6.4 / 7.0 /
+ * 8.5 / 9.0 / 9.2) packed into 2.8 zoom levels, so one scroll of the wheel
+ * could trip three separate reflows. One coordinated change reads as the map
+ * shifting gear; three unaligned ones read as twitching.
+ *
+ *   Z_MID   coarse grid → fine grid · country name out
+ *   Z_NEAR  fine grid → raw events  · military-region tags out
+ *
+ * Z_MID used to bring town names in as well. Towns are hidden outright now, so
+ * that half of its job is gone — the comment says so rather than describing a
+ * map we stopped drawing.
+ *
+ * Z_MID is 7 rather than 6.5 because of what the fine cell measures when it
+ * arrives: 0.03° is 3.3 km, which is 3.9 px at z6.5 and 5.5 px at z7. Opening
+ * the fine tier below ~5 px means its cells merge on arrival, which is the
+ * thing the coarse tier exists to avoid.
+ *
+ * They live here rather than in volumeGrid because mapTheme needs them too,
+ * and volumeGrid already imports from mapTheme — the other direction would
+ * close an import cycle.
+ */
+export const Z_MID = 7
+/** Where the grid hands off to the TRACKS.
+ *
+ *  10.5 first, which left the deepest tier half a zoom level of life before the
+ *  ceiling at 11 — a reader who zoomed all the way in was almost always still
+ *  looking at the fine GRID and concluding the map never stopped aggregating.
+ *  Then 9.5, which gave it 9.5 → 11.
+ *
+ *  Now 9, arrived at through 8.1 and 8.5. Those two were a different KIND of
+ *  decision from 10.5 and 9.5 — not "give the deepest tier room" but "which
+ *  encoding does the reader spend their time in" — and 9 settles it a little
+ *  back toward the grid.
+ *
+ *  There is a measured floor under this, and it is a floor rather than an
+ *  answer. The median run is 10.9 km, and across this map's zoom range that
+ *  line measures 7 px at the zoom floor and 291 px at the ceiling — a factor of
+ *  42. Below roughly 15 px a line cannot be told from a dot, which is why a
+ *  hand-off has to exist at all; measured, that floor is crossed around z6.8,
+ *  so anything from there up is defensible and WHERE in that band is a reading
+ *  decision, not a derivation. At 9 a median run is 73 px and 2,292 distinct
+ *  runs are on screen over Đồng Xoài (3,039 at 8.5, 1,903 at the old 9.5).
+ *
+ *  See docs/methods.md §6.
+ *
+ *  Reachable from the ZOOM tab (3–12) without editing this file, but the
+ *  slider is a console and this is the shipped map. */
+export const Z_NEAR = 9
+
+/** The far end of the record, for ramps that need a low anchor.
+ *
+ *  Not a hand-off like the two above: the actual zoom floor is derived per
+ *  viewport by fitting recordBounds (≈5.3 on a phone, ≈6.6 on a 27"), so
+ *  nothing can be pinned to it statically. This is the nominal "whole record
+ *  on screen" zoom, and it exists so the dot ramps have a named low end
+ *  instead of a literal 5.6 copied between three call sites. */
+export const Z_FAR = 5.6
+
 export const mapConfig: MapConfig = {
   baseStyleUrl: 'https://tiles.openfreemap.org/styles/positron',
 
-  // Self-hosted Public Sans glyphs (see scripts/build-glyphs.mjs) label the map in
-  // the project font instead of OpenFreeMap's Noto.
+  // Self-hosted SDF glyphs (see scripts/build-glyphs.mjs) label the map instead
+  // of OpenFreeMap's Noto. The face is Roboto Condensed, not the UI's own — see
+  // LABEL_FONT above for why a narrower one is the right call for Vietnamese
+  // place names. This line said "Public Sans" for as long as that was the UI
+  // face, and stayed put through two changes of both.
   glyphsUrl: '/fonts/{fontstack}/{range}.pbf',
 
   view: {
     // Tuned so a 16" laptop shows all of Vietnam, ~2/3 of the viewport height.
     // Vietnam runs ~8.2°N (Cà Mau) to ~23.4°N; centre + zoom frame that span.
+    // Fallbacks only — the explorer overrides both from `recordBounds` once it
+    // knows the viewport. The story still uses them as written.
     center: [106.5, 16.2],
     zoom: 5.8,
-    minZoom: 5.6, // furthest zoom-out: full country still visible
-    maxZoom: 16, // can keep zooming in to street level
-    // Loose leash: at the zoom needed to see all of (narrow) Vietnam the
-    // viewport is far wider than the country, so a tight box would fight the
-    // zoom. This just stops the map drifting out of the region; it can't hide
-    // neighbours at full zoom-out. Tighten once zoomed in.
+
+    // Where Operation Ranch Hand actually flew, not where Vietnam is. 99.5% of
+    // the 24,604 recorded runs fall below 17.05°N — only 130 crossed the DMZ —
+    // so framing the whole country wastes the top third of the screen on ground
+    // the record never touches, and pushes the Cà Mau peninsula (which was
+    // sprayed heavily) off the bottom on any laptop. This box holds 99.9% of
+    // the runs with a little air around it. Fitting it lands ~0.2–0.4 zoom
+    // levels TIGHTER than the old fixed 5.8 on a desktop, and ~0.5 looser on a
+    // phone — which is the whole point of deriving it.
+    recordBounds: [
+      [103.8, 8.3],
+      [109.8, 17.7],
+    ],
+    // Reads as ?cam=106.937,12.833,5.94 — the same three numbers the URL uses,
+    // so a camera found by moving the map can be pasted straight in here.
+    archiveHome: { center: [106.937, 12.833], zoom: 5.94 },
+    fitPadding: 28,
+    // The box is tall and narrow, so on any landscape viewport the fit is
+    // height-limited and the extra width comes free — enough to keep the
+    // disputed-island notes (112°E / 114°E) on screen without asking for them.
+    minZoomMargin: 0.35,
+    minZoom: 5.6,
+    // Stops where the data does. HERBS records flight runs; past z12 a dot
+    // carries no more information, and letting the reader keep going implies a
+    // precision the record does not have. (CF caps its equivalent map at 9.)
+    maxZoom: 11,
+    // Still a loose leash, but half the old width: wide enough that an
+    // ultrawide viewport at the zoom floor never fights the clamp, tight enough
+    // that the map cannot drift to India or the Philippines. It has to contain
+    // the full run extent (102.8–110.0°E, 8.6–20.5°N) and both island notes.
     maxBounds: [
-      [80.0, 1.0],
-      [128.0, 30.0],
+      [94.0, 2.0],
+      [122.0, 26.0],
     ],
     pitch3d: 55,
     maxPitch: 68,
@@ -126,23 +258,29 @@ export const mapConfig: MapConfig = {
 
   // Muted cartographic palette matching the Figma redesign: warm near-white
   // paper, soft desaturated sage land, pale cool sea, hairline borders.
+  // Land is the original warm paper. Lightening it toward white did raise
+  // contrast against the data hues (WCAG is luminance-only, and land is the
+  // lighter side of every pairing) but the gain was small, it read harsh, and
+  // it flattened the warm/cool difference the water depends on. Water now
+  // carries its own blue instead, so land does not have to compensate.
   theme: {
-    land: '#f4f2ea',
+    land: '#f4f2f1',
     /* Water/vegetation at half strength (mixed 50% toward the land tone) so
        the basemap sits further behind the data. */
     water: '#e9ece7',
-    greenspace: '#e1e5d7',
+    greenspace: '#eceee7',
     building: '#e9e3d6',
     road: '#ffffff',
     boundary: '#6b6e66',
     label: {
-      color: '#5b5e57',
+      // Same tertiary ink the UI captions use (--ink-faint), so map and page
+      // read as one text system. 6.5:1 on the land — a full step darker than
+      // the old #5b5e57 (5.9:1), which sat too close to the paper.
+      color: '#4b5a50',
       halo: '#ffffff',
       haloWidth: 1.3,
       sizeScale: 1,
-      // Must match a self-hosted glyph stack (public/fonts/<name>/). See
-      // scripts/build-glyphs.mjs to add more fonts/weights.
-      font: ['Public Sans Medium'],
+      font: [LABEL_FONT],
     },
   },
 
@@ -152,7 +290,9 @@ export const mapConfig: MapConfig = {
   // White = light grey, Blue = light blue, Other = violet.
   agents: [
     { key: 'O', label: 'Orange', codes: ['O'], color: '#ef7d1a' },
-    { key: 'W', label: 'White', codes: ['W'], color: '#a9adb3' },
+    // Slate-blue silver: blue-leaning so an isolated White stays clearly
+    // apart from the neutral context grey (DIM in volumeGrid.ts) on the map.
+    { key: 'W', label: 'White', codes: ['W'], color: '#93a1b3' },
     { key: 'B', label: 'Blue', codes: ['B'], color: '#5aa6e0' },
     { key: 'other', label: 'Other', codes: ['P', 'U', 'K', 'D', 'T'], color: '#9a6cc4' },
   ],
@@ -160,14 +300,37 @@ export const mapConfig: MapConfig = {
   heatmap: {
     // Tighter radius keeps spray on the land it came from (less blur into the
     // sea) and is cheaper to render.
+    //
+    // The deep end is set from the DATA's resolution, not by eye. The Story's
+    // field is binned into 0.03° cells (3.33 km), and a kernel narrower than
+    // its own sample spacing does not smooth — it draws the lattice. That is
+    // exactly what happened when the field moved from 24,604 irregular
+    // waypoints to 21,711 cell centres: at the deepest node zooms the map came
+    // up as a regular grid of blobs.
+    //
+    // Cell ÷ metres-per-pixel at 11°N is 0.0217 × 2^z: 0.7 px at z5, 5.5 at z8,
+    // 22 at z10, 44 at z11. A kernel merely EQUAL to the spacing still reads as
+    // dots, because the kernel falls off from its centre — measured on the page,
+    // it takes about 2× before the field goes continuous. These stops track
+    // 0.043 × 2^z. The first stop is unchanged, so the country-scale view the
+    // Story opens on looks as it did; only the deep end softens, and there the
+    // old radius was claiming resolution the record does not have.
     radius: [
       [5, 3],
-      [8, 11],
-      [11, 24],
+      [8, 12],
+      [10, 46],
+      [12, 180],
     ],
+    // Nearly flat, where it used to climb to 1.9. The ramp climbed because the
+    // old radius was a fixed pixel size: zooming in shrank the ground each
+    // kernel covered, so fewer points landed in it and the field faded. The
+    // radius now tracks the ground (0.043 × 2^z), so a kernel covers about two
+    // cells at EVERY zoom and the count inside it barely changes — which means
+    // the intensity should not either. Leaving it climbing with a kernel ~4×
+    // the area turned A Sầu into a solid red field with no structure left in it.
     intensity: [
       [5, 0.8],
-      [10, 1.9],
+      [10, 0.85],
     ],
     opacity: 0.8,
   },

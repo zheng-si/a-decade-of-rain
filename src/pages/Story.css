@@ -159,7 +159,10 @@
   background: var(--accent-chip);
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 0.25rem;
-  box-shadow: 0 0.25rem 0.875rem rgba(214, 51, 40, 0.35);
+  /* The chip's own colour at 35%, said once. This was rgba(214, 51, 40, 0.35)
+     -- the rgb of --accent-chip, retyped as a literal two lines below the
+     `background: var(--accent-chip)` it has to match. */
+  box-shadow: 0 0.25rem 0.875rem color-mix(in srgb, var(--accent-chip) 35%, transparent);
 }
 
 .map-dot-label::after {
@@ -210,11 +213,28 @@
 }
 
 @media (max-width: 640px) {
+  /* No open sea to lead into on a 390px screen — a 90px leader still ran the
+     chip off the right edge (measured right=503). Hang the label under the
+     dot instead, wrapped to a chip-width the screen can hold. */
   .map-dot--leader::after {
-    width: 5.625rem;
+    display: none;
   }
   .map-dot--leader .map-dot-label {
-    left: calc(100% + 5.625rem);
+    left: 50%;
+    top: calc(100% + 0.5rem);
+    bottom: auto;
+    transform: translateX(-50%);
+    white-space: normal;
+    max-width: 11rem;
+    width: max-content;
+    text-align: center;
+  }
+  .map-dot--leader .map-dot-label::after {
+    display: block;
+    top: auto;
+    bottom: 100%;
+    border-top-color: transparent;
+    border-bottom-color: var(--accent-chip);
   }
   /* The attribution strip is too wide for a phone on one line: let it wrap. */
   .story-hook-credit {
@@ -285,8 +305,10 @@
   text-decoration: none;
 }
 
+/* Square, because the mark is. The old trefoil was 38×35 and its box was cut
+   to match; five bars in a square viewBox would have been stretched by it. */
 .story-rail-bio {
-  width: 2.0625rem;
+  width: 1.875rem;
   height: 1.875rem;
   opacity: 0.96;
 }
@@ -356,7 +378,7 @@
   font-family: var(--font-sans);
   font-size: 0.6875rem;
   line-height: 1.32;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--on-photo);
   overflow-wrap: break-word;
   transition: color 0.15s, background 0.15s;
 }
@@ -364,7 +386,7 @@
 /* Resting items recede to keep the focus on the active section; hover and the
    active state restore full white. */
 .story-rail-link:not(.is-on):not(.is-upcoming) {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--on-photo-faint);
 }
 
 .story-rail-link:hover:not(.is-upcoming) {
@@ -374,8 +396,25 @@
 
 .story-rail-link.is-on {
   color: #fff;
-  font-weight: 700;
+  font-weight: 600;
   background: rgba(255, 255, 255, 0.12);
+}
+
+/* Outbound rail entry (→ the Archive). It is an <a>, not a scroll button, so
+   it opts out of the "resting sections recede" rule — it is a destination,
+   not a section you are simply not on — and cancels the anchor underline.
+   Otherwise it is an ordinary rail link: same type, same padding, same hover.
+   It used to carry its own act heading ("The Record") over a boxed label,
+   which gave a single link the weight of the four acts above it. */
+.story-rail-link.story-rail-out {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.story-rail-link.story-rail-out:not(.is-on) {
+  color: var(--on-photo-soft);
 }
 
 /* Active marker: a 4px white bar on the rail's left edge — it never collides
@@ -386,7 +425,7 @@
   left: 0;
   top: 50%;
   bottom: 50%;
-  width: 2px;
+  width: 0.125rem;
   background: #fff;
   opacity: 0;
   transition: top 0.18s ease, bottom 0.18s ease, opacity 0.18s;
@@ -405,7 +444,7 @@
 }
 
 .story-rail-link.is-upcoming {
-  color: rgba(255, 255, 255, 0.42);
+  color: var(--on-photo-faint);
   cursor: default;
 }
 
@@ -421,11 +460,17 @@
   margin: 0 0 0.4375rem;
   font-size: 0.625rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--on-photo-soft);
 }
 .story-rail-foot img {
   display: block;
   width: 3.875rem;
+  /* REQUIRED, not tidiness. The width/height attributes on this img are
+     presentational hints, so `height: 191` applies as CSS unless something
+     overrides it — and with a CSS width AND an attribute height both resolved,
+     `aspect-ratio` has nothing to correct and the mark renders 52.7 x 191.
+     One of the two axes has to be auto for the ratio to do its job. */
+  height: auto;
   margin: 0 auto 0.375rem;
   opacity: 0.9;
 }
@@ -434,7 +479,7 @@
   font-size: 0.625rem;
   font-weight: 500;
   letter-spacing: var(--track-tight);
-  color: rgba(255, 255, 255, 0.68);
+  color: var(--on-photo-soft);
   line-height: 1.5;
 }
 
@@ -501,9 +546,9 @@
 
 .timeline-year {
   position: absolute;
-  left: 3px;
+  left: 0.1875rem;
   transform: translateY(-100%);
-  padding-bottom: 3px;
+  padding-bottom: 0.1875rem;
   font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: var(--track-tight);
@@ -549,7 +594,7 @@
 }
 
 .timeline-scan-unit {
-  margin-top: 3px;
+  margin-top: 0.1875rem;
   font-size: 0.625rem;
   font-weight: 500;
   letter-spacing: var(--track-tight);
@@ -570,10 +615,10 @@
   pointer-events: auto;
 }
 
-/* The nav pill and map key drop BELOW the scroll overlay inside the story:
-   the banner's opaque orange wash simply covers them (no mount/unmount, no
-   opacity dance), and they surface again over the transparent step sections. */
-.story .site-nav,
+/* The map key drops BELOW the scroll overlay inside the story: the banner's
+   opaque orange wash simply covers it (no mount/unmount, no opacity dance),
+   and it surfaces again over the transparent step sections. (`.story .site-nav`
+   used to share this rule; it went with the TopBar component.) */
 .story .map-key {
   z-index: 1;
 }
@@ -597,12 +642,20 @@
   gap: 0.75rem;
   margin: 0 0 2.125rem;
   font-size: 0.625rem;
-  letter-spacing: var(--track-caps);
+  /* No tracking. --track-caps is 0.06em and the ladder gives it to UPPERCASE
+     tags and badges, where the extra space is what stops capitals from
+     colliding. This line is sentence case -- "Built on data & reporting from
+     ... UNDP · U.S. National Archives" -- and lowercase letterforms already
+     carry their own sidebearings, so 0.06em on running text at 10px just
+     reads as loose. */
   color: var(--ink);
   white-space: nowrap;
 }
 .story-hook-credit img {
   height: 1.25rem;
+  /* Same reason as .story-rail-foot img — the other axis must be auto or the
+     attribute's width hint wins and the mark stretches. */
+  width: auto;
   opacity: 0.9;
 }
 
@@ -692,29 +745,30 @@
   text-wrap: pretty;
 }
 
-/* Scroll cue: the same pill as the footer's "Back to top" (.close-top),
-   inked for the paper surface so the two scroll buttons read as one part. */
+/* Scroll cue: a plain dark-ink text button on the paper banner — no container,
+   no pill. The arrow does the pointing; the type does the rest. */
 .story-hook-cta {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   margin: 2.625rem 0 0;
-  padding: 0.5625rem 1.125rem;
+  padding: 0.25rem 0;
   font-family: var(--font-sans);
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: var(--track-tight);
   color: var(--ink);
   background: none;
-  border: 1px solid rgba(33, 53, 40, 0.32);
-  border-radius: 62.4375rem;
+  border: none;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
+  transition: color 0.15s;
 }
 
 .story-hook-cta:hover {
-  background: rgba(33, 53, 40, 0.07);
-  border-color: rgba(33, 53, 40, 0.55);
+  color: var(--accent-deep);
+}
+.story-hook-cta:hover .story-hook-cta-arrow {
+  transform: translateY(2px);
 }
 
 .story-hook-cta:focus-visible {
@@ -726,6 +780,12 @@
   display: inline-block;
   font-size: 0.875rem;
   line-height: 1;
+  transition: transform 0.15s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-hook-cta-arrow {
+    transition: none;
+  }
 }
 
 .story-step {
@@ -755,13 +815,26 @@
   opacity: 1;
 }
 
+/* --accent-bright, not --accent. The token sheet scopes --accent to GEOMETRY
+   -- dots, pulse rings, heat, rain -- and gives text on a forest surface its
+   own tuned tone for exactly this reason: #ff5449 on --forest measures 4.12:1
+   and fails AA, while --accent-bright measures 5.15. The card year is text. */
 .story-eyebrow {
   margin: 0 0 0.5rem;
   font-family: var(--font-serif);
   font-size: var(--type-h3-size);
   font-weight: 400;
+  /* Stated rather than inherited. This rule declared no line-height, so it fell
+     to `normal` — Playfair's own metrics, which compute to 1.324 here. That was
+     fine while nothing had to match it, and not fine the moment the Archive's
+     identity block was asked to line up with this one: the Archive declared
+     1.05, and the same two lines at the same size sat 4.3px apart on the two
+     surfaces. Writing it down is what makes it copyable. `normal` and not a
+     number, because the number is the FACE's, not ours — pin it to 1.32 and it
+     stops tracking Playfair if the display face is ever changed again. */
+  line-height: normal;
   letter-spacing: normal;
-  color: var(--accent);
+  color: var(--accent-bright);
 }
 
 /* Stat chip — a lifted pill inside the card. */
@@ -782,7 +855,7 @@
 .story-stat strong {
   color: var(--accent-bright); /* AA on the dark stat pill */
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .story-name {
@@ -811,6 +884,39 @@
   color: var(--forest-text-soft);
 }
 
+/* The handover node's outbound link. A filled bar rather than a text link:
+   it is the one thing on any card that leaves the story, and it is the last
+   card, so it should read as the door it is. */
+.story-card-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 1.125rem 0 0;
+  padding: 0.6875rem 0.875rem;
+  background: var(--accent-deep);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: var(--track-tight);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.story-card-cta:hover {
+  background: var(--accent);
+}
+.story-card-cta span {
+  transition: transform 0.15s;
+}
+.story-card-cta:hover span {
+  transform: translateX(3px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-card-cta span {
+    transition: none;
+  }
+}
+
 .story-quote {
   margin: 1rem 0 0;
   padding: 0.75rem 0 0;
@@ -836,217 +942,109 @@
   text-decoration: underline;
 }
 
-/* On narrow screens the card drops to the bottom of the map; the rail hides. */
-/* ── map key: scale bar + legend, docked under the top-right nav pill ───── */
-.map-key {
-  position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
-  z-index: 6;
-  width: 10.75rem;
-  padding: 0.6875rem 0.8125rem 0.75rem;
-  /* Near-opaque paper, no backdrop-filter (see .site-nav note). */
-  background: rgba(252, 251, 247, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.6);
-  border-radius: 0.25rem;
-  box-shadow: 0 0.5rem 1.5rem rgba(33, 53, 40, 0.14);
-  opacity: 0;
-  transform: translateY(-0.375rem);
-  transition: opacity 0.5s, transform 0.5s;
-  pointer-events: none;
-  font-family: var(--font-sans);
+/* The collapse toggle exists only on phones — see StoryQuote in Story.tsx. */
+.story-quote-toggle {
+  display: none;
 }
 
-.map-key.is-visible {
-  opacity: 1;
-  transform: none;
-  pointer-events: auto;
-}
+/* The map key's shared rules moved to src/components/MapKey.css when the
+   routes were split — the Archive renders the same furniture and could no
+   longer reach them from here. Surface-specific overrides still live in
+   StorySkinV3.css (.story .map-key*) and App.css (.archive-key .map-key*). */
 
-/* Flat/3D switch, first row of the key — same capsule as the rainbow
-   chart's Accumulation/Each-year toggle. */
-.map-key-view-label {
-  margin: 0 0 0.3125rem;
-  font-size: 0.625rem;
-  font-weight: 500;
-  color: var(--ink-faint);
-}
-.map-key-view {
-  display: flex;
-  gap: 2px;
-  padding: 2px;
-  margin-bottom: 0.625rem;
-  background: rgba(33, 53, 40, 0.06);
-  border-radius: 62.4375rem;
-}
-.map-key-view-btn {
-  flex: 1;
-  padding: 0.25rem 0;
-  border: none;
-  border-radius: 62.4375rem;
-  background: transparent;
-  font-family: inherit;
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: var(--track-tight);
-  color: var(--ink-soft);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-.map-key-view-btn.is-active {
-  background: var(--forest);
-  color: #fff;
-}
-
-.map-key-top {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 0.625rem;
-  padding-bottom: 0.5625rem;
-  margin-bottom: 0.5625rem;
-  border-bottom: 1px solid var(--rule);
-}
-
-.map-key-scale {
-  display: flex;
-  align-items: flex-end;
-  gap: 0.4375rem;
-}
-
-.map-key-compass {
-  flex: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-
-.map-key-compass-n {
-  font-size: 0.625rem;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--ink-soft);
-}
-
-/* A ring with a vertical needle from the top edge down to the centre. */
-.map-key-compass-dial {
-  position: relative;
-  width: 1.0625rem;
-  height: 1.0625rem;
-  border: 1.4px solid var(--ink-soft);
-  border-radius: 50%;
-}
-
-.map-key-compass-needle {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 1.6px;
-  height: 50%; /* top edge → centre */
-  margin-left: -0.8px;
-  background: var(--ink-soft);
-}
-
-.map-key-scale-bar {
-  height: 0.3125rem;
-  border: 1.5px solid var(--ink-soft);
-  border-top: none;
-  transition: width 0.2s;
-}
-
-.map-key-scale-label {
-  margin-bottom: -1px;
-  font-size: 0.625rem;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--ink-soft);
-}
-
-.map-key-heat {
-  margin-bottom: 0.625rem;
-}
-
-.map-key-heat-bar {
-  display: block;
-  height: 0.5rem;
-  border-radius: 2px;
-  background: linear-gradient(to right, rgba(255, 84, 73, 0.16), #ff8a5a 55%, #cf3720);
-}
-
-.map-key-heat-labels {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 3px;
-  font-size: 0.625rem;
-  color: var(--ink-faint);
-}
-
-.map-key-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4375rem;
-}
-
-.map-key-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.5625rem;
-  font-size: 0.6875rem;
-  color: var(--ink-soft);
-}
-
-.key-swatch {
-  flex: none;
-  width: 1.25rem;
-}
-
-.key-mr {
-  height: 0;
-  border-top: 2px dashed var(--accent-line);
-}
-
-.key-border {
-  height: 0;
-  border-top: 1.5px solid rgba(33, 53, 40, 0.7);
-}
-
-.key-veg {
-  height: 0.75rem;
-  border-radius: 2px;
-  background: #cdd8c3;
-}
-
-.key-water {
-  height: 0.75rem;
-  border-radius: 2px;
-  background: #dde6e4;
-}
-
-.key-pilot {
-  width: 0.5625rem;
-  height: 0.5625rem;
-  margin: 0 0.3125rem 0 0.375rem;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
-}
-
-/* Pulsing boundary outline around a node's highlighted area. */
-.key-area {
-  height: 0;
-  border-top: 3px solid var(--accent-line);
-  border-radius: 2px;
-}
 
 /* WCAG 2.2.2 / motion sensitivity: kill the looping CSS animations when the
    reader asks for reduced motion (the JS rain + pulse loops check this too). */
 @media (prefers-reduced-motion: reduce) {
   .map-dot-ring {
     animation: none;
+  }
+}
+
+/* ── DECK: the node card docks to the bottom edge from tablet width down ───
+   Above this width the card is vertically CENTRED in a 100vh step, which
+   assumes the viewport is tall enough to hold it with air above and below. An
+   iPad in landscape is 768 tall and the cards run 377–400, so the assumption
+   fails: measured at 1024×768 the first card's top sat at y = −112, cut off by
+   the top of the screen, while the next card was already rising past the
+   bottom. Two cards on screen, neither whole.
+
+   So the same deck the phone uses takes over here: one card at a time, fixed
+   to the bottom edge, sliding horizontally under the reader's own scroll (see
+   the note in the 640 block for how --deck-f drives it). The DIFFERENCE from
+   the phone is width — the phone card is full-bleed because there is no room
+   to be anything else, and a tablet has room. It keeps the desktop card's
+   25.5rem and the desktop card's left edge, which is already computed to clear
+   the rail and the timeline ruler's year column, so the composition does not
+   move sideways when the breakpoint is crossed. It only stops being centred.
+
+   Story.tsx's deck-drive effect matches this width too (DECK_MQ), or --deck-f
+   never gets written and every card would stack in the same slot. */
+@media (max-width: 1024px) {
+  .story-step {
+    padding: 0;
+  }
+
+  .story-card {
+    position: fixed;
+    left: calc(var(--nav-w) + 14.5rem);
+    right: auto;
+    bottom: calc(1.5rem + env(safe-area-inset-bottom));
+    z-index: 4;
+    /* WIDE AND SHORT, not narrow and tall. At the desktop's 25.5rem the card
+       measured 397px on a 768-high iPad — 52% of the screen, for a card whose
+       whole job is to caption a map it was covering half of. Widening it to 34
+       lets the same prose reflow into fewer lines, and the height comes down
+       with the measure: 462 x 238, 31% of the screen.
+
+       It stays anchored to the desktop card's LEFT edge and grows rightward,
+       into the bottom-right corner, which was empty. Not to the right margin:
+       a card that reaches both edges is the full-bleed phone sheet, and there
+       is enough room here not to need that. */
+    width: min(34rem, calc(100vw - var(--nav-w) - 16rem));
+    padding: 1.125rem 1.25rem 1.25rem;
+    /* Still capped, in case a future node runs long on a short screen. */
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+    opacity: 1;
+    transition: none;
+    visibility: hidden;
+    transform: translateX(calc((var(--card-i, 0) - var(--deck-f, 0)) * (100vw + 1rem)));
+    will-change: transform;
+  }
+
+  .story-deck-live .story-card {
+    visibility: visible;
+  }
+
+  /* Deck type: one step down from the page, two above the phone's caption
+     sizes. The card is a caption here too, but it is a caption on a 34rem
+     measure rather than a 20rem one, so it does not need to shrink as far. */
+  .story-eyebrow {
+    font-size: 1.0625rem;
+    margin-bottom: 0.125rem;
+  }
+  .story-name {
+    font-size: 1.1875rem;
+    margin-bottom: 0.375rem;
+    line-height: 1.2;
+  }
+  .story-dek {
+    font-size: 0.9375rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.35;
+  }
+  .story-body {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+
+  /* The account block was the single tallest thing in the card — 93px of 397,
+     nearly a quarter — and it is the one part that is not the caption. It goes
+     wherever the deck goes, which is the rule the phone already applied and
+     the reason the phone card was never this tall. */
+  .story-quote {
+    display: none;
   }
 }
 
@@ -1060,13 +1058,76 @@
   .map-key {
     display: none;
   }
+  /* ── DECK: the node card on a phone ─────────────────────────────────────
+     A caption deck docked to the bottom edge that FOLLOWS THE FINGER: every
+     card is fixed in the same slot, and its horizontal offset is a CSS calc
+     against --deck-f — the fractional node index the scroll handler in
+     Story.tsx writes once per frame. Position is a pure function of scrollY,
+     so there is no discrete event to mis-fire and nothing to flicker; the
+     hand-off between two cards plays out under the reader's own gesture.
+
+     Cards show their FULL content — no cap, no inner scroll (the quote alone
+     stays behind its tap). Heights vary by node; framePadding() measures the
+     framed node's box, which is why visibility (not display) hides things
+     here: a display:none card measures 0.
+
+     Existence is gated by .story-deck-live — set from the same scrollama
+     events that drive the camera (started && !ended) — so a card can only be
+     seen while the reader is inside the story: never over the hero, never
+     over the figure sections. */
   .story-step {
-    align-items: flex-end;
-    padding: 0 4vw 8vh;
+    padding: 0;
   }
   .story-card {
-    width: 100%;
+    position: fixed;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: calc(0.75rem + env(safe-area-inset-bottom));
+    z-index: 4;
+    width: auto;
+    max-height: none;
+    padding: 0.75rem 0.875rem 0.875rem;
+    opacity: 1;
+    transition: none;
+    visibility: hidden;
+    transform: translateX(calc((var(--card-i, 0) - var(--deck-f, 0)) * (100vw + 1rem)));
+    will-change: transform;
   }
+  .story-deck-live .story-card {
+    visibility: visible;
+  }
+
+  /* Deck type: a caption, not a page — three sizes down and dense. The whole
+     card should sit near a quarter of the screen so the map keeps the stage. */
+  .story-eyebrow {
+    font-size: 0.8125rem;
+    margin-bottom: 0.125rem;
+  }
+  .story-name {
+    font-size: 1.0625rem;
+    margin-bottom: 0.25rem;
+    line-height: 1.25;
+  }
+  .story-dek {
+    font-size: 0.8125rem;
+    margin-bottom: 0.375rem;
+    line-height: 1.35;
+  }
+  .story-body {
+    font-size: 0.75rem;
+    line-height: 1.45;
+    margin-bottom: 0.5rem;
+  }
+  .story-stat {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+  .story-stat strong {
+    font-size: 0.875rem;
+  }
+
+  /* (The account block is hidden by the deck block above, from 1024 down —
+     the quote does not survive the cut to caption size at any deck width.) */
 }
 
 /* Laptop-width density: the rail tightens its per-item padding and dividers
@@ -1158,10 +1219,11 @@
 @media (max-width: 640px) {
   .fs-dek,
   .actions .fs-dek,
-  .alternatives .fs-dek,
-  .close-body {
+  .alternatives .fs-dek {
     max-width: none;
   }
+  /* .close-body's phone override lives at the end of the file — its base rule
+     is declared far below this line, and the later declaration would win. */
 }
 
 /* Dek + chart (left) and agent card (right); card top aligns with the dek. */
@@ -1202,7 +1264,7 @@
 .rainbow-mode {
   display: inline-flex;
   flex: none;
-  padding: 2px;
+  padding: 0.125rem;
   background: rgba(33, 53, 40, 0.06);
   border-radius: 62.4375rem;
 }
@@ -1248,11 +1310,15 @@
   stroke-width: 1;
 }
 
+/* The chart's axis labels, matching the Archive's `.explorer-axis` — same
+   size, same ink, same (absent) tracking. This carried the only NEGATIVE
+   letter-spacing on the site: the tracking ladder has three ticks, 0.02 /
+   0.06 / 0.1, and no negative one, so -0.01em was a fourth value with no
+   entry in the system, tightening one chart's axis and nothing else. */
 .rainbow-axis-label {
   fill: var(--ink-faint);
   font-family: var(--font-sans);
-  font-size: 0.625rem;
-  letter-spacing: -0.01em;
+  font-size: 0.6875rem;
 }
 
 .rainbow-band {
@@ -1260,9 +1326,16 @@
   transition: fill-opacity 0.25s, fill 0.25s;
 }
 
+/* nowrap, matching `.explorer-agents` under .map-wrap. This is the same
+   segmented control on the other page, and a segmented control cannot reflow:
+   two of five chips on a second row is no longer one control, it is two rows
+   of buttons that happen to share a hairline. It fits at every width measured,
+   but `wrap` meant the first machine whose rounding went the other way would
+   break it -- which is the same failure the Archive's own width comment
+   describes and pinned nowrap to prevent. */
 .rainbow-switch {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.4375rem;
   margin-top: 0.875rem;
 }
@@ -1270,7 +1343,9 @@
 .rainbow-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.4375rem;
+  /* 0.25rem, matching .agent-chip. Same chip, same dot, and the gap between
+     them was 0.4375 here against 0.25 there. */
+  gap: 0.25rem;
   padding: 0.375rem 0.75rem;
   font-family: var(--font-sans);
   font-size: 0.75rem;
@@ -1313,6 +1388,28 @@
   box-shadow: 0 0.625rem 1.875rem rgba(33, 53, 40, 0.12);
   border: 1px solid var(--rule);
   background: var(--paper-solid);
+  /* The head and body each paint their own paper, so any height the card holds
+     BEYOND its content showed as a band of bare card under the body — a tonal
+     seam a few pixels below the sources line. Harmless while the card was
+     sized by its content; visible the moment it got a floor to hold the short
+     agents at the tall one's height. The column makes the body absorb the
+     slack, so the card is one continuous surface at every height. */
+  display: flex;
+  flex-direction: column;
+}
+/* `1 0 auto`, not `1`. The shorthand's basis is 0%, which tells the column to
+   ignore what is actually inside it — the card then sits at exactly its floor
+   while the two longest agents (Orange, White) spill 3–4px past it, and this
+   card clips its overflow, so the sources line lost its descenders. Basis auto
+   sizes from the content and grow still absorbs any slack, so the floor stops
+   the jump without ever being able to cut anything off. */
+.rainbow-card-inner {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+.rainbow-card-body {
+  flex: 1 0 auto;
 }
 
 /* Only the inner content crossfades on agent switch — the card frame stays
@@ -1338,20 +1435,29 @@
   align-items: flex-start;
   gap: 0.875rem;
   padding: 1.25rem 1.375rem 1rem;
-  background: var(--paper-solid);
-  border-top: 0.25rem solid var(--agent);
+  /* NO background here, and none on .rainbow-card-body either. Both used to
+     paint --paper-solid, the same colour the card already paints, so the only
+     thing they did was cover the card's own inset hairline: a child's
+     background renders ABOVE the parent's inset shadow, and these two span the
+     full width, so all four edges were painted over. The card looked like the
+     one card on the page with no boundary — and it computed as though it had
+     one, which is how reading getComputedStyle instead of the pixels missed
+     it. The card paints the paper; its parts do not. */
+  /* 3px, not 4: the timeline and hotspot cards band at 3 and this is the same
+     device saying the same thing. */
+  border-top: 3px solid var(--agent);
 }
 
 .rainbow-card-icon {
   flex: none;
   width: 2rem;
   height: 2rem;
-  margin-top: 3px; /* optically centred on the name + first tagline line */
+  margin-top: 0.1875rem; /* optically centred on the name + first tagline line */
   color: var(--agent-ink);
 }
 
 .rainbow-card-name {
-  margin: 0 0 3px;
+  margin: 0 0 0.1875rem;
   font-family: var(--font-serif);
   font-weight: 400;
   font-size: 1.1875rem;
@@ -1370,7 +1476,6 @@
 
 .rainbow-card-body {
   padding: 0.25rem 1.375rem 1.25rem;
-  background: var(--paper-solid);
   color: var(--ink-soft);
 }
 
@@ -1414,7 +1519,7 @@
 .rainbow-defs dd {
   margin: 0;
   font-size: 0.8125rem;
-  line-height: 1.55;
+  line-height: var(--type-body-lh);
   color: var(--ink);
 }
 
@@ -1426,6 +1531,26 @@
 .rainbow-card-src a {
   color: var(--ink-faint);
   text-decoration: underline;
+}
+
+/* Hold the agent card at its tallest so switching agents does not move its
+   bottom edge.
+ *
+ * Measured across the five chips at 1440×900: All agents 275px, Orange 400,
+ * the other three 366 — a 125px jump on every switch, and now that the card
+ * carries a visible hairline it is the boundary itself that lurches.
+ *
+ * The floor is FREE in this layout and only in this layout: the chart beside
+ * it runs 477px, so the grid row is 477 whatever the card does, and reserving
+ * 400 fills space the row already occupies. Below 820px the two columns become
+ * one and the card sits under the chart with nothing to fill — there the same
+ * floor would be 185px of dead paper beneath the short "All agents" face, which
+ * is a worse trade than the jump. Hence the query, and hence no floor on
+ * phones. Same reasoning as .act2-card's min-height, one breakpoint narrower. */
+@media (min-width: 821px) {
+  .rainbow-card {
+    min-height: 30rem;
+  }
 }
 
 @media (max-width: 820px) {
@@ -1440,7 +1565,6 @@
   .rainbow-band,
   .vt,
   .eco-headline,
-  .eco-hint-arrow,
   .act2-data-face,
   .act2-photo-face,
   .act2-data-face .act2-facts > div,
@@ -1557,13 +1681,16 @@
 
 .eco-sort {
   display: inline-flex;
-  padding: 2px;
+  padding: 0.125rem;
   background: rgba(33, 53, 40, 0.06);
   border-radius: 62.4375rem;
 }
 
 .eco-sort-btn {
-  padding: 0.4375rem 0.8125rem;
+  /* 0.375/0.75, the canonical chip padding. 0.4375/0.8125 appears nowhere else
+     on either surface and made this group 24.88px tall against 19.78 for the
+     two switches beside it. */
+  padding: 0.375rem 0.75rem;
   font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 600;
@@ -1580,30 +1707,10 @@
   background: var(--forest);
 }
 
-.eco-hint {
-  margin: 0;
-  font-size: 0.6875rem;
-  color: var(--ink-faint);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  white-space: nowrap;
-}
-
-.eco-hint-arrow {
-  display: inline-block;
-  animation: eco-hint-nudge 1.8s ease-in-out infinite;
-}
-
-@keyframes eco-hint-nudge {
-  0%,
-  100% {
-    transform: none;
-  }
-  50% {
-    transform: translateX(3px);
-  }
-}
+/* `.eco-hint`, its nudging arrow and the eco-hint-nudge keyframes that drove
+   it are gone: the "scroll for more →" affordance under the ecosystem table
+   was removed when the table stopped overflowing, and only the animation kept
+   running. */
 
 .eco-type {
   display: flex;
@@ -1661,7 +1768,7 @@
 
 .eco-type-pct {
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink-soft);
 }
 
@@ -1680,7 +1787,10 @@
   position: relative;
   height: 100%;
   border-radius: 2px;
-  background: #e4e4de;
+  /* The same track as the Archive's `.inspect-bar-track`. It was #e4e4de, a
+     flat neutral; the Archive's is the ink at 7%, which sits on whatever the
+     card's ground is instead of assuming paper. One bar track, two charts. */
+  background: rgba(33, 53, 40, 0.07);
   background-image: repeating-linear-gradient(
     90deg,
     transparent 0,
@@ -1828,7 +1938,7 @@
 }
 
 .rainbow-bd-val {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 /* Shared caption for the interlude / Act II sections. */
@@ -1890,12 +2000,12 @@
   margin: 0 0 0.5rem;
   max-width: 21.25rem;
   font-size: 0.8125rem;
-  line-height: 1.6;
+  line-height: var(--type-body-lh);
   opacity: 0.86;
 }
 .wall-src {
   font-size: 0.6875rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--on-photo-soft);
   text-decoration: underline;
 }
 
@@ -1974,7 +2084,7 @@
   margin: 0 0 0.5rem;
   font-size: 0.6875rem;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--on-photo);
 }
 .wall-consent-btn {
   padding: 0.5rem 1.0625rem;
@@ -2008,7 +2118,7 @@
 }
 .wall-cap em {
   display: block;
-  margin-top: 2px;
+  margin-top: 0.125rem;
   font-style: normal;
   opacity: 0.68;
 }
@@ -2070,7 +2180,7 @@
   cursor: pointer;
 }
 .act2-pin.is-completed {
-  --pin: #3f8f5f;
+  --pin: #35784f;
 }
 .act2-pin.is-ongoing {
   --pin: var(--accent-deep);
@@ -2094,7 +2204,7 @@
   white-space: nowrap;
   padding: 0.25rem 0.625rem;
   font-size: 0.6875rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--pin);
   background: #fff;
   border-radius: 0.25rem;
@@ -2182,13 +2292,13 @@
   cursor: pointer;
   background: var(--paper-solid);
   border: 1px solid var(--rule);
-  border-top: 3px solid var(--ink-faint);
+  border-top: 3px solid var(--rule-strong);
   border-radius: 0.3125rem;
   cursor: pointer;
   transition: box-shadow 0.2s;
 }
 .act2-card.is-active.is-completed {
-  box-shadow: 0 0 0 2px #3f8f5f, 0 0.375rem 1.125rem rgba(63, 143, 95, 0.18);
+  box-shadow: 0 0 0 2px #35784f, 0 0.375rem 1.125rem rgba(53, 120, 79, 0.18);
 }
 .act2-card.is-active.is-ongoing {
   box-shadow: 0 0 0 2px var(--accent-deep), 0 0.375rem 1.125rem rgba(207, 55, 32, 0.16);
@@ -2255,7 +2365,7 @@
 .act2-photo-place {
   margin: 0; /* .act2-card-head's 6px bottom margin sets the gap, as on the data face */
   font-size: 0.6875rem;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--on-photo);
   text-shadow: 0 1px 0.375rem rgba(0, 0, 0, 0.4);
 }
 .act2-photo-hint {
@@ -2325,7 +2435,7 @@
   flex: 1;
 }
 .act2-card.is-completed {
-  border-top-color: #3f8f5f;
+  border-top-color: #35784f;
 }
 .act2-card.is-ongoing {
   border-top-color: var(--accent);
@@ -2356,7 +2466,7 @@
   display: inline-flex;
   align-items: baseline;
   gap: 0.25rem;
-  padding: 3px 0.4375rem;
+  padding: 0.1875rem 0.4375rem;
   font-size: 0.6875rem;
   font-weight: 600;
   border-radius: 3px;
@@ -2368,7 +2478,7 @@
   opacity: 0.85;
 }
 .act2-badge.is-completed {
-  background: #3f8f5f;
+  background: #35784f;
 }
 .act2-badge.is-ongoing {
   background: var(--accent-deep);
@@ -2393,12 +2503,12 @@
   border-top: 1px solid var(--rule);
 }
 .act2-facts dt {
-  margin: 0 0 3px;
+  margin: 0 0 0.1875rem;
   font-size: 0.6875rem;
   font-weight: 500;
 }
 .act2-card.is-completed .act2-facts dt {
-  color: #3f8f5f;
+  color: #35784f;
 }
 .act2-card.is-ongoing .act2-facts dt {
   color: var(--accent-deep);
@@ -2462,7 +2572,7 @@
   padding: 0.6875rem 1.125rem 0.75rem;
   background: var(--paper-solid);
   border: 1px solid var(--rule);
-  border-top: 3px solid var(--ink-faint);
+  border-top: 3px solid var(--rule-strong);
   border-radius: 0.3125rem;
   transition: background 0.3s, border-color 0.3s;
 }
@@ -2533,7 +2643,7 @@
 .alt-family p {
   margin: 0;
   font-size: 0.8125rem;
-  line-height: 1.5;
+  line-height: var(--type-body-lh);
   color: var(--ink-soft);
 }
 
@@ -2556,11 +2666,14 @@
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: var(--track-tight);
-  color: #ff564b;
+  /* Was #ff564b -- a fifth orange, indistinguishable from --accent, and 2.98:1
+     on the paper this label actually sits on. --accent-deep is the tone the
+     sheet defines for accent text on paper. */
+  color: var(--accent-deep);
 }
 .alt-arrow-line {
   position: relative;
-  height: 2.5px;
+  height: 0.15625rem;
   background: linear-gradient(90deg, #b9beba 0%, #e2766b 55%, #ff5449 100%);
 }
 .alt-arrow-line::after {
@@ -2585,13 +2698,16 @@
 .alt-axis-title {
   flex: 0 0 var(--alt-gutter-l);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.3;
-  color: #58615a;
+  color: var(--ink-soft);
 }
 .alt-axis-title.is-co2 {
   flex: 0 0 var(--alt-gutter-r);
-  color: #ff5449;
+  /* 3.01:1 on paper. --accent is geometry-only and --accent-deep is the
+     accent-text-on-paper tone at 4.72 -- the same swap already applied to
+     .alt-arrow span a few rules above. */
+  color: var(--accent-deep);
   text-align: right;
 }
 .alt-axis-title em {
@@ -2619,14 +2735,14 @@
 .alt-axis span {
   position: absolute;
   transform: translateY(50%);
-  color: #58615a;
+  color: var(--ink-soft);
 }
 .alt-axis.is-cost span {
   right: 0.75rem;
 }
 .alt-axis.is-co2 span {
   left: 0.75rem;
-  color: #ff5449;
+  color: var(--accent-deep);
 }
 
 .alt-plot {
@@ -2698,11 +2814,11 @@
 }
 .alt-xlabel {
   flex: 1;
-  padding: 2px 0.375rem 0;
+  padding: 0.125rem 0.375rem 0;
   font-size: 0.75rem;
   line-height: 1.4;
   text-align: center;
-  color: #444844;
+  color: var(--ink-soft);
   border-right: 1px solid #e3eae4;
 }
 .alt-xlabel:last-child {
@@ -2744,7 +2860,7 @@
   display: inline-block;
   margin-top: 0.4375rem;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 .alt-band-group.is-containment {
   color: #6a9c81;
@@ -2786,10 +2902,13 @@
   background: #4bae79;
   border-color: #4bae79;
 }
+/* #31734d, not #3f9e6c. This state was unreachable until the skin's fill rule
+   was guarded, so its 3.32:1 on white had never been on screen to be caught.
+   #31734d is the same hue at 5.69:1. border-color is dropped with the border
+   itself -- see the skin. */
 .alt-reveal-btn.is-banner {
   background: #fff;
-  border-color: #5abe88;
-  color: #3f9e6c;
+  color: #31734d;
 }
 .alt-reveal-btn.is-banner:hover {
   background: #f3faf6;
@@ -2815,21 +2934,28 @@
 }
 .alt-verdict-mark {
   font-size: 1.0625rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1;
 }
 .alt-verdict.is-kept .alt-verdict-mark {
   color: #3f9e6c;
 }
+/* Same swap, other ground: the ✕ sits on paper, where --accent measures
+   3.01:1. --accent-deep is the sheet's accent-text-on-paper tone, 4.72. The
+   mark carries which alternative was cut, so it is information, not ornament,
+   and has to meet text contrast. */
 .alt-verdict.is-cut .alt-verdict-mark {
-  color: var(--accent);
+  color: var(--accent-deep);
 }
 .alt-verdict-chip {
   width: 100%;
   padding: 0.4375rem 0.5625rem;
   border-radius: 0.25rem;
   font-size: 0.6875rem;
-  font-weight: 600;
+  /* 500, down from 600. These carry a sentence apiece, not a label, and at
+     semibold on a saturated fill a three-line screening note read as shouting
+     — the fill is already doing the emphasis. */
+  font-weight: 500;
   line-height: 1.45;
   text-align: center;
   color: #fff;
@@ -2840,6 +2966,35 @@
 .alt-verdict.is-cut .alt-verdict-chip {
   background: var(--accent);
   text-align: left;
+}
+
+/* The Act II row needs 1100, not 900, and between those two numbers the page
+   scrolled sideways. `.act2-main` is `1fr auto`: three hotspot cards with a
+   204px floor in the flexible track, a 234px locator map in the fixed one. At
+   901 the cards need 662 and the track can only give ~532, so the auto column
+   was pushed past the viewport — 130px of horizontal scroll at 901, 14 at
+   1024, which is iPad landscape.
+
+   minmax(0, 1fr) is the reflex fix here and it is the wrong one: it stops the
+   PAGE overflowing by letting the cards run under the map instead, measured at
+   50px of overlap at 1024. So the collapse moves up to where the two-column
+   layout actually stops fitting. The map goes above the cards, which is the
+   arrangement ≤900 already uses; the cards keep their three columns and get
+   wider than they were (255 against 204). Measured 0 overflow at every width
+   from 901 to 1440. */
+@media (max-width: 1100px) {
+  .act2-main {
+    grid-template-columns: 1fr;
+    gap: 1.125rem;
+  }
+  .act2-map {
+    position: static;
+    order: -1;
+  }
+  .act2-map-fig {
+    width: 17.1875rem;
+    margin: 0 auto;
+  }
 }
 
 @media (max-width: 900px) {
@@ -2880,13 +3035,178 @@
     max-width: 100%;
     padding-bottom: 0.375rem;
   }
-  /* The whole chart keeps a usable width and scrolls inside itself; all three
-     full-width rows share the min-width so bars and labels stay aligned. */
+  /* Tablets: the whole chart keeps a usable width and scrolls inside itself;
+     all three full-width rows share the min-width so bars and labels stay
+     aligned. (Phones swap to the .alt-rows variant below instead.) */
   .alt-gheads,
   .alt-chartgrid,
   .alt-xlabels,
   .alt-bands {
     min-width: 35rem;
+  }
+}
+
+/* ── tablets keep their card rows horizontal ───────────────────────────────
+   The 900 block above collapses the three card grids to one column, which was
+   written for "narrow" and is right for a phone. On a tablet it throws away
+   the comparison those grids exist to make: the three hotspot cards share one
+   volume scale so the size gap between the bases reads at a glance, the three
+   alternatives are meant to be weighed against each other, and the photo wall
+   is a number set beside the wall it describes. Stacked, each of those becomes
+   a list you scroll — three separate things instead of one comparison.
+
+   741 rather than 641, and the number is measured, not chosen: three cards
+   plus their two gaps need the available width to hold them at a size the
+   photo captions survive. At 768 that is 190 each, which they do; at 641 it
+   would be 153, which they do not. iPad mini is 744, so the range starts just
+   below it and every iPad is inside.
+
+   .act2-hotspots needs minmax(0, …) rather than its base minmax(15rem, …):
+   15rem is 204px and three of those overflow anything under 632. The floor is
+   what forces the stack; removing it is what lets the row survive. */
+@media (min-width: 741px) and (max-width: 900px) {
+  .wall-inner {
+    grid-template-columns: 1fr 2fr;
+    gap: 1.5rem;
+  }
+  .wall-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .act2-hotspots {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .alt-families {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Phone chart variant: the plot rotated into rows. Hidden everywhere else. */
+.alt-rows {
+  display: none;
+}
+@media (max-width: 640px) {
+  /* The column plot needs 560px and hover for its numbers; neither exists on
+     a phone. Swap it (arrow, axes, plot, labels, brackets, verdict row) for
+     horizontal rows that print their values. */
+  .alt-arrow,
+  .alt-gheads,
+  .alt-chartgrid,
+  .alt-xlabels,
+  .alt-bands,
+  .alt-verdicts {
+    display: none;
+  }
+  .alt-chart {
+    overflow-x: visible;
+  }
+  /* The note + reveal button drop the plot's axis gutters with the plot. */
+  .alt-reveal {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .alt-rows {
+    display: block;
+  }
+  .alt-rows-legend {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin: 0 0 0.875rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+  .alt-rows-legend i {
+    width: 0.625rem;
+    height: 0.625rem;
+  }
+  .alt-rows-legend i.is-co2 {
+    margin-left: 0.75rem;
+  }
+  .alt-rows-legend em {
+    font-style: normal;
+    font-weight: 400;
+    color: var(--ink-faint);
+  }
+  .alt-rowgroup {
+    margin: 0 0 1rem;
+  }
+  .alt-rowgroup h4 {
+    margin: 0 0 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1.5px solid currentColor;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .alt-rowgroup.is-containment h4 {
+    color: #6a9c81;
+  }
+  .alt-rowgroup.is-hybrid h4 {
+    color: #4d7d63;
+  }
+  .alt-rowgroup.is-treatment h4 {
+    color: #2f5c44;
+  }
+  .alt-row {
+    margin: 0 0 0.75rem;
+    transition: opacity 0.25s;
+  }
+  .alt-row:last-child {
+    margin-bottom: 0;
+  }
+  .alt-row.is-cut {
+    opacity: 0.55;
+  }
+  .alt-row-name {
+    margin: 0 0 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .alt-row-name em {
+    font-style: normal;
+    font-weight: 400;
+    color: var(--ink-faint);
+  }
+  .alt-row-bars {
+    display: grid;
+    grid-template-columns: 1fr 3.25rem;
+    align-items: center;
+    gap: 0.25rem 0.5rem;
+  }
+  .alt-row-bars i {
+    /* Width comes inline from the data, relative to this 1fr track. */
+    height: 0.5625rem;
+    justify-self: start;
+  }
+  .alt-row-bars i.is-cost,
+  .alt-rows-legend i.is-cost {
+    background: #5d5f5c;
+  }
+  .alt-row-bars i.is-co2,
+  .alt-rows-legend i.is-co2 {
+    background: #ff5449;
+  }
+  .alt-row-bars span {
+    font-size: 0.6875rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-soft);
+  }
+  .alt-row-note {
+    margin: 0.375rem 0 0;
+    font-size: 0.6875rem;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+  .alt-row.is-kept .alt-row-note {
+    color: #2f7049;
+    font-weight: 600;
+  }
+  .alt-row.is-cut .alt-row-note span,
+  .alt-row.is-kept .alt-row-note span {
+    font-weight: 600;
   }
 }
 
@@ -2905,7 +3225,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4375rem;
-  padding: 0.375rem 0.875rem;
+  padding: 0.375rem 0.75rem;
   font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 600;
@@ -3089,13 +3409,13 @@
 .method-copy p {
   margin: 0;
   font-size: 0.8125rem;
-  line-height: 1.65;
-  color: rgba(255, 255, 255, 0.92);
+  line-height: var(--type-body-lh);
+  color: var(--on-photo);
 }
 .method-cap {
   margin: 0.875rem 0 0 !important;
   font-size: 0.6875rem !important;
-  color: rgba(255, 255, 255, 0.68) !important;
+  color: var(--on-photo-soft) !important;
 }
 
 /* The annotated diagram (open state): labels left, image right. */
@@ -3131,7 +3451,7 @@
   font-weight: 500;
   line-height: 1.25;
   text-align: right;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--on-photo);
   pointer-events: auto;
   cursor: default;
   transition: color 0.15s;
@@ -3160,6 +3480,20 @@
     font-size: 0.625rem;
   }
 }
+@media (max-width: 640px) {
+  /* The layer labels hang LEFT of their anchor (right edge at ~26% of the
+     diagram). With the diagram at full panel width the longest label
+     ("Plastic (LLDPE) geomembrane", ~140px at 10px) pokes past the panel's
+     left edge and overflow:hidden clips it mid-word. Reserve the overhang:
+     tighter panel padding, and the diagram (right-aligned) leaves the label
+     room on its left. */
+  .method-open-grid {
+    padding: 1.5rem 1rem 1.375rem;
+  }
+  .method-open-grid .method-diagram {
+    max-width: calc(100% - 4.25rem);
+  }
+}
 
 /* ── Act II · The Timeline ─────────────────────────────────────────────────── */
 .tl-inner {
@@ -3171,13 +3505,13 @@
   --tlc: #2c5a40;
 }
 .is-danang {
-  --tlc: #3f8f5f;
+  --tlc: #35784f;
 }
 .is-bienhoa {
   --tlc: var(--accent-deep);
 }
 .is-programme {
-  --tlc: #79806f;
+  --tlc: #6a7160;
 }
 
 /* Overview bar: the three projects' spans on one 2009–2030 axis. */
@@ -3212,7 +3546,7 @@
 }
 .tl-band-name {
   position: absolute;
-  right: calc(100% - 0px);
+  right: calc(100% - 0rem);
   top: 50%;
   transform: translateY(-50%);
   padding-right: 0;
@@ -3224,8 +3558,8 @@
 }
 .tl-band {
   position: absolute;
-  top: 2px;
-  bottom: 2px;
+  top: 0.125rem;
+  bottom: 0.125rem;
   display: flex;
   align-items: center;
   border-radius: 3px;
@@ -3307,7 +3641,7 @@
   color: var(--tlc);
 }
 .tl-card-stat {
-  margin: 2px 0 0.3125rem;
+  margin: 0.125rem 0 0.3125rem;
   display: flex;
   align-items: baseline;
   gap: 0.4375rem;
@@ -3315,7 +3649,7 @@
 }
 .tl-card-stat strong {
   font-family: var(--font-serif);
-  font-weight: 500;
+  font-weight: 400;
   font-size: 1.1875rem;
   color: var(--ink);
 }
@@ -3326,7 +3660,7 @@
 .tl-card-text {
   margin: 0;
   font-size: 0.8125rem;
-  line-height: 1.55;
+  line-height: var(--type-body-lh);
   color: var(--ink-soft);
 }
 
@@ -3348,16 +3682,16 @@
   color: #fff;
 }
 .tl-card.is-invert .tl-card-tag {
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--on-photo-soft);
 }
 .tl-card.is-invert .tl-card-stat strong {
   color: #fff;
 }
 .tl-card.is-invert .tl-card-stat span {
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--on-photo);
 }
 .tl-card.is-invert .tl-card-text {
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--on-photo);
 }
 
 /* Dense section: trim the fullscreen padding so the whole arc sits
@@ -3382,6 +3716,10 @@
   .tl-band-name {
     font-size: 0.625rem;
     margin-right: 0.5rem;
+    /* Match the narrower gutter — the desktop -5.25rem offset would push the
+       names past the content edge and pin them to the viewport. */
+    left: -4rem;
+    width: 4rem;
   }
   .tl-cards {
     grid-template-columns: 1fr;
@@ -3433,7 +3771,8 @@
   max-width: calc(50% - 0.375rem);
   font-size: 0.8125rem;
   line-height: 1.7;
-  color: rgba(255, 255, 255, 0.82);
+  /* 4.10:1 measured -- body copy has to clear 4.5. */
+  color: var(--forest-text);
 }
 
 /* Wordmark-style action cards: no logos (licensing + visual consistency);
@@ -3466,7 +3805,9 @@
   margin: 0 0 0.5rem;
   font-size: 0.6875rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.6);
+  /* 3.14:1 measured on the gradient. The token tier is 7.66 and, unlike an
+     alpha over a gradient, does not drift with viewport height. */
+  color: var(--forest-text-soft);
 }
 .close-action-name {
   margin: 0 0 0.4375rem;
@@ -3484,8 +3825,9 @@
 .close-action-cta {
   margin: auto 0 0;
   font-size: 0.6875rem;
-  font-weight: 700;
-  color: #9fd4b4;
+  font-weight: 600;
+  /* 4.20:1 measured. The token tier instead of a one-off mint. */
+  color: var(--forest-text-soft);
 }
 .close-action:hover .close-action-cta {
   color: #c4ecd3;
@@ -3523,7 +3865,11 @@
   font-size: 0.8125rem;
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.75);
-  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  /* 0.2, matching the divider eleven rules below it. Two rules in the same
+     block drew the same hairline at two alphas, which is a difference nothing
+     chose. The three 0.24 rules elsewhere are a different, heavier divider and
+     stay where they are. */
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 .close-ref-group li:first-child {
   border-top: none;
@@ -3558,7 +3904,7 @@
   color: rgba(255, 255, 255, 0.85) !important;
 }
 .close-email {
-  margin: 2px 0 0 !important;
+  margin: 0.125rem 0 0 !important;
 }
 .close-email a {
   font-size: 0.75rem;
@@ -3576,10 +3922,12 @@
   align-items: center;
   gap: 0.5625rem;
   margin-top: 1.625rem;
-  color: #ff7a68;
+  /* Was #ff7a68 -- 2.36 dE from --accent-bright, which is the same colour
+     typed twice. It reaches the wordmark SVG by inheritance. */
+  color: var(--accent-bright);
 }
 .close-mark svg {
-  width: 1.375rem;
+  width: 1.25rem;
   height: 1.25rem;
 }
 .close-mark span {
@@ -3646,4 +3994,51 @@
 .eco-note,
 .fs-note {
   text-wrap: pretty;
+}
+
+/* On phones the deck card is a narrow measure at caption size, and Safari's
+   `pretty` re-rags the whole paragraph — lines break early and the card reads
+   as if it had a huge right padding. Plain wrapping uses the full width.
+   (Must follow the site-wide rule above: same specificity, later wins.) */
+@media (max-width: 640px) {
+  .story-dek,
+  .story-body {
+    text-wrap: wrap;
+  }
+  /* Epilogue paragraph: the desktop rule caps it at half width (two action
+     cards); on a phone that is an 11-character column. Full measure here.
+     (Must also follow the .close-body base rule above — later wins.) */
+  .close-body {
+    max-width: none;
+  }
+}
+
+/* ── the map said nothing when it failed ──────────────────────────────────
+   Both bootstrap chains now reject into a flag, and this is what the flag
+   draws: a notice on the map's own surface, not a takeover. The Story's
+   argument is its prose, and the prose is unaffected by a basemap that will
+   not load, so the notice says exactly that and gets out of the way.
+
+   Centred on the sticky graphic rather than pinned to a corner, because a
+   corner note on an empty rectangle reads as furniture rather than as the
+   answer to "why is this blank". Paper and the same hairline every card on
+   this page carries, so it belongs to the page rather than to the browser. */
+.story-map-error {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+  margin: 0;
+  max-width: 20rem;
+  padding: 0.75rem 1rem;
+  background: var(--paper-solid);
+  box-shadow: var(--v3-lift);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: balance;
+  color: var(--ink-soft);
 }

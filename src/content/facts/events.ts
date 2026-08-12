@@ -64,6 +64,12 @@ export interface StoryEvent {
   body: string
   quote?: Quote
   stat?: { value: string; label: string }
+  /** Draw the individual spray runs instead of the heat field. Only the
+   *  handover node uses this — see addStoryTracks in mapTheme.ts. */
+  tracks?: boolean
+  /** An outbound link at the foot of the card (the handover to the Archive).
+   *  A node with one is a destination as well as a beat. */
+  cta?: { label: string; to: string }
 }
 
 export const FACTS_EVENTS: StoryEvent[] = [
@@ -73,6 +79,12 @@ export const FACTS_EVENTS: StoryEvent[] = [
     period: '1961–62',
     date: '1962-06-01',
     camera: { center: [107.6, 12.6], zoom: 6.6 },
+    // The whole of South Vietnam, Cà Mau to the DMZ — the story opens on the
+    // full stage, with both 1961–62 sites (Đắk Tô and Biên Hòa) in one frame.
+    // A bbox rather than a fixed zoom: the two crosses sit 3.7° of latitude
+    // apart, which fits a desktop's clear height at one zoom and a phone's at
+    // another, and only fitBounds knows the difference.
+    bbox: [104.4, 8.4, 109.4, 17.1],
     agent: 'all',
     cities: [
       { name: 'Đắk Tô', lng: 107.83, lat: 14.65 },
@@ -202,9 +214,31 @@ export const FACTS_EVENTS: StoryEvent[] = [
     period: '1961–1971',
     date: '1971-12-31',
     camera: { center: [107.4, 12.9], zoom: 6.3 },
+    /* The decade in one number wants the decade in one frame: the same
+       whole-South-Vietnam extent as the opener, so the story closes on the
+       full footprint of the campaign it opened with. */
+    bbox: [104.4, 8.4, 109.4, 17.1],
     agent: 'all',
     dek: 'A decade of spraying, in one number.',
     body: 'Across the whole campaign, roughly 19.5 million gallons of herbicide fell on Vietnam, at least 11 million of it Agent Orange. What follows is not just where it landed, but what it takes to clean it up.',
     stat: { value: '19.5M', label: 'gallons, 1961–1971' },
+  },
+  {
+    id: 'record',
+    name: 'The Record',
+    period: 'The Archive',
+    // The story's own last date: the handover shows the whole record at once,
+    // so the playhead sits where the reckoning left it.
+    date: '1971-12-31',
+    camera: { center: [107.4, 12.9], zoom: 6.3 },
+    // Same frame as the reckoning, deliberately: only the MARK changes, from
+    // the binned field to the runs it was binned from.
+    bbox: [104.4, 8.4, 109.4, 17.1],
+    agent: 'all',
+    tracks: true,
+    dek: 'Every flight behind this map, drawn one line at a time.',
+    body: 'Everything you have read so far was a summary. Beneath it lies the HERBS tape, the U.S. military’s own flight log: 11,273 spray runs between 1961 and 1971, each one a chain of waypoints recorded by the crews. The Archive draws those runs as they were flown. You can filter by herbicide, move through the decade month by month, and trace any single flight back to the day it was logged.',
+    stat: { value: '11,273', label: 'spray runs on file' },
+    cta: { label: 'Explore the Record', to: '/archive' },
   },
 ]

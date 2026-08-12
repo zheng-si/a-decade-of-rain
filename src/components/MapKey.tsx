@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
 import type maplibregl from 'maplibre-gl'
+// The key's shared furniture. Both surfaces render these classes, so the
+// stylesheet travels with the components rather than with either route.
+import { computeScale } from './mapScale'
+import './MapKey.css'
 
 interface Props {
   map: maplibregl.Map | null
@@ -7,33 +11,15 @@ interface Props {
   started: boolean
   is3D: boolean
   onToggle3D: () => void
-}
-
-// Round down to a 1/2/3/5 × 10ⁿ value for a clean scale-bar label.
-function niceRound(x: number): number {
-  const pow = Math.pow(10, Math.floor(Math.log10(x)))
-  const f = x / pow
-  const n = f >= 5 ? 5 : f >= 3 ? 3 : f >= 2 ? 2 : 1
-  return n * pow
-}
-
-function fmtDist(m: number): string {
-  return m >= 1000 ? `${m / 1000} km` : `${Math.round(m)} m`
-}
-
-function computeScale(map: maplibregl.Map): { label: string; w: number } {
-  const el = map.getContainer()
-  const y = el.clientHeight / 2
-  const target = 92 // px we'd like the bar to be near
-  const meters = map.unproject([12, y]).distanceTo(map.unproject([12 + target, y]))
-  if (!isFinite(meters) || meters <= 0) return { label: '', w: 0 }
-  const nice = niceRound(meters)
-  return { label: fmtDist(nice), w: Math.round((nice / meters) * target) }
+  /** The handover node swaps the binned heat field for the 8,753 individual
+   *  runs, so the key has to swap with it: a gradient ramp explains nothing
+   *  about a map that is no longer drawing a gradient. */
+  tracks?: boolean
 }
 
 // One top-right panel: the Flat/3D view switch, scale bar and curated legend
 // together (they were two stacked panels before).
-export default function MapKey({ map, ready, started, is3D, onToggle3D }: Props) {
+export default function MapKey({ map, ready, started, is3D, onToggle3D, tracks }: Props) {
   const [scale, setScale] = useState<{ label: string; w: number }>({ label: '', w: 0 })
 
   useEffect(() => {
@@ -74,20 +60,35 @@ export default function MapKey({ map, ready, started, is3D, onToggle3D }: Props)
           <span className="map-key-scale-label">{scale.label}</span>
         </div>
         <div className="map-key-compass" title="North">
-          <span className="map-key-compass-n">N</span>
           <span className="map-key-compass-dial">
             <span className="map-key-compass-needle" />
           </span>
         </div>
       </div>
 
-      <div className="map-key-heat" aria-hidden="true">
-        <span className="map-key-heat-bar" />
-        <div className="map-key-heat-labels">
-          <span>Less</span>
-          <span>More sprayed</span>
+      {tracks ? (
+        // One stroke = one run, and the darkness is the overlap: the same fact
+        // the ramp used to state, but stated in the mark the map is actually
+        // drawing. The samples are the track colour at one and at many passes.
+        <div className="map-key-heat" aria-hidden="true">
+          <span className="map-key-track-bar">
+            <i className="is-one" />
+            <i className="is-many" />
+          </span>
+          <div className="map-key-heat-labels">
+            <span>One run</span>
+            <span>Flown repeatedly</span>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="map-key-heat" aria-hidden="true">
+          <span className="map-key-heat-bar" />
+          <div className="map-key-heat-labels">
+            <span>Less</span>
+            <span>More sprayed</span>
+          </div>
+        </div>
+      )}
 
       <ul className="map-key-list" aria-hidden="true">
         <li>
