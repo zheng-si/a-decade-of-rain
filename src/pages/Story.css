@@ -1171,17 +1171,9 @@
   border-top: 1px solid #c6c9c2;
 }
 
-.key-veg {
-  height: 0.75rem;
-  border-radius: 2px;
-  background: #cdd8c3;
-}
-
-.key-water {
-  height: 0.75rem;
-  border-radius: 2px;
-  background: #dde6e4;
-}
+/* `.key-veg` and `.key-water` are gone: the map key stopped naming the
+   basemap's own vegetation and water fills when it grew a view switcher, and
+   nothing has rendered those two swatches since. */
 
 .key-pilot {
   width: 0.5625rem;
@@ -1807,7 +1799,6 @@
   .rainbow-band,
   .vt,
   .eco-headline,
-  .eco-hint-arrow,
   .act2-data-face,
   .act2-photo-face,
   .act2-data-face .act2-facts > div,
@@ -1950,30 +1941,10 @@
   background: var(--forest);
 }
 
-.eco-hint {
-  margin: 0;
-  font-size: 0.6875rem;
-  color: var(--ink-faint);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  white-space: nowrap;
-}
-
-.eco-hint-arrow {
-  display: inline-block;
-  animation: eco-hint-nudge 1.8s ease-in-out infinite;
-}
-
-@keyframes eco-hint-nudge {
-  0%,
-  100% {
-    transform: none;
-  }
-  50% {
-    transform: translateX(3px);
-  }
-}
+/* `.eco-hint`, its nudging arrow and the eco-hint-nudge keyframes that drove
+   it are gone: the "scroll for more →" affordance under the ecosystem table
+   was removed when the table stopped overflowing, and only the animation kept
+   running. */
 
 .eco-type {
   display: flex;

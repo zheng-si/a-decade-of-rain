@@ -189,28 +189,29 @@ interface Tune {
  *  this list has no glyphs to fetch and every label on the map disappears, so
  *  this is a closed list, not free text. Every one covers Vietnamese natively
  *  (checked against ầ ư Đ ễ ợ ắ ộ) — a face that didn't would render place
- *  names half in itself and half in the Noto fallback. */
+ *  names half in itself and half in the Noto fallback.
+ *
+ *  This list and public/fonts/ are ONE fact written twice, so they change
+ *  together or not at all: a name here with no directory on disk makes every
+ *  label on the map vanish the moment it is picked, and a directory with no
+ *  name here is ~1 MB of glyphs nothing can reach. Five candidate faces
+ *  (Cuprum, Public Sans Medium, Familjen Grotesk, Westgate, Danh Da) and the
+ *  bold Roboto Condensed lost the type audit and left in the same commit as
+ *  their glyphs. */
 const FONTS = [
   'Roboto Condensed Light',
   'Roboto Condensed Regular',
   'Roboto Condensed',
-  'Roboto Condensed Bold',
-  'Cuprum',
-  'Public Sans Medium',
-  'Familjen Grotesk',
-  'Westgate',
-  'Danh Da',
 ]
 
 /** Shown next to a stack name so "which of these is the weight I want" does not
  *  have to be inferred from the name. 'Roboto Condensed' IS the medium — it
- *  predates the other three and keeps its bare name so no committed style
+ *  predates the other two and keeps its bare name so no committed style
  *  breaks. */
 const FONT_NOTE: Record<string, string> = {
   'Roboto Condensed Light': '300',
   'Roboto Condensed Regular': '400',
   'Roboto Condensed': '500 · default',
-  'Roboto Condensed Bold': '700',
 }
 
 type ColorKey = 'land' | 'water' | 'veg'

@@ -1,17 +1,7 @@
-import { Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Story from './pages/Story'
 import Archive from './pages/Archive'
 import './App.css'
-
-// TEMPORARY — basemap-vendor spike, unlinked from the nav. See the header of
-// MapboxSpike.tsx and docs/mapbox-evaluation.md.
-//
-// Lazily, and that is not a detail: mapbox-gl is ~800 kB of JS that only this
-// route uses. Imported statically it lands in the entry chunk and every reader
-// of the Story downloads a second map SDK to look at photographs. Split out,
-// the spike costs nothing to anyone who does not open it.
-const MapboxSpike = lazy(() => import('./components/MapboxSpike'))
 
 // The Story/Archive tab pill that used to live here is gone. It was exported
 // and rendered by nothing — each surface grew its own way across: the Story's
@@ -19,6 +9,10 @@ const MapboxSpike = lazy(() => import('./components/MapboxSpike'))
 // Story". Two cross-links in the places a reader is already looking beat one
 // floating pill in a corner, and the pill had stopped being drawn long before
 // this deleted it.
+//
+// The /archive-mapbox spike is gone too. It answered its question — the
+// verdict and the numbers behind it live in docs/mapbox-evaluation.md — and
+// left ~800 kB of a second map SDK in node_modules to keep answering it.
 
 /** The Archive lived at /explore in earlier versions — keep old links working
  *  (including any query string, which is the Archive's whole view state). */
@@ -33,16 +27,6 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Story />} />
         <Route path="/archive" element={<Archive />} />
-        {/* Not in the nav on purpose — reachable by URL while the vendor
-            question is open, and deleted with the spike either way. */}
-        <Route
-          path="/archive-mapbox"
-          element={
-            <Suspense fallback={null}>
-              <MapboxSpike />
-            </Suspense>
-          }
-        />
         <Route path="/explore" element={<LegacyExploreRedirect />} />
       </Routes>
     </BrowserRouter>

@@ -108,7 +108,6 @@
    basemap is warm paper at almost the same lightness — at the old 0.5 the
    panel dissolved into it. The blur still does its job: the map's own
    texture and the spray symbols stay legible through the glass. */
-.intro-card,
 .explorer-panel {
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid rgba(255, 255, 255, 0.7);
@@ -390,43 +389,9 @@
   color: var(--ink-faint);
 }
 
-/* Curated map bookmarks: a kicker label + small ghost pills, so the row
-   reads as controls rather than another line of caption text. */
-.explorer-flyto {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.375rem;
-  margin: 0.875rem 0 0;
-}
-
-.explorer-flyto .flyto-label {
-  flex-basis: 100%;
-  margin-bottom: 0.125rem;
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink); /* structural label — same tier as MAP VIEW / GRID CELL */
-}
-
-.explorer-flyto button {
-  border: 1px solid var(--rule);
-  background: rgba(255, 255, 255, 0.7);
-  padding: 0.25rem 0.625rem;
-  border-radius: 999px;
-  font-family: inherit;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: var(--ink-soft);
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.explorer-flyto button:hover {
-  border-color: var(--accent-deep);
-  color: var(--accent-deep);
-}
+/* The `.explorer-flyto` bookmark pills that stood here are gone with the row
+   that rendered them — the panel's fly-to shortcuts were replaced by the map's
+   own hotspot markers, and the CSS outlived the markup by several versions. */
 
 .explorer-links {
   margin: 1rem 0 0;
@@ -483,44 +448,10 @@
   background: #fff !important;
 }
 
-/* ── intro card ───────────────────────────────────────────────────────── */
-.intro-card {
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
-  max-width: 20rem;
-  padding: 1.25rem 1.375rem 1.375rem;
-  z-index: 1;
-}
-
-.intro-card h1 {
-  margin: 0 0 0.875rem;
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: 1.5rem;
-  line-height: 1.14;
-  letter-spacing: normal;
-  color: var(--ink);
-}
-
-/* Short rule under the heading, echoing the Figma section style. */
-.intro-card h1::after {
-  content: '';
-  display: block;
-  width: 2.125rem;
-  height: 0.125rem;
-  margin-top: 0.875rem;
-  background: var(--ink);
-  opacity: 0.85;
-}
-
-.intro-card .lede {
-  margin: 0;
-  font-weight: 300;
-  font-size: 0.8125rem;
-  line-height: 1.62;
-  color: var(--ink-soft);
-}
+/* The `.intro-card` block that stood here is gone. It was the Archive's first
+   framing device — a floating card over the top-left of the map — and the
+   explorer panel took that job over long ago. Its identity type has since been
+   rewritten twice in ArchiveSkinV2.css, on the panel. */
 
 /* ── Archive map key ──────────────────────────────────────────────────────
    Top-right, in the story MapKey's language (near-opaque paper, no backdrop
@@ -547,27 +478,9 @@
   font-family: var(--font-sans);
 }
 
-.archive-key-share {
-  display: block;
-  width: 100%;
-  margin: -0.1875rem 0 0.75rem;
-  padding: 0.3125rem 0;
-  border: 1px solid var(--rule);
-  border-radius: 999px;
-  background: transparent;
-  font-family: inherit;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--ink-soft);
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.archive-key-share:hover {
-  border-color: #cfccc0;
-  color: var(--ink);
-}
+/* The `.archive-key-share` pill is gone with the copy-link button it styled;
+   the Archive's view state lives in the URL, so the browser's own address bar
+   does that job. */
 
 /* Uniform 12px rhythm for the key's control half (label→capsule stays a
    tight pair); the kicker matches the inspect section's spec. */
@@ -997,16 +910,9 @@
   border-bottom-color: var(--paper-solid);
 }
 
-/* ── dioxin hotspot markers (cartographic ring symbol) ────────────────── */
-.hotspot-marker {
-  width: 0.875rem;
-  height: 0.875rem;
-  border-radius: 50%;
-  border: 2px solid #33352e;
-  background: rgba(255, 255, 255, 0.55);
-  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.85);
-  cursor: pointer;
-}
+/* The `.hotspot-marker` ring symbol is gone with src/data/hotspots.ts — the
+   Archive never drew the three airbases; the Story's Hotspots act does, from
+   its own content module, with its own pins. */
 
 /* The legend's one explanatory line. The rows name the marks; this says what
    the size and the fade MEAN, once, instead of once per row. */
