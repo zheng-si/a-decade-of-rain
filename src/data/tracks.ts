@@ -56,15 +56,44 @@ interface RawTracks {
   marks: [number, number, number, number, number][]
 }
 
+/** In-flight and settled loads, so a second caller gets the first one's work.
+ *
+ *  The key is the url AND the palette, and that is not belt-and-braces. The
+ *  colour is baked into every feature's `c` at load time (that is the whole
+ *  point — it saves a match expression per layer), so the parsed result is
+ *  specific to the palette it was parsed with. The Story calls this with an
+ *  empty `colors`, which resolves every track to the fallback violet; the
+ *  Archive calls it with the real agent palette. Keyed on the url alone,
+ *  whichever surface asked first would decide what colour the herbicides are
+ *  on the other — reach the Archive by clicking through from the Story and
+ *  every track paints #9a6cc4. Keyed on both, they are simply two entries. */
+const cache = new Map<string, Promise<TrackDataset>>()
+
 /** Load and shape the track dataset.
  *
  *  `colors` and `groupOf` are passed in rather than derived here so that the
  *  tracks take exactly the same agent palette as the dots — two files deciding
  *  what colour Agent Orange is, is how they start to disagree. */
-export async function loadTracks(
+export function loadTracks(
   colors: string[],
   groupOf: number[],
   url = '/data/spray-tracks.json',
+): Promise<TrackDataset> {
+  const key = `${url}|${colors.join(',')}|${groupOf.join(',')}`
+  const hit = cache.get(key)
+  if (hit) return hit
+  const p = parseTracks(colors, groupOf, url)
+  // A failed fetch must not be remembered as the answer — drop it so a retry
+  // (a route change, a reconnect) actually retries.
+  p.catch(() => cache.delete(key))
+  cache.set(key, p)
+  return p
+}
+
+async function parseTracks(
+  colors: string[],
+  groupOf: number[],
+  url: string,
 ): Promise<TrackDataset> {
   const raw = (await (await fetch(url)).json()) as RawTracks
 

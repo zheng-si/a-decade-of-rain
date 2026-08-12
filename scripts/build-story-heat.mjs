@@ -108,9 +108,15 @@ let total = 0
 for (const [k, e] of bins) {
   const m = Number(k.split('|')[2])
   total += e.g
+  // 3dp, not 4. The cell is 0.03° across (~3.3 km); 3dp is 0.001° (~110 m),
+  // so the gallons-weighted centroid is still placed to a thirtieth of the
+  // cell it belongs to — far finer than the heat ramp can show, and finer
+  // than the underlying HERBS grid references were ever recorded. The fourth
+  // digit is ~11 m of precision the record does not have, charged to every
+  // reader at ~26 kB gzip.
   cells.push([
-    Number((e.sx / e.g).toFixed(4)),
-    Number((e.sy / e.g).toFixed(4)),
+    Number((e.sx / e.g).toFixed(3)),
+    Number((e.sy / e.g).toFixed(3)),
     monthStartDay(m),
     Math.round(e.g),
   ])
