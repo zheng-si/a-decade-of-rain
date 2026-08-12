@@ -141,11 +141,18 @@ a redeploy before you could look at anything — a bad loop for a throwaway.
 Without a token the route renders the field instead of a map, and the Story and
 Archive are unaffected either way.
 
-### Removing it
+### Removing it — done
 
-Delete `src/components/MapboxSpike.tsx`, `MapboxSpike.css`,
-`src/config/mapboxConfig.ts`, the `/archive-mapbox` route in `App.tsx`, this
-file, and `npm rm mapbox-gl`.
+The spike is gone: `src/components/MapboxSpike.tsx`, `MapboxSpike.css`,
+`src/config/mapboxConfig.ts`, the `/archive-mapbox` route and the `mapbox-gl`
+dependency were all removed once the comparison had been made. **This file
+stayed on purpose** — the original instruction said to delete it too, and that
+was wrong: the verdict and the numbers behind it are the only durable product
+of the spike, and deleting them would mean re-running the whole comparison the
+next time someone asks why the project is on MapLibre.
+
+Everything below is written in the present tense because it describes what was
+on screen at the time. To reproduce it, check out a commit before the removal.
 
 ## 6 · The question the spike cannot answer
 

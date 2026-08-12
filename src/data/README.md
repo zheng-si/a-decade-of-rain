@@ -94,7 +94,9 @@ each run's volume along its track. The dataset carries no per-waypoint
 quantity — `Gallons` and `FWAC` both appear only on leg `1A` — so the only
 available weight is geometric (segment length).
 
-## `hotspots.ts` — dioxin hotspot air bases
+## `hotspots.ts` — removed
 
-Hand-curated former U.S. air bases that are the focus of post-war remediation
-(Da Nang, Bien Hoa, Phu Cat). See file for per-site notes.
+The three remediation air bases (Đà Nẵng, Biên Hòa, Phù Cát) are not here any
+more. This module was an early draft that nothing imported; the Story's
+Hotspots act carries them in its own content module, which is where the copy
+and the per-site numbers live together.

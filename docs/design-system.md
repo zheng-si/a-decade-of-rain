@@ -524,6 +524,10 @@ in favour of the pairing. They are kept as decision records and are no longer
 accurate as specs — v3 §2 in particular says "Geist everywhere, no serif/sans
 pairing", which describes a branch that did not win.
 
-`design-system.html` is a generated specimen page built from
-`design-system.src.html`. Its tokens are stale — it still carries the pre-ramp
-`--ink: #213528` — so treat this file, not that page, as the reference.
+`design-system.src.html` is the source of a generated specimen page. **The
+built `design-system.html` is no longer checked in** — it was 242 kB of build
+output in the repository, regenerable at any time with
+`node scripts/build-design-system-doc.mjs`. Regenerate it only if you want to
+look at it; do not commit the result. Its tokens are stale in any case — it
+still carries the pre-ramp `--ink: #213528` — so treat this file, not that
+page, as the reference.
