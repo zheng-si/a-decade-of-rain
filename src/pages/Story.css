@@ -2168,7 +2168,7 @@
   cursor: pointer;
 }
 .act2-pin.is-completed {
-  --pin: #3f8f5f;
+  --pin: #35784f;
 }
 .act2-pin.is-ongoing {
   --pin: var(--accent-deep);
@@ -2286,7 +2286,7 @@
   transition: box-shadow 0.2s;
 }
 .act2-card.is-active.is-completed {
-  box-shadow: 0 0 0 2px #3f8f5f, 0 0.375rem 1.125rem rgba(63, 143, 95, 0.18);
+  box-shadow: 0 0 0 2px #35784f, 0 0.375rem 1.125rem rgba(53, 120, 79, 0.18);
 }
 .act2-card.is-active.is-ongoing {
   box-shadow: 0 0 0 2px var(--accent-deep), 0 0.375rem 1.125rem rgba(207, 55, 32, 0.16);
@@ -2423,7 +2423,7 @@
   flex: 1;
 }
 .act2-card.is-completed {
-  border-top-color: #3f8f5f;
+  border-top-color: #35784f;
 }
 .act2-card.is-ongoing {
   border-top-color: var(--accent);
@@ -2466,7 +2466,7 @@
   opacity: 0.85;
 }
 .act2-badge.is-completed {
-  background: #3f8f5f;
+  background: #35784f;
 }
 .act2-badge.is-ongoing {
   background: var(--accent-deep);
@@ -2496,7 +2496,7 @@
   font-weight: 500;
 }
 .act2-card.is-completed .act2-facts dt {
-  color: #3f8f5f;
+  color: #35784f;
 }
 .act2-card.is-ongoing .act2-facts dt {
   color: var(--accent-deep);
@@ -3493,13 +3493,13 @@
   --tlc: #2c5a40;
 }
 .is-danang {
-  --tlc: #3f8f5f;
+  --tlc: #35784f;
 }
 .is-bienhoa {
   --tlc: var(--accent-deep);
 }
 .is-programme {
-  --tlc: #79806f;
+  --tlc: #6a7160;
 }
 
 /* Overview bar: the three projects' spans on one 2009–2030 axis. */

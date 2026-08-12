@@ -245,6 +245,23 @@ information, not decoration.
 ⚠️ White-on-`#5aa6e0` is ~2.2:1. The Blue chip keeps dark text; do not fill it
 and put white on top.
 
+### Remediation status
+
+One colour per project, used as a card border, a badge, a map pin, a timeline
+band **and as running text** (`.act2-facts dt`, `.act2-card.is-completed`).
+That last use is why these are text ratios and not the 3:1 non-text floor.
+
+| | | | |
+|---|---|---|---|
+| Completed | `#35784f` | **5.04** on paper | Đà Nẵng · done |
+| Ongoing | `#cf3720` | **4.72** | Biên Hòa · running (= `--accent-deep`) |
+| Contained | `#2c5a40` | **7.54** | Phù Cát · sealed |
+| Programme | `#6a7160` | **4.81** | the whole-programme timeline band |
+
+Completed and Programme were `#3f8f5f` (3.75) and `#79806f` (3.88) — both below
+AA for the text they were set in. Darkened at constant hue; every other use of
+each colour moved with it, so there is still exactly one Đà Nẵng green.
+
 ---
 
 ## 4 · Surfaces and elevation

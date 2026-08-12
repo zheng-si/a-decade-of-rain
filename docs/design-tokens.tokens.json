@@ -33,7 +33,7 @@
       "contextGrey": { "value": "#c9cdc4", "type": "color", "description": "The unselected record: selection greys the rest rather than hiding it" }
     },
     "status": {
-      "completed": { "value": "#3f8f5f", "type": "color", "description": "Da Nang · done (card border/badge, map pin, timeline band)" },
+      "completed": { "value": "#35784f", "type": "color", "description": "Da Nang · done (card border/badge, map pin, timeline band) · 5.04:1 on paper — it was #3f8f5f at 3.75:1, which is a non-text ratio and this is set as text" },
       "ongoing":   { "value": "#cf3720", "type": "color", "description": "Bien Hoa · running (= accentDeep)" },
       "contained": { "value": "#2c5a40", "type": "color", "description": "Phu Cat · sealed (forest; the former blue was retired in the palette purification)" }
     },
@@ -46,9 +46,9 @@
     }
   },
   "fontFamilies": {
-    "sans":  { "value": "Public Sans", "type": "fontFamilies", "description": "Body, UI, map glyph fallback. Ships 300/400/500 ONLY — anything bolder is faux bold" },
-    "serif": { "value": "Playfair Display", "type": "fontFamilies", "description": "THE editorial serif, site-wide — Story and Archive both. Gambarino is retired, kept declared only for a one-line rollback" },
-    "map":   { "value": "Cuprum", "type": "fontFamilies", "description": "Basemap labels (tracked caps); needs a built glyph stack" }
+    "sans":  { "value": "Geist", "type": "fontFamilies", "description": "Body, UI, controls, data — both surfaces. Ships 300/400/500/600; there is no 700, and asking for one renders identically to 600" },
+    "serif": { "value": "Playfair Display", "type": "fontFamilies", "description": "The display tier: Story headings, card titles and years, quotes, and the Archive identity block. Variable 400-900, used at 400" },
+    "map":   { "value": "Roboto Condensed", "type": "fontFamilies", "description": "Basemap labels only, as SDF glyph stacks under public/fonts/. Light/Regular/Medium are built; the five candidate faces and the bold weight were deleted with their stacks" }
   },
   "fontWeights": {
     "light":    { "value": "300", "type": "fontWeights", "description": "Body copy" },
