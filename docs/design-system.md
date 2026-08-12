@@ -232,6 +232,28 @@ Where a selected state *does* carry meaning it keeps its own colour — the agen
 chips take the agent's colour, the method tabs take the method's. That fill is
 information, not decoration.
 
+### Text over photographs
+
+Solid tokens don't work over an image — the type reads as a patch stuck on the
+photo rather than as part of it. So the same three-tier idea, in white with
+alpha. Ratios are against `--forest`; over a photograph the block's own veil
+carries the rest.
+
+| Token | Value | On `--forest` | |
+|---|---|---|---|
+| `--on-photo` | white 0.92 | **11.32** | body, titles, place names |
+| `--on-photo-soft` | white 0.72 | **7.58** | credits, tags, captions, secondary links |
+| `--on-photo-faint` | white 0.50 | **4.51** | not-yet-active — the rail's upcoming nodes |
+
+There were fifteen of these, 0.40 to 0.92, and no two surfaces agreed. The
+faint tier is 0.50 because that is where AA lands, not because it looked
+right: the rail's resting and upcoming links were 0.40 and 0.42 — 3.44 and
+3.64 — and both failed.
+
+Plain `#fff` is **not** a fourth tier. The active and hovered rail links use
+it, and full white against a graded scale is what makes *selected* read
+instantly. The epilogue keeps its own seven alphas by decision.
+
 ### Agents
 
 | | | |
@@ -387,13 +409,17 @@ first machine whose subpixel rounding went the other way.
 |---|---|
 | 1600 / 641 | the density step (root 16 ↔ 13.6) |
 | 1100 | Act II's two-column row collapses |
+| 1024 | the Story card docks to the bottom (tablet and down) |
 | 900 / 860 / 820 | Story section layouts |
-| 700 | the Archive panel becomes a bottom sheet |
-| 640 | the phone layer, both surfaces |
+| 640 | the phone layer, both surfaces — Archive panel becomes a bottom sheet |
 | 400 | agent-chip padding clamps for narrow phones |
 
-Eight numbers is more than a system wants. 700 and 640 in particular do the same
-job on two surfaces and should probably be one.
+700 is gone. It was the Archive panel's own bottom-sheet breakpoint, 60px out
+from the 640 everything else uses, so between 641 and 700 the Archive was
+already a phone while the Story was still a tablet — and 641 is where the root
+scale steps, which meant the Archive's sheet appeared while its type was still
+at laptop density. Both the App.css rule and its restatement in
+ArchiveSkinV2.css now break at 640.
 
 ---
 

@@ -79,7 +79,7 @@
 }
 
 /* The phone sheet's width, restated here because it was never being applied.
-   App.css sets it inside `@media (max-width: 700px)` on `.explorer-panel` —
+   App.css sets it inside `@media (max-width: 640px)` on `.explorer-panel` —
    one class, against the two above — so the media query lost on specificity
    and the sheet kept the desktop `calc(100vw - 3rem)`. On a 390 screen that is
    342 against a 366 the sheet asked for, and the 24 it gave away came off the
@@ -87,7 +87,7 @@
    trap as the phone `.close-body` rule in Story.css — an override that reads
    correctly and never runs. Sized to the row, not to taste: 366 puts the
    content box at 334 against a row that measures 313.5. */
-@media (max-width: 700px) {
+@media (max-width: 640px) {
   .map-wrap .explorer-panel {
     width: calc(100vw - 1.5rem);
   }

@@ -34,6 +34,40 @@
   --forest-text-soft: #b4ccba; /* secondary · 7.7:1 */
   --mint: #92f7bc; /* decorative borders only (never text) */
 
+  /* ── text on PHOTOGRAPHS and dark map ─────────────────────────────────────
+     The same three-tier idea as the ink ramp, in white-with-alpha rather than
+     a solid colour, because these sit over images: the alpha is what lets the
+     photograph read through the type instead of the type sitting on it as a
+     patch.
+
+     There were fifteen of them, from 0.40 to 0.92, and no two surfaces
+     agreed — a photo credit at 0.85 in one act and 0.75 in another, a caption
+     at 0.68 next to a tag at 0.88. Three tiers, assigned by what a line IS
+     rather than by which value it happened to be nearest:
+
+       primary   what you are reading — body, titles, place names
+       soft      what supports it — credits, tags, captions, secondary links
+       faint     what is not active yet — the rail's upcoming nodes
+
+     Ratios are against --forest #213528; over a photograph the veil behind
+     each block carries the rest.
+
+     0.50 for the faint tier is a floor, not a taste: the rail's inactive and
+     upcoming links were 0.40 and 0.42, which are 3.44:1 and 3.64:1 and fail
+     AA outright. 0.50 is the lowest alpha that passes, so the quietest tier
+     is as quiet as it is allowed to be.
+
+     Plain `#fff` is NOT a fourth tier and is deliberately left where it is —
+     the rail's active and hovered links use it, and full white against a
+     graded scale is what makes "this one is selected" read instantly. These
+     three are the graded values; opaque white is the emphasis above them.
+
+     The EPILOGUE is excluded on purpose: seven more white alphas live in the
+     `.close-*` rules and stay as they are. */
+  --on-photo: rgba(255, 255, 255, 0.92); /* 11.3:1 */
+  --on-photo-soft: rgba(255, 255, 255, 0.72); /* 7.6:1 */
+  --on-photo-faint: rgba(255, 255, 255, 0.5); /* 4.5:1 — the AA floor exactly */
+
   /* ── accent family (brand orange) — one hue, four jobs ────────────────────
      GRAPHICS get the vivid brand tone; TEXT gets a tuned tone per surface so
      white/orange pairs pass WCAG AA. Change the hue here, re-check ratios. */
@@ -521,7 +555,10 @@
   height: 0.625rem;
   margin: 0 auto;
   border-radius: 50%;
-  opacity: 0.8;
+  /* The map draws its dots at DOTS.opacity 0.9 (volumeGrid.ts). A key is a
+     sample of the map, so the swatch is drawn at the map's alpha rather than
+     at a slightly quieter one chosen for the panel. */
+  opacity: 0.9;
 }
 
 .archive-key .key-dot-dim {
@@ -573,8 +610,12 @@
   border-top: 1px solid #c6c9c2;
 }
 
-/* ── small screens: the panel becomes a bottom sheet, the key retires ──── */
-@media (max-width: 700px) {
+/* ── small screens: the panel becomes a bottom sheet, the key retires ────
+   640, not 700. Every other phone rule on the site breaks at 640 (Story.css's
+   deck, the rem root scale in index.css, the wall and hotspot grids); this one
+   pair was 60px out on its own, so between 641 and 700 the Archive was already
+   in its phone layout while the Story was still in its tablet one. */
+@media (max-width: 640px) {
   .explorer-panel {
     top: auto;
     bottom: 0.75rem;
@@ -650,7 +691,7 @@
 .inspect-figure strong {
   font-family: var(--font-serif);
   font-size: 1.1875rem;
-  font-weight: 500;
+  font-weight: 400;
   color: var(--accent-deep);
 }
 

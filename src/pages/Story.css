@@ -378,7 +378,7 @@
   font-family: var(--font-sans);
   font-size: 0.6875rem;
   line-height: 1.32;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--on-photo);
   overflow-wrap: break-word;
   transition: color 0.15s, background 0.15s;
 }
@@ -386,7 +386,7 @@
 /* Resting items recede to keep the focus on the active section; hover and the
    active state restore full white. */
 .story-rail-link:not(.is-on):not(.is-upcoming) {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--on-photo-faint);
 }
 
 .story-rail-link:hover:not(.is-upcoming) {
@@ -414,7 +414,7 @@
 }
 
 .story-rail-link.story-rail-out:not(.is-on) {
-  color: rgba(255, 255, 255, 0.82);
+  color: var(--on-photo-soft);
 }
 
 /* Active marker: a 4px white bar on the rail's left edge — it never collides
@@ -444,7 +444,7 @@
 }
 
 .story-rail-link.is-upcoming {
-  color: rgba(255, 255, 255, 0.42);
+  color: var(--on-photo-faint);
   cursor: default;
 }
 
@@ -460,7 +460,7 @@
   margin: 0 0 0.4375rem;
   font-size: 0.625rem;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--on-photo-soft);
 }
 .story-rail-foot img {
   display: block;
@@ -479,7 +479,7 @@
   font-size: 0.625rem;
   font-weight: 500;
   letter-spacing: var(--track-tight);
-  color: rgba(255, 255, 255, 0.68);
+  color: var(--on-photo-soft);
   line-height: 1.5;
 }
 
@@ -642,7 +642,12 @@
   gap: 0.75rem;
   margin: 0 0 2.125rem;
   font-size: 0.625rem;
-  letter-spacing: var(--track-caps);
+  /* No tracking. --track-caps is 0.06em and the ladder gives it to UPPERCASE
+     tags and badges, where the extra space is what stops capitals from
+     colliding. This line is sentence case -- "Built on data & reporting from
+     ... UNDP · U.S. National Archives" -- and lowercase letterforms already
+     carry their own sidebearings, so 0.06em on running text at 10px just
+     reads as loose. */
   color: var(--ink);
   white-space: nowrap;
 }
@@ -1305,11 +1310,15 @@
   stroke-width: 1;
 }
 
+/* The chart's axis labels, matching the Archive's `.explorer-axis` — same
+   size, same ink, same (absent) tracking. This carried the only NEGATIVE
+   letter-spacing on the site: the tracking ladder has three ticks, 0.02 /
+   0.06 / 0.1, and no negative one, so -0.01em was a fourth value with no
+   entry in the system, tightening one chart's axis and nothing else. */
 .rainbow-axis-label {
   fill: var(--ink-faint);
   font-family: var(--font-sans);
-  font-size: 0.625rem;
-  letter-spacing: -0.01em;
+  font-size: 0.6875rem;
 }
 
 .rainbow-band {
@@ -1510,7 +1519,7 @@
 .rainbow-defs dd {
   margin: 0;
   font-size: 0.8125rem;
-  line-height: 1.55;
+  line-height: var(--type-body-lh);
   color: var(--ink);
 }
 
@@ -1778,7 +1787,10 @@
   position: relative;
   height: 100%;
   border-radius: 2px;
-  background: #e4e4de;
+  /* The same track as the Archive's `.inspect-bar-track`. It was #e4e4de, a
+     flat neutral; the Archive's is the ink at 7%, which sits on whatever the
+     card's ground is instead of assuming paper. One bar track, two charts. */
+  background: rgba(33, 53, 40, 0.07);
   background-image: repeating-linear-gradient(
     90deg,
     transparent 0,
@@ -1988,12 +2000,12 @@
   margin: 0 0 0.5rem;
   max-width: 21.25rem;
   font-size: 0.8125rem;
-  line-height: 1.6;
+  line-height: var(--type-body-lh);
   opacity: 0.86;
 }
 .wall-src {
   font-size: 0.6875rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--on-photo-soft);
   text-decoration: underline;
 }
 
@@ -2072,7 +2084,7 @@
   margin: 0 0 0.5rem;
   font-size: 0.6875rem;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--on-photo);
 }
 .wall-consent-btn {
   padding: 0.5rem 1.0625rem;
@@ -2353,7 +2365,7 @@
 .act2-photo-place {
   margin: 0; /* .act2-card-head's 6px bottom margin sets the gap, as on the data face */
   font-size: 0.6875rem;
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--on-photo);
   text-shadow: 0 1px 0.375rem rgba(0, 0, 0, 0.4);
 }
 .act2-photo-hint {
@@ -2631,7 +2643,7 @@
 .alt-family p {
   margin: 0;
   font-size: 0.8125rem;
-  line-height: 1.5;
+  line-height: var(--type-body-lh);
   color: var(--ink-soft);
 }
 
@@ -3213,7 +3225,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4375rem;
-  padding: 0.375rem 0.875rem;
+  padding: 0.375rem 0.75rem;
   font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 600;
@@ -3397,13 +3409,13 @@
 .method-copy p {
   margin: 0;
   font-size: 0.8125rem;
-  line-height: 1.65;
-  color: rgba(255, 255, 255, 0.92);
+  line-height: var(--type-body-lh);
+  color: var(--on-photo);
 }
 .method-cap {
   margin: 0.875rem 0 0 !important;
   font-size: 0.6875rem !important;
-  color: rgba(255, 255, 255, 0.68) !important;
+  color: var(--on-photo-soft) !important;
 }
 
 /* The annotated diagram (open state): labels left, image right. */
@@ -3439,7 +3451,7 @@
   font-weight: 500;
   line-height: 1.25;
   text-align: right;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--on-photo);
   pointer-events: auto;
   cursor: default;
   transition: color 0.15s;
@@ -3637,7 +3649,7 @@
 }
 .tl-card-stat strong {
   font-family: var(--font-serif);
-  font-weight: 500;
+  font-weight: 400;
   font-size: 1.1875rem;
   color: var(--ink);
 }
@@ -3648,7 +3660,7 @@
 .tl-card-text {
   margin: 0;
   font-size: 0.8125rem;
-  line-height: 1.55;
+  line-height: var(--type-body-lh);
   color: var(--ink-soft);
 }
 
@@ -3670,16 +3682,16 @@
   color: #fff;
 }
 .tl-card.is-invert .tl-card-tag {
-  color: rgba(255, 255, 255, 0.88);
+  color: var(--on-photo-soft);
 }
 .tl-card.is-invert .tl-card-stat strong {
   color: #fff;
 }
 .tl-card.is-invert .tl-card-stat span {
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--on-photo);
 }
 .tl-card.is-invert .tl-card-text {
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--on-photo);
 }
 
 /* Dense section: trim the fullscreen padding so the whole arc sits
@@ -3853,7 +3865,11 @@
   font-size: 0.8125rem;
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.75);
-  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  /* 0.2, matching the divider eleven rules below it. Two rules in the same
+     block drew the same hairline at two alphas, which is a difference nothing
+     chose. The three 0.24 rules elsewhere are a different, heavier divider and
+     stay where they are. */
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 .close-ref-group li:first-child {
   border-top: none;

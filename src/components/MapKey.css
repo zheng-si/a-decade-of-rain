@@ -167,7 +167,15 @@
   display: block;
   height: 0.5rem;
   border-radius: 2px;
-  background: linear-gradient(to right, rgba(255, 84, 73, 0.16), #ff8a5a 55%, #cf3720);
+  /* The deep end is #dd6257, not #cf3720. --accent-deep is a TEXT colour; the
+     darkest thing the map actually paints is warmRamp's last stop,
+     rgba(214,54,40,0.96), drawn at the layer's 0.8 opacity over the land
+     #f4f2f1 — which composites to exactly #dd6257. A legend that ends darker
+     than its map tells a reader the heaviest ground is off the scale.
+     (The 55% stop is still the CSS gradient's own blend rather than the map's
+     composited mid, #fd7650 — a smaller version of the same gap, left named
+     rather than changed.) */
+  background: linear-gradient(to right, rgba(255, 84, 73, 0.16), #ff8a5a 55%, #dd6257);
 }
 
 /* Tracks key (handover node): two stroke samples rather than a ramp — the
