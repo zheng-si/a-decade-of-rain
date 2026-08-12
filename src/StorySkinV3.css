@@ -431,6 +431,22 @@
   padding: 0.375rem 0.75rem;
 }
 
+/* The other half of the nowrap change, which I shipped without it. Pinning the
+   switch to `nowrap` stops it breaking into two ragged rows -- correct, and
+   what the Archive's identical row already did -- but a row that cannot reflow
+   has to be able to SHRINK instead, and this one could not: measured 11px of
+   horizontal page scroll at 360 and 49px at 320, caused by these five chips.
+   Identical treatment and identical numbers to `.agent-chip` under .map-wrap,
+   because it is the same control. Nothing changes above 400: the clamp's upper
+   bound IS the padding above, so every phone with room keeps exactly what it
+   had, and only the narrow ones give any back. */
+@media (max-width: 400px) {
+  .story .rainbow-chip {
+    padding-left: clamp(0.3125rem, 2.1vw, 0.75rem);
+    padding-right: clamp(0.3125rem, 2.1vw, 0.75rem);
+  }
+}
+
 /* The seam: inset from top and bottom so it divides rather than outlines, and
    suppressed on both sides of the selected chip, whose fill draws its own. */
 .story .rainbow-chip + .rainbow-chip::before {
