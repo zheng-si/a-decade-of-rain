@@ -65,35 +65,56 @@
      §4's single `0 8px 28px` at .02 was not a light shadow but no shadow, and
      .map-key has to separate from a whole map. Still far under the .10 the
      system was reacting against. */
-  --v3-shadow: 0 1px 2px rgba(40, 38, 30, 0.04), 0 6px 20px rgba(40, 38, 30, 0.05);
-  /* Still used by the two controls that sit on the MAP rather than on paper
-     (.act2-chip, .story-stat), where there is no hairline and depth is the
-     only thing separating them from what is behind. Every white-on-paper
-     control dropped it — see the hairline note below. */
-  --v3-shadow-control: 0 1px 3px rgba(40, 38, 30, 0.07);
+  --v3-shadow: var(--v3-stroke), 0 1px 2px rgba(40, 38, 30, 0.04), 0 6px 20px rgba(40, 38, 30, 0.05);
+  /* The two controls that sit on the MAP rather than on paper (.act2-chip,
+     .story-stat). They keep a deeper shadow than the paper recipe: a busy
+     photographic ground gives an edge nothing to sit against, and dropping
+     them to the whisper would take away depth they are actually using. The
+     stroke rides along, so every white surface on the site now carries the
+     same line and only the separation differs. */
+  --v3-shadow-control: var(--v3-stroke), 0 1px 3px rgba(40, 38, 30, 0.07);
   /* A dark card on a bright map is the one case neither token covers — it has
      to lift off a photograph, not off paper. Still far below the 0.42 it was. */
   --v3-shadow-dark: 0 10px 32px rgba(16, 26, 20, 0.16);
 
-  /* §3 removed the strokes, and on the dark map that was right — a white
-     control there has the map to sit against. On PAPER it has nothing: #fff on
-     #faf9f4 is a 1.03:1 edge, so the white half of a switch simply stopped
-     having a shape. The shadow alone leaves the TOP edge invisible, so the
-     edge has to come from an inset line.
+  /* ── the elevation recipe · stroke + whisper ────────────────────────────
+     Two parts, and they are two parts on purpose, because they hold different
+     edges. The stroke closes all four sides equally — including the TOP, which
+     a shadow can never draw, since light comes from above and a box with only
+     a shadow reads as sliding off the page. The shadow does the one thing the
+     stroke cannot: it separates the surface from the surface behind it.
 
-     6%. It went 10 → 4 → 6, and the middle step is why: at .10 the line read
-     as the border §3 had just removed, but .04 rendered (246,247,246) against
-     (250,249,244) paper — a 4/255 delta, at the perception threshold — and
-     once the shadow came off there was nothing else holding the edge, so a
-     control's outer boundary read as absent rather than quiet. .06 is the
-     value that is present without being a stroke.
+     Because each has a job the other cannot do, NEITHER has to be loud. That
+     is the whole argument for this pair, and it is also the answer to why the
+     stroke is back at .04 after .04 was already rejected once. The note that
+     used to sit here read: ".04 rendered (246,247,246) against (250,249,244)
+     paper — a 4/255 delta, at the perception threshold — and once the shadow
+     came off there was nothing else holding the edge." That is exactly right,
+     and the operative clause is the last one. .04 failed as a SOLE treatment.
+     With 2px of contact shadow under it, the edge no longer has to carry the
+     separation by itself, so it can sit at the threshold and be quiet rather
+     than absent. .06 was the value that "is present without being a stroke"
+     only because it was working alone.
 
-     And the hairline is now the WHOLE treatment — the control shadow that used
-     to ride with it is gone. The two were solving the same problem twice: the
-     line already closes all four edges, so the shadow was only adding lift
-     nothing on this page is meant to have. Paper is flat; §6's depth belongs
-     to things floating over the map, not to a switch sitting on a panel. */
-  --v3-hairline: inset 0 0 0 1px rgba(33, 53, 40, 0.06);
+     Measured, composited over the card (#fdfdfd):
+       .04  #f4f5f4  1.074:1     ← here
+       .06  #f0f1f0  1.113:1     the previous sole treatment
+       .136 #dee1df  1.295:1     = --rule, the 1px border §3 removed
+
+     OUTSET, never inset. An inset shadow paints on the padding box, beneath
+     children — so any child with an opaque, full-bleed background erases it,
+     and `getComputedStyle` still cheerfully reports it. That is not
+     hypothetical: `.explorer-agents` on the Archive had exactly this, and its
+     dark active chip wiped the container's left end to nothing (measured: 4.07
+     of 255 under the translucent chips, 0 under the opaque one). Outset is
+     drawn outside the border box, where no child can reach it. */
+  --v3-stroke: 0 0 0 1px rgba(33, 53, 40, 0.04);
+  --v3-whisper: 0 1px 2px rgba(40, 38, 30, 0.05);
+
+  /* What every white surface on paper takes: cards, panels, switches, chips.
+     One recipe, so "how does a white thing sit on this page" has one answer. */
+  --v3-lift: var(--v3-stroke), var(--v3-whisper);
+
 
   font-family: var(--font-sans);
 }
@@ -304,7 +325,7 @@
    took their border and §6 never gave them anything, so the biggest white
    surfaces on the page had no edge of any kind. */
 .story .act2-card {
-  box-shadow: var(--v3-hairline);
+  box-shadow: var(--v3-lift);
 }
 
 .story .map-key,
@@ -322,7 +343,7 @@
    pass -- the state was unreachable before -- so this is the first time it has
    had to answer the question. */
 .story .alt-reveal-btn.is-banner {
-  box-shadow: var(--v3-hairline);
+  box-shadow: var(--v3-lift);
 }
 
 .story .act2-pin:hover .act2-chip {
@@ -358,7 +379,7 @@
   /* Along the TOP, matching the herbicide and timeline cards. Those two already
      banded there and this one banded left, and one page cannot hold two answers
      to where a card's colour lives. */
-  box-shadow: inset 0 3px 0 currentColor, var(--v3-hairline);
+  box-shadow: inset 0 3px 0 currentColor, var(--v3-lift);
 }
 
 
@@ -393,7 +414,7 @@
      the Flat/3D pair is literally the same control on both pages — it had the
      shadow here and shadow-plus-hairline there, so the white half sat on a
      defined edge on one page and dissolved on the other. */
-  box-shadow: var(--v3-hairline);
+  box-shadow: var(--v3-lift);
 }
 
 /* The key's own label, uppercased to match the Archive's. Both are the 10px
@@ -413,15 +434,20 @@
 .story .rainbow-switch {
   gap: 0;
   width: fit-content;
-  /* OUTSET, not var(--v3-hairline). The five chips sum to 311.51 against a
-     group width of 311.52 and paint opaque #fff, and an inset shadow is drawn
-     UNDER its children's backgrounds -- so the declared hairline measured Δ0 on
-     all four edges while getComputedStyle happily reported it as present. The
-     same token measures Δ8–13 on .rainbow-card, .tl-card and .method-tab,
-     which is how we know the value is right and the form is wrong here.
-     ArchiveSkinV2's inset copy measures Δ5 and stays as it is: its chips are
-     60% white, so the line shows through. */
-  box-shadow: 0 0 0 1px rgba(33, 53, 40, 0.06);
+  /* Back on the token, because the token is outset now. This rule used to
+     hardcode the outset form and carry a note explaining why it had to differ
+     from --v3-hairline: the five chips sum to 311.51 against a group width of
+     311.52 and paint opaque #fff, so an inset shadow — drawn UNDER its
+     children's backgrounds — measured Δ0 on all four edges while
+     getComputedStyle reported it present.
+     That note also said ArchiveSkinV2's inset copy "measures Δ5 and stays as
+     it is: its chips are 60% white, so the line shows through." That was
+     half right and the wrong half mattered. Measured on the shipped build,
+     `.explorer-agents` reads 4.07 of 255 under the translucent chips and
+     exactly 0 under the opaque dark "All" — so the Archive's switch had no
+     edge at the end a reader looks at first. Both are outset now, from one
+     token, and neither can drift back. */
+  box-shadow: var(--v3-lift);
 }
 
 .story .rainbow-chip {
@@ -467,7 +493,7 @@
 .story .method-tab:not(.is-on),
 .story .alt-reveal-btn:not(.is-banner),
 .story .wall-consent-btn {
-  box-shadow: var(--v3-hairline);
+  box-shadow: var(--v3-lift);
 }
 
 /* Selected state is --forest ONLY where it carries no other meaning — these
@@ -513,7 +539,39 @@
 .story .story-hook-cta {
   background: none;
   color: var(--ink);
+  /* The complaint was that this reads lighter than the title. It is NOT a
+     colour difference: sampled off the rendered hero, the darkest pixel in the
+     title, the subtitle and this cue is the same rgb(16,26,20), and all three
+     declare var(--ink). What differs is how much ink reaches the screen.
+
+     The obvious move -- set it in the display serif so the hero has one voice
+     -- was tried and MEASURED WORSE, which is why it is not what shipped.
+     Playfair is a high-contrast face: hairline thins, and at cue sizes it puts
+     down less ink than a semibold grotesque no matter how large it gets.
+     Ink pixels inside the element's own box, against the title's 16.2% and the
+     subtitle's 9.3%:
+
+       Geist 600     0.875rem   10.5%   ← was
+       Geist 600     1.0625rem  12.7%   ← is
+       Playfair 400  1.0625rem   6.0%
+       Playfair 500  1.0625rem   7.2%
+       Playfair 400  1.5rem      8.6%
+       Playfair 500  1.5rem      9.1%   (a cue as big as the subtitle, still
+                                         thinner than the 14px sans it replaced)
+
+     So: same face, one step up the ladder -- 14px to 17px, the quote tier.
+     That is +21% ink and it lands between the subtitle and where it was.
+     The remaining gap to the title is scale, and scale is the hierarchy; a
+     scroll cue is not supposed to weigh what the masthead weighs. */
+  font-size: 1.0625rem;
   font-weight: 600;
+}
+
+/* The arrow pins its own 0.875rem in Story.css, which was the label's size
+   until the line above moved. Left alone it would sit 20% short of the word it
+   belongs to. */
+.story .story-hook-cta-arrow {
+  font-size: inherit;
 }
 
 .story .story-hook-cta:hover {

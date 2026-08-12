@@ -33,12 +33,29 @@
      problem: white on white, with no border left to help, so it needs a tight
      close one to stop dissolving into the surface it floats on. */
   --v2-shadow: 0 8px 28px rgba(40, 38, 30, 0.02);
-  --v2-shadow-control: 0 1px 3px rgba(40, 38, 30, 0.07);
-  /* A white control on the pale panel is a 1.03:1 edge — the shadow above
-     defines its bottom and nothing else. This defines the other three without
-     re-enclosing it; see the note on --v3-hairline for the comparison it came
-     out of. Both surfaces take the same value. */
-  --v2-hairline: inset 0 0 0 1px rgba(33, 53, 40, 0.06);
+
+  /* ── the elevation recipe, shared verbatim with the Story ───────────────
+     Same two parts, same values, same reasoning — the long version lives on
+     --v3-stroke in StorySkinV3.css and is not repeated here, because the
+     point of these being identical is that there is one decision, not two
+     that happen to agree. The stroke holds all four edges (a shadow cannot
+     draw a top edge); the whisper does the separating; neither has to be
+     loud because neither is working alone.
+
+     OUTSET. This file is where that mattered most: --v2-hairline used to be
+     `inset`, and `.explorer-agents` is a zero-padding row of full-bleed
+     chips, so its own buttons painted over the container's outline — 4.07 of
+     255 left under the translucent chips and nothing at all under the opaque
+     dark one. The switch had no edge exactly where the eye lands first. */
+  --v2-stroke: 0 0 0 1px rgba(33, 53, 40, 0.04);
+  --v2-whisper: 0 1px 2px rgba(40, 38, 30, 0.05);
+  --v2-lift: var(--v2-stroke), var(--v2-whisper);
+
+  /* Controls on the glass keep the tighter, deeper close — they sit on a
+     panel that is itself floating over a map, and the whisper alone would
+     give them less separation than they have now. */
+  --v2-shadow-control: var(--v2-stroke), 0 1px 3px rgba(40, 38, 30, 0.07);
+
 
   /* One dark. The play button, the active Flat/3D tab and the All-agents chip
      are the same kind of thing — the selected state of a control — so they get
@@ -98,7 +115,12 @@
   background: var(--v2-panel);
   border: none;
   border-radius: 0;
-  box-shadow: var(--v2-shadow);
+  /* The stroke, plus their own wide float rather than the whisper. These are
+     the two biggest surfaces on the Archive and they hang over a moving map,
+     so they need more separation than a card on paper does -- but they had NO
+     edge of any kind, which is why the panel's top corner dissolved into a
+     pale patch of basemap. The line is the new part; the float is unchanged. */
+  box-shadow: var(--v2-stroke), var(--v2-shadow);
   -webkit-backdrop-filter: var(--v2-blur);
   backdrop-filter: var(--v2-blur);
 }
@@ -221,7 +243,7 @@
    separate circles — squares with a gap would read as two unrelated things. */
 .map-wrap .transport-buttons {
   gap: 0;
-  box-shadow: var(--v2-hairline);
+  box-shadow: var(--v2-lift);
 }
 
 .map-wrap .transport-btn.is-primary,
@@ -235,9 +257,13 @@
   border-radius: 0;
 }
 
+/* The reset button. It used to say `box-shadow: none` -- written when the
+   skin's position was that white-on-glass takes no depth at all, which is the
+   position this pass reverses. It is a 30px white square on a white panel; if
+   anything on this surface needs the recipe, it is this. */
 .map-wrap .transport-btn.is-ghost {
   background: rgba(255, 255, 255, 0.75);
-  box-shadow: none;
+  box-shadow: var(--v2-lift);
 }
 
 .map-wrap .transport-btn.is-ghost:hover:not(:disabled) {
@@ -348,10 +374,22 @@
   padding: 0;
   background: none;
   border-radius: 0;
-  /* Hairline first, then the control shadow — the white chips inside are
-     otherwise a 1.03:1 edge against the panel. Matches `.rainbow-switch` in
-     StorySkinV3.css, which is the same switch on the other page. */
-  box-shadow: var(--v2-hairline);
+  /* THE bug this pass was really about. This said "Hairline first, then the
+     control shadow" and shipped only a hairline -- and an INSET one, on a row
+     with zero padding whose children are full-bleed. An inset shadow paints on
+     the padding box, beneath children, so the chips painted over their own
+     container's outline: 4.07 of 255 left under the translucent ones, and
+     exactly 0 under the opaque dark "All". The switch had no edge at the end
+     the eye reaches first, which is why it read as a dark block with four
+     labels beside it rather than as one control. `getComputedStyle` reported
+     the shadow the whole time; it takes `elementFromPoint` or a pixel sample
+     to see that it is not there.
+
+     The comment also claimed it matched `.rainbow-switch` in StorySkinV3.css.
+     It had stopped matching -- that rule went outset one pass earlier. Both
+     now take their skin's --*-lift, which is outset, so they cannot diverge
+     again without someone editing two tokens. */
+  box-shadow: var(--v2-lift);
 }
 
 /* Medium, not SemiBold. These are switches, not headings — at 600 the whole
@@ -433,7 +471,7 @@
    the edge the switch is made of. */
 .map-wrap .archive-key .map-key-view {
   padding: 0;
-  box-shadow: var(--v2-hairline);
+  box-shadow: var(--v2-lift);
 }
 
 .map-wrap .archive-key .map-key-view-btn.is-active {

@@ -4033,7 +4033,7 @@
   max-width: 20rem;
   padding: 0.75rem 1rem;
   background: var(--paper-solid);
-  box-shadow: var(--v3-hairline);
+  box-shadow: var(--v3-lift);
   font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 400;

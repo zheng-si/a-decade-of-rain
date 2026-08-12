@@ -151,5 +151,13 @@
       "type": "typography",
       "description": "Figure half of a stat pair, in accentDeep; label half is the same size at 400 in inkSoft, 12px of space between pairs and NO interpunct"
     }
+  },
+  "$elevation": {
+    "$description": "The white-surface recipe: a stroke AND a whisper of shadow, both OUTSET, always together. The stroke holds all four edges — including the top, which a shadow can never draw, since light comes from above. The shadow does the one thing the stroke cannot: separate the surface from what is behind it. Because each does what the other cannot, neither has to be loud, which is why the stroke sits at 0.04 — a value that was rejected when it was tried alone. Spec: docs/design-system.md §4",
+    "stroke":  { "value": "0 0 0 1px rgba(33, 53, 40, 0.04)", "type": "boxShadow", "description": "OUTSET, never inset. An inset shadow paints beneath children, so any opaque full-bleed child erases it while getComputedStyle still reports it present" },
+    "whisper": { "value": "0 1px 2px rgba(40, 38, 30, 0.05)", "type": "boxShadow", "description": "Contact shadow — the paper default. Pair with the stroke; never use alone" },
+    "float":   { "value": "0 1px 2px rgba(40, 38, 30, 0.04), 0 6px 20px rgba(40, 38, 30, 0.05)", "type": "boxShadow", "description": "Things floating over the map (the map key). Carries the stroke as well" },
+    "control": { "value": "0 1px 3px rgba(40, 38, 30, 0.07)", "type": "boxShadow", "description": "Controls sitting on the map rather than on paper. Carries the stroke as well" },
+    "onPhoto": { "value": "0 10px 32px rgba(16, 26, 20, 0.16)", "type": "boxShadow", "description": "A dark card over a photograph — the one case with no stroke, since 4% ink on a dark ground is nothing" }
   }
 }

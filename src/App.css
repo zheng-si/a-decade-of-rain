@@ -989,7 +989,10 @@
   max-width: 20rem;
   padding: 0.75rem 1rem;
   background: var(--paper-solid);
-  box-shadow: var(--v2-hairline, inset 0 0 0 1px rgba(33, 53, 40, 0.06));
+  /* The fallback is what renders on the Story, where --v2-hairline is not in
+     scope, so it has to be the recipe rather than the old inset line — this
+     notice is a white card on paper like any other. */
+  box-shadow: var(--v2-lift, 0 0 0 1px rgba(33, 53, 40, 0.04), 0 1px 2px rgba(40, 38, 30, 0.05));
   font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 400;

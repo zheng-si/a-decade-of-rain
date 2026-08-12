@@ -306,39 +306,69 @@ own chart — the two reddest things on screen read as one. At 0.90/20px it
 arrives as tone. Raising opacity without raising blur makes the remaining
 transmission *more* legible, not less.
 
-### The white-control recipe
+### The elevation recipe
 
 This is the most-revised decision in the system, so it is written out in full.
 
-**A white control on a paper ground takes a hairline and no shadow.**
+**A white surface — card, panel, switch, chip — takes a stroke AND a whisper of
+shadow. Both, always, and always outset.**
 
 ```css
---v3-hairline: inset 0 0 0 1px rgba(33, 53, 40, 0.06);  /* .story  */
---v2-hairline: inset 0 0 0 1px rgba(33, 53, 40, 0.06);  /* .map-wrap */
+--v3-stroke:  0 0 0 1px rgba(33, 53, 40, 0.04);
+--v3-whisper: 0 1px 2px rgba(40, 38, 30, 0.05);
+--v3-lift:    var(--v3-stroke), var(--v3-whisper);   /* .story   */
+--v2-lift:    var(--v2-stroke), var(--v2-whisper);   /* .map-wrap */
 ```
 
-Byte-identical on purpose. 6% went 10 → 4 → 6: at 0.10 the line read as the
-border that had just been removed; at 0.04 it rendered `(246,247,246)` against
-`(250,249,244)` paper, a 4/255 delta at the perception threshold, and a
-control's outer boundary read as absent rather than quiet.
+Byte-identical across the two skins on purpose.
 
-The hairline is the **whole** treatment. The control shadow that used to ride
-with it is gone: the line already closes all four edges, so the shadow was only
-adding lift that a flat paper page is not meant to have.
+**Why both.** They hold different edges. The stroke closes all four sides
+equally, *including the top* — which a shadow can never draw, because light
+comes from above, and a box with only a shadow reads as sliding off the page.
+The shadow does the one thing the stroke cannot: separate the surface from the
+surface behind it. Because each has a job the other cannot do, **neither has to
+be loud.**
 
-Shadows survive for exactly three cases, all of them things that genuinely float:
+That is also why the stroke is at 0.04 after 0.04 was rejected once before. The
+earlier note was right on its own terms — at 0.04 the line renders `#f4f5f4`
+against the card, a 4/255 delta at the perception threshold — but it was
+describing 0.04 as a *sole* treatment, with nothing else holding the edge. With
+2px of contact shadow under it the line no longer carries the separation alone,
+so it can sit at the threshold and read as quiet rather than absent.
+
+| α | Composited on `#fdfdfd` | vs card | |
+|---|---|---|---|
+| 0.04 | `#f4f5f4` | 1.074 | **here**, paired with the whisper |
+| 0.06 | `#f0f1f0` | 1.113 | the previous sole treatment |
+| 0.136 | `#dee1df` | 1.295 | = `--rule`, the 1px border §3 removed |
+
+Deeper shadows survive for the things that genuinely float. All of them carry
+the same stroke, so every white surface on the site has one line and only the
+separation differs:
 
 | Token | Value | For |
 |---|---|---|
-| `--v3-shadow` | `0 1px 2px /.04`, `0 6px 20px /.05` | `.map-key`, `.close-action` — over a map, or on a dark ground where a 6% ink line is invisible |
-| `--v3-shadow-control` | `0 1px 3px /.07` | controls sitting on the MAP rather than on paper |
-| `--v3-shadow-dark` | `0 10px 32px /.16` | a card floating over a photograph |
+| `--v3-shadow` | stroke + `0 1px 2px /.04`, `0 6px 20px /.05` | `.map-key`, `.close-action` |
+| `--v3-shadow-control` | stroke + `0 1px 3px /.07` | controls on the MAP rather than on paper |
+| `--v2-shadow` | stroke + `0 8px 28px /.02` | the Archive's two big frosted panels |
+| `--v3-shadow-dark` | `0 10px 32px /.16` | a card over a photograph — no stroke; a 4% ink line on a dark ground is nothing |
 
-**The trap, which has caught this project twice:** an inset shadow is painted
-*under* its children's backgrounds. A card that sets the hairline and whose
-child paints an opaque background of the same colour has a hairline that never
-reaches the screen — and `getComputedStyle` will report it as present, because
-it *is* set. Verify with `elementFromPoint` at the element's own border pixel.
+**OUTSET, never inset — the trap that has now caught this project three times.**
+An inset shadow is painted on the padding box, *beneath* children. Any child
+with an opaque, full-bleed background erases it, and `getComputedStyle` will
+report it as present, because it *is* set.
+
+The third catch is the one worth remembering, because it shipped: the Archive's
+`.explorer-agents` is a zero-padding row of full-bleed chips, so the switch's
+own buttons painted over its outline. Measured on the shipped build, the top
+edge darkened by **4.07 of 255** under the translucent chips and by **exactly
+zero** under the opaque dark “All” — the control had no edge at the end a reader
+looks at first, which is why it read as a dark block with four labels beside it
+rather than as one switch. Outset, the same edge measures **9.21 uniformly
+across the whole row.**
+
+Verify with `elementFromPoint` at the border pixel, or by sampling pixels one
+row *outside* the border box — an outset stroke does not live inside it.
 
 ---
 
