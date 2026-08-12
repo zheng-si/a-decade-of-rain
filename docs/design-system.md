@@ -473,7 +473,7 @@ headings each take over the rule that would otherwise sit above the block they
 head.
 
 **Error notice.** Both surfaces say so when the map cannot be drawn — paper, the
-hairline, 0.75rem ink-soft, centred on the map. The Story adds that its
+elevation recipe, 0.75rem ink-soft, centred on the map. The Story adds that its
 reporting is unaffected, because it is; the Archive does not, because the map
 *is* the Archive.
 

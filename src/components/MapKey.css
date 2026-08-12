@@ -118,12 +118,10 @@
   gap: 0.125rem;
 }
 
-.map-key-compass-n {
-  font-size: 0.625rem;
-  font-weight: 600;
-  line-height: 1;
-  color: var(--ink-soft);
-}
+/* `.map-key-compass-n` is gone from both surfaces. The dial alone is the mark;
+   `title="North"` still carries it for anything reading the markup. The column
+   layout and its gap stay -- the compass is a one-child flex column now, but
+   the rule is what centres the dial in the row. */
 
 /* A ring with a vertical needle from the top edge down to the centre. */
 .map-key-compass-dial {

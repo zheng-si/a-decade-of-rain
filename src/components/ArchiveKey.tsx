@@ -107,13 +107,7 @@ export default function ArchiveKey({
           <div className="map-key-scale-bar" style={{ width: `${scale.w}px` }} />
           <span className="map-key-scale-label">{scale.label}</span>
         </div>
-        {/* The N is not decoration: a ring with a spoke is a dial, and only
-            the letter says which way the spoke points. The Story's key has
-            carried it since the compass was drawn; this one was missing it,
-            so the same symbol meant "north is up" on one surface and nothing
-            in particular on the other. */}
         <div className="map-key-compass" title="North">
-          <span className="map-key-compass-n">N</span>
           <span className="map-key-compass-dial">
             <span className="map-key-compass-needle" />
           </span>

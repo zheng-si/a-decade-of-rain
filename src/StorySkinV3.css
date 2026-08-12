@@ -539,40 +539,9 @@
 .story .story-hook-cta {
   background: none;
   color: var(--ink);
-  /* The complaint was that this reads lighter than the title. It is NOT a
-     colour difference: sampled off the rendered hero, the darkest pixel in the
-     title, the subtitle and this cue is the same rgb(16,26,20), and all three
-     declare var(--ink). What differs is how much ink reaches the screen.
-
-     The obvious move -- set it in the display serif so the hero has one voice
-     -- was tried and MEASURED WORSE, which is why it is not what shipped.
-     Playfair is a high-contrast face: hairline thins, and at cue sizes it puts
-     down less ink than a semibold grotesque no matter how large it gets.
-     Ink pixels inside the element's own box, against the title's 16.2% and the
-     subtitle's 9.3%:
-
-       Geist 600     0.875rem   10.5%   ← was
-       Geist 600     1.0625rem  12.7%   ← is
-       Playfair 400  1.0625rem   6.0%
-       Playfair 500  1.0625rem   7.2%
-       Playfair 400  1.5rem      8.6%
-       Playfair 500  1.5rem      9.1%   (a cue as big as the subtitle, still
-                                         thinner than the 14px sans it replaced)
-
-     So: same face, one step up the ladder -- 14px to 17px, the quote tier.
-     That is +21% ink and it lands between the subtitle and where it was.
-     The remaining gap to the title is scale, and scale is the hierarchy; a
-     scroll cue is not supposed to weigh what the masthead weighs. */
-  font-size: 1.0625rem;
   font-weight: 600;
 }
 
-/* The arrow pins its own 0.875rem in Story.css, which was the label's size
-   until the line above moved. Left alone it would sit 20% short of the word it
-   belongs to. */
-.story .story-hook-cta-arrow {
-  font-size: inherit;
-}
 
 .story .story-hook-cta:hover {
   background: none;
