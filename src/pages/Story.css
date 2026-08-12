@@ -1228,10 +1228,19 @@
     right: auto;
     bottom: calc(1.5rem + env(safe-area-inset-bottom));
     z-index: 4;
-    width: min(25.5rem, calc(100vw - var(--nav-w) - 16rem));
-    /* A tall card on a 768-high landscape iPad would otherwise run off the top.
-       This is the one place the deck caps its own height; the phone block below
-       removes the cap again, because a phone is tall enough not to need it. */
+    /* WIDE AND SHORT, not narrow and tall. At the desktop's 25.5rem the card
+       measured 397px on a 768-high iPad — 52% of the screen, for a card whose
+       whole job is to caption a map it was covering half of. Widening it to 34
+       lets the same prose reflow into fewer lines, and the height comes down
+       with the measure: 462 x 238, 31% of the screen.
+
+       It stays anchored to the desktop card's LEFT edge and grows rightward,
+       into the bottom-right corner, which was empty. Not to the right margin:
+       a card that reaches both edges is the full-bleed phone sheet, and there
+       is enough room here not to need that. */
+    width: min(34rem, calc(100vw - var(--nav-w) - 16rem));
+    padding: 1.125rem 1.25rem 1.25rem;
+    /* Still capped, in case a future node runs long on a short screen. */
     max-height: calc(100vh - 3rem);
     overflow-y: auto;
     opacity: 1;
@@ -1243,6 +1252,36 @@
 
   .story-deck-live .story-card {
     visibility: visible;
+  }
+
+  /* Deck type: one step down from the page, two above the phone's caption
+     sizes. The card is a caption here too, but it is a caption on a 34rem
+     measure rather than a 20rem one, so it does not need to shrink as far. */
+  .story-eyebrow {
+    font-size: 1.0625rem;
+    margin-bottom: 0.125rem;
+  }
+  .story-name {
+    font-size: 1.1875rem;
+    margin-bottom: 0.375rem;
+    line-height: 1.2;
+  }
+  .story-dek {
+    font-size: 0.9375rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.35;
+  }
+  .story-body {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+
+  /* The account block was the single tallest thing in the card — 93px of 397,
+     nearly a quarter — and it is the one part that is not the caption. It goes
+     wherever the deck goes, which is the rule the phone already applied and
+     the reason the phone card was never this tall. */
+  .story-quote {
+    display: none;
   }
 }
 
@@ -1324,11 +1363,8 @@
     font-size: 0.875rem;
   }
 
-  /* The quotes do not survive the cut to caption size: on a phone the account
-     block (toggle included) is simply gone. Desktop keeps them open. */
-  .story-quote {
-    display: none;
-  }
+  /* (The account block is hidden by the deck block above, from 1024 down —
+     the quote does not survive the cut to caption size at any deck width.) */
 }
 
 /* Laptop-width density: the rail tightens its per-item padding and dividers
@@ -3258,6 +3294,40 @@
   .alt-xlabels,
   .alt-bands {
     min-width: 35rem;
+  }
+}
+
+/* ── tablets keep their card rows horizontal ───────────────────────────────
+   The 900 block above collapses the three card grids to one column, which was
+   written for "narrow" and is right for a phone. On a tablet it throws away
+   the comparison those grids exist to make: the three hotspot cards share one
+   volume scale so the size gap between the bases reads at a glance, the three
+   alternatives are meant to be weighed against each other, and the photo wall
+   is a number set beside the wall it describes. Stacked, each of those becomes
+   a list you scroll — three separate things instead of one comparison.
+
+   741 rather than 641, and the number is measured, not chosen: three cards
+   plus their two gaps need the available width to hold them at a size the
+   photo captions survive. At 768 that is 190 each, which they do; at 641 it
+   would be 153, which they do not. iPad mini is 744, so the range starts just
+   below it and every iPad is inside.
+
+   .act2-hotspots needs minmax(0, …) rather than its base minmax(15rem, …):
+   15rem is 204px and three of those overflow anything under 632. The floor is
+   what forces the stack; removing it is what lets the row survive. */
+@media (min-width: 741px) and (max-width: 900px) {
+  .wall-inner {
+    grid-template-columns: 1fr 2fr;
+    gap: 1.5rem;
+  }
+  .wall-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .act2-hotspots {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .alt-families {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 

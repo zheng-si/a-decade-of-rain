@@ -104,11 +104,21 @@
 }
 
 /* ── the identity block ────────────────────────────────────────────────── */
+/* The year joins the two lines below it in the display serif — see the note on
+   .explorer-title. It is the third element of the same block, and leaving it in
+   Geist left that block reading sans / serif / serif.
+
+   Its size moves with the family: 1rem was the only font-size on this surface
+   that was not on the type ladder, and the Story card sets its own eyebrow at
+   the SAME tier as its title. So this lands on 1.5rem alongside .explorer-title
+   and fixes the off-ladder value in the same edit rather than leaving it for a
+   later sweep. */
 .map-wrap .explorer-eyebrow {
-  margin: 0 0 0.75rem;
-  font-weight: 500;
-  font-size: 1rem;
-  line-height: 1.1;
+  margin: 0 0 0.25rem;
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  font-size: 1.5rem;
+  line-height: 1.05;
 }
 
 /* THE ONE DELIBERATE EXCEPTION TO §1's "one typeface", and it is worth stating

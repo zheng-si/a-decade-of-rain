@@ -92,11 +92,12 @@ function monthlyCumulative(spray: SprayDataset): { months: number[]; yearStart: 
 }
 
 
-const PHONE_MQ = '(max-width: 640px)'
-/* The deck (the bottom-docked node card) runs from tablet width down, not just
-   on phones: a landscape iPad is 768 tall and the centred card does not fit.
-   Kept separate from PHONE_MQ, which still governs the quote collapse — that
-   one is a phone affordance and a tablet has room for the quote open. */
+/* The deck — the bottom-docked node card — runs from tablet width down, not
+   just on phones: a landscape iPad is 768 tall and the centred card does not
+   fit. It governs the quote too. That started as a separate breakpoint on the
+   theory that a tablet has room to leave the account block open; measured, it
+   does not — the block was 93px of a 397px card, and the card was covering
+   half the map it exists to caption. One width, one rule. */
 const DECK_MQ = '(max-width: 1024px)'
 
 /**
@@ -118,10 +119,10 @@ function StoryQuote({
   quote: { text: string; speaker: string }
   src?: { url: string; publisher: string }
 }) {
-  const [open, setOpen] = useState(() => !window.matchMedia(PHONE_MQ).matches)
+  const [open, setOpen] = useState(() => !window.matchMedia(DECK_MQ).matches)
 
   useEffect(() => {
-    const m = window.matchMedia(PHONE_MQ)
+    const m = window.matchMedia(DECK_MQ)
     const sync = () => setOpen(!m.matches)
     m.addEventListener('change', sync)
     return () => m.removeEventListener('change', sync)
