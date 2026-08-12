@@ -106,7 +106,15 @@ export const LABEL_TIERS: Record<LabelTier, LabelStyle> = {
   capital: S({ size: [9.5, 15], color: '#424c45' }),
   city: S({ size: [9.5, 14], zoom: [0, 23], tracking: 0.15, color: '#606662' }),
   town: S({ size: [7.5, 11], color: '#767676', font: 'Roboto Condensed Regular', tracking: 0.1, zoom: [9, 24] }),
-  village: S({ size: [7, 10], color: '#8a8a8a', font: 'Roboto Condensed Light', zoom: [10, 24] }),
+  // shown: false, and this is the row that made the two maps disagree. The
+  // shared curation puts `village` in DEFAULT_HIDDEN — "P.9", "Thôn 7" and a
+  // thousand wards are noise under a spray record — and the Story obeys it.
+  // The Archive then runs volumeGrid's label pass afterwards, which reads THIS
+  // table, saw shown: true, and switched every ward back on from z10. Same
+  // basemap, same intent, opposite result, decided by which pass happened to
+  // run last. The table is the one the Archive obeys, so the table has to say
+  // what was actually decided.
+  village: S({ size: [7, 10], color: '#8a8a8a', font: 'Roboto Condensed Light', zoom: [10, 24], shown: false }),
   // positron's third, unfiltered settlement tier. Documented in
   // docs/map-zoom-and-labels.md §7.2 as unmanaged; it now has a row.
   placeOther: S({ size: [7, 10], color: '#8a8a8a', font: 'Roboto Condensed Light', zoom: [Z_NEAR, 24], shown: false }),

@@ -1,0 +1,266 @@
+/* ── the map key ───────────────────────────────────────────────────────────
+   Scale bar, compass, view switcher and legend rows: the furniture both maps
+   dock in a corner. MapKey.tsx renders it on the Story, ArchiveKey.tsx on the
+   Archive, and the two share every `.map-key-*` and `.key-*` class here.
+
+   This lives in its own file because the routes are split. These rules used to
+   sit in Story.css, and while the site shipped one stylesheet that was merely
+   untidy — the Archive was silently reading the Story's CSS and nobody could
+   tell. The moment Story.css became a route chunk the Archive stopped loading
+   it, and the key lost its layout: `.map-key-top` went back to a block box, so
+   the scale bar and the compass stacked instead of sitting at opposite ends,
+   and the compass dial and needle had no rules at all. Verified by diffing the
+   computed styles of every node in the key against the pre-split build.
+
+   So: shared markup, shared stylesheet, imported by both components. Surface-
+   specific overrides stay where they belong — `.archive-key .map-key-*` in
+   App.css and ArchiveSkinV2.css, `.story .map-key*` in StorySkinV3.css — and
+   all of them carry more classes than the rules here, so they win on
+   specificity rather than on which file happened to load last. */
+
+.map-key {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 6;
+  width: 12rem;
+  padding: 0.6875rem 0.8125rem 0.75rem;
+  /* Near-opaque paper, not frosted glass: backdrop-filter on a FIXED panel
+     re-samples the scrolling page beneath it every frame, which flickers. */
+  background: rgba(252, 251, 247, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 0.25rem;
+  box-shadow: 0 0.5rem 1.5rem rgba(33, 53, 40, 0.14);
+  opacity: 0;
+  transform: translateY(-0.375rem);
+  transition: opacity 0.5s, transform 0.5s;
+  pointer-events: none;
+  font-family: var(--font-sans);
+}
+
+.map-key.is-visible {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+/* Flat/3D switch, first row of the key — same capsule as the rainbow
+   chart's Accumulation/Each-year toggle. */
+/* Structural labels take the darkest ink, 600, and caps tracking. That rule is
+   written out in App.css above the `.archive-key` copy of this selector, and
+   this base rule predates it: the same class was shipping 500/untracked/faint
+   on the Story and 600/0.06em/ink on the Archive — one label, two labels. The
+   Archive's is the one that follows the stated rule (ink = titles and labels ·
+   soft = content · faint = notes), so it moves here and the override goes. */
+.map-key-view-label {
+  margin: 0 0 0.3125rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: var(--track-caps);
+  color: var(--ink);
+}
+/* gap 0, not 2px. Both skins square this control and butt its halves together;
+   the Story's skin zeroed the gap and the Archive's zeroed only the padding, so
+   the identical switch shipped with a 2px seam on one page and none on the
+   other. Zeroed at the base so neither skin has to remember. */
+.map-key-view {
+  display: flex;
+  gap: 0;
+  padding: 0.125rem;
+  margin-bottom: 0.625rem;
+  background: rgba(33, 53, 40, 0.06);
+  border-radius: 62.4375rem;
+}
+.map-key-view-btn {
+  flex: 1;
+  padding: 0.25rem 0;
+  border: none;
+  border-radius: 62.4375rem;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: var(--track-tight);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+/* --forest-text, not #fff: this fill is always --forest, and the token exists
+   for exactly that pairing. The Story's skin already corrected it here and the
+   Archive kept inheriting the raw white, so one control was painting its
+   selected label two different whites depending on the page. */
+.map-key-view-btn.is-active {
+  background: var(--forest);
+  color: var(--forest-text);
+}
+
+.map-key-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.625rem;
+  padding-bottom: 0.5625rem;
+  margin-bottom: 0.5625rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+.map-key-scale {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4375rem;
+}
+
+.map-key-compass {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.map-key-compass-n {
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink-soft);
+}
+
+/* A ring with a vertical needle from the top edge down to the centre. */
+.map-key-compass-dial {
+  position: relative;
+  width: 1.0625rem;
+  height: 1.0625rem;
+  border: 1.4px solid var(--ink-soft);
+  border-radius: 50%;
+}
+
+.map-key-compass-needle {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 1.6px;
+  height: 50%; /* top edge → centre */
+  margin-left: -0.8px;
+  background: var(--ink-soft);
+}
+
+.map-key-scale-bar {
+  height: 0.3125rem;
+  border: 1.5px solid var(--ink-soft);
+  border-top: none;
+  transition: width 0.2s;
+}
+
+.map-key-scale-label {
+  margin-bottom: -1px;
+  font-size: 0.625rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--ink-soft);
+}
+
+.map-key-heat {
+  margin-bottom: 0.625rem;
+}
+
+.map-key-heat-bar {
+  display: block;
+  height: 0.5rem;
+  border-radius: 2px;
+  background: linear-gradient(to right, rgba(255, 84, 73, 0.16), #ff8a5a 55%, #cf3720);
+}
+
+/* Tracks key (handover node): two stroke samples rather than a ramp — the
+   left one is a single run at the map's own alpha, the right one is what the
+   same red becomes where many runs overlap. Drawn as strokes, at the width the
+   overview actually uses, so the key shows the mark and not an abstraction. */
+.map-key-track-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 0.5rem;
+}
+.map-key-track-bar i {
+  display: block;
+  flex: 1;
+  height: 2px;
+  background: #c2331f;
+}
+.map-key-track-bar i.is-one {
+  opacity: 0.22;
+}
+.map-key-track-bar i.is-many {
+  opacity: 1;
+}
+
+.map-key-heat-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.1875rem;
+  font-size: 0.625rem;
+  color: var(--ink-faint);
+}
+
+.map-key-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4375rem;
+}
+
+.map-key-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5625rem;
+  font-size: 0.6875rem;
+  color: var(--ink-soft);
+}
+
+.key-swatch {
+  flex: none;
+  width: 1.25rem;
+}
+
+/* A SWATCH IS A SAMPLE OF THE MAP, so it carries what the layer composites to,
+   not the paint value it is set to before opacity.
+
+   Military region: the layer draws #ec7066 at width 1.2 / opacity 0.55 ->
+   #f0aba5. This swatch was --accent-line at full opacity, dE00 23.7 from the
+   line it claims to sample. The Archive's copy already had #ec7066.
+
+   National border: the layer is #a8ada2 at width 0.7 / opacity 0.6 on BOTH
+   surfaces -> #c6c9c2. This swatch rendered #626f65, which is --forest: a UI
+   ink standing in for a cartographic line (dE00 30.1). The Archive's rendered
+   the uncomposited #a8ada2, dE00 22.6 from this one. One value now, written
+   into both files in the same edit so they cannot drift apart again. */
+.key-mr {
+  height: 0;
+  border-top: 1.5px dashed #ec7066;
+}
+
+.key-border {
+  height: 0;
+  border-top: 1px solid #c6c9c2;
+}
+
+/* `.key-veg` and `.key-water` are gone: the map key stopped naming the
+   basemap's own vegetation and water fills when it grew a view switcher, and
+   nothing has rendered those two swatches since. */
+
+.key-pilot {
+  width: 0.5625rem;
+  height: 0.5625rem;
+  margin: 0 0.3125rem 0 0.375rem;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+/* Pulsing boundary outline around a node's highlighted area. */
+.key-area {
+  height: 0;
+  border-top: 3px solid var(--accent-line);
+  border-radius: 2px;
+}

@@ -5,7 +5,7 @@ import type maplibregl from 'maplibre-gl'
 import type { ExpressionSpecification } from 'maplibre-gl'
 import { LABEL_FONT } from '../config/mapConfig'
 import { textSizeRamp } from './mapTheme'
-import { labelTierOf, LABEL_TIERS, type LayerLike } from './mapTaxonomy'
+import { labelTierOf, LABEL_TIERS, type LabelTier, type LayerLike } from './mapTaxonomy'
 
 export interface LabelGroup {
   key: string
@@ -14,22 +14,57 @@ export interface LabelGroup {
   visible: boolean
 }
 
-const CATS: { key: string; label: string; re: RegExp }[] = [
-  { key: 'country', label: 'Countries', re: /country/i },
-  { key: 'state', label: 'Provinces / states', re: /state|province|region/i },
-  { key: 'city', label: 'Cities', re: /city/i },
-  { key: 'town', label: 'Towns', re: /town/i },
-  { key: 'village', label: 'Villages, hamlets & wards', re: /village|hamlet|suburb|neighbou?rhood|quarter/i },
-  { key: 'water', label: 'Seas, lakes & rivers', re: /water|marine|ocean|sea|lake|river|bay/i },
-  { key: 'road', label: 'Roads', re: /road|street|highway|transportation|motorway|path/i },
-  { key: 'poi', label: 'Points of interest', re: /poi|amenity|attraction|building/i },
-  { key: 'airport', label: 'Airports', re: /airport|aerodrome|aeroway/i },
-  { key: 'other', label: 'Other labels', re: /.*/ },
+const CATS: { key: string; label: string }[] = [
+  { key: 'country', label: 'Countries' },
+  { key: 'state', label: 'Provinces / states' },
+  { key: 'city', label: 'Cities' },
+  { key: 'town', label: 'Towns' },
+  { key: 'village', label: 'Villages, hamlets & wards' },
+  { key: 'water', label: 'Seas, lakes & rivers' },
+  { key: 'road', label: 'Roads' },
+  { key: 'poi', label: 'Points of interest' },
+  { key: 'airport', label: 'Airports' },
+  { key: 'other', label: 'Other labels' },
 ]
 
-function catOf(id: string): string {
-  for (const c of CATS) if (c.key !== 'other' && c.re.test(id)) return c.key
-  return 'other'
+/** Which visibility group a text layer belongs to.
+ *
+ *  This used to be ten regexes run against the layer id, and one of them was
+ *  wrong in a way only the data could show: `/state|province|region/` matched
+ *  `highway-shield-us-interSTATE`, so a US Interstate road shield was filed
+ *  under "Provinces / states". Roads are hidden by default and provinces are
+ *  not, so that layer stayed visible — and worse, applyLabelCuration forces
+ *  every layer in the `state` group to zoom 4–22, so it was also pinned on
+ *  from a continental zoom. Nothing rendered, because there are no US
+ *  interstates in Vietnam, which is precisely why it survived: a mis-grouping
+ *  whose only symptom is a wrong switch in a panel nobody ships.
+ *
+ *  So it now asks the taxonomy instead. labelTierOf reads `source-layer`
+ *  first, which is a fact about the vector tile rather than a guess about a
+ *  name, and only falls back to the id inside `place`, where positron's own
+ *  filters genuinely are unreachable any other way. One classifier for both
+ *  the type system and the visibility groups means they can no longer disagree
+ *  about what a layer IS. */
+const TIER_CAT: Record<LabelTier, string> = {
+  country: 'country',
+  capital: 'city',
+  city: 'city',
+  town: 'town',
+  village: 'village',
+  placeOther: 'other',
+  province: 'state',
+  sea: 'water',
+  river: 'water',
+  airport: 'airport',
+  roadName: 'road',
+  roadShield: 'road',
+  // Our own three. They are added after this runs, so they never reach it —
+  // but if that order ever changes they must not land in a group that gets
+  // switched off, so they are named rather than left to the fallback.
+  mr: 'ours',
+  island: 'ours',
+  vnCountry: 'ours',
+  other: 'other',
 }
 
 // Curated label set for the story map. We show the tiers that help a reader
@@ -45,7 +80,8 @@ export function readLabelGroups(map: maplibregl.Map): LabelGroup[] {
     if (l.type !== 'symbol') continue
     const layout = (l as { layout?: Record<string, unknown> }).layout
     if (!layout || layout['text-field'] == null) continue // text labels only
-    const k = catOf(l.id)
+    const k = TIER_CAT[labelTierOf(l as LayerLike)]
+    if (k === 'ours') continue // never grouped, never switched off from here
     ;(byCat[k] = byCat[k] || []).push(l.id)
   }
   return CATS.filter((c) => byCat[c.key]).map((c) => ({

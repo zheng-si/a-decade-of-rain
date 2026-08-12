@@ -464,7 +464,7 @@
   top: 1.5rem;
   right: 1.5rem;
   z-index: 5;
-  width: 10.75rem;
+  width: 12rem;
   padding: 0.6875rem 0.8125rem 1rem;
   /* Same glass as the left panel — this one sits over the map too, so the
      "near-opaque paper, no filter" recipe (which exists because a fixed

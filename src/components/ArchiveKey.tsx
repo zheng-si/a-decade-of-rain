@@ -1,6 +1,10 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import type maplibregl from 'maplibre-gl'
 import { TRACK_LAYER, TRACKS } from './trackLayers'
+// The key's shared furniture. Both surfaces render these classes, so the
+// stylesheet travels with the components rather than with either route.
+import { computeScale } from './mapScale'
+import './MapKey.css'
 
 // ── the Explorer's map key ────────────────────────────────────────────────
 // Top-right panel in the story MapKey's language (near-opaque paper, small
@@ -23,26 +27,6 @@ interface Props {
   tracks?: boolean
   /** Extra section rendered below the legend (the inspect card). */
   children?: ReactNode
-}
-
-// Round down to a 1/2/3/5 × 10ⁿ value for a clean scale-bar label.
-function niceRound(x: number): number {
-  const pow = Math.pow(10, Math.floor(Math.log10(x)))
-  const f = x / pow
-  const n = f >= 5 ? 5 : f >= 3 ? 3 : f >= 2 ? 2 : 1
-  return n * pow
-}
-
-const fmtDist = (m: number) => (m >= 1000 ? `${m / 1000} km` : `${Math.round(m)} m`)
-
-function computeScale(map: maplibregl.Map): { label: string; w: number } {
-  const el = map.getContainer()
-  const y = el.clientHeight / 2
-  const target = 92 // px we'd like the bar to be near
-  const meters = map.unproject([12, y]).distanceTo(map.unproject([12 + target, y]))
-  if (!isFinite(meters) || meters <= 0) return { label: '', w: 0 }
-  const nice = niceRound(meters)
-  return { label: fmtDist(nice), w: Math.round((nice / meters) * target) }
 }
 
 export default function ArchiveKey({
@@ -123,7 +107,13 @@ export default function ArchiveKey({
           <div className="map-key-scale-bar" style={{ width: `${scale.w}px` }} />
           <span className="map-key-scale-label">{scale.label}</span>
         </div>
+        {/* The N is not decoration: a ring with a spoke is a dial, and only
+            the letter says which way the spoke points. The Story's key has
+            carried it since the compass was drawn; this one was missing it,
+            so the same symbol meant "north is up" on one surface and nothing
+            in particular on the other. */}
         <div className="map-key-compass" title="North">
+          <span className="map-key-compass-n">N</span>
           <span className="map-key-compass-dial">
             <span className="map-key-compass-needle" />
           </span>

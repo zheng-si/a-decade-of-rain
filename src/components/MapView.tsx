@@ -613,7 +613,7 @@ export default function MapView() {
         // The one country label positron cannot place for itself (see
         // addVietnamLabel). Must follow the circles to draw above them, and
         // stays under the basemap's labels so it never costs a city its name.
-        // Story does not carry this yet.
+        // The Story calls this too now, for the same collision.
         addVietnamLabel(map)
 
         // ── M3 · hover + click ────────────────────────────────────────────

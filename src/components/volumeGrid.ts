@@ -221,7 +221,21 @@ export const DOTS: DotStyle = {
   floor: [1, 1.5],
   zero: { radius: [2, 3.5], stroke: 1, opacity: 0.55 },
   tint: '#ff5449',
-  dim: '#bdbdbd',
+  // The design system's `contextGrey` -- the one named colour for "still on
+  // the page, not the subject right now". The chart has dimmed to it for
+  // versions (Timeline.tsx CHART_DIM, the bar tracks in App.css); the map was
+  // dimming to a pure neutral #bdbdbd, so isolating an agent greyed the
+  // timeline one colour and the map another.
+  //
+  // It is also the better grey on its own terms, measured. Against the land
+  // (#f4f2f1) it is quieter -- 1.45:1 against 1.68:1 -- which is what a dim
+  // colour is for. And against the White agent's slate silver (#93a1b3) it
+  // separates BETTER: 1.63:1 against 1.40:1. That second number is the one
+  // that matters, because mapConfig's own comment says the White agent was
+  // pushed blue-leaning specifically so an isolated White would not be
+  // confused with the context grey. This grey does that job with less strain
+  // on the agent colour.
+  dim: '#c9cdc4',
 }
 
 /** True for a run with no recorded volume. `coalesce` because the grid tiers

@@ -254,7 +254,7 @@ export const TRACKS: TrackStyle = {
  *  the caller having to hand it the colours again. Module state rather than a
  *  parameter because the console changes the taper and the agent chips change
  *  the selection, and either one has to be able to redraw the other's work. */
-let paintState = { tint: '#ff5449', dim: '#bdbdbd', indices: null as number[] | null }
+let paintState = { tint: '#ff5449', dim: '#c9cdc4', indices: null as number[] | null }
 
 /** #rrggbb → rgba(), for the gradient stops. MapLibre needs a colour string
  *  with the alpha baked in; line-opacity multiplies on top of it. */

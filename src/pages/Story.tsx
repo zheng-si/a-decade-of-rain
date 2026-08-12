@@ -42,7 +42,7 @@ import TimelineSection from '../components/TimelineSection'
 import CloseSection from '../components/CloseSection'
 import StoryNav from '../components/StoryNav'
 import { applyLabelCuration } from '../components/labelLayers'
-import { quietBasemap } from '../components/volumeGrid'
+import { quietBasemap, addVietnamLabel } from '../components/volumeGrid'
 import './Story.css'
 // v3 skin — one scoped file over Story.css. See the header of StorySkinV3.css.
 import '../StorySkinV3.css'
@@ -756,6 +756,19 @@ export default function Story() {
 
         // Military-region dividers + tags — shared with the Archive.
         addMilitaryRegions(map, mrGeo, mrLabelsGeo, STORY_HEAT_LAYER)
+
+        // The country's own name — shared with the Archive, and needed here for
+        // exactly the same reason. MapLibre resolves label collisions from the
+        // top of the layer stack down, `mr-label` sits above the basemap's
+        // labels, and OSM's Vietnam node is at ~16.0°N 108.0°E, directly under
+        // MILITARY REGION I. So the basemap's country label loses every time
+        // and the map a first-time reader meets has no name on it. The Archive
+        // has drawn its own since the label pass was written; the Story was
+        // the surface with the note saying "does not carry this yet", which is
+        // a description of the bug, not a decision. Placed after the heat so
+        // it draws above it, and under the basemap's labels so it can never
+        // cost a city its name.
+        addVietnamLabel(map)
 
         // Per-node landmark boundary: the active node's representative area
         // (Cà Mau, A Lưới) outlined in pulsing orange. Labels are HTML chips

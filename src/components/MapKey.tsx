@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
 import type maplibregl from 'maplibre-gl'
+// The key's shared furniture. Both surfaces render these classes, so the
+// stylesheet travels with the components rather than with either route.
+import { computeScale } from './mapScale'
+import './MapKey.css'
 
 interface Props {
   map: maplibregl.Map | null
@@ -11,28 +15,6 @@ interface Props {
    *  runs, so the key has to swap with it: a gradient ramp explains nothing
    *  about a map that is no longer drawing a gradient. */
   tracks?: boolean
-}
-
-// Round down to a 1/2/3/5 × 10ⁿ value for a clean scale-bar label.
-function niceRound(x: number): number {
-  const pow = Math.pow(10, Math.floor(Math.log10(x)))
-  const f = x / pow
-  const n = f >= 5 ? 5 : f >= 3 ? 3 : f >= 2 ? 2 : 1
-  return n * pow
-}
-
-function fmtDist(m: number): string {
-  return m >= 1000 ? `${m / 1000} km` : `${Math.round(m)} m`
-}
-
-function computeScale(map: maplibregl.Map): { label: string; w: number } {
-  const el = map.getContainer()
-  const y = el.clientHeight / 2
-  const target = 92 // px we'd like the bar to be near
-  const meters = map.unproject([12, y]).distanceTo(map.unproject([12 + target, y]))
-  if (!isFinite(meters) || meters <= 0) return { label: '', w: 0 }
-  const nice = niceRound(meters)
-  return { label: fmtDist(nice), w: Math.round((nice / meters) * target) }
 }
 
 // One top-right panel: the Flat/3D view switch, scale bar and curated legend
