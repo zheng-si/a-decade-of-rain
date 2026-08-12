@@ -1198,6 +1198,54 @@
   }
 }
 
+/* ── DECK: the node card docks to the bottom edge from tablet width down ───
+   Above this width the card is vertically CENTRED in a 100vh step, which
+   assumes the viewport is tall enough to hold it with air above and below. An
+   iPad in landscape is 768 tall and the cards run 377–400, so the assumption
+   fails: measured at 1024×768 the first card's top sat at y = −112, cut off by
+   the top of the screen, while the next card was already rising past the
+   bottom. Two cards on screen, neither whole.
+
+   So the same deck the phone uses takes over here: one card at a time, fixed
+   to the bottom edge, sliding horizontally under the reader's own scroll (see
+   the note in the 640 block for how --deck-f drives it). The DIFFERENCE from
+   the phone is width — the phone card is full-bleed because there is no room
+   to be anything else, and a tablet has room. It keeps the desktop card's
+   25.5rem and the desktop card's left edge, which is already computed to clear
+   the rail and the timeline ruler's year column, so the composition does not
+   move sideways when the breakpoint is crossed. It only stops being centred.
+
+   Story.tsx's deck-drive effect matches this width too (DECK_MQ), or --deck-f
+   never gets written and every card would stack in the same slot. */
+@media (max-width: 1024px) {
+  .story-step {
+    padding: 0;
+  }
+
+  .story-card {
+    position: fixed;
+    left: calc(var(--nav-w) + 14.5rem);
+    right: auto;
+    bottom: calc(1.5rem + env(safe-area-inset-bottom));
+    z-index: 4;
+    width: min(25.5rem, calc(100vw - var(--nav-w) - 16rem));
+    /* A tall card on a 768-high landscape iPad would otherwise run off the top.
+       This is the one place the deck caps its own height; the phone block below
+       removes the cap again, because a phone is tall enough not to need it. */
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+    opacity: 1;
+    transition: none;
+    visibility: hidden;
+    transform: translateX(calc((var(--card-i, 0) - var(--deck-f, 0)) * (100vw + 1rem)));
+    will-change: transform;
+  }
+
+  .story-deck-live .story-card {
+    visibility: visible;
+  }
+}
+
 @media (max-width: 640px) {
   .story {
     --nav-w: 0px;

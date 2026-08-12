@@ -93,6 +93,11 @@ function monthlyCumulative(spray: SprayDataset): { months: number[]; yearStart: 
 
 
 const PHONE_MQ = '(max-width: 640px)'
+/* The deck (the bottom-docked node card) runs from tablet width down, not just
+   on phones: a landscape iPad is 768 tall and the centred card does not fit.
+   Kept separate from PHONE_MQ, which still governs the quote collapse — that
+   one is a phone affordance and a tablet has room for the quote open. */
+const DECK_MQ = '(max-width: 1024px)'
 
 /**
  * A node's quote — open on desktop, collapsed behind a tap on a phone.
@@ -888,7 +893,7 @@ export default function Story() {
   // the gap between two steps, centred exactly on scrollama's 0.6 trigger
   // line, so the camera departs at the same moment the card is mid-hand-off.
   useEffect(() => {
-    const mq = window.matchMedia(PHONE_MQ)
+    const mq = window.matchMedia(DECK_MQ)
     let steps: HTMLElement[] = []
     let start = 0
     let stepH = 1
