@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { loadSpray, dayToDate, dateToDay, type SprayDataset } from '../data/spray'
@@ -52,7 +52,30 @@ import ArchiveInspect, {
   type CellInspect,
 } from './ArchiveInspect'
 import { applyLabelCuration } from './labelLayers'
-import MapTuner from './MapTuner'
+
+/** The tuner is a development instrument — a panel for choosing label faces,
+ *  dot sizes and zoom ranges, kept in the repo because the numbers it produces
+ *  are the ones committed into the style. Nobody reading the Story or the
+ *  Archive ever opens it, so it must not be in their download: `lazy` puts its
+ *  ~48 kB of JS and ~8 kB of CSS in a chunk that is fetched only when the gate
+ *  below opens.
+ *
+ *  The gate is written out here rather than imported from MapTuner, and that
+ *  is the whole trick: importing `tunerEnabled` would be a static import of
+ *  the module the lazy() is trying to split out, and rolldown would pull the
+ *  panel straight back into the entry chunk. Measured — the naive version cost
+ *  160 B in the entry and saved nothing. The duplication is four lines and it
+ *  is what makes the split real. */
+const MapTuner = lazy(() => import('./MapTuner'))
+
+function tunerEnabled(): boolean {
+  if (import.meta.env.DEV) return true
+  try {
+    return new URLSearchParams(window.location.search).has('tune')
+  } catch {
+    return false
+  }
+}
 
 /** The Archive draws no military regions. Named rather than deleted so the
  *  decision is visible and reversible in one place; the Story still calls
@@ -1086,14 +1109,14 @@ export default function MapView() {
           )}
         </ArchiveKey>
       )}
-      {/* The tuner IS mounted, on both routes, for every reader. It renders
-          nothing for them — tunerEnabled() short-circuits its render and both
-          its effects unless the build is dev or the URL carries ?tune=1 — so
-          the panel never appears, but the module is a static import and its
-          ~48 KB of JS and ~8 KB of CSS are in the entry chunk regardless.
-          This note used to say the opposite: it was written when the element
-          was commented out, and it outlived the commit that put it back. */}
-      {ready && <MapTuner map={mapRef.current} onRegrid={regrid} />}
+      {/* Mounted only when the gate is open — dev, or ?tune on the URL. A
+          reader on the live site never evaluates this branch, so the chunk is
+          never requested and the fallback never shows. */}
+      {ready && tunerEnabled() && (
+        <Suspense fallback={null}>
+          <MapTuner map={mapRef.current} onRegrid={regrid} />
+        </Suspense>
+      )}
       {ready && (
         <Timeline
           day={day}

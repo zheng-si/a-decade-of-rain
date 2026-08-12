@@ -367,7 +367,14 @@ function readStore(): Tune {
   }
 }
 
-/** Should this panel exist at all on this page load? */
+/** Should this panel exist at all on this page load?
+ *
+ *  MapView asks the same question before it lazy-loads this module, so by the
+ *  time this runs the answer is already yes. Kept anyway: the check is what
+ *  makes the component safe to mount from anywhere, and the copy in MapView
+ *  exists to keep this module out of the entry chunk, not to replace it. If
+ *  the rule ever changes, change it in both — they are four lines apart in
+ *  behaviour and one grep apart in the tree. */
 function tunerEnabled(): boolean {
   if (import.meta.env.DEV) return true
   try {
