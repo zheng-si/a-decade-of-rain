@@ -819,6 +819,15 @@
   font-family: var(--font-serif);
   font-size: var(--type-h3-size);
   font-weight: 400;
+  /* Stated rather than inherited. This rule declared no line-height, so it fell
+     to `normal` — Playfair's own metrics, which compute to 1.324 here. That was
+     fine while nothing had to match it, and not fine the moment the Archive's
+     identity block was asked to line up with this one: the Archive declared
+     1.05, and the same two lines at the same size sat 4.3px apart on the two
+     surfaces. Writing it down is what makes it copyable. `normal` and not a
+     number, because the number is the FACE's, not ours — pin it to 1.32 and it
+     stops tracking Playfair if the display face is ever changed again. */
+  line-height: normal;
   letter-spacing: normal;
   color: var(--accent-bright);
 }
