@@ -106,19 +106,22 @@ function build(name, {full=false, FS=30, LH=46, nMiss=44, capLeg=6, mode='full'}
   if(HONEST){
     const legFS=18, lx=M, ly=3540, lh=24
     const leg=(x,y,s,op=.55)=>`<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" font-family="${FONT}" font-size="${legFS}" fill="${INK}" fill-opacity="${op}">${s}</text>`
-    const pair=(a1,n1,a2,n2)=>`<tspan font-weight="700" fill="${AGC[a1]}" fill-opacity="1">${a1}</tspan> ${n1}   <tspan font-weight="700" fill="${AGC[a2]}" fill-opacity="1">${a2}</tspan> ${n2}`
+    const pair=(a1,n1,a2,n2)=>`<tspan font-weight="700" fill="${AGC[a1]}" fill-opacity="1">${a1}</tspan>  ${n1}   <tspan font-weight="700" fill="${AGC[a2]}" fill-opacity="1">${a2}</tspan>  ${n2}`
     const C1=['COLUMNS','YYMMDD  DATE FLOWN','CTZ  CORPS TACTICAL ZONE','PRO  PROVINCE CODE','GAL  US GALLONS','LEG  FLIGHT LEG','COORD  MGRS GRID REFERENCE']
-    const C3=['T  MISSION TYPE','C CROP DESTRUCTION  D DEFOLIATION','E ENEMY ROUTE  F FRIENDLY ROUTE','P PERIMETER  S SUPPLY CACHE','W WATERWAY / LANDING ZONE']
-    const C4=['M  MEANS OF DELIVERY','F FIXED-WING  H HELICOPTER','G GROUND  U UNRECORDED','S  SOURCE: R RANCH HAND  S SERVICES','I  INCIDENT: A ABORT  E CRASH','L LEAK  R WRONG TARGET','S SPILL  Z EMERGENCY DUMP']
+    // every code takes two spaces to its gloss, three spaces between pairs on a line
+    const C3=['T  MISSION TYPE','C  CROP DESTRUCTION   D  DEFOLIATION','E  ENEMY ROUTE   F  FRIENDLY ROUTE','P  PERIMETER   S  SUPPLY CACHE','W  WATERWAY / LANDING ZONE','U  UNRECORDED']
+    const C4=['M  MEANS OF DELIVERY','F  FIXED-WING   H  HELICOPTER','G  GROUND   U  UNRECORDED','','I  INCIDENT','A  ABORT   E  CRASH   L  LEAK','R  WRONG TARGET   S  SPILL   Z  EMERGENCY DUMP']
     C1.forEach((s,li)=>els.push(leg(lx, ly+li*lh, s, li===0?.75:.55)))
     els.push(leg(lx+colW, ly, 'H  AGENT', .75))
     els.push(`<text x="${(lx+colW).toFixed(0)}" y="${(ly+lh).toFixed(0)}" font-family="${FONT}" font-size="${legFS}" fill="${INK}" fill-opacity="0.55">${pair('P','PURPLE','O','ORANGE')}</text>`)
     els.push(`<text x="${(lx+colW).toFixed(0)}" y="${(ly+2*lh).toFixed(0)}" font-family="${FONT}" font-size="${legFS}" fill="${INK}" fill-opacity="0.55">${pair('W','WHITE','B','BLUE')}</text>`)
-    els.push(leg(lx+colW, ly+3*lh, 'U K  MINOR / UNSPECIFIED', .55))
+    els.push(`<text x="${(lx+colW).toFixed(0)}" y="${(ly+3*lh).toFixed(0)}" font-family="${FONT}" font-size="${legFS}" fill="${INK}" fill-opacity="0.55"><tspan font-weight="700" fill="#6f5c44" fill-opacity="1">U K</tspan>  MINOR / UNSPECIFIED</text>`)
+    els.push(leg(lx+colW, ly+5*lh, 'S  SOURCE OF RECORD', .75))
+    els.push(leg(lx+colW, ly+6*lh, 'R  RANCH HAND   S  SERVICES   A  2003 ADDITION', .55))
     C3.forEach((s,li)=>els.push(leg(lx+2*colW, ly+li*lh, s, li===0?.75:.55)))
-    C4.forEach((s,li)=>els.push(leg(lx+3*colW, ly+li*lh, s, li===0?.75:.55)))
+    C4.forEach((s,li)=>{ if(s) els.push(leg(lx+3*colW, ly+li*lh, s, (li===0||li===4)?.75:.55)) })
     els.push(`<text x="${F}" y="3722" font-family="${FONT}" font-size="18" fill="${INK}" fill-opacity="0.5">EACH LINE IS ONE FLIGHT LEG    RUN-LEVEL FIELDS ON FIRST LEG ONLY    GAL APPORTIONED BY TRACK LENGTH WHERE A MISSION FLEW SEVERAL TRACKS</text>`)
-    els.push(`<text x="${F}" y="3790" font-family="${FONT}" font-size="22" letter-spacing="1" fill="${INK}" fill-opacity="0.55">OPERATION RANCH HAND    HERBS FILE    91 OF ${runs.length.toLocaleString('en')} SPRAY RUNS, EVERY ${step}TH    ${use.length} FLIGHT LEGS    1962–1971</text>`)
+    els.push(`<text x="${F}" y="3790" font-family="${FONT}" font-size="22" letter-spacing="1" fill="${INK}" fill-opacity="0.55">OPERATION RANCH HAND    HERBS FILE    ${use.length} FLIGHT LEGS    91 OF ${runs.length.toLocaleString('en')} SPRAY RUNS, EVERY ${step}TH    1962–1971</text>`)
   } else {
     const legFS=19, lx=M, ly=3560, lh=26
     const leg=(x,y,s,op=.6)=>`<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" font-family="${FONT}" font-size="${legFS}" fill="${INK}" fill-opacity="${op}">${s}</text>`

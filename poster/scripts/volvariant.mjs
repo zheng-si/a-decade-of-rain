@@ -43,6 +43,6 @@ let kx=F+('AGENTS'.length+3)*19*0.6
 for(const a of KEYORDER){ const t=`${a}  ${NAME[a]}`
   els.push(`<text x="${kx.toFixed(0)}" y="3742" font-family="${FONT}" font-weight="700" font-size="19" letter-spacing="1" fill="${COL[a]}">${t}</text>`)
   kx += (t.length+4)*19*0.6 }
-els.push(`<text x="${F}" y="3790" font-family="${FONT}" font-size="22" letter-spacing="1" fill="${INK}" fill-opacity="0.55">OPERATION RANCH HAND    HERBS FILE    BLOCKS SCALED TO GALLONS PER AGENT, 18,905,413 US GAL IN MAPPED SPRAY RUNS    ${shownTok.toLocaleString('en')} OF ${nSorties.toLocaleString('en')}, EVENLY SAMPLED PER AGENT    1962–1971</text>`)
+els.push(`<text x="${F}" y="3790" font-family="${FONT}" font-size="22" letter-spacing="1" fill="${INK}" fill-opacity="0.55">OPERATION RANCH HAND    HERBS FILE    BLOCKS SCALED TO GALLONS PER AGENT, 18,905,413 US GAL    ${shownTok.toLocaleString('en')} OF ${nSorties.toLocaleString('en')} SPRAY RUNS, EVENLY SAMPLED PER AGENT    1962–1971</text>`)
 fs.writeFileSync(`${SP}/FINAL-vol.svg`,`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="${PAPER}"/>${els.join('').replaceAll('<text ','<text xml:space="preserve" ')}</svg>`)
 console.log(`FINAL-vol  alloc ${alloc.join('/')}  tokPerRow ${tokPerRow}  shown ${shownTok}/${nSorties}`)
