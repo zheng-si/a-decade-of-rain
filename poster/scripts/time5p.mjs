@@ -77,7 +77,7 @@ for(const a of STACK){ const tk=`${a}  ${NAME[a]}`
   kx+=(tk.length+4)*19*0.6 }
 const binName=BIN==='month'?'MONTH':BIN==='half'?'HALF-MONTH':`${BIN} DAYS`
 const fnote=RATIO>=1?`ALL ${recs.length.toLocaleString('en')} SORTIES`:`${shown.toLocaleString('en')} OF ${recs.length.toLocaleString('en')}, EVERY ${Math.round(1/RATIO)}TH OF EACH ${BIN==='month'?'MONTH':'BLOCK'}`
-els.push(`<text x="${F}" y="3790" font-family="${FONT}" font-size="22" letter-spacing="1" fill="${INK}" fill-opacity="0.55">OPERATION RANCH HAND    HERBS FILE    ${TOKFULL?"EACH RECORD IS ONE SORTIE'S DATE AND COORDINATE":"EACH CODE IS ONE SORTIE'S MAP REFERENCE"}    EACH BLOCK IS ONE ${binName}    ${fnote}    1962–1971</text>`)
+els.push(`<text x="${F}" y="3790" font-family="${FONT}" font-size="22" letter-spacing="1" fill="${INK}" fill-opacity="0.55">OPERATION RANCH HAND    HERBS FILE    ${TOKFULL?"EACH RECORD IS ONE SPRAY RUN'S DATE AND COORDINATE":"EACH CODE IS ONE SPRAY RUN'S MAP REFERENCE"}    EACH BLOCK IS ONE ${binName}    ${fnote}    1962–1971</text>`)
 
 fs.writeFileSync(`${SP}/${OUT}.svg`,`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="${PAPER}"/>${els.join('').replaceAll('<text ','<text xml:space="preserve" ')}</svg>`)
 console.log(`${OUT}  bin=${BIN} ratio=${RATIO} gap=${GAPL}  blocks ${bins.length}  FS ${FS}  cpl ${cpl}  shown ${shown}/${recs.length}  bottom ${ycur.toFixed(0)}/${seaBottom}`)

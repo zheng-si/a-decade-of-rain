@@ -28,3 +28,6 @@ scripts/.cache
 
 # Poster render outputs (regenerable via poster/scripts)
 poster/final/*.png
+poster/final/*.jpg
+poster/final/*-A1.pdf
+poster/final/*-print.svg
