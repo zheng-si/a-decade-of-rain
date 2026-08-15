@@ -11,6 +11,10 @@ const legLbl=i=>`${Math.floor(i/26)+1}${String.fromCharCode(65+i%26)}`
 // Approximate: CTZ boundaries followed province lines; this is a geographic estimate.
 const ctzOf=lat=> lat>=15.35?'1' : lat>=11.85?'2' : lat>=10.42?'3' : '4'
 const runs=[...T.tracks].filter(([,,g,km])=>g>0&&km>0).sort((a,b)=>a[1]-b[1])
+// HONEST=1: transcribe M / CTZ / PRO / T / S / I verbatim from the record
+// (meta = [method, ctz, province, missionType, source, incident]) instead of
+// hardcoding M=F and deriving CTZ from latitude.
+const HONEST=process.env.HONEST==='1'
 
 function build(name, {full=false, FS=30, LH=46, nMiss=44, capLeg=6, mode='full'}={}) {
   const cw=FS*0.6
@@ -32,12 +36,21 @@ function build(name, {full=false, FS=30, LH=46, nMiss=44, capLeg=6, mode='full'}
   const rows=[]
   const step=Math.max(1,Math.floor(runs.length/nMiss))
   for(let k=0;k<runs.length && rows.length<260;k+=step){
-    const [ai,day,gal,,flat]=runs[k]
+    const [ai,day,gal,,flat,meta]=runs[k]
     const ag=T.agents[ai], date=d6(day)
+    const [mMeth,mCtz,mPro,mTyp,mSrc,mInc]=meta||[]
     const nwp=Math.min(flat.length/2, capLeg)
     for(let w=0;w<nwp;w++){
-      rows.push({date, ctz:w===0?ctzOf(flat[1]):'', ag:w===0?ag:'', gal:w===0?g5(gal):'', leg:legLbl(w),
-        coord:mgrs(flat[w*2],flat[w*2+1]), m:w===0?'F':'', rowAg:ag})
+      const first=w===0
+      rows.push({date,
+        ctz:first?(HONEST?(mCtz||''):ctzOf(flat[1])):'',
+        pro:first&&HONEST?(mPro||''):'',
+        ag:first?ag:'', gal:first?g5(gal):'',
+        typ:first&&HONEST?(mTyp||''):'',
+        leg:legLbl(w), coord:mgrs(flat[w*2],flat[w*2+1]),
+        src:first&&HONEST?(mSrc||''):'',
+        inc:first&&HONEST?(mInc||''):'',
+        m:first?(HONEST?(mMeth||''):'F'):'', rowAg:ag})
     }
   }
   const HG=92                // gap from header/square rule down to first data row (widened)
@@ -75,37 +88,61 @@ function build(name, {full=false, FS=30, LH=46, nMiss=44, capLeg=6, mode='full'}
       const galc  = mode==='letter' ? INK : rowc
       els.push(t(px+X.date,y,r.date,{op:.78,fill:metac}))
       if(r.ctz) els.push(t(px+X.ctz,y,r.ctz,{op:.6,fill:metac}))
+      if(r.pro) els.push(t(px+X.pro,y,r.pro,{op:.6,fill:metac}))
       if(r.ag) els.push(t(px+X.h,y,r.ag,{op:1,fill:rowc,w:700}))
-      if(r.gal) els.push(t(px+X.gal,y,r.gal,{op:mode==='letter'?0.82:1,fill:galc,w:700}))
+      if(r.gal) els.push(t(px+X.gal,y,r.gal,{op:mode==='letter'?0.82:1,fill:galc,w:mode==='letter'?400:700}))
+      if(r.typ) els.push(t(px+X.t,y,r.typ,{op:.6,fill:metac}))
       els.push(t(px+X.leg,y,r.leg,{op:.62,fill:metac}))
       els.push(t(px+X.coord,y,r.coord,{op:.85,fill:metac}))
+      if(r.src) els.push(t(px+X.s,y,r.src,{op:.5,fill:metac}))
+      if(r.inc) els.push(t(px+X.i,y,r.inc,{op:.85,fill:metac}))
       if(r.m) els.push(t(px+X.m,y,r.m,{op:.5,fill:metac}))
     })
   }
-  // ---- codebook legend, verbatim from DTIC ADA160563 ----
-  const legFS=19, lx=M, ly=3560, lh=26
-  const leg=(x,y,s,op=.6)=>`<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" font-family="${FONT}" font-size="${legFS}" fill="${INK}" fill-opacity="${op}">${s}</text>`
-  const colW=boxW/4
-  // codebook: every populated column defined; unretained fields declared as such
-  const C1=['COLUMNS','YYMMDD  DATE FLOWN','CTZ  CORPS TACTICAL ZONE','H  HERBICIDE AGENT','GAL  US GALLONS']
-  const C2=['','LEG  FLIGHT LEG','COORD  MGRS GRID REFERENCE','M  MEANS OF DELIVERY','PRO T S I  NOT RETAINED']
-  ;[C1,C2].forEach((col,ci)=>{ col.forEach((line,li)=>{ if(line) els.push(leg(lx+ci*colW, ly+li*lh, line, li===0?.75:.55)) }) })
-  // agent key with coloured code letters (mirrors the AGENTS key on the other panels)
+  // ---- codebook legend, definitions verbatim from the Services HERBS Tape
+  // documentation (DTIC ADA160563) ----
   const AGC={P:'#8f5fc0',O:'#ef7409',W:'#3f5162',B:'#2f83c8'}
-  const pair=(a1,n1,a2,n2)=>`<tspan font-weight="700" fill="${AGC[a1]}" fill-opacity="1">${a1}</tspan> ${n1}   <tspan font-weight="700" fill="${AGC[a2]}" fill-opacity="1">${a2}</tspan> ${n2}`
-  els.push(leg(lx+2*colW, ly, 'H  AGENT', .75))
-  els.push(`<text x="${(lx+2*colW).toFixed(0)}" y="${(ly+lh).toFixed(0)}" font-family="${FONT}" font-size="${legFS}" fill="${INK}" fill-opacity="0.55">${pair('P','PURPLE','O','ORANGE')}</text>`)
-  els.push(`<text x="${(lx+2*colW).toFixed(0)}" y="${(ly+2*lh).toFixed(0)}" font-family="${FONT}" font-size="${legFS}" fill="${INK}" fill-opacity="0.55">${pair('W','WHITE','B','BLUE')}</text>`)
-  els.push(leg(lx+2*colW, ly+3*lh, 'U K  MINOR / UNSPEC', .55))
-  els.push(leg(lx+3*colW, ly, 'M  MEANS', .75))
-  els.push(leg(lx+3*colW, ly+lh, 'F  FIXED-WING  (ALL SORTIES)', .55))
-  // honesty footnotes: CTZ is derived; header-only fields repeat on first leg only
-  els.push(`<text x="${F}" y="3706" font-family="${FONT}" font-size="18" fill="${INK}" fill-opacity="0.5">CTZ APPROXIMATED FROM COORDINATES   ·   EACH LINE IS ONE FLIGHT LEG   ·   CTZ / H / GAL / M ON FIRST LEG ONLY</text>`)
-  els.push(`<text x="${F}" y="3790" font-family="${FONT}" font-size="22" letter-spacing="1" fill="${INK}" fill-opacity="0.55">OPERATION RANCH HAND    HERBS FILE    91 OF ${runs.length.toLocaleString('en')} SORTIES, EVERY ${step}TH    ${use.length} FLIGHT LEGS    1962–1971</text>`)
+  const colW=boxW/4
+  if(HONEST){
+    const legFS=18, lx=M, ly=3540, lh=24
+    const leg=(x,y,s,op=.55)=>`<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" font-family="${FONT}" font-size="${legFS}" fill="${INK}" fill-opacity="${op}">${s}</text>`
+    const pair=(a1,n1,a2,n2)=>`<tspan font-weight="700" fill="${AGC[a1]}" fill-opacity="1">${a1}</tspan> ${n1}   <tspan font-weight="700" fill="${AGC[a2]}" fill-opacity="1">${a2}</tspan> ${n2}`
+    const C1=['COLUMNS','YYMMDD  DATE FLOWN','CTZ  CORPS TACTICAL ZONE','PRO  PROVINCE CODE','GAL  US GALLONS','LEG  FLIGHT LEG','COORD  MGRS GRID REFERENCE']
+    const C3=['T  MISSION TYPE','C CROP DESTRUCTION  D DEFOLIATION','E ENEMY ROUTE  F FRIENDLY ROUTE','P PERIMETER  S SUPPLY CACHE','W WATERWAY / LANDING ZONE']
+    const C4=['M  MEANS OF DELIVERY','F FIXED-WING  H HELICOPTER','G GROUND  U UNRECORDED','S  SOURCE: R RANCH HAND  S SERVICES','I  INCIDENT: A ABORT  E CRASH','L LEAK  R WRONG TARGET','S SPILL  Z EMERGENCY DUMP']
+    C1.forEach((s,li)=>els.push(leg(lx, ly+li*lh, s, li===0?.75:.55)))
+    els.push(leg(lx+colW, ly, 'H  AGENT', .75))
+    els.push(`<text x="${(lx+colW).toFixed(0)}" y="${(ly+lh).toFixed(0)}" font-family="${FONT}" font-size="${legFS}" fill="${INK}" fill-opacity="0.55">${pair('P','PURPLE','O','ORANGE')}</text>`)
+    els.push(`<text x="${(lx+colW).toFixed(0)}" y="${(ly+2*lh).toFixed(0)}" font-family="${FONT}" font-size="${legFS}" fill="${INK}" fill-opacity="0.55">${pair('W','WHITE','B','BLUE')}</text>`)
+    els.push(leg(lx+colW, ly+3*lh, 'U K  MINOR / UNSPECIFIED', .55))
+    C3.forEach((s,li)=>els.push(leg(lx+2*colW, ly+li*lh, s, li===0?.75:.55)))
+    C4.forEach((s,li)=>els.push(leg(lx+3*colW, ly+li*lh, s, li===0?.75:.55)))
+    els.push(`<text x="${F}" y="3722" font-family="${FONT}" font-size="18" fill="${INK}" fill-opacity="0.5">EACH LINE IS ONE FLIGHT LEG    RUN-LEVEL FIELDS ON FIRST LEG ONLY    GAL APPORTIONED BY TRACK LENGTH WHERE A MISSION FLEW SEVERAL TRACKS</text>`)
+    els.push(`<text x="${F}" y="3790" font-family="${FONT}" font-size="22" letter-spacing="1" fill="${INK}" fill-opacity="0.55">OPERATION RANCH HAND    HERBS FILE    91 OF ${runs.length.toLocaleString('en')} SPRAY RUNS, EVERY ${step}TH    ${use.length} FLIGHT LEGS    1962–1971</text>`)
+  } else {
+    const legFS=19, lx=M, ly=3560, lh=26
+    const leg=(x,y,s,op=.6)=>`<text x="${x.toFixed(0)}" y="${y.toFixed(0)}" font-family="${FONT}" font-size="${legFS}" fill="${INK}" fill-opacity="${op}">${s}</text>`
+    // codebook: every populated column defined; unretained fields declared as such
+    const C1=['COLUMNS','YYMMDD  DATE FLOWN','CTZ  CORPS TACTICAL ZONE','H  HERBICIDE AGENT','GAL  US GALLONS']
+    const C2=['','LEG  FLIGHT LEG','COORD  MGRS GRID REFERENCE','M  MEANS OF DELIVERY','PRO T S I  NOT RETAINED']
+    ;[C1,C2].forEach((col,ci)=>{ col.forEach((line,li)=>{ if(line) els.push(leg(lx+ci*colW, ly+li*lh, line, li===0?.75:.55)) }) })
+    // agent key with coloured code letters (mirrors the AGENTS key on the other panels)
+    const pair=(a1,n1,a2,n2)=>`<tspan font-weight="700" fill="${AGC[a1]}" fill-opacity="1">${a1}</tspan> ${n1}   <tspan font-weight="700" fill="${AGC[a2]}" fill-opacity="1">${a2}</tspan> ${n2}`
+    els.push(leg(lx+2*colW, ly, 'H  AGENT', .75))
+    els.push(`<text x="${(lx+2*colW).toFixed(0)}" y="${(ly+lh).toFixed(0)}" font-family="${FONT}" font-size="${legFS}" fill="${INK}" fill-opacity="0.55">${pair('P','PURPLE','O','ORANGE')}</text>`)
+    els.push(`<text x="${(lx+2*colW).toFixed(0)}" y="${(ly+2*lh).toFixed(0)}" font-family="${FONT}" font-size="${legFS}" fill="${INK}" fill-opacity="0.55">${pair('W','WHITE','B','BLUE')}</text>`)
+    els.push(leg(lx+2*colW, ly+3*lh, 'U K  MINOR / UNSPEC', .55))
+    els.push(leg(lx+3*colW, ly, 'M  MEANS', .75))
+    els.push(leg(lx+3*colW, ly+lh, 'F  FIXED-WING  (ALL SORTIES)', .55))
+    // honesty footnotes: CTZ is derived; header-only fields repeat on first leg only
+    els.push(`<text x="${F}" y="3706" font-family="${FONT}" font-size="18" fill="${INK}" fill-opacity="0.5">CTZ APPROXIMATED FROM COORDINATES    EACH LINE IS ONE FLIGHT LEG    CTZ / H / GAL / M ON FIRST LEG ONLY</text>`)
+    els.push(`<text x="${F}" y="3790" font-family="${FONT}" font-size="22" letter-spacing="1" fill="${INK}" fill-opacity="0.55">OPERATION RANCH HAND    HERBS FILE    91 OF ${runs.length.toLocaleString('en')} SORTIES, EVERY ${step}TH    ${use.length} FLIGHT LEGS    1962–1971</text>`)
+  }
   fs.writeFileSync(`${SP}/${name}.svg`,`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}"><rect width="${W}" height="${H}" fill="${PAPER}"/>${els.join('').replaceAll('<text ','<text xml:space="preserve" ')}</svg>`)
   console.log(`${name}  ${use.length} rows  panelWch=${panelWch}  FS=${FS}`)
 }
 
-build('FINAL-f4',{full:true, FS:28, LH:44, nMiss:91, mode:'accent'})   // current: agent letter + gallons coloured
-build('FINAL-f4L',{full:true, FS:28, LH:44, nMiss:91, mode:'letter'})  // letter-only: agent letter coloured, gallons ink
-build('FINAL-f4F',{full:true, FS:28, LH:44, nMiss:91, mode:'full'})    // full row coloured (matches other panels)
+const PFX=process.env.PFX||''
+build(PFX+'FINAL-f4',{full:true, FS:28, LH:44, nMiss:91, mode:'accent'})   // agent letter + gallons coloured
+build(PFX+'FINAL-f4L',{full:true, FS:28, LH:44, nMiss:91, mode:'letter'})  // letter-only: agent letter coloured, gallons ink
+build(PFX+'FINAL-f4F',{full:true, FS:28, LH:44, nMiss:91, mode:'full'})    // full row coloured (matches other panels)
