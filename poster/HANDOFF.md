@@ -86,4 +86,4 @@ f4rework：`HONEST=1` 转录真实 M/CTZ/PRO/T/S/I（终稿），不带则回退
 ## 九、终审记录（2026-08-15）
 
 - 四方向 agent 审查（拼写用语/页脚注脚格式/几何网格/用色一致性）后修正 6 处：vol 页脚右边距越界（字距计入后 97px）、f4 码本两空格统一与 U K 入色、SOURCE/INCIDENT 升小标题、补 T=U 与 S=A（A=Stellman 2003 修订补录）、f4 页脚语序对齐、t5s8 撇号改 U+2019。用户逐项确认。
-- 提交状态：Entry ID F373；报名表已提交（physical production=Yes、标题未加 Prototype，用户决定入选后打印寄送以兑现）；F373.zip（07_F373_01_a/b/c）已交付用户上传；早鸟费 $35 经 PayPal（备注 F373）。
+- **投稿已完成（2026-08-15）**：Entry ID F373；报名表已提交（physical production=Yes、标题未加 Prototype，用户承诺入选后打印寄送以兑现）；F373.zip（07_F373_01_a/b/c，含全部 QA 修正）已上传；早鸟费 $35 已经 PayPal 支付（@tokyotdc，备注 F373）。待办仅剩：入选通知后 2026-11-16 前打印 A1 并邮寄（母版 = FINAL-*-A1.pdf）。
