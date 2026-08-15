@@ -10,7 +10,7 @@
   /* ── surfaces ─────────────────────────────────────────────────────────── */
   --paper: 250, 249, 244; /* warm near-white (rgb tuple for alpha use) */
   --paper-solid: #fdfdfd;
-  --forest: #213528; /* dark surface: story cards, stat pills */
+  --forest: #2b2822; /* dark surface: story cards, stat pills */
   --forest-2: #2c3730; /* raised dark surface (stat pill bg) */
 
   /* ── ink (text on paper) ──────────────────────────────────────────────────
@@ -20,19 +20,19 @@
      washed-out on a warm paper — every tier here is a full step darker, and
      the gaps between them are wide enough to be seen as tiers rather than as
      three attempts at the same grey. */
-  --ink: #101a14; /* headings & primary text · 16.9:1 on paper — reads as black */
-  --ink-soft: #33443a; /* secondary text, UI labels · 9.8:1 */
-  --ink-faint: #4b5a50; /* captions, smallest text · 6.9:1 */
-  --rule: #dfe3d9; /* hairline dividers */
+  --ink: #16130d; /* headings & primary text · 16.9:1 on paper — reads as black */
+  --ink-soft: #423d33; /* secondary text, UI labels · 9.8:1 */
+  --ink-faint: #59544a; /* captions, smallest text · 6.9:1 */
+  --rule: #e1ddd2; /* hairline dividers */
   /* Decorative 3px card accents, kept at the old --ink-faint. They are rules,
      not text: darkening them with the ink ramp would restyle the story cards
      rather than make anything more readable. */
-  --rule-strong: #647468;
+  --rule-strong: #6e695d;
 
   /* ── text on forest (dark cards) ──────────────────────────────────────── */
-  --forest-text: #e8ece6; /* primary · 11.0:1 */
-  --forest-text-soft: #b4ccba; /* secondary · 7.7:1 */
-  --mint: #92f7bc; /* decorative borders only (never text) */
+  --forest-text: #eae7e0; /* primary · 11.0:1 */
+  --forest-text-soft: #c2bcae; /* secondary · 7.7:1 */
+  --mint: #cfc9b9; /* decorative borders only (never text) */
 
   /* ── text on PHOTOGRAPHS and dark map ─────────────────────────────────────
      The same three-tier idea as the ink ramp, in white-with-alpha rather than
@@ -49,7 +49,7 @@
        soft      what supports it — credits, tags, captions, secondary links
        faint     what is not active yet — the rail's upcoming nodes
 
-     Ratios are against --forest #213528; over a photograph the veil behind
+     Ratios are against --forest #2b2822; over a photograph the veil behind
      each block carries the rest.
 
      0.50 for the faint tier is a floor, not a taste: the rail's inactive and
@@ -71,11 +71,11 @@
   /* ── accent family (brand orange) — one hue, four jobs ────────────────────
      GRAPHICS get the vivid brand tone; TEXT gets a tuned tone per surface so
      white/orange pairs pass WCAG AA. Change the hue here, re-check ratios. */
-  --accent: #ff5449; /* GEOMETRY: dots, pulse rings, heat, rain */
-  --accent-chip: #d63328; /* CHIP FILL behind white text · 4.8:1 */
-  --accent-bright: #ff7a70; /* accent TEXT on forest surfaces · 5.2:1 */
-  --accent-deep: #cf3720; /* accent TEXT on paper (= heat-ramp deep end) · 4.7:1 */
-  --accent-line: #e8443a; /* map linework on paper · 3.5:1 (non-text ≥3) */
+  --accent: #a37363; /* GEOMETRY: dots, pulse rings, heat, rain */
+  --accent-chip: #7a5241; /* CHIP FILL behind white text · 4.8:1 */
+  --accent-bright: #c79c8c; /* accent TEXT on forest surfaces · 5.2:1 */
+  --accent-deep: #77503f; /* accent TEXT on paper (= heat-ramp deep end) · 4.7:1 */
+  --accent-line: #8a6252; /* map linework on paper · 3.5:1 (non-text ≥3) */
 
   /* ── type scale ────────────────────────────────────────────────────────
      ONE modular scale, site-wide. Fixed steps (px):
@@ -606,7 +606,7 @@
 /* The same two composited values as .key-mr / .key-border in Story.css -- see
    the note there. Both are what the map COMPOSITES to, not its paint value. */
 .archive-key .key-mr {
-  border-top: 1.5px dashed #ec7066;
+  border-top: 1.5px dashed #9a7263;
 }
 
 .archive-key .key-border {

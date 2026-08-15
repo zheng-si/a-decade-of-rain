@@ -164,8 +164,8 @@ export default function TimelineRuler({ monthlyCum, yearStart, nodeFracs, fmt, s
       >
         <defs>
           <linearGradient id="tl-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="rgba(255,84,73,0.5)" />
-            <stop offset="100%" stopColor="rgba(255,84,73,0.9)" />
+            <stop offset="0%" stopColor="rgba(163,115,99,0.5)" />
+            <stop offset="100%" stopColor="rgba(163,115,99,0.9)" />
           </linearGradient>
         </defs>
         <path d={areaPath} fill="url(#tl-area)" />

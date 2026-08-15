@@ -165,15 +165,15 @@
   display: block;
   height: 0.5rem;
   border-radius: 2px;
-  /* The deep end is #dd6257, not #cf3720. --accent-deep is a TEXT colour; the
+  /* The deep end is #aa8c8a, not #77503f. --accent-deep is a TEXT colour; the
      darkest thing the map actually paints is warmRamp's last stop,
      rgba(214,54,40,0.96), drawn at the layer's 0.8 opacity over the land
-     #f4f2f1 — which composites to exactly #dd6257. A legend that ends darker
+     #f4f2f1 — which composites to exactly #aa8c8a. A legend that ends darker
      than its map tells a reader the heaviest ground is off the scale.
      (The 55% stop is still the CSS gradient's own blend rather than the map's
-     composited mid, #fd7650 — a smaller version of the same gap, left named
+     composited mid, #b59f98 — a smaller version of the same gap, left named
      rather than changed.) */
-  background: linear-gradient(to right, rgba(255, 84, 73, 0.16), #ff8a5a 55%, #dd6257);
+  background: linear-gradient(to right, rgba(163, 115, 99, 0.16), #baa79f 55%, #aa8c8a);
 }
 
 /* Tracks key (handover node): two stroke samples rather than a ramp — the
@@ -190,7 +190,7 @@
   display: block;
   flex: 1;
   height: 2px;
-  background: #c2331f;
+  background: #77503f;
 }
 .map-key-track-bar i.is-one {
   opacity: 0.22;
@@ -232,9 +232,9 @@
 /* A SWATCH IS A SAMPLE OF THE MAP, so it carries what the layer composites to,
    not the paint value it is set to before opacity.
 
-   Military region: the layer draws #ec7066 at width 1.2 / opacity 0.55 ->
-   #f0aba5. This swatch was --accent-line at full opacity, dE00 23.7 from the
-   line it claims to sample. The Archive's copy already had #ec7066.
+   Military region: the layer draws #9a7263 at width 1.2 / opacity 0.55 ->
+   #d3c3c2. This swatch was --accent-line at full opacity, dE00 23.7 from the
+   line it claims to sample. The Archive's copy already had #9a7263.
 
    National border: the layer is #a8ada2 at width 0.7 / opacity 0.6 on BOTH
    surfaces -> #c6c9c2. This swatch rendered #626f65, which is --forest: a UI
@@ -243,7 +243,7 @@
    into both files in the same edit so they cannot drift apart again. */
 .key-mr {
   height: 0;
-  border-top: 1.5px dashed #ec7066;
+  border-top: 1.5px dashed #9a7263;
 }
 
 .key-border {

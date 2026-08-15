@@ -277,7 +277,7 @@ export function addMilitaryRegions(
       type: 'line',
       source: 'military-regions',
       layout: { 'line-join': 'round' },
-      paint: { 'line-color': '#ec7066', 'line-width': 1.2, 'line-opacity': 0.55, 'line-dasharray': [2.4, 1.8] },
+      paint: { 'line-color': '#9a7263', 'line-width': 1.2, 'line-opacity': 0.55, 'line-dasharray': [2.4, 1.8] },
     },
     beforeId,
   )
@@ -301,7 +301,7 @@ export function addMilitaryRegions(
       // A region tag names ground, so it lies on the ground (see applyMapTheme).
       'text-pitch-alignment': 'map',
     },
-    paint: { 'text-color': '#cf3720', 'text-halo-color': 'rgba(250,249,244,0.95)', 'text-halo-width': 2 },
+    paint: { 'text-color': '#77503f', 'text-halo-color': 'rgba(250,249,244,0.95)', 'text-halo-width': 2 },
   })
 }
 
@@ -379,9 +379,9 @@ function warmRamp(): ExpressionSpecification {
     'interpolate',
     ['linear'],
     ['heatmap-density'],
-    0, 'rgba(255,84,73,0)',
-    0.12, 'rgba(255,84,73,0.32)',
-    0.35, 'rgba(255,84,73,0.62)',
+    0, 'rgba(163,115,99,0)',
+    0.12, 'rgba(163,115,99,0.32)',
+    0.35, 'rgba(163,115,99,0.62)',
     0.65, 'rgba(255,96,52,0.85)',
     1, 'rgba(214,54,40,0.96)',
   ]
@@ -444,7 +444,7 @@ export function addStoryTracks(map: maplibregl.Map, lines: GeoJSON.GeoJSON) {
       source: STORY_TRACK_LAYER,
       layout: { 'line-cap': 'round', 'line-join': 'round', visibility: 'none' },
       paint: {
-        'line-color': '#c2331f',
+        'line-color': '#77503f',
         // Hairline at the overview: at 0.5px and 8,753 strokes the mass is
         // what reads, and any thicker turns the dense south into a solid slab.
         'line-width': ['interpolate', ['linear'], ['zoom'], 5, 0.5, 11, 1.6],

@@ -25,7 +25,7 @@
  * public/favicon.svg carries a REDUCED cut of this, not the same file: at 16px
  * the 2-unit edge bars land on a quarter of a pixel and disappear, taking the
  * taper with them. See the note there. The artwork came in #FB4D46; the site
- * keeps one orange and it is #ff5449, which index.html also declares as its
+ * keeps one orange and it is #a37363, which index.html also declares as its
  * theme-color.
  */
 export const LOGO_SIZE = 120

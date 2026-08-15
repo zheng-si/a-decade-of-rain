@@ -120,8 +120,8 @@ export const LABEL_TIERS: Record<LabelTier, LabelStyle> = {
   placeOther: S({ size: [7, 10], color: '#8a8a8a', font: 'Roboto Condensed Light', zoom: [Z_NEAR, 24], shown: false }),
   province: S({ size: [8, 11], color: '#8a8a8a', font: 'Roboto Condensed Light', tracking: 0.3, zoom: [4, 24], shown: false }),
   // ── water ──
-  sea: S({ size: [10, 12], color: '#338199' }),
-  river: S({ size: [8, 12], color: '#338199', tracking: 0.1 }),
+  sea: S({ size: [10, 12], color: '#576e75' }),
+  river: S({ size: [8, 12], color: '#576e75', tracking: 0.1 }),
   // ── transport ──
   airport: S({ size: [7.5, 9], zoom: [8, 24], tracking: 0.15, color: '#757575' }),
   // Road names and shields stay off. They are the tier that used to be swept
@@ -133,7 +133,7 @@ export const LABEL_TIERS: Record<LabelTier, LabelStyle> = {
   // The military regions are off entirely — labels here, and the dashed
   // borders at their call site in MapView. The record's own geography carries
   // the map now; the four zones were a second division competing with it.
-  mr: S({ size: [11, 16], color: '#cf3720', halo: 'rgba(250,249,244,0.95)', haloWidth: 2, tracking: 0.1, zoom: [0, Z_NEAR], shown: false }),
+  mr: S({ size: [11, 16], color: '#77503f', halo: 'rgba(250,249,244,0.95)', haloWidth: 2, tracking: 0.1, zoom: [0, Z_NEAR], shown: false }),
   island: S({ size: [8.5, 11], color: '#6b7268', halo: '#ffffff', haloWidth: 1, tracking: 0 }),
   vnCountry: S({ size: [10.5, 15], zoom: [0, Z_MID], color: '#464e48' }),
   // ── unclassified ──

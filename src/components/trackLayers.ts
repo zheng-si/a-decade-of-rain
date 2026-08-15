@@ -254,7 +254,7 @@ export const TRACKS: TrackStyle = {
  *  the caller having to hand it the colours again. Module state rather than a
  *  parameter because the console changes the taper and the agent chips change
  *  the selection, and either one has to be able to redraw the other's work. */
-let paintState = { tint: '#ff5449', dim: '#c9cdc4', indices: null as number[] | null }
+let paintState = { tint: '#a37363', dim: '#c9cdc4', indices: null as number[] | null }
 
 /** #rrggbb → rgba(), for the gradient stops. MapLibre needs a colour string
  *  with the alpha baked in; line-opacity multiplies on top of it. */
@@ -875,7 +875,7 @@ function applyTrackColour(map: maplibregl.Map) {
   if (TRACKS.taper > 0 && taperLive) {
     // Split by filter. `line-color` is deliberately left alone: MapLibre gives
     // line-gradient precedence over it, checked on the canvas — the layer still
-    // reports line-color '#ff5449' while painting the gradient. Clearing it
+    // reports line-color '#a37363' while painting the gradient. Clearing it
     // would be worse than useless, because `undefined` resets the property to
     // its spec default of BLACK, so any path where the gradient failed to
     // install would paint the record in black rather than fall back to the

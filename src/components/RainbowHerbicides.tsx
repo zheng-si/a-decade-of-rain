@@ -21,7 +21,7 @@ type Sel = 'all' | AgentInfo['key']
 
 // Agent colours nudged where needed to pass AA as small text on the forest card
 // (the chart colours themselves are fine as large fills / big numbers).
-const TEXT_SAFE: Record<AgentInfo['key'], string> = { O: '#ef7d1a', W: '#a9adb3', B: '#5aa6e0', other: '#b28cd6' }
+const TEXT_SAFE: Record<AgentInfo['key'], string> = { O: '#ef7409', W: '#a9adb3', B: '#2f83c8', other: '#b28cd6' }
 // Darkened agent colours that stay visible on the white card (the icon). The
 // "White" herbicide has no vivid hue, so it takes a neutral slate.
 const PAPER_SAFE: Record<AgentInfo['key'], string> = { O: '#b8560b', W: '#6b6f68', B: '#2872b3', other: '#7d52b0' }

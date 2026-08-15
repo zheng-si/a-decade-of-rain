@@ -276,7 +276,7 @@ export const mapConfig: MapConfig = {
       // Same tertiary ink the UI captions use (--ink-faint), so map and page
       // read as one text system. 6.5:1 on the land — a full step darker than
       // the old #5b5e57 (5.9:1), which sat too close to the paper.
-      color: '#4b5a50',
+      color: '#59544a',
       halo: '#ffffff',
       haloWidth: 1.3,
       sizeScale: 1,
@@ -289,12 +289,12 @@ export const mapConfig: MapConfig = {
   // Agent names mapped to saturated, readable colours: Orange = orange,
   // White = light grey, Blue = light blue, Other = violet.
   agents: [
-    { key: 'O', label: 'Orange', codes: ['O'], color: '#ef7d1a' },
+    { key: 'O', label: 'Orange', codes: ['O'], color: '#ef7409' },
     // Slate-blue silver: blue-leaning so an isolated White stays clearly
     // apart from the neutral context grey (DIM in volumeGrid.ts) on the map.
-    { key: 'W', label: 'White', codes: ['W'], color: '#93a1b3' },
-    { key: 'B', label: 'Blue', codes: ['B'], color: '#5aa6e0' },
-    { key: 'other', label: 'Other', codes: ['P', 'U', 'K', 'D', 'T'], color: '#9a6cc4' },
+    { key: 'W', label: 'White', codes: ['W'], color: '#3f5162' },
+    { key: 'B', label: 'Blue', codes: ['B'], color: '#2f83c8' },
+    { key: 'other', label: 'Other', codes: ['P', 'U', 'K', 'D', 'T'], color: '#8f5fc0' },
   ],
 
   heatmap: {

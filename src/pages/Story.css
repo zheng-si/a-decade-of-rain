@@ -281,9 +281,9 @@
   /* Hidden behind the banner: slid fully left until the story starts. */
   transform: translateX(-100%);
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Top stop equals the banner wash / rain (--accent #ff5449) so the rail
+  /* Top stop equals the banner wash / rain (--accent #a37363) so the rail
      reads as the same orange, then deepens to the crimson foot. */
-  background: linear-gradient(180deg, #ff5449 0%, #e0463a 40%, #c5372a 72%, #a52c1e 100%);
+  background: linear-gradient(180deg, #a37363 0%, #8a6252 40%, #755140 72%, #5c4032 100%);
   /* Crisp divider between the rail and the year/volume ruler to its right:
      a white hairline (reads on the crimson) plus a soft shadow (reads on the
      pale ruler). */
@@ -566,7 +566,7 @@
   height: 2px;
   background: var(--accent);
   border-radius: 1px;
-  box-shadow: 0 0 0.5rem rgba(255, 84, 73, 0.5);
+  box-shadow: 0 0 0.5rem rgba(163, 115, 99, 0.5);
   transform: translateY(-50%);
 }
 
@@ -585,7 +585,7 @@
   background: var(--accent);
   border: 1px solid rgba(255, 255, 255, 0.35);
   border-radius: 0.25rem;
-  box-shadow: 0 0.375rem 1.125rem rgba(255, 84, 73, 0.42);
+  box-shadow: 0 0.375rem 1.125rem rgba(163, 115, 99, 0.42);
 }
 
 .timeline-scan-num {
@@ -690,7 +690,7 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(to bottom, rgba(255, 84, 73, 1) 0%, rgba(255, 84, 73, 0) 100%);
+  background: linear-gradient(to bottom, rgba(163, 115, 99, 1) 0%, rgba(163, 115, 99, 0) 100%);
   transform: translateZ(0);
   backface-visibility: hidden;
 }
@@ -823,7 +823,7 @@
 
 /* --accent-bright, not --accent. The token sheet scopes --accent to GEOMETRY
    -- dots, pulse rings, heat, rain -- and gives text on a forest surface its
-   own tuned tone for exactly this reason: #ff5449 on --forest measures 4.12:1
+   own tuned tone for exactly this reason: #a37363 on --forest measures 4.12:1
    and fails AA, while --accent-bright measures 5.15. The card year is text. */
 .story-eyebrow {
   margin: 0 0 0.5rem;
@@ -1842,11 +1842,11 @@
    Figma swatches so the legend chips and the selected map both read. */
 .vt-forest { fill: #8fb4a0; }
 .vt-slashburn { fill: #859f97; }
-.vt-grassland { fill: #c3d888; }
-.vt-rice { fill: #544685; }
-.vt-mangrove { fill: #aba1cd; }
-.vt-marsh { fill: #61c1c2; }
-.vt-rubber { fill: #ddc21a; }
+.vt-grassland { fill: #b6bca4; }
+.vt-rice { fill: #605c6f; }
+.vt-mangrove { fill: #b3b0be; }
+.vt-marsh { fill: #83a0a0; }
+.vt-rubber { fill: #8f8a68; }
 
 /* Two-tone model (per the Figma design): by DEFAULT every type sits at 20%
    opacity — a pale wash of its own colour. Selecting a type lifts just that
@@ -1973,10 +1973,10 @@
 }
 /* Gradient backgrounds beat .story-fullscreen's paper via higher specificity. */
 .interlude-wall.is-eco {
-  background: linear-gradient(158deg, #12271a 0%, #1c3d2a 32%, #2c5a40 70%, #3a6a4d 100%);
+  background: linear-gradient(158deg, #19201c 0%, #28312c 32%, #464b42 70%, #3a6a4d 100%);
 }
 .interlude-wall.is-health {
-  background: linear-gradient(158deg, #ec5844 0%, #f0705a 45%, #f4926f 78%, #f6ab8f 100%);
+  background: linear-gradient(158deg, #a88b88 0%, #b39b97 45%, #beaca5 78%, #ccbeb9 100%);
 }
 
 .wall-inner {
@@ -2107,7 +2107,7 @@
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: var(--track-tight);
-  color: #b03222;
+  color: #7a5c58;
   background: #fff;
   border: none;
   border-radius: 62.4375rem;
@@ -2195,13 +2195,13 @@
   cursor: pointer;
 }
 .act2-pin.is-completed {
-  --pin: #35784f;
+  --pin: #5c6156;
 }
 .act2-pin.is-ongoing {
   --pin: var(--accent-deep);
 }
 .act2-pin.is-contained {
-  --pin: #2c5a40;
+  --pin: #464b42;
 }
 .act2-dot {
   position: absolute;
@@ -2313,13 +2313,13 @@
   transition: box-shadow 0.2s;
 }
 .act2-card.is-active.is-completed {
-  box-shadow: 0 0 0 2px #35784f, 0 0.375rem 1.125rem rgba(53, 120, 79, 0.18);
+  box-shadow: 0 0 0 2px #5c6156, 0 0.375rem 1.125rem rgba(53, 120, 79, 0.18);
 }
 .act2-card.is-active.is-ongoing {
-  box-shadow: 0 0 0 2px var(--accent-deep), 0 0.375rem 1.125rem rgba(207, 55, 32, 0.16);
+  box-shadow: 0 0 0 2px var(--accent-deep), 0 0.375rem 1.125rem rgba(119, 80, 63, 0.16);
 }
 .act2-card.is-active.is-contained {
-  box-shadow: 0 0 0 2px #2c5a40, 0 0.375rem 1.125rem rgba(44, 90, 64, 0.18);
+  box-shadow: 0 0 0 2px #464b42, 0 0.375rem 1.125rem rgba(44, 90, 64, 0.18);
 }
 
 /* Resting face: a status-washed site photograph. */
@@ -2450,13 +2450,13 @@
   flex: 1;
 }
 .act2-card.is-completed {
-  border-top-color: #35784f;
+  border-top-color: #5c6156;
 }
 .act2-card.is-ongoing {
   border-top-color: var(--accent);
 }
 .act2-card.is-contained {
-  border-top-color: #2c5a40;
+  border-top-color: #464b42;
 }
 
 .act2-card-head {
@@ -2494,13 +2494,13 @@
   opacity: 0.85;
 }
 .act2-badge.is-completed {
-  background: #35784f;
+  background: #5c6156;
 }
 .act2-badge.is-ongoing {
   background: var(--accent-deep);
 }
 .act2-badge.is-contained {
-  background: #2c5a40;
+  background: #464b42;
 }
 
 .act2-place {
@@ -2524,13 +2524,13 @@
   font-weight: 500;
 }
 .act2-card.is-completed .act2-facts dt {
-  color: #35784f;
+  color: #5c6156;
 }
 .act2-card.is-ongoing .act2-facts dt {
   color: var(--accent-deep);
 }
 .act2-card.is-contained .act2-facts dt {
-  color: #2c5a40;
+  color: #464b42;
 }
 .act2-facts dd {
   /* Proportional figures on purpose: these are read as prose, and Public
@@ -2646,8 +2646,8 @@
   border-top-color: #5a8a6f;
 }
 .alt-family.is-treatment {
-  --fam: #2f5c44;
-  border-top-color: #2f5c44;
+  --fam: #3f4c45;
+  border-top-color: #3f4c45;
 }
 .alt-family h3 {
   margin: 0 0 0.3125rem;
@@ -2683,7 +2683,7 @@
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: var(--track-tight);
-  /* Was #ff564b -- a fifth orange, indistinguishable from --accent, and 2.98:1
+  /* Was #b39897 -- a fifth orange, indistinguishable from --accent, and 2.98:1
      on the paper this label actually sits on. --accent-deep is the tone the
      sheet defines for accent text on paper. */
   color: var(--accent-deep);
@@ -2691,7 +2691,7 @@
 .alt-arrow-line {
   position: relative;
   height: 0.15625rem;
-  background: linear-gradient(90deg, #b9beba 0%, #e2766b 55%, #ff5449 100%);
+  background: linear-gradient(90deg, #b9beba 0%, #b59b98 55%, #a37363 100%);
 }
 .alt-arrow-line::after {
   content: '';
@@ -2700,7 +2700,7 @@
   top: 50%;
   transform: translateY(-50%);
   border: 0.4375rem solid transparent;
-  border-left: 0.6875rem solid #ff5449;
+  border-left: 0.6875rem solid #a37363;
   border-right: 0;
 }
 
@@ -2821,7 +2821,7 @@
   background: #5d5f5c;
 }
 .alt-pair i.is-co2 {
-  background: #ff5449;
+  background: #a37363;
 }
 
 /* Column labels under the plot. */
@@ -2886,7 +2886,7 @@
   color: #4d7d63;
 }
 .alt-band-group.is-treatment {
-  color: #2f5c44;
+  color: #3f4c45;
 }
 
 /* Full-width USAID reveal button; once revealed it becomes the green
@@ -2908,24 +2908,24 @@
   font-size: 0.875rem;
   font-weight: 600;
   color: #fff;
-  background: #5abe88;
-  border: 1px solid #5abe88;
+  background: #7d9b8b;
+  border: 1px solid #7d9b8b;
   border-radius: 0.3125rem;
   box-shadow: 0 0.25rem 0.25rem rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 .alt-reveal-btn:hover {
-  background: #4bae79;
-  border-color: #4bae79;
+  background: #6e8b7b;
+  border-color: #6e8b7b;
 }
-/* #31734d, not #3f9e6c. This state was unreachable until the skin's fill rule
+/* #485c50, not #607d6e. This state was unreachable until the skin's fill rule
    was guarded, so its 3.32:1 on white had never been on screen to be caught.
-   #31734d is the same hue at 5.69:1. border-color is dropped with the border
+   #485c50 is the same hue at 5.69:1. border-color is dropped with the border
    itself -- see the skin. */
 .alt-reveal-btn.is-banner {
   background: #fff;
-  color: #31734d;
+  color: #485c50;
 }
 .alt-reveal-btn.is-banner:hover {
   background: #f3faf6;
@@ -2955,7 +2955,7 @@
   line-height: 1;
 }
 .alt-verdict.is-kept .alt-verdict-mark {
-  color: #3f9e6c;
+  color: #607d6e;
 }
 /* Same swap, other ground: the ✕ sits on paper, where --accent measures
    3.01:1. --accent-deep is the sheet's accent-text-on-paper tone, 4.72. The
@@ -2978,7 +2978,7 @@
   color: #fff;
 }
 .alt-verdict.is-kept .alt-verdict-chip {
-  background: #5abe88;
+  background: #7d9b8b;
 }
 .alt-verdict.is-cut .alt-verdict-chip {
   background: var(--accent);
@@ -3164,7 +3164,7 @@
     color: #4d7d63;
   }
   .alt-rowgroup.is-treatment h4 {
-    color: #2f5c44;
+    color: #3f4c45;
   }
   .alt-row {
     margin: 0 0 0.75rem;
@@ -3204,7 +3204,7 @@
   }
   .alt-row-bars i.is-co2,
   .alt-rows-legend i.is-co2 {
-    background: #ff5449;
+    background: #a37363;
   }
   .alt-row-bars span {
     font-size: 0.6875rem;
@@ -3218,7 +3218,7 @@
     color: var(--ink-soft);
   }
   .alt-row.is-kept .alt-row-note {
-    color: #2f7049;
+    color: #45443a;
     font-weight: 600;
   }
   .alt-row.is-cut .alt-row-note span,
@@ -3257,10 +3257,10 @@
   border-color: #cfccc0;
 }
 .method-tab.is-landfill {
-  --mth: #2c5a40;
+  --mth: #464b42;
 }
 .method-tab.is-thermal {
-  --mth: #d64a37;
+  --mth: #9a7873;
 }
 .method-tab-dot {
   width: 0.5rem;
@@ -3306,10 +3306,10 @@
   flex: 0.45;
 }
 .method-panel.is-landfill.is-open {
-  background: linear-gradient(180deg, #16301f 0%, #2c5a40 55%, #47795c 100%);
+  background: linear-gradient(180deg, #1f2722 0%, #464b42 55%, #47795c 100%);
 }
 .method-panel.is-thermal.is-open {
-  background: linear-gradient(180deg, #c93f2d 0%, #ec5844 50%, #f4926f 100%);
+  background: linear-gradient(180deg, #8f6c67 0%, #a88b88 50%, #beaca5 100%);
 }
 
 /* Vertical name on the collapsed sliver. */
@@ -3522,16 +3522,16 @@
 
 /* Project colours, matching the three base cards. */
 .is-phucat {
-  --tlc: #2c5a40;
+  --tlc: #464b42;
 }
 .is-danang {
-  --tlc: #35784f;
+  --tlc: #5c6156;
 }
 .is-bienhoa {
   --tlc: var(--accent-deep);
 }
 .is-programme {
-  --tlc: #6a7160;
+  --tlc: #6b675c;
 }
 
 /* Overview bar: the three projects' spans on one 2009–2030 axis. */
@@ -3586,7 +3586,7 @@
   background: var(--tlc);
 }
 .tl-band.is-open {
-  background: linear-gradient(90deg, var(--tlc) 55%, rgba(207, 55, 32, 0));
+  background: linear-gradient(90deg, var(--tlc) 55%, rgba(119, 80, 63, 0));
 }
 .tl-band-status {
   padding: 0 0.5rem;
@@ -3692,13 +3692,13 @@
   border-color: transparent;
 }
 .tl-card.is-invert.is-phucat {
-  background: linear-gradient(180deg, #24523a 0%, #40704f 100%);
+  background: linear-gradient(180deg, #35342c 0%, #4b4a40 100%);
 }
 .tl-card.is-invert.is-danang {
-  background: linear-gradient(180deg, #2f7049 0%, #4d9a6b 100%);
+  background: linear-gradient(180deg, #45443a 0%, #5f5e50 100%);
 }
 .tl-card.is-invert.is-bienhoa {
-  background: linear-gradient(180deg, #bd4127 0%, #dd6f4d 100%);
+  background: linear-gradient(180deg, #7a5241 0%, #9a7259 100%);
 }
 .tl-card.is-invert .tl-card-year {
   color: #fff;
@@ -3761,9 +3761,9 @@
     #74927b 33%,
     #52775f 44%,
     #3a5f48 56%,
-    #274b36 70%,
-    #1a3927 84%,
-    #12271a 100%
+    #343e38 70%,
+    #252e29 84%,
+    #19201c 100%
   );
 }
 .close-rain {
@@ -3854,12 +3854,12 @@
   color: var(--forest-text-soft);
 }
 .close-action:hover .close-action-cta {
-  color: #c4ecd3;
+  color: #d2ded6;
 }
 
 /* Sources ledger stays in the forest green, continuing the hero. */
 .close-sources {
-  background: linear-gradient(180deg, #12271a 0%, #16311f 48%, #21432f 100%);
+  background: linear-gradient(180deg, #19201c 0%, #1f2822 48%, #2d3731 100%);
 }
 .close-sources .fs-title {
   color: #fff;
@@ -3877,7 +3877,7 @@
   margin: 0 0 0.5625rem;
   font-size: 0.75rem;
   font-weight: 500;
-  color: #9fd4b4;
+  color: #b2c1b8;
 }
 .close-ref-group ul {
   list-style: none;
@@ -3946,7 +3946,7 @@
   align-items: center;
   gap: 0.5625rem;
   margin-top: 1.625rem;
-  /* Was #ff7a68 -- 2.36 dE from --accent-bright, which is the same colour
+  /* Was #c0aaa7 -- 2.36 dE from --accent-bright, which is the same colour
      typed twice. It reaches the wordmark SVG by inheritance. */
   color: var(--accent-bright);
 }
@@ -4066,4 +4066,11 @@
   text-align: center;
   text-wrap: balance;
   color: var(--ink-soft);
+}
+
+/* Desaturation experiment: photographs read as warm-grey photocopies,
+   matching the declassified-document register of the rest of the page. */
+.act2-photo,
+.story-hook-provenance img {
+  filter: grayscale(0.85) sepia(0.18) saturate(0.85);
 }

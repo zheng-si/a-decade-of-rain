@@ -66,7 +66,7 @@ interface RawTracks {
  *  Archive calls it with the real agent palette. Keyed on the url alone,
  *  whichever surface asked first would decide what colour the herbicides are
  *  on the other — reach the Archive by clicking through from the Story and
- *  every track paints #9a6cc4. Keyed on both, they are simply two entries. */
+ *  every track paints #8f5fc0. Keyed on both, they are simply two entries. */
 const cache = new Map<string, Promise<TrackDataset>>()
 
 /** Load and shape the track dataset.
@@ -118,7 +118,7 @@ async function parseTracks(
           gallons,
           km,
           gpk: Number(gpk.toFixed(1)),
-          c: colors[agent] ?? '#9a6cc4',
+          c: colors[agent] ?? '#8f5fc0',
           gi: groupOf[agent] ?? 3,
         },
       }
@@ -138,7 +138,7 @@ async function parseTracks(
           gallons,
           km: 0,
           gpk: 0,
-          c: colors[agent] ?? '#9a6cc4',
+          c: colors[agent] ?? '#8f5fc0',
           gi: groupOf[agent] ?? 3,
         },
       }

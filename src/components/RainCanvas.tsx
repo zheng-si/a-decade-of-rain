@@ -95,7 +95,7 @@ export default function RainCanvas() {
       for (const d of drops) {
         d.y += d.sp * dt
         if (d.y - d.len > h) Object.assign(d, spawn(false))
-        ctx.strokeStyle = `rgba(255,84,73,${(d.a * intensity).toFixed(3)})`
+        ctx.strokeStyle = `rgba(163,115,99,${(d.a * intensity).toFixed(3)})`
         ctx.lineWidth = d.wdt
         ctx.beginPath()
         ctx.moveTo(d.x, d.y)

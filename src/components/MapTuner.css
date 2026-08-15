@@ -169,7 +169,7 @@
 .tuner-hex:focus-visible,
 .tuner-swatch:focus-visible,
 .tuner-foot button:focus-visible {
-  outline: 2px solid #cf3720;
+  outline: 2px solid #77503f;
   outline-offset: 2px;
 }
 
@@ -187,7 +187,7 @@
 }
 
 .tuner-font:focus-visible {
-  outline: 2px solid #cf3720;
+  outline: 2px solid #77503f;
   outline-offset: 2px;
 }
 
@@ -223,12 +223,12 @@
 }
 
 .tuner-tabs button.is-active {
-  background: #213528;
+  background: #2b2822;
   color: #fff;
 }
 
 .tuner-tabs button:focus-visible {
-  outline: 2px solid #cf3720;
+  outline: 2px solid #77503f;
   outline-offset: -2px;
 }
 
@@ -245,7 +245,7 @@
 }
 
 .tuner-slider strong {
-  color: #cf3720;
+  color: #77503f;
 }
 
 .tuner-slider input[type='range'] {
@@ -538,7 +538,7 @@
 .tuner-layer-row em.is-ours {
   margin-left: 0.25rem;
   padding: 0 0.2rem;
-  background: rgba(207, 55, 32, 0.12);
+  background: rgba(119, 80, 63, 0.12);
   color: #a8412b;
 }
 
@@ -593,8 +593,8 @@
 .tuner-conflict {
   margin: 0.3rem 0 0;
   padding: 0.3rem 0.4rem;
-  background: rgba(207, 55, 32, 0.07);
-  border-left: 2px solid #cf3720;
+  background: rgba(119, 80, 63, 0.07);
+  border-left: 2px solid #77503f;
   font-size: 0.62rem;
   line-height: 1.4;
   color: #8a3520;
@@ -602,13 +602,13 @@
 
 .tuner-conflict strong {
   display: block;
-  color: #cf3720;
+  color: #77503f;
 }
 
 .tuner-conflict button {
   margin-top: 0.15rem;
   padding: 0.1rem 0.4rem;
-  border: 1px solid rgba(207, 55, 32, 0.4);
+  border: 1px solid rgba(119, 80, 63, 0.4);
   border-radius: 0.2rem;
   background: rgba(255, 255, 255, 0.8);
   font: inherit;

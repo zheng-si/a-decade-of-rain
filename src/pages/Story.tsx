@@ -780,7 +780,7 @@ export default function Story() {
           type: 'line',
           source: LANDMARK_SOURCE,
           layout: { 'line-join': 'round', 'line-cap': 'round' },
-          paint: { 'line-color': '#e8443a', 'line-width': 3, 'line-opacity': 0.95 },
+          paint: { 'line-color': '#8a6252', 'line-width': 3, 'line-opacity': 0.95 },
         })
 
         // Disputed-island labels — shared with the Archive.

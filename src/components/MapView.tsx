@@ -1090,7 +1090,7 @@ export default function MapView() {
           ready={ready}
           is3D={is3D}
           onToggle3D={toggleView}
-          tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
+          tint={choices.find((c) => c.key === agentKey)?.color ?? '#a37363'}
           filtered={agentKey !== 'all'}
           tracks={TRACKS}
         >

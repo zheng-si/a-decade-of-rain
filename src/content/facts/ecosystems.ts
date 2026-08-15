@@ -37,11 +37,11 @@ export interface VegType {
 export const VEG_TYPES: VegType[] = [
   { key: 'forest', color: '#8FB4A0', ink: '#3F6D55', name: 'Forest', sprayed: 1925, total: 5500, sourced: true, sourceId: 'westing_bioscience' },
   { key: 'slashburn', color: '#859F97', ink: '#4C6459', name: 'Forest, with slash / burn', sprayed: 300, total: 1200, sourced: false },
-  { key: 'grassland', color: '#C3D888', ink: '#5E7A2C', name: 'Grassland', sprayed: 50, total: 700, sourced: false },
-  { key: 'rice', color: '#544685', ink: '#4A3D77', name: 'Rice', sprayed: 200, total: 2900, sourced: true, sourceId: 'nas_1974' },
-  { key: 'mangrove', color: '#ABA1CD', ink: '#5C4F97', name: 'Mangrove', sprayed: 105, total: 291, sourced: true, sourceId: 'nas_1974' },
-  { key: 'marsh', color: '#61C1C2', ink: '#2C7E7F', name: 'Marshes and other inundated vegetation', sprayed: 8, total: 350, sourced: false },
-  { key: 'rubber', color: '#DDC21A', ink: '#7C6D0F', name: 'Tree crops, chiefly rubber', sprayed: 25, total: 120, sourced: false },
+  { key: 'grassland', color: '#b9c29e', ink: '#586541', name: 'Grassland', sprayed: 50, total: 700, sourced: false },
+  { key: 'rice', color: '#5e5774', ink: '#534d67', name: 'Rice', sprayed: 200, total: 2900, sourced: true, sourceId: 'nas_1974' },
+  { key: 'mangrove', color: '#b2adc1', ink: '#696383', name: 'Mangrove', sprayed: 105, total: 291, sourced: true, sourceId: 'nas_1974' },
+  { key: 'marsh', color: '#7ca7a7', ink: '#436868', name: 'Marshes and other inundated vegetation', sprayed: 8, total: 350, sourced: false },
+  { key: 'rubber', color: '#a19656', ink: '#5a5531', name: 'Tree crops, chiefly rubber', sprayed: 25, total: 120, sourced: false },
 ]
 
 /** Axis maximum for the shared scale (×10³ ha), a round step above the biggest total. */

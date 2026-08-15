@@ -384,7 +384,7 @@
 
 
 .story .act2-card.is-active.is-completed {
-  color: #35784f;
+  color: #5c6156;
 }
 
 .story .act2-card.is-active.is-ongoing {
@@ -392,7 +392,7 @@
 }
 
 .story .act2-card.is-active.is-contained {
-  color: #2c5a40;
+  color: #464b42;
 }
 
 /* ── controls · §8 ────────────────────────────────────────────────────────
@@ -511,9 +511,9 @@
 
 /* The "All agents" chip is the one selected state on this page that carries no
    category — no single agent is chosen — so it takes the same neutral dark as
-   the view switches above rather than its own. It was --ink (#101a14, which
+   the view switches above rather than its own. It was --ink (#16130d, which
    reads black) while the Archive drew the identical chip in --forest
-   (#213528): the same control, two darks, on two pages a reader moves between.
+   (#2b2822): the same control, two darks, on two pages a reader moves between.
    The Archive's rule is the one worth keeping — one dark for every selected
    control — so the Story adopts it. The four agent chips are untouched: their
    fill is the agent's own colour, which is information. */

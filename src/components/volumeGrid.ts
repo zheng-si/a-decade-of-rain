@@ -67,7 +67,7 @@ const Z_MID_TO_NEAR = Z_NEAR
 export function agentIndexColors(spray: SprayDataset): string[] {
   const byCode: Record<string, string> = {}
   for (const g of mapConfig.agents) for (const c of g.codes) byCode[c] = g.color
-  const other = mapConfig.agents.find((g) => g.key === 'other')?.color ?? '#9a6cc4'
+  const other = mapConfig.agents.find((g) => g.key === 'other')?.color ?? '#8f5fc0'
   return spray.agents.map((a) => byCode[a.code] ?? other)
 }
 
@@ -220,7 +220,7 @@ export const DOTS: DotStyle = {
   raw: { k0: 0.055, k1: 0.13, cap: 18 },
   floor: [1, 1.5],
   zero: { radius: [2, 3.5], stroke: 1, opacity: 0.55 },
-  tint: '#ff5449',
+  tint: '#a37363',
   // The design system's `contextGrey` -- the one named colour for "still on
   // the page, not the subject right now". The chart has dimmed to it for
   // versions (Timeline.tsx CHART_DIM, the bar tracks in App.css); the map was
@@ -229,7 +229,7 @@ export const DOTS: DotStyle = {
   //
   // It is also the better grey on its own terms, measured. Against the land
   // (#f4f2f1) it is quieter -- 1.45:1 against 1.68:1 -- which is what a dim
-  // colour is for. And against the White agent's slate silver (#93a1b3) it
+  // colour is for. And against the White agent's slate silver (#3f5162) it
   // separates BETTER: 1.63:1 against 1.40:1. That second number is the one
   // that matters, because mapConfig's own comment says the White agent was
   // pushed blue-leaning specifically so an isolated White would not be
@@ -751,7 +751,7 @@ export function quietBasemap(
 const COUNTRY_TEXT = {
   font: [LABEL_FONT],
   size: textSizeRamp(10, 15),
-  color: '#4b5a50',
+  color: '#59544a',
   halo: 'rgba(250,249,244,0.92)',
   haloWidth: 1.1,
   /** Steps aside at the first hand-off, with the basemap's country tier. */
