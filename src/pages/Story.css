@@ -315,6 +315,7 @@
 
 .story-rail-mark span {
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-size: 0.9375rem;
   font-weight: 400;
   line-height: 1.3;
@@ -353,6 +354,7 @@
   margin: 0;
   padding: 0.5rem 0.375rem 0.25rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: 1.0625rem;
   letter-spacing: normal;
@@ -588,6 +590,7 @@
 
 .timeline-scan-num {
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-size: 1.1875rem;
   line-height: 1;
   color: #fff;
@@ -715,6 +718,7 @@
 .story-hook-title {
   margin: 0 0 0.875rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: var(--type-h1-size);
   line-height: var(--type-h1-lh);
@@ -727,6 +731,7 @@
 .story-hook-sub {
   margin: 0 0 1.75rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-size: 1.5rem;
   font-weight: 400;
   letter-spacing: normal;
@@ -822,6 +827,7 @@
 .story-eyebrow {
   margin: 0 0 0.5rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-size: var(--type-h3-size);
   font-weight: 400;
   /* Stated rather than inherited. This rule declared no line-height, so it fell
@@ -861,6 +867,7 @@
 .story-name {
   margin: 0 0 0.625rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: var(--type-h2-size);
   line-height: var(--type-h2-lh);
@@ -870,6 +877,7 @@
 .story-dek {
   margin: 0 0 0.75rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: 1.0625rem;
   line-height: 1.4;
@@ -926,6 +934,7 @@
 .story-quote p {
   margin: 0 0 0.5rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-size: var(--type-quote-size);
   line-height: var(--type-quote-lh);
   color: var(--forest-text);
@@ -1175,6 +1184,7 @@
 .fs-title {
   margin: 0 0 0.875rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: clamp(1.6875rem, 3.6vw, 2.375rem);
   line-height: 1.05;
@@ -1459,6 +1469,7 @@
 .rainbow-card-name {
   margin: 0 0 0.1875rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: 1.1875rem;
   line-height: 1.1;
@@ -1490,6 +1501,7 @@
 
 .rainbow-stat strong {
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400; /* big serif figures set regular site-wide, never bold */
   font-size: 1.75rem;
   line-height: 1;
@@ -1869,6 +1881,7 @@
 
 .eco-headline strong {
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: clamp(1.875rem, 4vw, 2.75rem);
   line-height: 1;
@@ -1984,6 +1997,7 @@
 .wall-value {
   margin: 0 0 0.75rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: clamp(2.5rem, 6vw, 4.5rem);
   line-height: 0.98;
@@ -1992,6 +2006,7 @@
   margin: 0 0 1.375rem;
   max-width: 18.75rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-size: 1.0625rem;
   line-height: 1.4;
   opacity: 0.96;
@@ -2027,6 +2042,7 @@
   display: block;
   margin-bottom: 0.25rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: 1.75rem;
   line-height: 1;
@@ -2034,6 +2050,7 @@
 .wall-stat-l {
   display: block;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-size: 0.9375rem;
   line-height: 1.4;
   opacity: 0.88;
@@ -2455,6 +2472,7 @@
 .act2-card-name {
   margin: 0;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: 1.1875rem;
   white-space: nowrap;
@@ -2548,6 +2566,7 @@
   margin: 1.5rem 0 0.75rem;
   max-width: 47.5rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-size: 1.1875rem;
   line-height: 1.45;
   color: var(--ink);
@@ -2636,6 +2655,7 @@
 .alt-family h3 {
   margin: 0 0 0.3125rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: 1.1875rem;
   color: var(--ink);
@@ -3304,6 +3324,7 @@
   justify-content: center;
   writing-mode: vertical-rl;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-size: 1.0625rem;
   letter-spacing: var(--track-tight);
   color: var(--ink-soft);
@@ -3359,6 +3380,7 @@
 .method-rest-copy h3 {
   margin: 0 0 0.4375rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: 1.1875rem;
   text-shadow: 0 1px 0.625rem rgba(0, 0, 0, 0.5);
@@ -3402,6 +3424,7 @@
 .method-copy h3 {
   margin: 0 0 0.625rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: 1.1875rem;
   color: #fff;
@@ -3630,6 +3653,7 @@
 }
 .tl-card-year {
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-size: 1.1875rem;
   line-height: 1.2;
   color: var(--ink);
@@ -3649,6 +3673,7 @@
 }
 .tl-card-stat strong {
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: 1.1875rem;
   color: var(--ink);
@@ -3759,6 +3784,7 @@
   margin: 0 0 1.125rem;
   max-width: 45rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: clamp(1.875rem, 4vw, 2.75rem);
   line-height: 1.12;
@@ -3812,6 +3838,7 @@
 .close-action-name {
   margin: 0 0 0.4375rem;
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-weight: 400;
   font-size: 1.1875rem;
   color: #fff;
@@ -3932,6 +3959,7 @@
 }
 .close-mark span {
   font-family: var(--font-serif);
+  text-transform: uppercase;
   font-size: 0.8125rem;
   color: rgba(255, 255, 255, 0.78);
 }

@@ -142,6 +142,7 @@
      year-to-title baseline was landing 26.6px apart here against 30.9 there. */
   margin: 0 0 0.5rem;
   font-family: 'IBM Plex Mono', 'Courier New', Courier, monospace;
+  text-transform: uppercase;
   font-weight: 400;
   font-size: 1.5rem;
   line-height: normal;
@@ -169,6 +170,7 @@
 .map-wrap .explorer-title,
 .map-wrap .explorer-subtitle {
   font-family: 'IBM Plex Mono', 'Courier New', Courier, monospace;
+  text-transform: uppercase;
   font-weight: 400;
 }
 
