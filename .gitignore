@@ -25,3 +25,6 @@ scripts/.cache
 *.njsproj
 *.sln
 *.sw?
+
+# Poster render outputs (regenerable via poster/scripts)
+poster/final/*.png
