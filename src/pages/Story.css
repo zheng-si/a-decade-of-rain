@@ -720,7 +720,9 @@
   font-family: var(--font-serif);
   text-transform: uppercase;
   font-weight: 400;
-  font-size: var(--type-h1-size);
+  /* Uppercase mono sets wide; one step below the h1 token keeps the
+     stamp inside comfortable margins. */
+  font-size: clamp(2rem, 5.2vw, 3.5rem);
   line-height: var(--type-h1-lh);
   letter-spacing: normal;
   color: var(--ink);
