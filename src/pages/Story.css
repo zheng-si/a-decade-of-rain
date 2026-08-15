@@ -3668,17 +3668,15 @@
   gap: 0.4375rem;
   flex-wrap: wrap;
 }
+/* The stat reads as body copy, not a second stamp: sans, body size,
+   emphasis carried by weight alone. */
 .tl-card-stat strong {
-  font-family: var(--font-serif);
-  text-transform: uppercase;
-  font-weight: 400;
-  /* One step below the year line: with wide mono caps, two 1.1875rem
-     stamps stacked read as a double header; the year keeps the anchor. */
-  font-size: 1rem;
+  font-weight: 600;
+  font-size: 0.8125rem;
   color: var(--ink);
 }
 .tl-card-stat span {
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
   color: var(--ink-faint);
 }
 .tl-card-text {
