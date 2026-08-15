@@ -170,11 +170,11 @@
 .map-wrap .explorer-title,
 .map-wrap .explorer-subtitle {
   font-family: 'Courier Prime', 'Courier Viet Fallback', 'Courier New', Courier, monospace;
-  text-transform: uppercase;
   font-weight: 400;
 }
 
 .map-wrap .explorer-title {
+  text-transform: uppercase;
   /* 0.625rem below, which is .story-name's — the title-to-subtitle baseline was
      3.4px tighter here for the same reason the line above it was. */
   margin: 0 0 0.625rem;
