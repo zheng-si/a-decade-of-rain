@@ -141,7 +141,7 @@
      and 0.5rem below against 0.25. Same face, same size, same tier — and the
      year-to-title baseline was landing 26.6px apart here against 30.9 there. */
   margin: 0 0 0.5rem;
-  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-family: 'Courier Prime', 'Courier Viet Fallback', 'Courier New', Courier, monospace;
   font-weight: 400;
   font-size: 1.5rem;
   line-height: normal;
@@ -168,7 +168,7 @@
    rather than a hole in the rule. */
 .map-wrap .explorer-title,
 .map-wrap .explorer-subtitle {
-  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-family: 'Courier Prime', 'Courier Viet Fallback', 'Courier New', Courier, monospace;
   font-weight: 400;
 }
 
