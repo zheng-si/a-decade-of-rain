@@ -87,3 +87,9 @@ f4rework：`HONEST=1` 转录真实 M/CTZ/PRO/T/S/I（终稿），不带则回退
 
 - 四方向 agent 审查（拼写用语/页脚注脚格式/几何网格/用色一致性）后修正 6 处：vol 页脚右边距越界（字距计入后 97px）、f4 码本两空格统一与 U K 入色、SOURCE/INCIDENT 升小标题、补 T=U 与 S=A（A=Stellman 2003 修订补录）、f4 页脚语序对齐、t5s8 撇号改 U+2019。用户逐项确认。
 - **投稿已完成（2026-08-15）**：Entry ID F373；报名表已提交（physical production=Yes、标题未加 Prototype，用户承诺入选后打印寄送以兑现）；F373.zip（07_F373_01_a/b/c，含全部 QA 修正）已上传；早鸟费 $35 已经 PayPal 支付（@tokyotdc，备注 F373）。待办仅剩：入选通知后 2026-11-16 前打印 A1 并邮寄（母版 = FINAL-*-A1.pdf）。
+
+## 十、衍生单张：FINAL-map（密度点阵图，别府 art fair）
+
+- `final/FINAL-map.svg`：每条 run 的加仑沿航线走线均摊入 5.5km 等距网格，每格一橙点、面积∝加仑（最小格托底可见，页脚已披露 SMALLEST HELD LEGIBLE）；无底图，数据自绘国土轮廓；全量 7,047 条不抽样，分摊守恒（画面总加仑 = 18,905,413）。
+- 生成：`node poster/scripts/dotmap.mjs`（旋钮 CELL/OUT/RMIN）；任意纸型矢量 PDF：`node poster/scripts/pdfsize.mjs FINAL-map 707 1000`。
+- 细网格变体（CELL=0.033）落选，git 历史可寻。用户选定粗网格（2026-08-20）。
