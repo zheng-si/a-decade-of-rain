@@ -844,15 +844,20 @@
   color: var(--accent-bright);
 }
 
-/* Stat chip — a lifted pill inside the card. */
+/* Stat chip — a pill inside the card. INSET, not lifted: the lifted fill
+   was --forest-2 (#2c3730) on --forest (#213528), a 1.05:1 pair the eye
+   cannot separate, so the chip read as loose text with a ghost border.
+   Sinking it below the card (a translucent black over the forest) gives
+   the pill a surface of its own on any dark card, and the mint hairline
+   doubles from the 0.14 that was doing nothing visible. */
 .story-stat {
   display: inline-flex;
   align-items: baseline;
   gap: 0.375rem;
   margin: 1rem 0 0;
   padding: 0.375rem 0.8125rem;
-  background: var(--forest-2);
-  border: 1px solid rgba(146, 247, 188, 0.14);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(146, 247, 188, 0.28);
   border-radius: 0.25rem;
   font-size: 0.75rem;
   letter-spacing: var(--track-tight);
@@ -1452,9 +1457,9 @@
      one card on the page with no boundary — and it computed as though it had
      one, which is how reading getComputedStyle instead of the pixels missed
      it. The card paints the paper; its parts do not. */
-  /* 3px, not 4: the timeline and hotspot cards band at 3 and this is the same
-     device saying the same thing. */
-  border-top: 3px solid var(--agent);
+  /* The 3px agent band that sat here is retired with every other card-top
+     bar (site-wide decision, 2026-08): the agent's colour already lives in
+     the icon, the letter and the big number on this card. */
 }
 
 .rainbow-card-icon {
@@ -2307,7 +2312,6 @@
   cursor: pointer;
   background: var(--paper-solid);
   border: 1px solid var(--rule);
-  border-top: 3px solid var(--rule-strong);
   border-radius: 0.3125rem;
   cursor: pointer;
   transition: box-shadow 0.2s;
@@ -2449,15 +2453,8 @@
   flex-direction: column;
   flex: 1;
 }
-.act2-card.is-completed {
-  border-top-color: #35784f;
-}
-.act2-card.is-ongoing {
-  border-top-color: var(--accent);
-}
-.act2-card.is-contained {
-  border-top-color: #2c5a40;
-}
+/* The per-status card-top bars are retired with every other card-top bar
+   (site-wide, 2026-08); the status chip in the card head carries the state. */
 
 .act2-card-head {
   display: flex;
@@ -2588,7 +2585,6 @@
   padding: 0.6875rem 1.125rem 0.75rem;
   background: var(--paper-solid);
   border: 1px solid var(--rule);
-  border-top: 3px solid var(--rule-strong);
   border-radius: 0.3125rem;
   transition: background 0.3s, border-color 0.3s;
 }
@@ -2639,15 +2635,12 @@
 }
 .alt-family.is-containment {
   --fam: #6a9c81;
-  border-top-color: #8fb4a0;
 }
 .alt-family.is-hybrid {
   --fam: #4d7d63;
-  border-top-color: #5a8a6f;
 }
 .alt-family.is-treatment {
   --fam: #2f5c44;
-  border-top-color: #2f5c44;
 }
 .alt-family h3 {
   margin: 0 0 0.3125rem;
@@ -3632,7 +3625,6 @@
   padding: 0.75rem 0.875rem 0.8125rem;
   background: var(--paper-solid);
   border: 1px solid var(--rule);
-  border-top: 3px solid var(--tlc);
   border-radius: 0.3125rem;
   opacity: 0;
   transform: translateY(0.625rem);
