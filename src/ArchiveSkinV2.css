@@ -136,16 +136,8 @@
     border-radius: 0.5rem 0.5rem 0 0;
   }
 
-  /* Inspect splits the bottom edge: the control sheet keeps the left two
-     thirds, the card takes the right third. Each keeps only its OUTER top
-     corner — the inner pair meet in a straight seam, which is what makes
-     two surfaces read as one split sheet rather than two cards. */
-  .map-wrap.inspect-open .explorer-panel {
-    border-radius: 0.5rem 0 0 0;
-  }
-
   .map-wrap.inspect-open .archive-key {
-    border-radius: 0 0.5rem 0 0;
+    border-radius: 0.5rem 0.5rem 0 0;
   }
 
   /* The identity block, compressed — stated at the skin's own two-class
