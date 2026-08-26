@@ -118,6 +118,29 @@ export default function Timeline({
   // matchMedia is needed. Pressing play collapses to the peek — the reader
   // asked to watch the map, so the card gets out of the way of the map.
   const [expanded, setExpanded] = useState(true)
+  // ── why a phase machine and not a class swap ────────────────────────────
+  // The peek is a DIFFERENT LAYOUT (children hidden, identity inlined), and
+  // a layout has no in-between states: swapping classes directly made the
+  // collapse an instant 330px snap — the content vanished, so the height hit
+  // the floor before the max-height transition produced a single frame —
+  // while the expand animated. The fix is to pass through `is-collapsing`,
+  // which keeps the FULL content and only clamps max-height to the peek's
+  // height, so the box glides shut clipping its content, and the layout swap
+  // happens off-stage at the end. Expanding runs the same ramp backwards:
+  // two rAFs let the clamped box paint once before the lid lifts.
+  const [phase, setPhase] = useState<'open' | 'closing' | 'peek' | 'preopen'>('open')
+  useEffect(() => {
+    if (expanded) {
+      setPhase((p) => (p === 'open' ? 'open' : 'preopen'))
+      const raf = requestAnimationFrame(() =>
+        requestAnimationFrame(() => setPhase('open')),
+      )
+      return () => cancelAnimationFrame(raf)
+    }
+    setPhase('closing')
+    const id = window.setTimeout(() => setPhase('peek'), 270)
+    return () => window.clearTimeout(id)
+  }, [expanded])
   useEffect(() => {
     if (playing) setExpanded(false)
   }, [playing])
@@ -220,7 +243,12 @@ export default function Timeline({
   }, [volume, dayMin, span])
 
   return (
-    <section className={`explorer-panel${expanded ? '' : ' is-peek'}`} aria-label="Archive controls">
+    <section
+      className={`explorer-panel${
+        phase === 'peek' ? ' is-peek' : phase === 'open' ? '' : ' is-collapsing'
+      }`}
+      aria-label="Archive controls"
+    >
       {/* The sheet's grab handle — phone only (desktop CSS hides it). A
           button, not a div with listeners: the toggle is the whole gesture,
           and a button gives it focus, Enter/Space, and a name for free. */}

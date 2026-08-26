@@ -660,6 +660,17 @@
     overflow: hidden;
   }
 
+  /* The glide between the two layouts (see the phase machine in Timeline):
+     FULL content, lid clamped to the peek's measured height (5.6875rem =
+     91px) so the box slides shut clipping its content instead of snapping
+     when the content vanishes. The peek layout lands only after the ride,
+     at the same height the clamp ends on — so the swap itself moves
+     nothing on a standard phone width. */
+  .explorer-panel.is-collapsing {
+    max-height: 5.6875rem;
+    overflow: hidden;
+  }
+
   /* The grab handle: full-width hit area, a small bar as its whole face.
      Sticky so it stays under the thumb when the expanded sheet scrolls. */
   .sheet-toggle {
@@ -780,14 +791,23 @@
     z-index: 1;
     top: auto;
     right: 0;
-    bottom: calc(var(--panel-h, 5.5rem) - 3px);
+    bottom: calc(var(--panel-h, 5.5rem) - 3rem);
     left: 0;
     width: 100%;
-    max-height: calc(100vh - var(--panel-h, 5.5rem) - 3rem);
-    max-height: calc(100dvh - var(--panel-h, 5.5rem) - 3rem);
+    max-height: calc(100vh - var(--panel-h, 5.5rem) - 1rem);
+    max-height: calc(100dvh - var(--panel-h, 5.5rem) - 1rem);
     overflow-y: auto;
-    padding: 0.875rem 1rem 1.125rem;
-    transition: bottom 0.25s ease;
+    padding: 0.875rem 1rem 3.9375rem;
+    /* NO transition on bottom, deliberately. --panel-h is rewritten every
+       frame of the panel's own max-height animation, so an eased bottom
+       would be easing toward a moving target — measured 247px of lag at the
+       worst frame, the card visibly detaching from the sheet it rides. With
+       no easing of its own the card still trails the panel by a frame, so
+       the 3rem is a BITE, not a butt-joint: the card's bottom (all padding,
+       nothing readable) rides that deep behind the panel, and the measured
+       ~49px worst-frame lag stays swallowed instead of flashing a map
+       sliver. The padding-bottom is the same 3rem plus the card's own
+       0.9375rem, so the bite never eats content. */
   }
 
   .map-wrap.inspect-open .archive-key > :not(.archive-inspect) {
@@ -816,8 +836,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .explorer-panel,
-  .archive-key {
+  .explorer-panel {
     transition: none;
   }
 }
