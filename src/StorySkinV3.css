@@ -201,11 +201,11 @@
   border: none;
 }
 
-/* The timeline card loses its enclosure (the skin's no-stroke rule) AND the
-   3px --tlc top bar it used to keep — card-top bars are retired site-wide
-   (2026-08). The era's colour stays on the year figure and the rail. */
+/* The timeline card carries BOTH: a neutral 1px enclosure and a 3px --tlc top
+   that says which base the card is about. Only the enclosure goes. */
 .story .tl-card {
   border: none;
+  border-top: 3px solid var(--tlc);
 }
 
 /* The running-total chip is a filled accent rectangle with a white outline on

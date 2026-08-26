@@ -24,8 +24,10 @@
   --ink-soft: #33443a; /* secondary text, UI labels · 9.8:1 */
   --ink-faint: #4b5a50; /* captions, smallest text · 6.9:1 */
   --rule: #dfe3d9; /* hairline dividers */
-  /* --rule-strong (#647468, the 3px card-top accents) is gone with the bars
-     it painted — card-top colour bars were retired site-wide, 2026-08. */
+  /* Decorative 3px card accents, kept at the old --ink-faint. They are rules,
+     not text: darkening them with the ink ramp would restyle the story cards
+     rather than make anything more readable. */
+  --rule-strong: #647468;
 
   /* ── text on forest (dark cards) ──────────────────────────────────────── */
   --forest-text: #e8ece6; /* primary · 11.0:1 */
