@@ -2310,13 +2310,12 @@
   flex-direction: column;
   /* One fixed floor for both faces, sized just over the tallest data face, so
      a card never changes height on flip and the three always line up.
-     Re-measured after the status badge became a status LINE (one more line
-     in every data face): the tallest face now renders 27.43rem at 1440,
-     which broke through the old 26rem floor — the flipped cards grew and
-     the three stopped lining up. 27.75 clears the tallest with slack; the
-     phone floor below stays close to the old height because narrow cards
-     breached by a single pixel. */
-  min-height: 27.75rem;
+     Re-measured twice: once after the status badge became a status LINE
+     (one more line in every data face), and again after the note stopped
+     pinning to the card floor and took a fixed 0.875rem gap instead — the
+     tallest face now renders 28.31rem at 1440. 28.75 clears it with slack;
+     the phone floor below is re-measured on the same terms. */
+  min-height: 28.75rem;
   padding: 1.125rem 1.25rem 0.875rem;
   cursor: pointer;
   background: var(--paper-solid);
@@ -2329,10 +2328,10 @@
 
 @media (max-width: 640px) {
   .act2-card {
-    /* Narrow cards wrap tighter and their tallest face measures 26.06rem —
-       the desktop floor would add 1.5rem of dead paper to every card in a
-       stacked column, so the phone keeps a floor of its own. */
-    min-height: 26.25rem;
+    /* Narrow cards wrap tighter (tallest face ~26.8rem with the note's
+       fixed gap) — the desktop floor would add dead paper to every card in
+       a stacked column, so the phone keeps a floor of its own. */
+    min-height: 27rem;
   }
 }
 .act2-card.is-active.is-completed {
@@ -2568,9 +2567,12 @@
 }
 
 .act2-card-note {
-  /* Pinned to the card's bottom edge, so a stretched card leaves its slack
-     between the facts and the note rather than below it. */
-  margin: auto 0 0;
+  /* NOT pinned to the bottom any more. `margin: auto 0 0` pushed the note
+     (and its rule) to the card's floor, so when the height floor rose the
+     slack opened as a hole BETWEEN the facts and the note — a stranded
+     footnote on every card. The note now follows the facts at a fixed gap
+     and the slack falls below it, where empty paper reads as margin. */
+  margin: 0.875rem 0 0;
   padding-top: 0.5rem;
   border-top: 1px solid var(--rule);
   font-size: 0.6875rem;
