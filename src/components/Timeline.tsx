@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { Link } from 'react-router-dom'
 import type { AgentChoice } from './agentChoices'
 import { dayToDate, dateToDay, fmtGallons, type SprayDataset } from '../data/spray'
@@ -59,6 +59,16 @@ interface TimelineProps {
   /** SPIKE A — the map is drawing tracks. The dek describes the encoding, so
    *  it cannot stay the same sentence when the encoding changes. */
   tracks?: boolean
+  /** The 3D state and its toggle, mirrored from the key panel. On a phone the
+   *  key panel is hidden, and with it the only way into the terrain view —
+   *  so the transport row carries a small 3D chip there (CSS keeps it off
+   *  desktop, where the key panel already owns this control). */
+  is3D?: boolean
+  onToggle3D?: () => void
+  /** A record card is open (phone: it stacks on top of this sheet). Opening
+   *  one auto-drops the panel to its peek; the handle still expands it, and
+   *  an expanded panel under an open card reads as two stacked cards. */
+  inspectOpen?: boolean
   onScrub: (day: number) => void
   onPlay: () => void
   onPause: () => void
@@ -92,12 +102,57 @@ export default function Timeline({
   activeAgentKey,
   volume,
   tracks = false,
+  is3D = false,
+  onToggle3D,
+  inspectOpen = false,
   onScrub,
   onPlay,
   onPause,
   onReset,
   onSelectAgent,
 }: TimelineProps) {
+  // ── the phone sheet ─────────────────────────────────────────────────────
+  // On a phone the panel is a bottom sheet with two heights: expanded (the
+  // full card) and peeked (one identity line + the transport). The class is
+  // set unconditionally and desktop CSS simply never reads it, so no
+  // matchMedia is needed. Pressing play collapses to the peek — the reader
+  // asked to watch the map, so the card gets out of the way of the map.
+  const [expanded, setExpanded] = useState(true)
+  // ── why a phase machine and not a class swap ────────────────────────────
+  // The peek is a DIFFERENT LAYOUT (children hidden, identity inlined), and
+  // a layout has no in-between states: swapping classes directly made the
+  // collapse an instant 330px snap — the content vanished, so the height hit
+  // the floor before the max-height transition produced a single frame —
+  // while the expand animated. The fix is to pass through `is-collapsing`,
+  // which keeps the FULL content and only clamps max-height to the peek's
+  // height, so the box glides shut clipping its content, and the layout swap
+  // happens off-stage at the end. Expanding runs the same ramp backwards:
+  // two rAFs let the clamped box paint once before the lid lifts.
+  const [phase, setPhase] = useState<'open' | 'closing' | 'peek' | 'preopen'>('open')
+  useEffect(() => {
+    if (expanded) {
+      setPhase((p) => (p === 'open' ? 'open' : 'preopen'))
+      const raf = requestAnimationFrame(() =>
+        requestAnimationFrame(() => setPhase('open')),
+      )
+      return () => cancelAnimationFrame(raf)
+    }
+    setPhase('closing')
+    const id = window.setTimeout(() => setPhase('peek'), 270)
+    return () => window.clearTimeout(id)
+  }, [expanded])
+  useEffect(() => {
+    if (playing) setExpanded(false)
+  }, [playing])
+  // A record card stacks on top of this sheet, so the panel drops to the
+  // peek the moment one opens — the card gets the room first. The handle
+  // keeps its one job either way: expanding the panel under an open card
+  // simply stacks two full cards over the map, which is a reading the
+  // design accepts (the reader asked for both).
+  useEffect(() => {
+    if (inspectOpen) setExpanded(false)
+  }, [inspectOpen])
+
   const groups = agentChoices.filter((c) => c.indices && c.color)
   const selGi = groups.findIndex((g) => g.key === activeAgentKey)
   const tint = selGi >= 0 ? groups[selGi].color! : 'var(--accent)'
@@ -188,7 +243,29 @@ export default function Timeline({
   }, [volume, dayMin, span])
 
   return (
-    <section className="explorer-panel" aria-label="Archive controls">
+    <section
+      className={`explorer-panel${
+        phase === 'peek'
+          ? ' is-peek'
+          : phase === 'closing'
+            ? ' is-collapsing'
+            : phase === 'preopen'
+              ? ' is-opening'
+              : ''
+      }`}
+      aria-label="Archive controls"
+    >
+      {/* The sheet's grab handle — phone only (desktop CSS hides it). A
+          button, not a div with listeners: the toggle is the whole gesture,
+          and a button gives it focus, Enter/Space, and a name for free. */}
+      <button
+        className="sheet-toggle"
+        aria-expanded={expanded}
+        aria-label={expanded ? 'Collapse the archive controls' : 'Expand the archive controls'}
+        onClick={() => setExpanded((v) => !v)}
+      >
+        <span className="sheet-grab" aria-hidden="true" />
+      </button>
       <header className="explorer-head">
         <p className="explorer-eyebrow">1961–1971</p>
         <h1 className="explorer-title">The Archive</h1>
@@ -249,6 +326,16 @@ export default function Timeline({
               </g>
             </svg>
           </button>
+          {onToggle3D && (
+            <button
+              className="transport-btn is-ghost sheet-3d"
+              aria-pressed={is3D}
+              aria-label={is3D ? 'Flatten the terrain' : 'Tilt the terrain into 3D'}
+              onClick={onToggle3D}
+            >
+              3D
+            </button>
+          )}
         </div>
         {/* The buttons sit beside a two-line readout: what is being counted
             and when, then the counts themselves. Heading and date share a
@@ -339,6 +426,16 @@ export default function Timeline({
       </div>
 
       <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
+
+      {/* The phone's whole legend. The key panel — dot scale, compass, view
+          toggle — is hidden below 640px, which also took away any hint that
+          the dots can be opened. One line carries the two things a phone
+          reader cannot otherwise learn: what size encodes, and that a tap
+          answers with the record. Desktop CSS hides it; the key panel is the
+          legend there. */}
+      <p className="explorer-maplegend">
+        Dot size is a cell&apos;s gallons. Tap any dot to open its record.
+      </p>
 
       <p className="explorer-links">
         <Link to="/">← Read the Story</Link>

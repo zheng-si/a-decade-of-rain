@@ -413,6 +413,21 @@ export default function MapView() {
   const [stats, setStats] = useState({ missions: 0, runs: 0, gallons: 0 })
   const [volume, setVolume] = useState<VolumeChart | null>(null)
   const [inspect, setInspect] = useState<Inspect | null>(null)
+  // Phone: the record card sits ON TOP of the control sheet, and the sheet
+  // has two heights (peek / expanded) plus text that can rewrap — so the
+  // card's bottom offset cannot be a constant. A ResizeObserver mirrors the
+  // panel's live height into --panel-h on the wrap; the card's CSS rides it.
+  const wrapRef = useRef<HTMLDivElement | null>(null)
+  useEffect(() => {
+    const wrap = wrapRef.current
+    const panel = wrap?.querySelector('.explorer-panel')
+    if (!wrap || !panel) return
+    const ro = new ResizeObserver(() => {
+      wrap.style.setProperty('--panel-h', `${(panel as HTMLElement).offsetHeight}px`)
+    })
+    ro.observe(panel)
+    return () => ro.disconnect()
+  }, [ready])
   // Bumped on moveend so the URL mirror below sees camera changes.
   const [camTick, setCamTick] = useState(0)
 
@@ -1072,7 +1087,14 @@ export default function MapView() {
   }, [ready, day, agentKey, is3D, camTick, bounds.max])
 
   return (
-    <div className="map-wrap">
+    // `inspect-open` is for the phone layout: below 640px the key panel that
+    // hosts the record card is display:none, so opening a record flips the
+    // wrap into "inspect mode" — the control sheet drops to its peek and the
+    // key panel returns as a card sitting ON TOP of the control sheet,
+    // riding its height via --panel-h (the ResizeObserver above): peek under
+    // the card by default, two stacked cards when the reader expands the
+    // panel with the grab handle. Desktop CSS never reads the class.
+    <div ref={wrapRef} className={inspect ? 'map-wrap inspect-open' : 'map-wrap'}>
       <div ref={containerRef} className="map-root" />
       {/* The Archive IS the map — there is no prose to fall back to — so when
           the basemap or the record cannot be fetched, saying so is the whole
@@ -1130,6 +1152,9 @@ export default function MapView() {
           activeAgentKey={agentKey}
           volume={volume}
           tracks={TRACKS}
+          is3D={is3D}
+          onToggle3D={toggleView}
+          inspectOpen={!!inspect}
           onScrub={(d) => {
             setPlaying(false)
             setDay(d)
