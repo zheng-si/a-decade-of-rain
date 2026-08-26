@@ -665,10 +665,33 @@
      91px) so the box slides shut clipping its content instead of snapping
      when the content vanishes. The peek layout lands only after the ride,
      at the same height the clamp ends on — so the swap itself moves
-     nothing on a standard phone width. */
-  .explorer-panel.is-collapsing {
+     nothing on a standard phone width. `is-opening` is the same box for
+     the two frames before an expand begins. */
+  .explorer-panel.is-collapsing,
+  .explorer-panel.is-opening {
     max-height: 5.6875rem;
     overflow: hidden;
+  }
+
+  /* The identity's costume change. The box glide above cannot hide that the
+     head itself SWAPS — two lines of display type become one small inline
+     row — and a swap has no in-between frame, so it read as a jolt at the
+     end of every collapse. The change now happens under a dissolve:
+     collapsing fades the big head out while the box slides; the peek line
+     fades in from the 0 it inherited. Opening hides the big head with NO
+     transition (it would otherwise flash full-size for the two preopen
+     frames) and fades it back in as the lid lifts. */
+  .explorer-panel .explorer-head {
+    transition: opacity 0.18s ease;
+  }
+
+  .explorer-panel.is-collapsing .explorer-head {
+    opacity: 0;
+  }
+
+  .explorer-panel.is-opening .explorer-head {
+    opacity: 0;
+    transition: none;
   }
 
   /* The grab handle: full-width hit area, a small bar as its whole face.
@@ -836,7 +859,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .explorer-panel {
+  .explorer-panel,
+  .explorer-panel .explorer-head {
     transition: none;
   }
 }

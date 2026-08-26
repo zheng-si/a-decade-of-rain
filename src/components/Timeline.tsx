@@ -245,7 +245,13 @@ export default function Timeline({
   return (
     <section
       className={`explorer-panel${
-        phase === 'peek' ? ' is-peek' : phase === 'open' ? '' : ' is-collapsing'
+        phase === 'peek'
+          ? ' is-peek'
+          : phase === 'closing'
+            ? ' is-collapsing'
+            : phase === 'preopen'
+              ? ' is-opening'
+              : ''
       }`}
       aria-label="Archive controls"
     >
