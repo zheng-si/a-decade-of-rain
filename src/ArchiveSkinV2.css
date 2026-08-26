@@ -485,7 +485,10 @@
 }
 
 .map-wrap .agent-chip:hover:not(.is-active) {
-  background: rgba(255, 255, 255, 0.9);
+  /* Darken the track a step, exactly the Story's hover — the 0.9 white this
+     carried belonged to the white-chip era and flashed like a spotlight on
+     the grey track. */
+  background: rgba(33, 53, 40, 0.05);
 }
 
 .map-wrap .explorer-links {
