@@ -417,7 +417,10 @@
      It had stopped matching -- that rule went outset one pass earlier. Both
      now take their skin's --*-lift, which is outset, so they cannot diverge
      again without someone editing two tokens. */
-  box-shadow: var(--v2-lift);
+  /* The B decision (2026-08): the hairline goes, the 6% forest track marks
+     the control — same rules as the Story's switch, still from one pass. */
+  box-shadow: none;
+  background: rgba(33, 53, 40, 0.06);
 }
 
 /* Medium, not SemiBold. These are switches, not headings — at 600 the whole
@@ -476,9 +479,9 @@
    no-radii rule the same file applies to every other control, so it is read
    as a leftover and squared off with the rest. */
 .map-wrap .agent-chip:not(.is-active) {
-  /* Solid white, matching the Story's chips — the two rows are one control
-     on two pages, and this one sat on a 0.6 white nothing else uses. */
-  background: #fff;
+  /* Transparent on the group's grey track (the B decision, 2026-08) —
+     matching the Story's chips; the track carries the ground now. */
+  background: transparent;
 }
 
 .map-wrap .agent-chip:hover:not(.is-active) {
@@ -501,10 +504,10 @@
    the edge the switch is made of. */
 .map-wrap .archive-key .map-key-view {
   padding: 0;
-  box-shadow: var(--v2-lift);
-  /* White ground, same call as the Story's three view switches: every
-     switch stands on solid white, only the selected fill differs. */
-  background: #fff;
+  /* The 6% forest track, no hairline — the B decision (2026-08), same rules
+     as every other switch on both surfaces. */
+  box-shadow: none;
+  background: rgba(33, 53, 40, 0.06);
 }
 
 .map-wrap .archive-key .map-key-view-btn.is-active {

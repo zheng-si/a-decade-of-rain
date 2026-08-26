@@ -398,10 +398,12 @@ Seven instances, ONE geometry, TWO meanings (convergence pass, 2026-08):
 
 **The geometry, identical everywhere** (measured, not aspirational): 12px/500
 label, `0.375rem 0.75rem` padding (23.2px tall at the phone root scale),
-`gap: 0`, square corners, **solid white ground**, one hairline on the
-**group** (not per member — per-chip shadows bleed into the seams and draw
-vertical lines through what is meant to read as one control), a 1px `::before`
-seam between neighbours on the 5-way rows, inactive hover `#f0eee7`.
+`gap: 0`, square corners, **the 6% forest track** (`rgba(33,53,40,0.06)`) as
+the group's ground with **no hairline and no shadow** — the track itself
+marks the control's extent (the B decision, chosen on a rendered A/B/C
+comparison over white-with-hairline), a 1px `::before` seam between
+neighbours on the 5-way rows, inactive members transparent, inactive hover
+darkens the track a step (`rgba(33,53,40,0.05)`).
 
 **The one permitted difference is what the selected fill MEANS:**
 
@@ -418,8 +420,8 @@ of looking or a thing to look at. A new switch declares which family it is
 and takes that family's fill rule; its geometry is not negotiable.
 
 `.method-tabs` shares the geometry but is a bare flex row of two independent
-toggles with no background for a group hairline to sit on. It takes the
-button treatment and none of the container treatment.
+toggles with no group box, so each tab wears the track grey as its own fill
+instead of sitting on a shared one.
 
 ---
 
