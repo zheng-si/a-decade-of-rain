@@ -2309,8 +2309,14 @@
   display: flex;
   flex-direction: column;
   /* One fixed floor for both faces, sized just over the tallest data face, so
-     a card never changes height on flip and the three always line up. */
-  min-height: 26rem;
+     a card never changes height on flip and the three always line up.
+     Re-measured after the status badge became a status LINE (one more line
+     in every data face): the tallest face now renders 27.43rem at 1440,
+     which broke through the old 26rem floor — the flipped cards grew and
+     the three stopped lining up. 27.75 clears the tallest with slack; the
+     phone floor below stays close to the old height because narrow cards
+     breached by a single pixel. */
+  min-height: 27.75rem;
   padding: 1.125rem 1.25rem 0.875rem;
   cursor: pointer;
   background: var(--paper-solid);
@@ -2319,6 +2325,15 @@
   border-radius: 0.3125rem;
   cursor: pointer;
   transition: box-shadow 0.2s;
+}
+
+@media (max-width: 640px) {
+  .act2-card {
+    /* Narrow cards wrap tighter and their tallest face measures 26.06rem —
+       the desktop floor would add 1.5rem of dead paper to every card in a
+       stacked column, so the phone keeps a floor of its own. */
+    min-height: 26.25rem;
+  }
 }
 .act2-card.is-active.is-completed {
   box-shadow: 0 0 0 2px #35784f, 0 0.375rem 1.125rem rgba(53, 120, 79, 0.18);
