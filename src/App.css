@@ -762,32 +762,32 @@
      grows `inspect-open` (MapView sets it from the same state that mounts
      the card) and the card STACKS: the control sheet auto-drops to its peek
      (Timeline collapses it from the same signal) and the key panel returns
-     as a card sitting directly on the peek bar — record above, grab handle
-     and transport below, nothing swapped away. While the card is up the
-     handle drives IT (Timeline reroutes the tap); `inspect-collapsed` is
-     that handle saying "down", and × dismisses the record entirely.
+     as a card sitting ON TOP of the control sheet — record above, grab
+     handle and transport below, nothing swapped away. The handle keeps its
+     one job, so expanding the panel under an open card gives two stacked
+     cards over the map — an accepted reading, not an accident. × dismisses
+     the record.
 
-     The 5.5rem is the measured peek height (90.8px) less a few px, so the
-     card's bottom edge tucks BEHIND the peek bar instead of meeting it —
-     an exact meet would show a map sliver whenever the peek's line wraps
-     differently. Tucked needs the card UNDER the panel, hence z-index 1
-     against the panel's 2. */
+     --panel-h is the control sheet's LIVE height (a ResizeObserver in
+     MapView mirrors it; 5.5rem is only the no-JS fallback ≈ the peek). The
+     card rides 3px into it rather than meeting it exactly — an exact meet
+     would show a map sliver whenever the peek's line wraps differently,
+     which is also why the card sits UNDER the panel: z-index 1 against 2.
+     The height cap leaves a 3rem strip of map at the top even with both
+     cards up, so the surface never reads as a page. */
   .map-wrap.inspect-open .archive-key {
     display: block;
     z-index: 1;
     top: auto;
     right: 0;
-    bottom: calc(5.5rem + env(safe-area-inset-bottom));
+    bottom: calc(var(--panel-h, 5.5rem) - 3px);
     left: 0;
     width: 100%;
-    max-height: 42vh;
-    max-height: 42dvh;
+    max-height: calc(100vh - var(--panel-h, 5.5rem) - 3rem);
+    max-height: calc(100dvh - var(--panel-h, 5.5rem) - 3rem);
     overflow-y: auto;
     padding: 0.875rem 1rem 1.125rem;
-  }
-
-  .map-wrap.inspect-collapsed .archive-key {
-    display: none;
+    transition: bottom 0.25s ease;
   }
 
   .map-wrap.inspect-open .archive-key > :not(.archive-inspect) {
@@ -816,7 +816,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .explorer-panel {
+  .explorer-panel,
+  .archive-key {
     transition: none;
   }
 }
