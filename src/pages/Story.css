@@ -844,15 +844,20 @@
   color: var(--accent-bright);
 }
 
-/* Stat chip — a lifted pill inside the card. */
+/* Stat chip — a pill inside the card. INSET, not lifted: the lifted fill
+   was --forest-2 (#2c3730) on --forest (#213528), a 1.05:1 pair the eye
+   cannot separate, so the chip read as loose text with a ghost border.
+   Sinking it below the card (a translucent black over the forest) gives
+   the pill a surface of its own on any dark card, and the mint hairline
+   doubles from the 0.14 that was doing nothing visible. */
 .story-stat {
   display: inline-flex;
   align-items: baseline;
   gap: 0.375rem;
   margin: 1rem 0 0;
   padding: 0.375rem 0.8125rem;
-  background: var(--forest-2);
-  border: 1px solid rgba(146, 247, 188, 0.14);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(146, 247, 188, 0.28);
   border-radius: 0.25rem;
   font-size: 0.75rem;
   letter-spacing: var(--track-tight);
