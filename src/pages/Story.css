@@ -1996,10 +1996,16 @@
   align-items: center;
 }
 
-/* Left: the big number. */
+/* Left: the big number. Stretched to the wall's full height and split:
+   the figures read from the TOP edge the photos share, the lede and its
+   source sit on the BOTTOM edge, and the year's-worth of silence between
+   them is the composition (layout note, 2026-08). */
 .wall-lead {
-  align-self: center;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
 }
+
 .wall-value {
   margin: 0 0 0.75rem;
   font-family: var(--font-serif);
@@ -2018,7 +2024,9 @@
   opacity: 0.96;
 }
 .wall-lede {
-  margin: 0 0 0.5rem;
+  /* auto top margin: the lede (and the source under it) sits on the wall's
+     BOTTOM edge while the figures hold the top — see .wall-lead. */
+  margin: auto 0 0.5rem;
   max-width: 21.25rem;
   font-size: 0.8125rem;
   line-height: var(--type-body-lh);
