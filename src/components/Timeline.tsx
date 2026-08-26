@@ -65,6 +65,12 @@ interface TimelineProps {
    *  desktop, where the key panel already owns this control). */
   is3D?: boolean
   onToggle3D?: () => void
+  /** A record card is open (phone: it stacks on the peek bar). While it is,
+   *  the grab handle drives the CARD, not the panel — the panel is pinned to
+   *  its peek so the two sheets can never both be tall. */
+  inspectOpen?: boolean
+  inspectSheetShown?: boolean
+  onToggleInspectSheet?: () => void
   onScrub: (day: number) => void
   onPlay: () => void
   onPause: () => void
@@ -100,6 +106,9 @@ export default function Timeline({
   tracks = false,
   is3D = false,
   onToggle3D,
+  inspectOpen = false,
+  inspectSheetShown = true,
+  onToggleInspectSheet,
   onScrub,
   onPlay,
   onPause,
@@ -116,6 +125,13 @@ export default function Timeline({
   useEffect(() => {
     if (playing) setExpanded(false)
   }, [playing])
+  // A record card stacks on the peek bar, so the panel drops to the peek the
+  // moment one opens — two tall sheets at once would bury the map they are
+  // both about. While the card is up, the handle toggles the CARD.
+  useEffect(() => {
+    if (inspectOpen) setExpanded(false)
+  }, [inspectOpen])
+  const handleDrivesCard = inspectOpen && !!onToggleInspectSheet
 
   const groups = agentChoices.filter((c) => c.indices && c.color)
   const selGi = groups.findIndex((g) => g.key === activeAgentKey)
@@ -213,9 +229,17 @@ export default function Timeline({
           and a button gives it focus, Enter/Space, and a name for free. */}
       <button
         className="sheet-toggle"
-        aria-expanded={expanded}
-        aria-label={expanded ? 'Collapse the archive controls' : 'Expand the archive controls'}
-        onClick={() => setExpanded((v) => !v)}
+        aria-expanded={handleDrivesCard ? inspectSheetShown : expanded}
+        aria-label={
+          handleDrivesCard
+            ? inspectSheetShown
+              ? 'Hide the record card'
+              : 'Show the record card'
+            : expanded
+              ? 'Collapse the archive controls'
+              : 'Expand the archive controls'
+        }
+        onClick={() => (handleDrivesCard ? onToggleInspectSheet!() : setExpanded((v) => !v))}
       >
         <span className="sheet-grab" aria-hidden="true" />
       </button>

@@ -760,23 +760,34 @@
   /* Inspect mode: tapping a dot used to do NOTHING here — the record card
      lives inside the key panel, and the key panel is display:none. The wrap
      grows `inspect-open` (MapView sets it from the same state that mounts
-     the card), the control sheet steps aside, and the key panel returns as
-     a bottom sheet stripped to the card alone. Close returns both. */
-  .map-wrap.inspect-open .explorer-panel {
-    display: none;
-  }
+     the card) and the card STACKS: the control sheet auto-drops to its peek
+     (Timeline collapses it from the same signal) and the key panel returns
+     as a card sitting directly on the peek bar — record above, grab handle
+     and transport below, nothing swapped away. While the card is up the
+     handle drives IT (Timeline reroutes the tap); `inspect-collapsed` is
+     that handle saying "down", and × dismisses the record entirely.
 
+     The 5.5rem is the measured peek height (90.8px) less a few px, so the
+     card's bottom edge tucks BEHIND the peek bar instead of meeting it —
+     an exact meet would show a map sliver whenever the peek's line wraps
+     differently. Tucked needs the card UNDER the panel, hence z-index 1
+     against the panel's 2. */
   .map-wrap.inspect-open .archive-key {
     display: block;
+    z-index: 1;
     top: auto;
     right: 0;
-    bottom: 0;
+    bottom: calc(5.5rem + env(safe-area-inset-bottom));
     left: 0;
     width: 100%;
-    max-height: 60vh;
-    max-height: 60dvh;
+    max-height: 42vh;
+    max-height: 42dvh;
     overflow-y: auto;
-    padding: 0.875rem 1rem calc(0.875rem + env(safe-area-inset-bottom));
+    padding: 0.875rem 1rem 1.125rem;
+  }
+
+  .map-wrap.inspect-collapsed .archive-key {
+    display: none;
   }
 
   .map-wrap.inspect-open .archive-key > :not(.archive-inspect) {

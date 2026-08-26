@@ -413,6 +413,14 @@ export default function MapView() {
   const [stats, setStats] = useState({ missions: 0, runs: 0, gallons: 0 })
   const [volume, setVolume] = useState<VolumeChart | null>(null)
   const [inspect, setInspect] = useState<Inspect | null>(null)
+  // Phone: the record card's own up/down, driven by the grab handle while a
+  // record is open. Every new record starts "up" — a fresh tap on a dot that
+  // arrived hidden would look like the tap doing nothing, which is the exact
+  // bug this layout exists to fix.
+  const [inspectSheet, setInspectSheet] = useState(true)
+  useEffect(() => {
+    if (inspect) setInspectSheet(true)
+  }, [inspect])
   // Bumped on moveend so the URL mirror below sees camera changes.
   const [camTick, setCamTick] = useState(0)
 
@@ -1074,10 +1082,16 @@ export default function MapView() {
   return (
     // `inspect-open` is for the phone layout: below 640px the key panel that
     // hosts the record card is display:none, so opening a record flips the
-    // wrap into "inspect mode" — the control sheet steps aside and the key
-    // panel returns as a bottom sheet holding only the card. Desktop CSS
-    // never reads the class.
-    <div className={inspect ? 'map-wrap inspect-open' : 'map-wrap'}>
+    // wrap into "inspect mode" — the control sheet drops to its peek and the
+    // key panel returns as a card stacked on the peek bar. While a record is
+    // open the grab handle toggles the card (Timeline reroutes the tap);
+    // `inspect-collapsed` is the handle's "down" position. Desktop CSS never
+    // reads either class.
+    <div
+      className={`map-wrap${inspect ? ' inspect-open' : ''}${
+        inspect && !inspectSheet ? ' inspect-collapsed' : ''
+      }`}
+    >
       <div ref={containerRef} className="map-root" />
       {/* The Archive IS the map — there is no prose to fall back to — so when
           the basemap or the record cannot be fetched, saying so is the whole
@@ -1137,6 +1151,9 @@ export default function MapView() {
           tracks={TRACKS}
           is3D={is3D}
           onToggle3D={toggleView}
+          inspectOpen={!!inspect}
+          inspectSheetShown={inspectSheet}
+          onToggleInspectSheet={() => setInspectSheet((v) => !v)}
           onScrub={(d) => {
             setPlaying(false)
             setDay(d)

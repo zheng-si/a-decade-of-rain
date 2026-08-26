@@ -95,15 +95,6 @@
   width: min(23.25rem, calc(100vw - 3rem));
 }
 
-/* The phone sheet's geometry, restated here because App.css's version never
-   wins: its media rule carries one class against the two above, so whatever
-   it asks for loses on specificity (the trap that once clipped the 'Other'
-   chip — an override that reads correctly and never runs). The sheet is now
-   full-bleed — bottom sheets that float 0.75rem off the edges read as cards,
-   not sheets, and the gap under them collected the iOS URL-bar strip. The
-   base rule below zeroes the radius for the frameless desktop look; a sheet
-   needs its top corners back, and the inspect sheet (the key panel's phone
-   form) is the same surface in both respects. */
 .map-wrap .explorer-panel,
 .map-wrap .archive-key {
   background: var(--v2-panel);
