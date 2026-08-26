@@ -476,7 +476,9 @@
    no-radii rule the same file applies to every other control, so it is read
    as a leftover and squared off with the rest. */
 .map-wrap .agent-chip:not(.is-active) {
-  background: rgba(255, 255, 255, 0.6);
+  /* Solid white, matching the Story's chips — the two rows are one control
+     on two pages, and this one sat on a 0.6 white nothing else uses. */
+  background: #fff;
 }
 
 .map-wrap .agent-chip:hover:not(.is-active) {
@@ -500,6 +502,9 @@
 .map-wrap .archive-key .map-key-view {
   padding: 0;
   box-shadow: var(--v2-lift);
+  /* White ground, same call as the Story's three view switches: every
+     switch stands on solid white, only the selected fill differs. */
+  background: #fff;
 }
 
 .map-wrap .archive-key .map-key-view-btn.is-active {

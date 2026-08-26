@@ -415,6 +415,19 @@
      shadow here and shadow-plus-hairline there, so the white half sat on a
      defined edge on one page and dissolved on the other. */
   box-shadow: var(--v3-lift);
+  /* White, not the base file's 6% forest tint. The agent switch and the
+     method tabs stand on solid white; these three stood on a tint nothing
+     else uses, which is exactly the kind of drift that made the two switch
+     families read as two components. One ground for one kind of control. */
+  background: #fff;
+}
+
+/* The inactive half hovers like an inactive chip — the chips had a hover and
+   the view switches had none, a difference with no meaning. */
+.story .map-key-view-btn:not(.is-active):hover,
+.story .rainbow-mode-btn:not(.is-active):hover,
+.story .eco-sort-btn:not(.is-active):hover {
+  background: #f0eee7;
 }
 
 /* The key's own label, uppercased to match the Archive's. Both are the 10px

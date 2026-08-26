@@ -389,21 +389,37 @@ and are not covered by the no-strokes rule. Neither is an instrument's own line
 
 ## 6 · The segmented switch
 
-Five instances, one form, and they agree exactly:
+Seven instances, ONE geometry, TWO meanings (convergence pass, 2026-08):
 
 | | |
 |---|---|
 | Story | `.rainbow-switch` / `.rainbow-chip` · `.map-key-view` · `.rainbow-mode` · `.eco-sort` |
 | Archive | `.explorer-agents` / `.agent-chip` · `.archive-key .map-key-view` |
 
-The form: `gap: 0`, one hairline on the **group** (not per member — per-chip
-shadows bleed into the seams and draw vertical lines through what is meant to
-read as one control), a 1px `::before` seam between neighbours, seams suppressed
-either side of the active chip, active chip filled `--forest`.
+**The geometry, identical everywhere** (measured, not aspirational): 12px/500
+label, `0.375rem 0.75rem` padding (23.2px tall at the phone root scale),
+`gap: 0`, square corners, **solid white ground**, one hairline on the
+**group** (not per member — per-chip shadows bleed into the seams and draw
+vertical lines through what is meant to read as one control), a 1px `::before`
+seam between neighbours on the 5-way rows, inactive hover `#f0eee7`.
 
-`.method-tabs` looks like a sixth and is not: it is a bare flex row of two
-independent toggles with no background for a group hairline to sit on. It takes
-the button treatment and none of the container treatment.
+**The one permitted difference is what the selected fill MEANS:**
+
+- **View switches** (Accumulation/Each year, Flat/3D, the eco sort): which
+  side is chosen is not a category, so the fill is always neutral
+  `--forest`, and no dots.
+- **Entity switches** (the agent rows, the method tabs): the fill is the
+  selected THING's own colour, each option carries its identity dot, and
+  "All" — the one choice with no entity — takes the view switches' neutral
+  dark.
+
+A reader should be able to tell from the fill alone whether they chose a way
+of looking or a thing to look at. A new switch declares which family it is
+and takes that family's fill rule; its geometry is not negotiable.
+
+`.method-tabs` shares the geometry but is a bare flex row of two independent
+toggles with no background for a group hairline to sit on. It takes the
+button treatment and none of the container treatment.
 
 ---
 
