@@ -844,15 +844,20 @@
   color: var(--accent-bright);
 }
 
-/* Stat chip — a lifted pill inside the card. */
+/* Stat chip — a pill inside the card. INSET, not lifted: the lifted fill
+   was --forest-2 (#2c3730) on --forest (#213528), a 1.05:1 pair the eye
+   cannot separate, so the chip read as loose text with a ghost border.
+   Sinking it below the card (a translucent black over the forest) gives
+   the pill a surface of its own on any dark card, and the mint hairline
+   doubles from the 0.14 that was doing nothing visible. */
 .story-stat {
   display: inline-flex;
   align-items: baseline;
   gap: 0.375rem;
   margin: 1rem 0 0;
   padding: 0.375rem 0.8125rem;
-  background: var(--forest-2);
-  border: 1px solid rgba(146, 247, 188, 0.14);
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(146, 247, 188, 0.28);
   border-radius: 0.25rem;
   font-size: 0.75rem;
   letter-spacing: var(--track-tight);
@@ -1279,7 +1284,10 @@
 }
 
 .rainbow-mode-btn {
-  padding: 0.25rem 0.75rem;
+  /* 0.375/0.75, the canonical switch padding — this pair sat at 0.25 vertical
+     and rendered 19.8px tall against 23.2 for every other switch on the page
+     (chips, sort, tabs). One height for one kind of control. */
+  padding: 0.375rem 0.75rem;
   font-family: var(--font-sans);
   font-size: 0.75rem;
   font-weight: 600;
@@ -1988,10 +1996,16 @@
   align-items: center;
 }
 
-/* Left: the big number. */
+/* Left: the big number. Stretched to the wall's full height and split:
+   the figures read from the TOP edge the photos share, the lede and its
+   source sit on the BOTTOM edge, and the year's-worth of silence between
+   them is the composition (layout note, 2026-08). */
 .wall-lead {
-  align-self: center;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
 }
+
 .wall-value {
   margin: 0 0 0.75rem;
   font-family: var(--font-serif);
@@ -2010,7 +2024,9 @@
   opacity: 0.96;
 }
 .wall-lede {
-  margin: 0 0 0.5rem;
+  /* auto top margin: the lede (and the source under it) sits on the wall's
+     BOTTOM edge while the figures hold the top — see .wall-lead. */
+  margin: auto 0 0.5rem;
   max-width: 21.25rem;
   font-size: 0.8125rem;
   line-height: var(--type-body-lh);
@@ -2301,8 +2317,15 @@
   display: flex;
   flex-direction: column;
   /* One fixed floor for both faces, sized just over the tallest data face, so
-     a card never changes height on flip and the three always line up. */
-  min-height: 26rem;
+     a card never changes height on flip and the three always line up.
+     Re-measured twice: once after the status badge became a status LINE
+     (one more line in every data face), and again after the note stopped
+     pinning to the card floor and took a fixed 0.875rem gap instead — the
+     tallest face now renders 28.31rem at 1440 — and 1.4rem shorter again
+     once the note joined the facts' own row rhythm. 27.25 clears the
+     re-measured tallest face with slack; the phone floor below is
+     re-measured on the same terms. */
+  min-height: 27.25rem;
   padding: 1.125rem 1.25rem 0.875rem;
   cursor: pointer;
   background: var(--paper-solid);
@@ -2311,6 +2334,15 @@
   border-radius: 0.3125rem;
   cursor: pointer;
   transition: box-shadow 0.2s;
+}
+
+@media (max-width: 640px) {
+  .act2-card {
+    /* Narrow cards wrap tighter — the desktop floor would add dead paper
+       to every card in a stacked column, so the phone keeps a floor of its
+       own, re-measured with the note on the rows' rhythm. */
+    min-height: 25.75rem;
+  }
 }
 .act2-card.is-active.is-completed {
   box-shadow: 0 0 0 2px #35784f, 0 0.375rem 1.125rem rgba(53, 120, 79, 0.18);
@@ -2477,30 +2509,33 @@
   color: var(--ink);
 }
 
-.act2-badge {
-  flex: none;
-  display: inline-flex;
+/* Status as a text line, not a filled chip (the chips hung ragged against
+   three different name lengths). Same uppercase label tier as the card's own
+   section labels, in the status colour — all three read AA on paper:
+   #2c5a40 8.0:1 · #35784f 5.2:1 · --accent-deep 4.7:1. */
+.act2-status {
+  display: flex;
   align-items: baseline;
-  gap: 0.25rem;
-  padding: 0.1875rem 0.4375rem;
+  gap: 0.375rem;
+  margin: 0 0 0.625rem;
   font-size: 0.6875rem;
   font-weight: 600;
-  border-radius: 3px;
-  color: #fff;
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
 }
-.act2-badge em {
+.act2-status em {
   font-style: normal;
   font-weight: 500;
   opacity: 0.85;
 }
-.act2-badge.is-completed {
-  background: #35784f;
+.act2-status.is-completed {
+  color: #35784f;
 }
-.act2-badge.is-ongoing {
-  background: var(--accent-deep);
+.act2-status.is-ongoing {
+  color: var(--accent-deep);
 }
-.act2-badge.is-contained {
-  background: #2c5a40;
+.act2-status.is-contained {
+  color: #2c5a40;
 }
 
 .act2-place {
@@ -2512,7 +2547,7 @@
 .act2-facts {
   display: grid;
   grid-template-columns: 1fr;
-  margin: 0 0 0.5rem;
+  margin: 0;
 }
 .act2-facts > div {
   padding: 0.375rem 0 0.4375rem;
@@ -2542,10 +2577,13 @@
 }
 
 .act2-card-note {
-  /* Pinned to the card's bottom edge, so a stretched card leaves its slack
-     between the facts and the note rather than below it. */
-  margin: auto 0 0;
-  padding-top: 0.5rem;
+  /* The note is one more row of the facts list, not a separate block: its
+     rule takes exactly the spacing the rows give theirs (the previous row's
+     0.4375rem bottom padding above, the rows' own 0.375rem below). The
+     margins that made it a block — and, before that, the auto margin that
+     pinned it to the card floor — are gone. */
+  margin: 0;
+  padding-top: 0.375rem;
   border-top: 1px solid var(--rule);
   font-size: 0.6875rem;
   line-height: 1.45;

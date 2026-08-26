@@ -51,12 +51,18 @@ export default function ActionsSection() {
                     <div className="act2-data-face">
                       <div className="act2-card-head">
                         <h3 className="act2-card-name">{h.name}</h3>
-                        <span className={`act2-badge is-${s}`}>
-                          {h.status}
-                          <em>{h.statusYear}</em>
-                        </span>
                       </div>
                       <p className="act2-place">{h.place}</p>
+                      {/* A line, not a chip: the filled badges hung at the
+                          head's right edge next to names of three different
+                          lengths, so the three cards never aligned. As the
+                          first line of the card body they align by
+                          construction, and the status colour does the same
+                          work the fill did. */}
+                      <p className={`act2-status is-${s}`}>
+                        {h.status}
+                        <em>{h.statusYear}</em>
+                      </p>
 
                       <dl className="act2-facts">
                         <div>

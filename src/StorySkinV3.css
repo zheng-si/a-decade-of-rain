@@ -170,7 +170,6 @@
 .story .act2-volbar,
 .story .act2-volbar i,
 .story .act2-card,
-.story .act2-badge,
 .story .alt-family,
 .story .alt-reveal-btn,
 .story .alt-verdict-chip,
@@ -238,14 +237,21 @@
    so a plain rule would TIE and win, silently erasing the selected state of
    both controls. Excluding the selected case is what keeps that from
    happening. */
-.story .rainbow-chip:not(.is-active),
+.story .rainbow-chip:not(.is-active) {
+  background: transparent;
+}
+
+/* The method tabs are the one entity switch with no group box (a bare flex
+   row — see the container note above), so each tab wears the track grey as
+   its own fill instead of sitting on a shared one. */
 .story .method-tab:not(.is-on) {
-  background: #fff;
+  background: rgba(33, 53, 40, 0.06);
+  box-shadow: none;
 }
 
 .story .rainbow-chip:not(.is-active):hover,
 .story .method-tab:not(.is-on):hover {
-  background: #f0eee7;
+  background: rgba(33, 53, 40, 0.05);
 }
 
 /* No `.is-active` rule for the chips. RainbowHerbicides.tsx sets the selected
@@ -414,7 +420,21 @@
      the Flat/3D pair is literally the same control on both pages — it had the
      shadow here and shadow-plus-hairline there, so the white half sat on a
      defined edge on one page and dissolved on the other. */
-  box-shadow: var(--v3-lift);
+  /* The 6% forest track, and NO hairline or shadow — the B decision
+     (2026-08, chosen against white-with-hairline on a rendered A/B/C
+     comparison): every switch stands on this one grey track, the track
+     itself marks the control's extent, and the selected fill is the only
+     thing that shines. Same value the base files always carried. */
+  box-shadow: none;
+  background: rgba(33, 53, 40, 0.06);
+}
+
+/* The inactive half hovers by darkening the track a step — a white hover
+   would put back the ground the track just replaced. */
+.story .map-key-view-btn:not(.is-active):hover,
+.story .rainbow-mode-btn:not(.is-active):hover,
+.story .eco-sort-btn:not(.is-active):hover {
+  background: rgba(33, 53, 40, 0.05);
 }
 
 /* The key's own label, uppercased to match the Archive's. Both are the 10px
@@ -446,8 +466,13 @@
      `.explorer-agents` reads 4.07 of 255 under the translucent chips and
      exactly 0 under the opaque dark "All" — so the Archive's switch had no
      edge at the end a reader looks at first. Both are outset now, from one
-     token, and neither can drift back. */
-  box-shadow: var(--v3-lift);
+     token, and neither can drift back.
+
+     Superseded by the B decision (2026-08): the hairline goes entirely and
+     the 6% forest track marks the control instead — the same call as the
+     view switches above, made in the same pass, on both surfaces. */
+  box-shadow: none;
+  background: rgba(33, 53, 40, 0.06);
 }
 
 .story .rainbow-chip {
@@ -490,7 +515,6 @@
 
 /* Controls that stand ALONE on paper — no group box to carry the edge — take
    the hairline themselves. The chips are not here: their group has it. */
-.story .method-tab:not(.is-on),
 .story .alt-reveal-btn:not(.is-banner),
 .story .wall-consent-btn {
   box-shadow: var(--v3-lift);
@@ -558,9 +582,10 @@
    solid. Worse, this rule (0,2,0) was beating Story.css:821's deliberate
    `letter-spacing: normal` on source order alone, so a decision made in the
    base file was being quietly reversed by the skin. `.rainbow-card-agent`
-   matched no markup at all. `.act2-badge` and `.alt-verdict-chip` stay: both
-   are Geist, uppercase, and correctly on this tier. */
-.story .act2-badge,
+   matched no markup at all. `.act2-status` (the badge's successor,
+   a plain status line) and `.alt-verdict-chip` stay: both are Geist,
+   uppercase, and correctly on this tier. */
+.story .act2-status,
 .story .alt-verdict-chip {
   letter-spacing: 0.04em;
 }
