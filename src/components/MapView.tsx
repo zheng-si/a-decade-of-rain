@@ -1072,7 +1072,12 @@ export default function MapView() {
   }, [ready, day, agentKey, is3D, camTick, bounds.max])
 
   return (
-    <div className="map-wrap">
+    // `inspect-open` is for the phone layout: below 640px the key panel that
+    // hosts the record card is display:none, so opening a record flips the
+    // wrap into "inspect mode" — the control sheet steps aside and the key
+    // panel returns as a bottom sheet holding only the card. Desktop CSS
+    // never reads the class.
+    <div className={inspect ? 'map-wrap inspect-open' : 'map-wrap'}>
       <div ref={containerRef} className="map-root" />
       {/* The Archive IS the map — there is no prose to fall back to — so when
           the basemap or the record cannot be fetched, saying so is the whole
@@ -1130,6 +1135,8 @@ export default function MapView() {
           activeAgentKey={agentKey}
           volume={volume}
           tracks={TRACKS}
+          is3D={is3D}
+          onToggle3D={toggleView}
           onScrub={(d) => {
             setPlaying(false)
             setDay(d)

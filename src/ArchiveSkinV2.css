@@ -95,21 +95,15 @@
   width: min(23.25rem, calc(100vw - 3rem));
 }
 
-/* The phone sheet's width, restated here because it was never being applied.
-   App.css sets it inside `@media (max-width: 640px)` on `.explorer-panel` —
-   one class, against the two above — so the media query lost on specificity
-   and the sheet kept the desktop `calc(100vw - 3rem)`. On a 390 screen that is
-   342 against a 366 the sheet asked for, and the 24 it gave away came off the
-   agent row: the 'Other' chip was being clipped by the panel's own edge. Same
-   trap as the phone `.close-body` rule in Story.css — an override that reads
-   correctly and never runs. Sized to the row, not to taste: 366 puts the
-   content box at 334 against a row that measures 313.5. */
-@media (max-width: 640px) {
-  .map-wrap .explorer-panel {
-    width: calc(100vw - 1.5rem);
-  }
-}
-
+/* The phone sheet's geometry, restated here because App.css's version never
+   wins: its media rule carries one class against the two above, so whatever
+   it asks for loses on specificity (the trap that once clipped the 'Other'
+   chip — an override that reads correctly and never runs). The sheet is now
+   full-bleed — bottom sheets that float 0.75rem off the edges read as cards,
+   not sheets, and the gap under them collected the iOS URL-bar strip. The
+   base rule below zeroes the radius for the frameless desktop look; a sheet
+   needs its top corners back, and the inspect sheet (the key panel's phone
+   form) is the same surface in both respects. */
 .map-wrap .explorer-panel,
 .map-wrap .archive-key {
   background: var(--v2-panel);
@@ -123,6 +117,47 @@
   box-shadow: var(--v2-stroke), var(--v2-shadow);
   -webkit-backdrop-filter: var(--v2-blur);
   backdrop-filter: var(--v2-blur);
+}
+
+/* The phone sheet's geometry, restated here because App.css's version never
+   wins: its media rule carries one class against the two above, so whatever
+   it asks for loses on specificity (the trap that once clipped the 'Other'
+   chip — an override that reads correctly and never runs). AFTER the base
+   rule, or the radius loses the same fight in this very file. The sheet is
+   full-bleed — a bottom sheet floating 0.75rem off the edges reads as a
+   card, not a sheet, and the gap under it collected the iOS URL-bar strip.
+   The base rule zeroes the radius for the frameless desktop look; a sheet
+   needs its top corners back, and the inspect sheet (the key panel's phone
+   form) is the same surface in both respects. */
+@media (max-width: 640px) {
+  .map-wrap .explorer-panel {
+    left: 0;
+    width: 100%;
+    border-radius: 0.5rem 0.5rem 0 0;
+  }
+
+  .map-wrap.inspect-open .archive-key {
+    border-radius: 0.5rem 0.5rem 0 0;
+  }
+
+  /* The identity block, compressed — stated at the skin's own two-class
+     specificity because the 1.5rem pair above would beat App.css's one-class
+     phone sizes (the same fight as the width). On a phone every rem the
+     serif pair takes comes straight off the map above it. */
+  .map-wrap .explorer-eyebrow {
+    margin-bottom: 0.375rem;
+    font-size: 1rem;
+  }
+
+  .map-wrap .explorer-title {
+    margin-bottom: 0.375rem;
+    font-size: 1.25rem;
+  }
+
+  .map-wrap .explorer-subtitle {
+    margin-bottom: 0.75rem;
+    font-size: 0.9375rem;
+  }
 }
 
 /* ── the identity block ────────────────────────────────────────────────── */
