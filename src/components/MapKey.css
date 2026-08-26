@@ -53,7 +53,10 @@
    Archive's is the one that follows the stated rule (ink = titles and labels ·
    soft = content · faint = notes), so it moves here and the override goes. */
 .map-key-view-label {
-  margin: 0 0 0.3125rem;
+  /* 0.5rem below, the same drop the Archive panel gives SPRAYING AGENTS —
+     the two labelled controls sit side by side in the reader's memory and
+     carried different gaps (4.25px vs 6.8px at the phone scale). */
+  margin: 0 0 0.5rem;
   font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: var(--track-caps);

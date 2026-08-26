@@ -170,7 +170,6 @@
 .story .act2-volbar,
 .story .act2-volbar i,
 .story .act2-card,
-.story .act2-badge,
 .story .alt-family,
 .story .alt-reveal-btn,
 .story .alt-verdict-chip,
@@ -571,9 +570,10 @@
    solid. Worse, this rule (0,2,0) was beating Story.css:821's deliberate
    `letter-spacing: normal` on source order alone, so a decision made in the
    base file was being quietly reversed by the skin. `.rainbow-card-agent`
-   matched no markup at all. `.act2-badge` and `.alt-verdict-chip` stay: both
-   are Geist, uppercase, and correctly on this tier. */
-.story .act2-badge,
+   matched no markup at all. `.act2-status` (the badge's successor,
+   a plain status line) and `.alt-verdict-chip` stay: both are Geist,
+   uppercase, and correctly on this tier. */
+.story .act2-status,
 .story .alt-verdict-chip {
   letter-spacing: 0.04em;
 }
