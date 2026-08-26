@@ -376,12 +376,10 @@
 .story .act2-card.is-active.is-completed,
 .story .act2-card.is-active.is-ongoing,
 .story .act2-card.is-active.is-contained {
-  /* The inset-shadow top band that lived here is retired with every other
-     card-top colour bar (site-wide, 2026-08) — it was the one bar drawn as
-     a shadow rather than a border, which is how the first sweep missed it.
-     The status colour keeps its other homes: the badge, the section labels
-     and the active card's outline. */
-  box-shadow: var(--v3-lift);
+  /* Along the TOP, matching the herbicide and timeline cards. Those two already
+     banded there and this one banded left, and one page cannot hold two answers
+     to where a card's colour lives. */
+  box-shadow: inset 0 3px 0 currentColor, var(--v3-lift);
 }
 
 
