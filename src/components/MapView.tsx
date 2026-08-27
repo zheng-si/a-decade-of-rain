@@ -45,6 +45,8 @@ import {
   setLayersVisible,
 } from './trackLayers'
 import { loadTracks, type TrackDataset } from '../data/tracks'
+import LocationLookup, { type LookupState } from './LocationLookup'
+import { queryLookup, circlePolygon, veilPolygon, type LookupHit } from './lookup'
 import { binTracks, resetTrackGrid } from './trackGrid'
 import ArchiveInspect, {
   fmtGallons,
@@ -156,6 +158,25 @@ function arriving(
   return { type: 'FeatureCollection', features }
 }
 
+// ── location lookup plumbing ──────────────────────────────────────────────
+const LOOKUP_VEIL_SRC = 'lookup-veil'
+const LOOKUP_CIRCLE_SRC = 'lookup-circle'
+const LOOKUP_HI_SRC = 'lookup-hi'
+const LOOKUP_VEIL_LAYER = 'lookup-veil-fill'
+const LOOKUP_CIRCLE_LAYER = 'lookup-circle-line'
+const LOOKUP_HI_LINE = 'lookup-hi-line'
+const LOOKUP_HI_PT = 'lookup-hi-pt'
+const LOOKUP_EPOCH_MS = Date.UTC(1961, 0, 1)
+/** 'YYYY-MM' → first/last day number of that month (day 1 = 1961-01-01). */
+const monthToFirstDay = (m: string) => {
+  const [y, mo] = m.split('-').map(Number)
+  return Math.floor((Date.UTC(y, mo - 1, 1) - LOOKUP_EPOCH_MS) / 86_400_000) + 1
+}
+const monthToLastDay = (m: string) => {
+  const [y, mo] = m.split('-').map(Number)
+  return Math.floor((Date.UTC(y, mo, 0) - LOOKUP_EPOCH_MS) / 86_400_000) + 1
+}
+
 const monthLabel = (day: number) =>
   dayToDate(day).toLocaleDateString('en-US', { year: 'numeric', month: 'short', timeZone: 'UTC' })
 
@@ -224,6 +245,7 @@ interface UrlState {
   agent?: string
   cam?: { center: [number, number]; zoom: number }
   is3D?: boolean
+  lookup?: { lng: number; lat: number; radiusKm: number; from: string; to: string }
 }
 
 function readUrlState(): UrlState {
@@ -237,6 +259,22 @@ function readUrlState(): UrlState {
   if (cam.length === 3 && cam.every(Number.isFinite))
     out.cam = { center: [cam[0], cam[1]], zoom: cam[2] }
   if (q.get('view') === '3d') out.is3D = true
+  // Location lookup, per the brief's own parameter names: lat, lng, r, from, to.
+  if (q.get('lat') != null && q.get('lng') != null) {
+    const lat = Number(q.get('lat'))
+    const lng = Number(q.get('lng'))
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      const r = Number(q.get('r'))
+      const monthOk = (v: string | null) => (v && /^\d{4}-\d{2}$/.test(v) ? v : null)
+      out.lookup = {
+        lat,
+        lng,
+        radiusKm: [1, 2, 5, 10].includes(r) ? r : 5,
+        from: monthOk(q.get('from')) ?? '1961-01',
+        to: monthOk(q.get('to')) ?? '1971-12',
+      }
+    }
+  }
   return out
 }
 
@@ -249,6 +287,7 @@ function buildSearch(
   dayMax: number,
   agentKey: string,
   is3D: boolean,
+  lookup: LookupState,
 ): string {
   const q = new URLSearchParams()
   if (Math.round(day) < dayMax) q.set('t', dayToDate(day).toISOString().slice(0, 10))
@@ -265,6 +304,13 @@ function buildSearch(
     if (moved) q.set('cam', `${c.lng.toFixed(3)},${c.lat.toFixed(3)},${map.getZoom().toFixed(2)}`)
   }
   if (is3D) q.set('view', '3d')
+  if (lookup.center) {
+    q.set('lat', lookup.center.lat.toFixed(4))
+    q.set('lng', lookup.center.lng.toFixed(4))
+    if (lookup.radiusKm !== 5) q.set('r', String(lookup.radiusKm))
+    if (lookup.from !== '1961-01') q.set('from', lookup.from)
+    if (lookup.to !== '1971-12') q.set('to', lookup.to)
+  }
   return q.toString()
 }
 
@@ -413,6 +459,18 @@ export default function MapView() {
   const [stats, setStats] = useState({ missions: 0, runs: 0, gallons: 0 })
   const [volume, setVolume] = useState<VolumeChart | null>(null)
   const [inspect, setInspect] = useState<Inspect | null>(null)
+  // ── location lookup ──────────────────────────────────────────────────────
+  const [lookup, setLookup] = useState<LookupState>({
+    center: null,
+    radiusKm: 5,
+    from: '1961-01',
+    to: '1971-12',
+    picking: false,
+  })
+  const lookupPickRef = useRef(false)
+  lookupPickRef.current = lookup.picking
+  const [lookupResults, setLookupResults] = useState<LookupHit[] | null>(null)
+  const [lookupMs, setLookupMs] = useState<number | null>(null)
   // Phone: the record card sits ON TOP of the control sheet, and the sheet
   // has two heights (peek / expanded) plus text that can rewrap — so the
   // card's bottom offset cannot be a constant. A ResizeObserver mirrors the
@@ -679,6 +737,13 @@ export default function MapView() {
           setTrackHover(map, id, id != null ? tracksRef.current?.lines.features[id] : null)
         }
         map.on('mousemove', (e) => {
+          // While the reader is arming a lookup point the map is a target,
+          // not a browsable record: hold the crosshair and mute the hovers.
+          if (lookupPickRef.current) {
+            map.getCanvas().style.cursor = 'crosshair'
+            hover.remove()
+            return
+          }
           const t = trackAt(e.point)
           if (t) {
             const p = t.properties as Record<string, number>
@@ -734,6 +799,14 @@ export default function MapView() {
           paintHover()
         })
         map.on('click', (e) => {
+          if (lookupPickRef.current) {
+            setLookup((s) => ({
+              ...s,
+              center: { lng: e.lngLat.lng, lat: e.lngLat.lat },
+              picking: false,
+            }))
+            return
+          }
           const t = trackAt(e.point)
           if (t) {
             const p = t.properties as Record<string, number>
@@ -750,6 +823,9 @@ export default function MapView() {
               gallons: p.gallons,
               km: p.km,
               gpk: p.gpk,
+              mission: p.mission,
+              run: p.run,
+              fwac: p.fwac,
             })
             return
           }
@@ -829,6 +905,16 @@ export default function MapView() {
         if (urlState.is3D) {
           setIs3D(true)
           applyView(map, true, homeRef.current, false)
+        }
+        if (urlState.lookup) {
+          const lk = urlState.lookup
+          setLookup((s) => ({
+            ...s,
+            center: { lng: lk.lng, lat: lk.lat },
+            radiusKm: lk.radiusKm,
+            from: lk.from,
+            to: lk.to,
+          }))
         }
         setReady(true)
       }, failed('the record failed to load'))
@@ -1075,16 +1161,177 @@ export default function MapView() {
     applyView(map, next, homeRef.current)
   }
 
+  // ── location lookup: query ───────────────────────────────────────────────
+  useEffect(() => {
+    const t = tracksRef.current
+    if (!tracksReady || !t || !lookup.center) {
+      setLookupResults(null)
+      setLookupMs(null)
+      return
+    }
+    const t0 = performance.now()
+    const res = queryLookup(t, {
+      lng: lookup.center.lng,
+      lat: lookup.center.lat,
+      radiusKm: lookup.radiusKm,
+      dayFrom: monthToFirstDay(lookup.from),
+      dayTo: monthToLastDay(lookup.to),
+    })
+    setLookupMs(performance.now() - t0)
+    setLookupResults(res)
+  }, [tracksReady, lookup])
+
+  // ── location lookup: overlay ─────────────────────────────────────────────
+  // A paper veil over everything OUTSIDE the circle, the circle itself, and
+  // the hit runs redrawn at full strength above the veil — their own layers
+  // with no minzoom, because a hit must be visible at ANY zoom while the base
+  // track layers only exist near.
+  const lookupMarkerRef = useRef<maplibregl.Marker | null>(null)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map) return
+    const c = lookup.center
+    if (!c) {
+      for (const id of [LOOKUP_HI_PT, LOOKUP_HI_LINE, LOOKUP_CIRCLE_LAYER, LOOKUP_VEIL_LAYER])
+        if (map.getLayer(id)) map.removeLayer(id)
+      for (const id of [LOOKUP_HI_SRC, LOOKUP_CIRCLE_SRC, LOOKUP_VEIL_SRC])
+        if (map.getSource(id)) map.removeSource(id)
+      lookupMarkerRef.current?.remove()
+      lookupMarkerRef.current = null
+      return
+    }
+    const fc = (features: GeoJSON.Feature[]): GeoJSON.GeoJSON => ({
+      type: 'FeatureCollection',
+      features,
+    })
+    if (!map.getSource(LOOKUP_VEIL_SRC)) {
+      map.addSource(LOOKUP_VEIL_SRC, { type: 'geojson', data: fc([]) })
+      map.addSource(LOOKUP_CIRCLE_SRC, { type: 'geojson', data: fc([]) })
+      map.addSource(LOOKUP_HI_SRC, { type: 'geojson', data: fc([]) })
+      map.addLayer({
+        id: LOOKUP_VEIL_LAYER,
+        type: 'fill',
+        source: LOOKUP_VEIL_SRC,
+        paint: { 'fill-color': '#f7f3ec', 'fill-opacity': 0.55 },
+      })
+      map.addLayer({
+        id: LOOKUP_CIRCLE_LAYER,
+        type: 'line',
+        source: LOOKUP_CIRCLE_SRC,
+        paint: { 'line-color': '#213528', 'line-width': 1.4, 'line-dasharray': [3, 2] },
+      })
+      map.addLayer({
+        id: LOOKUP_HI_LINE,
+        type: 'line',
+        source: LOOKUP_HI_SRC,
+        filter: ['==', ['geometry-type'], 'LineString'],
+        layout: { 'line-cap': 'round' },
+        paint: { 'line-color': ['get', 'c'], 'line-width': 2.4 },
+      })
+      map.addLayer({
+        id: LOOKUP_HI_PT,
+        type: 'circle',
+        source: LOOKUP_HI_SRC,
+        filter: ['==', ['geometry-type'], 'Point'],
+        paint: {
+          'circle-color': ['get', 'c'],
+          'circle-radius': 4,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-width': 1,
+        },
+      })
+    }
+    ;(map.getSource(LOOKUP_VEIL_SRC) as maplibregl.GeoJSONSource).setData(
+      fc([veilPolygon(c.lng, c.lat, lookup.radiusKm)]),
+    )
+    ;(map.getSource(LOOKUP_CIRCLE_SRC) as maplibregl.GeoJSONSource).setData(
+      fc([circlePolygon(c.lng, c.lat, lookup.radiusKm)]),
+    )
+    const t = tracksRef.current
+    const hi: GeoJSON.Feature[] = []
+    if (t && lookupResults) {
+      for (const h of lookupResults) {
+        for (const i of h.lineIdx) hi.push(t.lines.features[i])
+        for (const i of h.markIdx) hi.push(t.marks.features[i])
+      }
+    }
+    ;(map.getSource(LOOKUP_HI_SRC) as maplibregl.GeoJSONSource).setData(fc(hi))
+    if (!lookupMarkerRef.current) {
+      const el = document.createElement('div')
+      el.className = 'lookup-center-pin'
+      const m = new maplibregl.Marker({ element: el, draggable: true })
+        .setLngLat([c.lng, c.lat])
+        .addTo(map)
+      m.on('dragend', () => {
+        const p = m.getLngLat()
+        setLookup((s) => ({ ...s, center: { lng: p.lng, lat: p.lat } }))
+      })
+      lookupMarkerRef.current = m
+    } else {
+      lookupMarkerRef.current.setLngLat([c.lng, c.lat])
+    }
+  }, [ready, lookup.center, lookup.radiusKm, lookupResults])
+
+  // Crosshair while arming a pick (the map handlers hold it during moves).
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    map.getCanvas().style.cursor = lookup.picking ? 'crosshair' : ''
+  }, [lookup.picking])
+
+  /** Open one lookup result: frame the run's extent and put its card up. */
+  function openLookupHit(hit: LookupHit) {
+    const map = mapRef.current
+    const t = tracksRef.current
+    if (!map || !t) return
+    const [w, sBound, e, n] = hit.bounds
+    if (w <= e)
+      map.fitBounds(
+        [
+          [w, sBound],
+          [e, n],
+        ],
+        { padding: fitPaddingFor(map), maxZoom: 11.5, duration: 700 },
+      )
+    const line = hit.lineIdx.length ? t.lines.features[hit.lineIdx[0]] : null
+    const mark = hit.markIdx.length ? t.marks.features[hit.markIdx[0]] : null
+    const coords = (
+      line ? line.geometry.coordinates[0] : mark!.geometry.coordinates
+    ) as [number, number]
+    const kmTotal = hit.lineIdx.reduce((acc, i) => acc + t.lines.features[i].properties.km, 0)
+    setInspect({
+      kind: 'run',
+      coords,
+      day: hit.day,
+      groupIndex: hit.gi,
+      gallons: hit.gallons,
+      ...(kmTotal > 0
+        ? { km: Number(kmTotal.toFixed(1)), gpk: Number((hit.gallons / kmTotal).toFixed(1)) }
+        : {}),
+      mission: hit.mission,
+      run: hit.run,
+      fwac: hit.fwac,
+    })
+  }
+
   // Mirror the current view into the query string, debounced. During playback
   // the timer keeps postponing, so the URL settles when the playhead does.
   useEffect(() => {
     if (!ready) return
     const id = window.setTimeout(() => {
-      const search = buildSearch(mapRef.current, homeRef.current, day, bounds.max, agentKey, is3D)
+      const search = buildSearch(
+        mapRef.current,
+        homeRef.current,
+        day,
+        bounds.max,
+        agentKey,
+        is3D,
+        lookup,
+      )
       window.history.replaceState(null, '', `${window.location.pathname}${search ? `?${search}` : ''}`)
     }, 300)
     return () => window.clearTimeout(id)
-  }, [ready, day, agentKey, is3D, camTick, bounds.max])
+  }, [ready, day, agentKey, is3D, camTick, bounds.max, lookup])
 
   return (
     // `inspect-open` is for the phone layout: below 640px the key panel that
@@ -1166,6 +1413,19 @@ export default function MapView() {
             setDay(bounds.min)
           }}
           onSelectAgent={setAgentKey}
+          lookupSlot={
+            <LocationLookup
+              state={lookup}
+              results={lookupResults}
+              queryMs={lookupMs}
+              groupLabels={choices.filter((c) => c.indices && c.color).map((c) => c.label)}
+              onPickToggle={() => setLookup((s) => ({ ...s, picking: !s.picking }))}
+              onRadius={(km) => setLookup((s) => ({ ...s, radiusKm: km }))}
+              onRange={(from, to) => setLookup((s) => ({ ...s, from, to }))}
+              onClear={() => setLookup((s) => ({ ...s, center: null, picking: false }))}
+              onOpen={openLookupHit}
+            />
+          }
         />
       )}
     </div>

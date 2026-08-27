@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties , type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { AgentChoice } from './agentChoices'
 import { dayToDate, dateToDay, fmtGallons, type SprayDataset } from '../data/spray'
@@ -69,6 +69,9 @@ interface TimelineProps {
    *  one auto-drops the panel to its peek; the handle still expands it, and
    *  an expanded panel under an open card reads as two stacked cards. */
   inspectOpen?: boolean
+  /** The Location Lookup section, composed by MapView (which owns the query
+   *  state and the map). Rendered between the agents block and the legend. */
+  lookupSlot?: ReactNode
   onScrub: (day: number) => void
   onPlay: () => void
   onPause: () => void
@@ -105,6 +108,7 @@ export default function Timeline({
   is3D = false,
   onToggle3D,
   inspectOpen = false,
+  lookupSlot,
   onScrub,
   onPlay,
   onPause,
@@ -426,6 +430,8 @@ export default function Timeline({
       </div>
 
       <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
+
+      {lookupSlot}
 
       {/* The phone's whole legend. The key panel — dot scale, compass, view
           toggle — is hidden below 640px, which also took away any hint that
