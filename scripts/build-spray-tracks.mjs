@@ -211,6 +211,17 @@ async function main() {
     if (agent < 0) agent = AGENTS.indexOf('U')
     const gallons = rows.reduce((s, r) => s + Math.max(0, Math.round(r.Gallons || 0)), 0)
     totalGallons += gallons
+    // Run identity, carried through so a record on screen can cite the row it
+    // came from. Mission and Run are integers in the source; like Date and
+    // Agent they never vary within a run (verified at the pinned commit).
+    const mission = Number(rows[0].Mission) || 0
+    const runNo = Number(rows[0].Run) || 0
+    // FWAC (aircraft count) books on leg 1A like Gallons. Six digits, three
+    // two-digit subfields; hea-v's own engine.js reads the count from the
+    // LAST two ("FWAC filter uses last 2 digits"), and that reading is
+    // followed here rather than inventing one. 0 = not recorded.
+    const fw = String(rows[0].FWAC || '')
+    const fwac = fw.length === 6 ? parseInt(fw.slice(-2), 10) || 0 : 0
 
     const segs = segmentsOf(rows)
     if (!segs.length) {
@@ -252,7 +263,7 @@ async function main() {
           rest = 0
         }
         markGallons += g
-        marks.push([agent, day, g, s[0][0], s[0][1]])
+        marks.push([agent, day, g, s[0][0], s[0][1], mission, runNo, fwac])
       }
       continue
     }
@@ -261,7 +272,7 @@ async function main() {
       // Volume by share of length — the only weight the source supports.
       const g = Math.round((gallons * lengths[i]) / total)
       spreadGallons += g
-      tracks.push([agent, day, g, Number(lengths[i].toFixed(2)), segs[i].flat()])
+      tracks.push([agent, day, g, Number(lengths[i].toFixed(2)), segs[i].flat(), mission, runNo, fwac])
     }
   }
 
@@ -281,8 +292,8 @@ async function main() {
       'first waypoint; here it is spread along the run by segment length, ' +
       'which is the only weighting the source supports.',
     agents: AGENTS,
-    trackFields: ['agent', 'day', 'gallons', 'km', 'coords'],
-    markFields: ['agent', 'day', 'gallons', 'lon', 'lat'],
+    trackFields: ['agent', 'day', 'gallons', 'km', 'coords', 'mission', 'run', 'fwac'],
+    markFields: ['agent', 'day', 'gallons', 'lon', 'lat', 'mission', 'run', 'fwac'],
     tracks,
     marks,
   }

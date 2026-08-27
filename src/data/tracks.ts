@@ -48,12 +48,19 @@ export interface TrackProps {
    *  a reader should be told the arrow means "first waypoint on file", not
    *  "direction of flight, verified". */
   end?: 0 | 1
+  /** HERBS run identity — Mission and Run numbers from the source rows, so a
+   *  record on screen can cite the row it came from. 0 = not carried. */
+  mission: number
+  run: number
+  /** Aircraft count for the run, read the way hea-v's own engine reads FWAC
+   *  (the last two digits). 0 = not recorded. */
+  fwac: number
 }
 
 interface RawTracks {
   agents: string[]
-  tracks: [number, number, number, number, number[]][]
-  marks: [number, number, number, number, number][]
+  tracks: [number, number, number, number, number[], number?, number?, number?][]
+  marks: [number, number, number, number, number, number?, number?, number?][]
 }
 
 /** In-flight and settled loads, so a second caller gets the first one's work.
@@ -102,7 +109,7 @@ async function parseTracks(
   const gpkSorted: number[] = []
 
   const lines: GeoJSON.Feature<GeoJSON.LineString, TrackProps>[] = raw.tracks.map(
-    ([agent, day, gallons, km, flat]) => {
+    ([agent, day, gallons, km, flat, mission, run, fwac]) => {
       const coordinates: [number, number][] = []
       for (let i = 0; i < flat.length; i += 2) coordinates.push([flat[i], flat[i + 1]])
       const gpk = km > 0 ? gallons / km : 0
@@ -120,13 +127,16 @@ async function parseTracks(
           gpk: Number(gpk.toFixed(1)),
           c: colors[agent] ?? '#9a6cc4',
           gi: groupOf[agent] ?? 3,
+          mission: mission ?? 0,
+          run: run ?? 0,
+          fwac: fwac ?? 0,
         },
       }
     },
   )
 
   const marks: GeoJSON.Feature<GeoJSON.Point, TrackProps>[] = raw.marks.map(
-    ([agent, day, gallons, lon, lat]) => {
+    ([agent, day, gallons, lon, lat, mission, run, fwac]) => {
       if (day < dayMin) dayMin = day
       if (day > dayMax) dayMax = day
       return {
@@ -140,6 +150,9 @@ async function parseTracks(
           gpk: 0,
           c: colors[agent] ?? '#9a6cc4',
           gi: groupOf[agent] ?? 3,
+          mission: mission ?? 0,
+          run: run ?? 0,
+          fwac: fwac ?? 0,
         },
       }
     },
