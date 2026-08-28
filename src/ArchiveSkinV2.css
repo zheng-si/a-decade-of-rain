@@ -124,7 +124,7 @@
        Two panels a rem and a half apart do not read as a deliberate pair of
        different sizes; they read as one of them being slightly wrong. Whatever
        the left column is, this matches it. */
-    width: min(23.25rem, calc(100vw - 3rem));
+    width: var(--place-col);
     /* And the same PADDING. Equal outer widths with different insets is not
        equal: at 1rem against the left column's 1.5 the content box was 14px
        wider, and with a table and two bar blocks filling it, that column read
@@ -149,6 +149,25 @@
     display: flex;
     flex-direction: column;
     overflow-y: auto;
+  }
+
+  /* ── the zoom pair steps out from under the column ──────────────────────
+     A full-height column has a floor, and the floor lands on the bottom-right
+     corner where the +/- pair lives. The corner cannot hold both, and the
+     column is the thing the reader came for — so the pair moves left of it,
+     to the strip between the two panels that nothing else can reach, and up
+     over the credit line that owns the corner's last 30px. The offsets are
+     the column's own width plus a gap, so a column that changes width takes
+     the buttons with it.
+
+     Not bottom-left: the left panel has no height cap, and on a 700px-tall
+     window it buried the pair exactly the same way. */
+  .map-wrap .maplibregl-ctrl-bottom-right .maplibregl-ctrl-group {
+    /* The column's width AND its own 1.5rem inset from the edge, plus a
+       0.75rem gap — measured without the inset the pair cleared the column by
+       -1.7px, which is to say it did not. */
+    margin-right: calc(var(--place-col) + 2.25rem);
+    margin-bottom: 2.375rem;
   }
 
   /* min-height: 0 twice, because a flex item will not shrink below its content
