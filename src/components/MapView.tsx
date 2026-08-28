@@ -35,6 +35,8 @@ import {
   TRACK_LAYER,
   TRACK_MARK_LAYER,
   TRACK_DIM_LAYER,
+  TRACK_END_LAYER,
+  applyTracks,
   TRACK_NIL_LAYER,
   setTrackHover,
   setTrackTaper,
@@ -167,6 +169,17 @@ const LOOKUP_VEIL_LAYER = 'lookup-veil-fill'
 const LOOKUP_CIRCLE_LAYER = 'lookup-circle-line'
 const LOOKUP_HI_LINE = 'lookup-hi-line'
 const LOOKUP_HI_PT = 'lookup-hi-pt'
+/** The tiers that draw THE RECORD — the two grids, the raw dots and every
+ *  track layer. A lookup hides them all and draws its hits itself. */
+const GRID_TIERS = [VOL_COARSE_LAYER, VOL_FINE_LAYER, VOL_RAW_LAYER]
+const RECORD_TIERS = [
+  ...GRID_TIERS,
+  TRACK_LAYER,
+  TRACK_DIM_LAYER,
+  TRACK_NIL_LAYER,
+  TRACK_MARK_LAYER,
+  TRACK_END_LAYER,
+]
 const LOOKUP_EPOCH_MS = Date.UTC(1961, 0, 1)
 /** 'YYYY-MM' → first/last day number of that month (day 1 = 1961-01-01). */
 const monthToFirstDay = (m: string) => {
@@ -660,6 +673,14 @@ export default function MapView() {
       })
       // bottom-right keeps the top-right clear for the site nav.
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
+      // The scale belongs against the thing it measures. It lived in the key
+      // panel, which made reading a distance mean looking away from the map;
+      // maplibre's own control sits on the map and follows the camera for
+      // free, so the panel gives up both the bar and the compass.
+      map.addControl(
+        new maplibregl.ScaleControl({ maxWidth: 96, unit: 'metric' }),
+        'bottom-right',
+      )
       map.on('moveend', () => setCamTick((t) => t + 1))
 
       // The two military-region files are fetched ONLY when they will be drawn.
@@ -1261,6 +1282,13 @@ export default function MapView() {
     if (!ready || !map) return
     const c = lookup.center
     if (!c) {
+      // The record comes back exactly as the console left it: applyTracks
+      // owns which track tiers are shown, so asking it is the only restore
+      // that cannot turn something on that was deliberately off.
+      for (const id of GRID_TIERS) {
+        if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'visible')
+      }
+      if (map.getLayer(TRACK_LAYER)) applyTracks(map)
       for (const id of [LOOKUP_HI_PT, LOOKUP_HI_LINE, LOOKUP_CIRCLE_LAYER, LOOKUP_VEIL_LAYER])
         if (map.getLayer(id)) map.removeLayer(id)
       for (const id of [LOOKUP_HI_SRC, LOOKUP_CIRCLE_SRC, LOOKUP_VEIL_SRC])
@@ -1281,7 +1309,10 @@ export default function MapView() {
         id: LOOKUP_VEIL_LAYER,
         type: 'fill',
         source: LOOKUP_VEIL_SRC,
-        paint: { 'fill-color': '#f7f3ec', 'fill-opacity': 0.55 },
+        // Lighter than it was: with the record's own tiers hidden there is
+        // nothing under this but the basemap, and 0.55 over bare paper reads as
+        // a smudge rather than as a focus.
+        paint: { 'fill-color': '#f7f3ec', 'fill-opacity': 0.32 },
       })
       map.addLayer({
         id: LOOKUP_CIRCLE_LAYER,
@@ -1325,6 +1356,16 @@ export default function MapView() {
       }
     }
     ;(map.getSource(LOOKUP_HI_SRC) as maplibregl.GeoJSONSource).setData(fc(hi))
+
+    // Everything outside the circle leaves the map. The veil alone was a 55%
+    // paper wash over the record, which in the dense provinces is still a
+    // thousand strokes showing through the answer — the reader was asked to
+    // find sixty runs inside a field of them. The record tiers go dark and the
+    // hit runs, drawn on the lookup's own layers, are what is left: the circle
+    // stops being an annotation and becomes the view.
+    for (const id of RECORD_TIERS) {
+      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none')
+    }
     if (!lookupMarkerRef.current) {
       const el = document.createElement('div')
       el.className = 'lookup-center-pin'
@@ -1520,6 +1561,9 @@ export default function MapView() {
           {inspect && (
             <ArchiveInspect
               data={inspect}
+              // The back link exists only where the lookup does, and only when
+              // it has results to go back to.
+              showClose={isPhone || !(lookup.center && lookupResults?.length)}
               groups={choices
                 .filter((c) => c.indices && c.color)
                 .map((c) => ({ label: c.label, color: c.color! }))}

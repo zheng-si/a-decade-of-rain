@@ -267,10 +267,12 @@
 /* 12, not 16. The subtitle and the paragraph under it are one thought — the
    deck expands the line above it — so they sit closer than the 16 that
    separates the identity block from the controls. */
+/* Up a step. It is the line that says what the Archive IS, and at 14 it was
+   reading as caption under a 20px title. */
 .map-wrap .explorer-subtitle {
   margin: 0 0 0.625rem;
-  font-size: 0.875rem;
-  line-height: 1.4;
+  font-size: 1rem;
+  line-height: 1.35;
 }
 
 /* Regular 12px. Light was too thin to hold at 12 against a Medium title and
@@ -278,11 +280,13 @@
    things, Regular says them. The bottom margin matches the transport's
    padding-top, so the rule sits exactly between the prose and the controls
    instead of 24 above and 16 below. */
+/* Down a step, and tighter. The citation is provenance, not prose: it earns
+   its place by being checkable, not by being read at body size. */
 .map-wrap .explorer-dek {
-  margin-bottom: 1rem;
+  margin-bottom: 0.875rem;
   font-weight: 400;
-  font-size: 0.75rem;
-  line-height: 1.65;
+  font-size: 0.6875rem;
+  line-height: 1.5;
 }
 
 /* ── transport ─────────────────────────────────────────────────────────── */

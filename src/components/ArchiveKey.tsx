@@ -3,13 +3,16 @@ import type maplibregl from 'maplibre-gl'
 import { TRACK_LAYER, TRACKS } from './trackLayers'
 // The key's shared furniture. Both surfaces render these classes, so the
 // stylesheet travels with the components rather than with either route.
-import { computeScale } from './mapScale'
 import './MapKey.css'
 
 // ── the Explorer's map key ────────────────────────────────────────────────
-// Flat/3D switch, scale bar, compass and the legend for the volume-symbol
+// Flat/3D switch and the legend for the volume-symbol
 // encoding — dot area ∝ gallons, tint = the current selection, grey = the rest
 // of the record kept as context.
+//
+// The scale bar and compass left for the MAP itself (maplibre's own control,
+// bottom-right): a scale belongs against the thing it measures, not in a
+// panel two hundred pixels away from it.
 //
 // It sits in the LEFT panel, under the agent filter. The key describes how to
 // read the map's marks; it changes with the zoom and with the selection, and
@@ -41,7 +44,6 @@ export default function ArchiveKey({
   filtered,
   tracks = false,
 }: Props) {
-  const [scale, setScale] = useState<{ label: string; w: number }>({ label: '', w: 0 })
   /** Whether the TRACK layer is drawing right now.
    *
    *  Which MARKS exist depends on the zoom: at the shipped hand-off the fine
@@ -64,7 +66,6 @@ export default function ArchiveKey({
   useEffect(() => {
     if (!ready || !map) return
     const update = () => {
-      setScale(computeScale(map))
       const layer = map.getLayer(TRACK_LAYER)
       setOnTracks(tracks && layer != null && map.getZoom() >= (layer.minzoom ?? 0))
     }
@@ -117,18 +118,6 @@ export default function ArchiveKey({
           3D
         </button>
       </div>
-      <div className="map-key-top" aria-hidden="true">
-        <div className="map-key-scale">
-          <div className="map-key-scale-bar" style={{ width: `${scale.w}px` }} />
-          <span className="map-key-scale-label">{scale.label}</span>
-        </div>
-        <div className="map-key-compass" title="North">
-          <span className="map-key-compass-dial">
-            <span className="map-key-compass-needle" />
-          </span>
-        </div>
-      </div>
-
       {/* SHORT ROWS, ONE FOOTNOTE.
           Every row used to carry its own justification — "Single Run · gal/km,
           from its first waypoint" is three facts in a label — and a key read

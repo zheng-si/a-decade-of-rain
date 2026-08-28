@@ -80,15 +80,21 @@ const fullDate = (day: number) =>
 interface Props {
   data: Inspect
   groups: GroupInfo[]
+  /** Hidden when the panel above already carries a way back to the results
+   *  the card came from — two controls that do the same thing, a hand's width
+   *  apart, is one more than the reader needs to read. */
+  showClose?: boolean
   onClose: () => void
 }
 
-export default function ArchiveInspect({ data, groups, onClose }: Props) {
+export default function ArchiveInspect({ data, groups, showClose = true, onClose }: Props) {
   return (
     <aside className="archive-inspect" aria-label="Inspect">
-      <button className="inspect-close" onClick={onClose} aria-label="Close">
-        ×
-      </button>
+      {showClose && (
+        <button className="inspect-close" onClick={onClose} aria-label="Close">
+          ×
+        </button>
+      )}
 
       {data.kind === 'cell' ? (
         <>

@@ -293,11 +293,25 @@ export default function Timeline({
           behind Stellman et&nbsp;al. (2003): 8,360 spray runs, 19.5M gallons, 1961–1971.
         </p>
         <ul className="explorer-guide">
-          <li>Press play to watch the decade fall month by month.</li>
-          <li>Each dot is a grid cell&apos;s gallons. Click it for the record.</li>
-          <li>Zoom in until the dots give way to the flight tracks themselves.</li>
+          {/* The verb is the point of each line — bold it and the three
+              bullets can be read as three actions at a glance, without
+              reading the sentences at all. */}
+          <li>
+            <strong>Press play</strong> to watch the decade fall month by month.
+          </li>
+          <li>
+            Each dot is a grid cell&apos;s gallons. <strong>Click</strong> it for the record.
+          </li>
+          <li>
+            <strong>Zoom in</strong> until the dots give way to the flight tracks themselves.
+          </li>
         </ul>
       </header>
+
+      {/* The key reads before the controls, not after them: it says what the
+          marks on the map ARE, and the transport and the filter below it are
+          what the reader does to them. */}
+      {keySlot}
 
       <div className="explorer-transport">
         <div className="transport-buttons">
@@ -427,8 +441,6 @@ export default function Timeline({
       <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
 
       {lookupSlot}
-
-      {keySlot}
 
       {/* The phone's whole legend. The key panel — dot scale, compass, view
           toggle — is hidden below 640px, which also took away any hint that
