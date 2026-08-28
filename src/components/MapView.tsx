@@ -46,7 +46,7 @@ import {
 } from './trackLayers'
 import { loadTracks, type TrackDataset } from '../data/tracks'
 import LocationLookup, { type LookupState } from './LocationLookup'
-import { queryLookup, circlePolygon, veilPolygon, type LookupHit } from './lookup'
+import { queryLookup, circlePolygon, veilPolygon, type LookupHit, type GazPlace } from './lookup'
 import { binTracks, resetTrackGrid } from './trackGrid'
 import ArchiveInspect, {
   fmtGallons,
@@ -804,6 +804,7 @@ export default function MapView() {
               ...s,
               center: { lng: e.lngLat.lng, lat: e.lngLat.lat },
               picking: false,
+              place: undefined,
             }))
             return
           }
@@ -1264,7 +1265,7 @@ export default function MapView() {
         .addTo(map)
       m.on('dragend', () => {
         const p = m.getLngLat()
-        setLookup((s) => ({ ...s, center: { lng: p.lng, lat: p.lat } }))
+        setLookup((s) => ({ ...s, center: { lng: p.lng, lat: p.lat }, place: undefined }))
       })
       lookupMarkerRef.current = m
     } else {
@@ -1312,6 +1313,27 @@ export default function MapView() {
       run: hit.run,
       fwac: hit.fwac,
     })
+  }
+
+  /** A place chosen from the search: center there, widen city-level queries
+   *  to 10 km per the brief, and ease the map over so the circle is on
+   *  screen — a search that answers off-screen answers nothing. */
+  function handlePlace(pl: GazPlace) {
+    const coarse = pl.t === 'city' || pl.t === 'town'
+    setLookup((s) => ({
+      ...s,
+      center: { lng: pl.lng, lat: pl.lat },
+      radiusKm: coarse ? 10 : s.radiusKm,
+      picking: false,
+      place: { name: pl.n, coarse, low: pl.c === 'low' },
+    }))
+    const map = mapRef.current
+    if (map)
+      map.easeTo({
+        center: [pl.lng, pl.lat],
+        zoom: Math.max(map.getZoom(), 8.6),
+        duration: 700,
+      })
   }
 
   // Mirror the current view into the query string, debounced. During playback
@@ -1398,7 +1420,6 @@ export default function MapView() {
           agentChoices={choices}
           activeAgentKey={agentKey}
           volume={volume}
-          tracks={TRACKS}
           is3D={is3D}
           onToggle3D={toggleView}
           inspectOpen={!!inspect}
@@ -1422,8 +1443,11 @@ export default function MapView() {
               onPickToggle={() => setLookup((s) => ({ ...s, picking: !s.picking }))}
               onRadius={(km) => setLookup((s) => ({ ...s, radiusKm: km }))}
               onRange={(from, to) => setLookup((s) => ({ ...s, from, to }))}
-              onClear={() => setLookup((s) => ({ ...s, center: null, picking: false }))}
+              onClear={() =>
+                setLookup((s) => ({ ...s, center: null, picking: false, place: undefined }))
+              }
               onOpen={openLookupHit}
+              onPlace={handlePlace}
             />
           }
         />

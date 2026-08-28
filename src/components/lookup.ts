@@ -204,3 +204,61 @@ export function veilPolygon(lng: number, lat: number, radiusKm: number): GeoJSON
     properties: {},
   }
 }
+
+/* ── the place search (Task D) ────────────────────────────────────────────
+   Front-end fuzzy match over the gazetteer, diacritics-insensitive, over the
+   canonical name and every variant. 75 places today; a linear scan per
+   keystroke is nothing, and staying dependency-free beats shipping a fuzzy
+   library for a list this size. */
+
+export interface GazPlace {
+  n: string
+  v: string[]
+  t: string
+  lat: number
+  lng: number
+  p: string
+  c: string
+}
+
+let gazPromise: Promise<GazPlace[]> | null = null
+
+/** Lazily fetch the gazetteer; kicked off on the search box's first focus so
+ *  readers who never search never download it. */
+export function loadGazetteer(url = '/data/gazetteer.json'): Promise<GazPlace[]> {
+  if (!gazPromise) {
+    gazPromise = fetch(url)
+      .then((r) => r.json())
+      .then((d: { places: GazPlace[] }) => d.places)
+    gazPromise.catch(() => {
+      gazPromise = null
+    })
+  }
+  return gazPromise
+}
+
+const normalize = (s: string) =>
+  s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[đ]/g, 'd')
+
+export function searchGazetteer(places: GazPlace[], query: string, limit = 8): GazPlace[] {
+  const q = normalize(query.trim())
+  if (!q) return []
+  const scored: Array<[number, GazPlace]> = []
+  for (const pl of places) {
+    let best = 0
+    for (const name of [pl.n, ...pl.v]) {
+      const n = normalize(name)
+      if (n.startsWith(q)) best = Math.max(best, 3)
+      else if (n.includes(' ' + q)) best = Math.max(best, 2)
+      else if (n.includes(q)) best = Math.max(best, 1)
+      if (best === 3) break
+    }
+    if (best > 0) scored.push([best, pl])
+  }
+  scored.sort((a, b) => b[0] - a[0] || a[1].n.length - b[1].n.length || a[1].n.localeCompare(b[1].n))
+  return scored.slice(0, limit).map(([, pl]) => pl)
+}

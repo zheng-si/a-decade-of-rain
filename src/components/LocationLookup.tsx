@@ -1,13 +1,14 @@
-import { useMemo } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { dayToDate } from '../data/spray'
-import type { LookupHit } from './lookup'
+import { loadGazetteer, searchGazetteer, type GazPlace, type LookupHit } from './lookup'
 
 // ── location lookup: the panel section ────────────────────────────────────
-// An archive query, phrased as one: pick a point, a radius and a date range,
-// read the runs that passed. Two texts are load-bearing and NOT decoration —
-// the fixed-wing caveat above the list and the empty-state line — because the
-// record's biggest silence (helicopter, ground and perimeter spraying) is
-// exactly where a reader is most likely to over-read an empty answer.
+// An archive query, phrased as one: search a place or pick a point, choose a
+// radius and a date range, read the runs that passed. Two texts are
+// load-bearing and NOT decoration — the fixed-wing caveat above the list and
+// the empty-state line — because the record's biggest silence (helicopter,
+// ground and perimeter spraying) is exactly where a reader is most likely to
+// over-read an empty answer.
 
 export interface LookupState {
   center: { lng: number; lat: number } | null
@@ -16,6 +17,11 @@ export interface LookupState {
   from: string
   to: string
   picking: boolean
+  /** Set when the center came from the place search — carries the two hints
+   *  the brief requires (coarse city-level query, inferred coordinate).
+   *  Cleared the moment the reader re-picks or drags: the hint describes the
+   *  place, and the point is no longer the place. */
+  place?: { name: string; coarse: boolean; low: boolean }
 }
 
 interface Props {
@@ -29,11 +35,24 @@ interface Props {
   onRange: (from: string, to: string) => void
   onClear: () => void
   onOpen: (hit: LookupHit) => void
+  onPlace: (place: GazPlace) => void
 }
 
 const RADII = [1, 2, 5, 10]
 const MIN_MONTH = '1961-01'
 const MAX_MONTH = '1971-12'
+
+const TYPE_LABEL: Record<string, string> = {
+  airbase: 'Air base',
+  army_base: 'Army base',
+  marine_base: 'Marine base',
+  firebase: 'Firebase',
+  lz: 'Landing zone',
+  camp: 'Camp',
+  city: 'City',
+  town: 'Town',
+  other: 'Site',
+}
 
 const fmtDay = (day: number) =>
   dayToDate(day).toLocaleDateString('en-US', {
@@ -56,8 +75,36 @@ export default function LocationLookup({
   onRange,
   onClear,
   onOpen,
+  onPlace,
 }: Props) {
-  const { center, radiusKm, from, to, picking } = state
+  const { center, radiusKm, from, to, picking, place } = state
+
+  // ── the place search ────────────────────────────────────────────────────
+  const [query, setQuery] = useState('')
+  const [open, setOpen] = useState(false)
+  const [hi, setHi] = useState(0)
+  const gazRef = useRef<GazPlace[] | null>(null)
+  const [gazReady, setGazReady] = useState(false)
+
+  const ensureGaz = () => {
+    if (gazRef.current) return
+    loadGazetteer().then((places) => {
+      gazRef.current = places
+      setGazReady(true)
+    })
+  }
+
+  const matches = useMemo(
+    () => (gazRef.current && query ? searchGazetteer(gazRef.current, query) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- gazRef flips once, tracked by gazReady
+    [query, gazReady],
+  )
+
+  const choose = (pl: GazPlace) => {
+    setQuery(pl.n)
+    setOpen(false)
+    onPlace(pl)
+  }
 
   const shown = useMemo(() => results?.slice(0, 200) ?? null, [results])
   const truncated = results != null && results.length > 200
@@ -65,6 +112,71 @@ export default function LocationLookup({
   return (
     <div className="lookup">
       <p className="explorer-section-label">Location Lookup</p>
+
+      <div className="lookup-search">
+        <input
+          type="text"
+          value={query}
+          // The brief's scope, stated where the reader types: places, not
+          // unit numbers.
+          placeholder="Bases, firebases, place names…"
+          aria-label="Search bases, firebases and place names"
+          onFocus={() => {
+            ensureGaz()
+            setOpen(true)
+          }}
+          onBlur={() => setOpen(false)}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setOpen(true)
+            setHi(0)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowDown') {
+              e.preventDefault()
+              setHi((h) => Math.min(h + 1, matches.length - 1))
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault()
+              setHi((h) => Math.max(h - 1, 0))
+            } else if (e.key === 'Enter' && matches[hi]) {
+              choose(matches[hi])
+            } else if (e.key === 'Escape') {
+              setOpen(false)
+            }
+          }}
+        />
+        {open && matches.length > 0 && (
+          <ul className="lookup-search-drop" role="listbox">
+            {matches.map((pl, i) => (
+              <li key={pl.n}>
+                <button
+                  className={`lookup-search-item${i === hi ? ' is-hi' : ''}`}
+                  role="option"
+                  aria-selected={i === hi}
+                  // mousedown, not click: the input's blur closes the list
+                  // before a click would land.
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    choose(pl)
+                  }}
+                  onMouseEnter={() => setHi(i)}
+                >
+                  <span className="lookup-place-name">{pl.n}</span>
+                  <span className="lookup-place-meta">
+                    {TYPE_LABEL[pl.t] ?? pl.t}
+                    {pl.p ? ` · ${pl.p}` : ''}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {open && query.trim() !== '' && gazReady && matches.length === 0 && (
+          <p className="lookup-search-none">
+            No match. The index covers bases, firebases and place names — not unit numbers.
+          </p>
+        )}
+      </div>
 
       <div className="lookup-controls">
         <button
@@ -120,6 +232,18 @@ export default function LocationLookup({
         </div>
       </div>
 
+      {place?.coarse && (
+        <p className="lookup-place-hint">
+          City-level place — the radius is set to 10 km and the answer is correspondingly coarse.
+        </p>
+      )}
+      {place?.low && (
+        <p className="lookup-place-hint">
+          This place&apos;s coordinate is inferred — check the pin against the map before reading
+          the list.
+        </p>
+      )}
+
       {center && results != null && (
         <>
           <p className="lookup-caveat">
@@ -128,7 +252,8 @@ export default function LocationLookup({
           </p>
           <p className="lookup-summary">
             <strong>{results.length}</strong>
-            {results.length === 1 ? ' run' : ' runs'} within {radiusKm} km of {fmtCenter(center)}
+            {results.length === 1 ? ' run' : ' runs'} within {radiusKm} km of{' '}
+            {place ? place.name : fmtCenter(center)}
             {queryMs != null && <span className="lookup-ms"> · {queryMs.toFixed(0)} ms</span>}
           </p>
           {results.length === 0 ? (
