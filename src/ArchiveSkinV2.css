@@ -110,6 +110,59 @@
   backdrop-filter: var(--v2-blur);
 }
 
+/* ── the place column (desktop) ────────────────────────────────────────────
+   The key panel takes the Location Lookup and the record card, so it stops
+   being a legend and becomes the column that answers WHERE: query at the top,
+   the answer under it, the legend at the foot. 20rem because the record list
+   carries four columns — mission id, date, agent, distance — and 12rem could
+   not hold them; the legend rows are the same rows at any width.
+
+   Below 641px none of this applies: the lookup renders in the control sheet
+   and this panel goes back to being the record card's phone home. */
+@media (min-width: 641px) {
+  .map-wrap .archive-key {
+    width: 20rem;
+    padding: 0.875rem 1rem 1.125rem;
+    /* It now holds a list, so it needs a floor. Scrolls inside rather than
+       running off the screen — the same treatment the control sheet has on a
+       phone, for the same reason. */
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+  }
+
+  /* First in the panel, so the seam it used to draw against the agent block
+     has nothing above it to divide. */
+  .map-wrap .archive-key .lookup {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  /* The seam between the answer and the legend — the one place in this panel
+     where two different KINDS of thing meet. */
+  .map-wrap .archive-key-rule {
+    height: 1px;
+    margin: 1rem 0 0.875rem;
+    background: var(--rule);
+  }
+
+  /* Tighter than the control sheet's copy: this column is narrower than the
+     left panel was, and the agent name is the column that must not be the one
+     that gets clipped. */
+  .map-wrap .archive-key .lookup-item {
+    grid-template-columns: minmax(5.5rem, auto) 5rem 1fr auto;
+    gap: 0.4rem;
+  }
+
+  /* The card arrives under the query that produced it, with no divider of its
+     own — the back link above it already says where it came from. */
+  .map-wrap .archive-key .archive-inspect {
+    margin-top: 0.875rem;
+    padding-top: 0;
+    border-top: none;
+  }
+}
+
 /* The phone sheet's geometry, restated here because App.css's version never
    wins: its media rule carries one class against the two above, so whatever
    it asks for loses on specificity (the trap that once clipped the 'Other'

@@ -436,6 +436,27 @@ function cumulative(data: SprayDataset, day: number, indices: number[] | null) {
   return { missions, runs, gallons }
 }
 
+/** True below the phone breakpoint — the one place layout is decided in JS.
+ *
+ *  640px, the same number every phone rule on the site breaks at (App.css's
+ *  sheet, index.css's rem scale, the Story's deck). It is read, not assumed:
+ *  a reader who resizes across the breakpoint gets the lookup moved to the
+ *  container that is actually on screen, rather than into a panel CSS has
+ *  hidden. SSR-safe default (false) because the Archive is client-rendered and
+ *  the desktop home is the common case. */
+function useIsPhone(): boolean {
+  const [phone, setPhone] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)')
+    const onChange = () => setPhone(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return phone
+}
+
 export default function MapView() {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -456,6 +477,7 @@ export default function MapView() {
   const [stats, setStats] = useState({ missions: 0, runs: 0, gallons: 0 })
   const [volume, setVolume] = useState<VolumeChart | null>(null)
   const [inspect, setInspect] = useState<Inspect | null>(null)
+  const isPhone = useIsPhone()
   // ── location lookup ──────────────────────────────────────────────────────
   const [lookup, setLookup] = useState<LookupState>({
     center: null,
@@ -1352,6 +1374,39 @@ export default function MapView() {
     return () => window.clearTimeout(id)
   }, [ready, day, agentKey, is3D, camTick, bounds.max, lookup])
 
+  // ── where the lookup lives ──────────────────────────────────────────────
+  // One element, two homes. On a desktop it belongs to the KEY panel, beside
+  // the record card: a clicked dot, a clicked track and a drawn circle are
+  // three ways of asking about one place, and all three answers belong in the
+  // same column — the left panel reads as TIME, the right as PLACE. On a phone
+  // the key panel is display:none until a record opens, so the query would
+  // vanish with it; there it stays in the control sheet, where it began.
+  //
+  // A width test in JS, not two renders and a CSS hide: rendered twice, the
+  // search box would carry two copies of its own state and the reader would be
+  // typing into the hidden one half the time.
+  const lookupPanel = (
+    <LocationLookup
+      state={lookup}
+      results={lookupResults}
+      queryMs={lookupMs}
+      groups={choices
+        .filter((c) => c.indices && c.color)
+        .map((c) => ({ label: c.label, color: c.color! }))}
+      cardOpen={inspect != null}
+      onPickToggle={() => setLookup((s) => ({ ...s, picking: !s.picking }))}
+      onRadius={(km) => setLookup((s) => ({ ...s, radiusKm: km }))}
+      onClear={() => setLookup((s) => ({ ...s, center: null, picking: false, place: undefined }))}
+      onOpen={openLookupHit}
+      onPlace={handlePlace}
+      onBack={() => {
+        setInspect(null)
+        pinnedRunRef.current = null
+        if (mapRef.current) setTrackHover(mapRef.current, hoverRunRef.current)
+      }}
+    />
+  )
+
   return (
     // `inspect-open` is for the phone layout: below 640px the key panel that
     // hosts the record card is display:none, so opening a record flips the
@@ -1381,6 +1436,7 @@ export default function MapView() {
           tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
           filtered={agentKey !== 'all'}
           tracks={TRACKS}
+          lookupSlot={isPhone ? null : lookupPanel}
         >
           {inspect && (
             <ArchiveInspect
@@ -1431,21 +1487,7 @@ export default function MapView() {
             setDay(bounds.min)
           }}
           onSelectAgent={setAgentKey}
-          lookupSlot={
-            <LocationLookup
-              state={lookup}
-              results={lookupResults}
-              queryMs={lookupMs}
-              groupLabels={choices.filter((c) => c.indices && c.color).map((c) => c.label)}
-              onPickToggle={() => setLookup((s) => ({ ...s, picking: !s.picking }))}
-              onRadius={(km) => setLookup((s) => ({ ...s, radiusKm: km }))}
-              onClear={() =>
-                setLookup((s) => ({ ...s, center: null, picking: false, place: undefined }))
-              }
-              onOpen={openLookupHit}
-              onPlace={handlePlace}
-            />
-          }
+          lookupSlot={isPhone ? lookupPanel : null}
         />
       )}
     </div>
