@@ -4,10 +4,16 @@ import type { AgentChoice } from './agentChoices'
 import { dayToDate, dateToDay, fmtGallons, type SprayDataset } from '../data/spray'
 
 // ── the Explorer's control panel ──────────────────────────────────────────
-// One frosted-glass card, top-left, in the story's paper language: identity
-// block, transport (play / pause / reset), the monthly-volume chart as the
-// scrubber, and the agent filter. The chart speaks the map's own encoding —
-// one hue for the whole record, the selection tinted and the rest grey.
+// A column of frosted-glass cards, top-left, in the story's paper language:
+// identity (with the way back to the Story), then time — transport, the
+// monthly-volume chart as the scrubber, the agent filter — then the Location
+// Lookup, which composes its own card. The chart speaks the map's own
+// encoding: one hue for the whole record, the selection tinted, the rest grey.
+//
+// The cards are wrappers, not components. Below 640px they are `display:
+// contents` and the column collapses back into the one bottom sheet the phone
+// has always had, so every card boundary here is a desktop-only reading of
+// the same DOM.
 
 export interface VolumeChart {
   /** Gallons per month per agent group (group order = the coloured choices). */
@@ -266,159 +272,173 @@ export default function Timeline({
       >
         <span className="sheet-grab" aria-hidden="true" />
       </button>
-      <header className="explorer-head">
-        <p className="explorer-eyebrow">1961–1971</p>
-        <h1 className="explorer-title">The Archive</h1>
-        <p className="explorer-subtitle">The Decade of Defoliation, Replayable.</p>
-        {/* One citation line, then verbs. The old three-sentence paragraph
-            answered "what is this" beautifully and was read by nobody — the
-            reader wants to know what their hands can do. Each bullet is one
-            action; the mechanics (how the dots are counted, how volume is
-            spread) live in Methods, not here. */}
-        <p className="explorer-dek">
-          The complete{' '}
-          <a
-            href="https://github.com/andrewstellman/hea-v"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            HERBS record
-          </a>{' '}
-          behind Stellman et&nbsp;al. (2003): 8,360 spray runs, 19.5M gallons, 1961–1971.
-        </p>
-        <ul className="explorer-guide">
-          <li>Press play to watch the decade fall month by month.</li>
-          <li>Each dot is a grid cell&apos;s gallons. Click it for the record.</li>
-          <li>Zoom in until the dots give way to the flight tracks themselves.</li>
-        </ul>
-      </header>
-
-      <div className="explorer-transport">
-        <div className="transport-buttons">
-          <button
-            className="transport-btn is-primary"
-            onClick={playing ? onPause : onPlay}
-            aria-label={playing ? 'Pause' : 'Play'}
-          >
-            {playing ? (
-              <svg viewBox="0 0 12 12" aria-hidden="true">
-                <rect x="2.4" y="1.8" width="2.4" height="8.4" />
-                <rect x="7.2" y="1.8" width="2.4" height="8.4" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 12 12" aria-hidden="true">
-                <path d="M2.5 1.5 L10.5 6 L2.5 10.5 Z" />
-              </svg>
-            )}
-          </button>
-          <button className="transport-btn is-ghost" onClick={onReset} aria-label="Reset to start">
-            {/* Material Symbols "refresh" (wght 300), mirrored horizontally. */}
-            <svg viewBox="0 -960 960 960" className="icon-reset" aria-hidden="true">
-              <g transform="translate(960 0) scale(-1 1)">
-                <path d="M481.54-180q-125.63 0-212.81-87.17-87.19-87.17-87.19-212.77 0-125.6 87.19-212.83Q355.91-780 481.54-780q70.15 0 132.77 31.19 62.61 31.2 104.15 88.04V-780h60v244.61H533.85v-59.99h158q-31.62-57.93-87.7-91.27Q548.08-720 481.54-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h63.23q-27.23 97.92-107.27 158.96Q583.46-180 481.54-180Z" />
-              </g>
-            </svg>
-          </button>
-          {onToggle3D && (
-            <button
-              className="transport-btn is-ghost sheet-3d"
-              aria-pressed={is3D}
-              aria-label={is3D ? 'Flatten the terrain' : 'Tilt the terrain into 3D'}
-              onClick={onToggle3D}
+      {/* ── three cards, one section ───────────────────────────────────
+          Desktop reads these as three detached panels (identity · time ·
+          lookup); the phone sheet reads them as one card, because
+          `.explorer-card` is `display: contents` below 640px and the
+          wrappers leave layout entirely. One DOM either way — no
+          matchMedia, no second tree. */}
+      <div className="explorer-card is-identity">
+        <header className="explorer-head">
+          <p className="explorer-eyebrow">1961–1971</p>
+          <h1 className="explorer-title">The Archive</h1>
+          <p className="explorer-subtitle">The Decade of Defoliation, Replayable.</p>
+          {/* One citation line, then verbs. The old three-sentence paragraph
+              answered "what is this" beautifully and was read by nobody — the
+              reader wants to know what their hands can do. Each bullet is one
+              action; the mechanics (how the dots are counted, how volume is
+              spread) live in Methods, not here. */}
+          <p className="explorer-dek">
+            The complete{' '}
+            <a
+              href="https://github.com/andrewstellman/hea-v"
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              3D
-            </button>
-          )}
-        </div>
-        {/* The buttons sit beside a two-line readout: what is being counted
-            and when, then the counts themselves. Heading and date share a
-            line because together they name one thing — this month's volume. */}
-        <div className="transport-readout">
-          <p className="transport-head">
-            {volume && <span className="explorer-section-label">Spraying Volume</span>}
-            <span className="explorer-date">{dateLabel}</span>
+              HERBS record
+            </a>{' '}
+            behind Stellman et&nbsp;al. (2003): 8,360 spray runs, 19.5M gallons, 1961–1971.
           </p>
-          {/* Two counts, not three. "Track Points" was the waypoint count, and
-              it earned its place when the near tier drew a dot per waypoint —
-              the reader could see the marks it was counting. Now that tier
-              draws lines, so it counted something the map no longer shows, and
-              it was the widest pair on the row. Runs and gallons are the two
-              quantities every other surface here reports.
+          <ul className="explorer-guide">
+            <li>Press play to watch the decade fall month by month.</li>
+            <li>Each dot is a grid cell&apos;s gallons. Click it for the record.</li>
+            <li>Zoom in until the dots give way to the flight tracks themselves.</li>
+          </ul>
+        </header>
 
-              With it gone the pair fits the readout column again (175px of
-              250), which is why it sits back under the heading instead of
-              spanning the panel: the counts are what SPRAYING VOLUME · DEC 1971
-              resolves to, and a full-width row put a rule's worth of distance
-              between the label and its own figures. */}
-          {volume && (
-            <span className="explorer-statline">
-              <span className="stat-pair">
-                <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Spray Runs
-              </span>
-              <span className="stat-pair">
-                <strong style={statStyle}>{fmtGallons(gallons)}</strong> Gallons
-              </span>
-            </span>
-          )}
-        </div>
+        <p className="explorer-links">
+          <Link to="/">← Read the Story</Link>
+        </p>
       </div>
 
-      {volume && (
-        <div className="explorer-chart">
-          <svg
-            viewBox={`0 0 ${volume.months.length} 100`}
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            {bars}
-          </svg>
-
-          <div className="explorer-playhead" style={{ left: `${pct}%` }} />
-
-          <input
-            className="explorer-slider"
-            type="range"
-            min={dayMin}
-            max={dayMax}
-            value={day}
-            aria-label="Timeline"
-            aria-valuetext={dateLabel}
-            style={{ '--progress': `${pct}%` } as CSSProperties}
-            onChange={(e) => onScrub(Number(e.target.value))}
-          />
-        </div>
-      )}
-
-      {volume && (
-        <div className="explorer-axis" aria-hidden="true">
-          {axis}
-        </div>
-      )}
-
-      <p className="explorer-section-label">Spraying Agents</p>
-      <div className="explorer-agents">
-        {agentChoices.map((c) => {
-          const active = c.key === activeAgentKey
-          return (
+      <div className="explorer-card is-time">
+        <div className="explorer-transport">
+          <div className="transport-buttons">
             <button
-              key={c.key}
-              className={`agent-chip${active ? ' is-active' : ''}`}
-              // The selected agent was announced by a class name and an inline
-              // background, neither of which reaches assistive tech: five
-              // chips, all read identically, none of them saying which one the
-              // map is filtered to.
-              aria-pressed={active}
-              style={active && c.color ? { background: c.color, borderColor: c.color } : undefined}
-              onClick={() => onSelectAgent(c.key)}
+              className="transport-btn is-primary"
+              onClick={playing ? onPause : onPlay}
+              aria-label={playing ? 'Pause' : 'Play'}
             >
-              {c.color && <span className="agent-dot" style={{ background: c.color }} />}
-              {c.label}
+              {playing ? (
+                <svg viewBox="0 0 12 12" aria-hidden="true">
+                  <rect x="2.4" y="1.8" width="2.4" height="8.4" />
+                  <rect x="7.2" y="1.8" width="2.4" height="8.4" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 12 12" aria-hidden="true">
+                  <path d="M2.5 1.5 L10.5 6 L2.5 10.5 Z" />
+                </svg>
+              )}
             </button>
-          )
-        })}
-      </div>
+            <button className="transport-btn is-ghost" onClick={onReset} aria-label="Reset to start">
+              {/* Material Symbols "refresh" (wght 300), mirrored horizontally. */}
+              <svg viewBox="0 -960 960 960" className="icon-reset" aria-hidden="true">
+                <g transform="translate(960 0) scale(-1 1)">
+                  <path d="M481.54-180q-125.63 0-212.81-87.17-87.19-87.17-87.19-212.77 0-125.6 87.19-212.83Q355.91-780 481.54-780q70.15 0 132.77 31.19 62.61 31.2 104.15 88.04V-780h60v244.61H533.85v-59.99h158q-31.62-57.93-87.7-91.27Q548.08-720 481.54-720q-100 0-170 70t-70 170q0 100 70 170t170 70q77 0 139-44t87-116h63.23q-27.23 97.92-107.27 158.96Q583.46-180 481.54-180Z" />
+                </g>
+              </svg>
+            </button>
+            {onToggle3D && (
+              <button
+                className="transport-btn is-ghost sheet-3d"
+                aria-pressed={is3D}
+                aria-label={is3D ? 'Flatten the terrain' : 'Tilt the terrain into 3D'}
+                onClick={onToggle3D}
+              >
+                3D
+              </button>
+            )}
+          </div>
+          {/* The buttons sit beside a two-line readout: what is being counted
+              and when, then the counts themselves. Heading and date share a
+              line because together they name one thing — this month's volume. */}
+          <div className="transport-readout">
+            <p className="transport-head">
+              {volume && <span className="explorer-section-label">Spraying Volume</span>}
+              <span className="explorer-date">{dateLabel}</span>
+            </p>
+            {/* Two counts, not three. "Track Points" was the waypoint count, and
+                it earned its place when the near tier drew a dot per waypoint —
+                the reader could see the marks it was counting. Now that tier
+                draws lines, so it counted something the map no longer shows, and
+                it was the widest pair on the row. Runs and gallons are the two
+                quantities every other surface here reports.
 
-      <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
+                With it gone the pair fits the readout column again (175px of
+                250), which is why it sits back under the heading instead of
+                spanning the panel: the counts are what SPRAYING VOLUME · DEC 1971
+                resolves to, and a full-width row put a rule's worth of distance
+                between the label and its own figures. */}
+            {volume && (
+              <span className="explorer-statline">
+                <span className="stat-pair">
+                  <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Spray Runs
+                </span>
+                <span className="stat-pair">
+                  <strong style={statStyle}>{fmtGallons(gallons)}</strong> Gallons
+                </span>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {volume && (
+          <div className="explorer-chart">
+            <svg
+              viewBox={`0 0 ${volume.months.length} 100`}
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
+              {bars}
+            </svg>
+
+            <div className="explorer-playhead" style={{ left: `${pct}%` }} />
+
+            <input
+              className="explorer-slider"
+              type="range"
+              min={dayMin}
+              max={dayMax}
+              value={day}
+              aria-label="Timeline"
+              aria-valuetext={dateLabel}
+              style={{ '--progress': `${pct}%` } as CSSProperties}
+              onChange={(e) => onScrub(Number(e.target.value))}
+            />
+          </div>
+        )}
+
+        {volume && (
+          <div className="explorer-axis" aria-hidden="true">
+            {axis}
+          </div>
+        )}
+
+        <p className="explorer-section-label">Spraying Agents</p>
+        <div className="explorer-agents">
+          {agentChoices.map((c) => {
+            const active = c.key === activeAgentKey
+            return (
+              <button
+                key={c.key}
+                className={`agent-chip${active ? ' is-active' : ''}`}
+                // The selected agent was announced by a class name and an inline
+                // background, neither of which reaches assistive tech: five
+                // chips, all read identically, none of them saying which one the
+                // map is filtered to.
+                aria-pressed={active}
+                style={active && c.color ? { background: c.color, borderColor: c.color } : undefined}
+                onClick={() => onSelectAgent(c.key)}
+              >
+                {c.color && <span className="agent-dot" style={{ background: c.color }} />}
+                {c.label}
+              </button>
+            )
+          })}
+        </div>
+
+        <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
+      </div>
 
       {lookupSlot}
 
@@ -430,10 +450,6 @@ export default function Timeline({
           legend there. */}
       <p className="explorer-maplegend">
         Dot size is a cell&apos;s gallons. Tap any dot to open its record.
-      </p>
-
-      <p className="explorer-links">
-        <Link to="/">← Read the Story</Link>
       </p>
     </section>
   )

@@ -668,7 +668,36 @@
    edges — a card that hovers above the home indicator reads as detached from
    the sheet gesture it now carries. */
 @media (max-width: 640px) {
+  /* One sheet, not six panels. The desktop card wrappers dissolve — `display:
+     contents` takes them out of layout entirely, so every block inside them
+     lays out as a direct child of the sheet, in the same order and with the
+     same margins as before the panels were separated. The flex column exists
+     only so `order` can send Read the Story back to the foot of the sheet;
+     on desktop the link belongs to the identity panel, which is where it sits
+     in the DOM. */
+  .explorer-card,
+  .archive-key-card {
+    display: contents;
+  }
+
+  .explorer-links {
+    order: 1;
+  }
+
+  /* A flex column shrinks its items to fit, and this sheet is DELIBERATELY
+     taller than its max-height — that is what the scroll is for. Left at the
+     default, the first casualty was the axis: 1.5rem of fixed height with no
+     content to hold it open, squeezed to nothing, and SPRAYING AGENTS landed
+     on top of the year ruler. Nothing in the sheet may shrink; the overflow
+     scrolls (and the peek clips). */
+  .explorer-panel > *,
+  .explorer-card > * {
+    flex-shrink: 0;
+  }
+
   .explorer-panel {
+    display: flex;
+    flex-direction: column;
     top: auto;
     bottom: 0;
     left: 0;
@@ -786,7 +815,10 @@
 
   /* Peek: one line of identity, the transport, nothing else. The section
      label inside .transport-head must survive, so the hide targets the
-     panel's DIRECT child label (the agents heading) only. */
+     labels that are direct children of a card (the agents heading) only —
+     `> .explorer-section-label` on the panel itself stopped matching when
+     the cards went in, and a peek that shows a stray SPRAYING AGENTS is the
+     kind of break a card wrapper makes silently. */
   .explorer-panel.is-peek .explorer-head {
     display: flex;
     align-items: baseline;
@@ -804,7 +836,7 @@
   .explorer-panel.is-peek .explorer-subtitle,
   .explorer-panel.is-peek .explorer-chart,
   .explorer-panel.is-peek .explorer-axis,
-  .explorer-panel.is-peek > .explorer-section-label,
+  .explorer-panel.is-peek .explorer-card > .explorer-section-label,
   .explorer-panel.is-peek .explorer-agents,
   .explorer-panel.is-peek .explorer-maplegend,
   .explorer-panel.is-peek .explorer-links {
@@ -1442,7 +1474,10 @@
   /* The peek sheet shows the identity row and the transport, nothing else. */
   .explorer-panel.is-peek .lookup,
   .explorer-panel.is-collapsing .lookup,
-  .explorer-panel.is-opening .lookup {
+  .explorer-panel.is-opening .lookup,
+  .explorer-panel.is-peek .lookup-results,
+  .explorer-panel.is-collapsing .lookup-results,
+  .explorer-panel.is-opening .lookup-results {
     display: none;
   }
 }
