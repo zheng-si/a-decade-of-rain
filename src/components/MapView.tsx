@@ -760,14 +760,13 @@ export default function MapView() {
         window.clearTimeout(resizeTimer)
         resizeTimer = window.setTimeout(() => applyHome(true), 120)
       })
-      // Still bottom-right, but the CSS steps it left of the place column and
-      // above the credit line. An expanded record list can reach the bottom of
-      // the screen, and where it does, the panel drew straight over the + —
-      // the reader could see the button and not press it. The corner belongs
-      // to the column; the strip between the two panels does not.
-      // (Bottom-LEFT was tried first and is worse: the left panel has no
-      // height cap, so on a 700px-tall window it buries the pair the same
-      // way — measured, nav 632-690 under a panel ending at 696.)
+      // bottom-right keeps the top-right clear for the site nav.
+      //
+      // It shares that corner with a tall place column, and where the column
+      // reaches the bottom of the screen it draws over the +. Stepping the
+      // pair left of the column fixes that and was tried; it put the buttons
+      // in the middle of the map, which is worse than the collision. Left
+      // where readers expect them.
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
 
       map.on('moveend', () => setCamTick((t) => t + 1))

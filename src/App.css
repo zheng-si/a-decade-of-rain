@@ -128,9 +128,6 @@
 .map-wrap {
   position: absolute;
   inset: 0;
-  /* The place column's width, stated once. The column itself reads it, and so
-     does the map furniture that has to keep out from under it. */
-  --place-col: min(23.25rem, calc(100vw - 3rem));
 }
 
 .map-root {
