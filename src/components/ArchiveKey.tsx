@@ -68,9 +68,22 @@ export default function ArchiveKey({
     }
     update()
     map.on('move', update)
+    // ── and when the LAYERS arrive, not just when the camera does ─────────
+    // The track layers are added after spray-tracks.json lands, which is well
+    // after this mounts: at that moment `getLayer` returns null, onTracks is
+    // false, and nothing asks again until the reader moves the map. Deep links
+    // never move the map — and every shared Location Lookup URL is a deep link
+    // at z9-ish, i.e. straight into the state where the key says "Sprayed
+    // Volume · dot area is the gallons that fell in the cell" over a map
+    // drawing flight tracks. That is exactly the fault the rest of this file
+    // exists to prevent, arriving through the one door nobody watched.
+    // `styledata` fires when a layer is added or its zoom range is set, so it
+    // is the event that says "the thing you are describing now exists".
+    map.on('styledata', update)
     window.addEventListener('resize', update)
     return () => {
       map.off('move', update)
+      map.off('styledata', update)
       window.removeEventListener('resize', update)
     }
   }, [ready, map, tracks])
