@@ -108,134 +108,119 @@ export default function LocationLookup({
   const truncated = results != null && results.length > 200
 
   return (
-    // Two boxes, one section: the query and its answer. On desktop they are
-    // two detached panels side by side — a 200-row answer has no business
-    // pushing the controls off the screen. On a phone the card wrapper is
-    // `display: contents` and the two stack in the sheet, in this order,
-    // exactly as the one block they were.
-    //
-    // SIBLINGS, not nested: the answer is fixed to the viewport on desktop,
-    // and a `backdrop-filter` makes its element a containing block for fixed
-    // descendants — inside the card, the panel would have hung off the card
-    // instead of off the screen, which is precisely the bug this layout is
-    // fixing.
-    <>
-      <div className="explorer-card is-lookup">
-        <div className="lookup">
-          <p className="explorer-section-label">Location Lookup</p>
+    <div className="lookup">
+      <p className="explorer-section-label">Location Lookup</p>
 
-          <div className="lookup-search">
-            <input
-              type="text"
-              value={query}
-              // The brief's scope, stated where the reader types: places, not
-              // unit numbers.
-              placeholder="Bases, firebases, place names…"
-              aria-label="Search bases, firebases and place names"
-              onFocus={() => {
-                ensureGaz()
-                setOpen(true)
-              }}
-              onBlur={() => setOpen(false)}
-              onChange={(e) => {
-                setQuery(e.target.value)
-                setOpen(true)
-                setHi(0)
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'ArrowDown') {
-                  e.preventDefault()
-                  setHi((h) => Math.min(h + 1, matches.length - 1))
-                } else if (e.key === 'ArrowUp') {
-                  e.preventDefault()
-                  setHi((h) => Math.max(h - 1, 0))
-                } else if (e.key === 'Enter' && matches[hi]) {
-                  choose(matches[hi])
-                } else if (e.key === 'Escape') {
-                  setOpen(false)
-                }
-              }}
-            />
-            {open && matches.length > 0 && (
-              <ul className="lookup-search-drop" role="listbox">
-                {matches.map((pl, i) => (
-                  <li key={pl.n}>
-                    <button
-                      className={`lookup-search-item${i === hi ? ' is-hi' : ''}`}
-                      role="option"
-                      aria-selected={i === hi}
-                      // mousedown, not click: the input's blur closes the list
-                      // before a click would land.
-                      onMouseDown={(e) => {
-                        e.preventDefault()
-                        choose(pl)
-                      }}
-                      onMouseEnter={() => setHi(i)}
-                    >
-                      <span className="lookup-place-name">{pl.n}</span>
-                      <span className="lookup-place-meta">
-                        {TYPE_LABEL[pl.t] ?? pl.t}
-                        {pl.p ? ` · ${pl.p}` : ''}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-            {open && query.trim() !== '' && gazReady && matches.length === 0 && (
-              <p className="lookup-search-none">
-                No match. The index covers bases, firebases and place names — not unit numbers.
-              </p>
-            )}
-          </div>
-
-          <div className="lookup-controls">
-            <button
-              className={`lookup-pick${picking ? ' is-armed' : ''}`}
-              onClick={onPickToggle}
-              aria-pressed={picking}
-            >
-              {picking ? 'Click the map…' : center ? 'Move the point' : 'Pick a point on the map'}
-            </button>
-            {center && (
-              <button className="lookup-clear" onClick={onClear}>
-                Clear
-              </button>
-            )}
-          </div>
-
-          <div className="lookup-row">
-            <span className="lookup-row-label">Within</span>
-            <div className="lookup-radii" role="group" aria-label="Search radius">
-              {RADII.map((r) => (
+      <div className="lookup-search">
+        <input
+          type="text"
+          value={query}
+          // The brief's scope, stated where the reader types: places, not
+          // unit numbers.
+          placeholder="Bases, firebases, place names…"
+          aria-label="Search bases, firebases and place names"
+          onFocus={() => {
+            ensureGaz()
+            setOpen(true)
+          }}
+          onBlur={() => setOpen(false)}
+          onChange={(e) => {
+            setQuery(e.target.value)
+            setOpen(true)
+            setHi(0)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'ArrowDown') {
+              e.preventDefault()
+              setHi((h) => Math.min(h + 1, matches.length - 1))
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault()
+              setHi((h) => Math.max(h - 1, 0))
+            } else if (e.key === 'Enter' && matches[hi]) {
+              choose(matches[hi])
+            } else if (e.key === 'Escape') {
+              setOpen(false)
+            }
+          }}
+        />
+        {open && matches.length > 0 && (
+          <ul className="lookup-search-drop" role="listbox">
+            {matches.map((pl, i) => (
+              <li key={pl.n}>
                 <button
-                  key={r}
-                  className={`lookup-chip${r === radiusKm ? ' is-active' : ''}`}
-                  aria-pressed={r === radiusKm}
-                  onClick={() => onRadius(r)}
+                  className={`lookup-search-item${i === hi ? ' is-hi' : ''}`}
+                  role="option"
+                  aria-selected={i === hi}
+                  // mousedown, not click: the input's blur closes the list
+                  // before a click would land.
+                  onMouseDown={(e) => {
+                    e.preventDefault()
+                    choose(pl)
+                  }}
+                  onMouseEnter={() => setHi(i)}
                 >
-                  {r} km
+                  <span className="lookup-place-name">{pl.n}</span>
+                  <span className="lookup-place-meta">
+                    {TYPE_LABEL[pl.t] ?? pl.t}
+                    {pl.p ? ` · ${pl.p}` : ''}
+                  </span>
                 </button>
-              ))}
-            </div>
-          </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        {open && query.trim() !== '' && gazReady && matches.length === 0 && (
+          <p className="lookup-search-none">
+            No match. The index covers bases, firebases and place names — not unit numbers.
+          </p>
+        )}
+      </div>
 
-          {place?.coarse && (
-            <p className="lookup-place-hint">
-              City-level place — the radius is set to 10 km and the answer is correspondingly coarse.
-            </p>
-          )}
-          {place?.low && (
-            <p className="lookup-place-hint">
-              This place&apos;s coordinate is inferred — check the pin against the map before reading
-              the list.
-            </p>
-          )}
+      <div className="lookup-controls">
+        <button
+          className={`lookup-pick${picking ? ' is-armed' : ''}`}
+          onClick={onPickToggle}
+          aria-pressed={picking}
+        >
+          {picking ? 'Click the map…' : center ? 'Move the point' : 'Pick a point on the map'}
+        </button>
+        {center && (
+          <button className="lookup-clear" onClick={onClear}>
+            Clear
+          </button>
+        )}
+      </div>
+
+      <div className="lookup-row">
+        <span className="lookup-row-label">Within</span>
+        <div className="lookup-radii" role="group" aria-label="Search radius">
+          {RADII.map((r) => (
+            <button
+              key={r}
+              className={`lookup-chip${r === radiusKm ? ' is-active' : ''}`}
+              aria-pressed={r === radiusKm}
+              onClick={() => onRadius(r)}
+            >
+              {r} km
+            </button>
+          ))}
         </div>
       </div>
 
+      {place?.coarse && (
+        <p className="lookup-place-hint">
+          City-level place — the radius is set to 10 km and the answer is correspondingly coarse.
+        </p>
+      )}
+      {place?.low && (
+        <p className="lookup-place-hint">
+          This place&apos;s coordinate is inferred — check the pin against the map before reading
+          the list.
+        </p>
+      )}
+
       {center && results != null && (
-        <div className="lookup-results">
+        <>
           <p className="lookup-caveat">
             Fixed-wing (Ranch Hand) records only — no helicopter, ground or base-perimeter
             spraying.
@@ -273,8 +258,8 @@ export default function LocationLookup({
               Nearest 200 shown of {results.length}. Narrow the radius or the dates for the rest.
             </p>
           )}
-        </div>
+        </>
       )}
-    </>
+    </div>
   )
 }
