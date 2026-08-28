@@ -125,7 +125,12 @@
        different sizes; they read as one of them being slightly wrong. Whatever
        the left column is, this matches it. */
     width: min(23.25rem, calc(100vw - 3rem));
-    padding: 0.875rem 1rem 1.125rem;
+    /* And the same PADDING. Equal outer widths with different insets is not
+       equal: at 1rem against the left column's 1.5 the content box was 14px
+       wider, and with a table and two bar blocks filling it, that column read
+       as the wider one — which it was, where it counts. Same box, same inset,
+       and the two columns' first lines now sit on one baseline. */
+    padding: 1.5rem 1.5rem 1.375rem;
     /* It now holds a list, so it needs a floor. Scrolls inside rather than
        running off the screen — the same treatment the control sheet has on a
        phone, for the same reason. */
