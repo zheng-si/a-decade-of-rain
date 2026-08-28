@@ -13,7 +13,9 @@ import { loadGazetteer, searchGazetteer, type GazPlace, type LookupHit } from '.
 export interface LookupState {
   center: { lng: number; lat: number } | null
   radiusKm: number
-  /** 'YYYY-MM', inclusive. */
+  /** 'YYYY-MM', inclusive. Fixed at the full record since the panel's own
+   *  timeline already owns time; kept in state so a range UI can return
+   *  without a schema change. */
   from: string
   to: string
   picking: boolean
@@ -32,15 +34,12 @@ interface Props {
   queryMs: number | null
   onPickToggle: () => void
   onRadius: (km: number) => void
-  onRange: (from: string, to: string) => void
   onClear: () => void
   onOpen: (hit: LookupHit) => void
   onPlace: (place: GazPlace) => void
 }
 
 const RADII = [1, 2, 5, 10]
-const MIN_MONTH = '1961-01'
-const MAX_MONTH = '1971-12'
 
 const TYPE_LABEL: Record<string, string> = {
   airbase: 'Air base',
@@ -72,12 +71,11 @@ export default function LocationLookup({
   queryMs,
   onPickToggle,
   onRadius,
-  onRange,
   onClear,
   onOpen,
   onPlace,
 }: Props) {
-  const { center, radiusKm, from, to, picking, place } = state
+  const { center, radiusKm, picking, place } = state
 
   // ── the place search ────────────────────────────────────────────────────
   const [query, setQuery] = useState('')
@@ -206,29 +204,6 @@ export default function LocationLookup({
               {r} km
             </button>
           ))}
-        </div>
-      </div>
-
-      <div className="lookup-row">
-        <span className="lookup-row-label">Between</span>
-        <div className="lookup-dates">
-          <input
-            type="month"
-            value={from}
-            min={MIN_MONTH}
-            max={to}
-            aria-label="From month"
-            onChange={(e) => onRange(e.target.value || MIN_MONTH, to)}
-          />
-          <span className="lookup-dates-sep">–</span>
-          <input
-            type="month"
-            value={to}
-            min={from}
-            max={MAX_MONTH}
-            aria-label="To month"
-            onChange={(e) => onRange(from, e.target.value || MAX_MONTH)}
-          />
         </div>
       </div>
 

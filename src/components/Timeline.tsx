@@ -284,13 +284,12 @@ export default function Timeline({
           >
             HERBS record
           </a>{' '}
-          behind Stellman et&nbsp;al. (2003) — 8,360 spray runs, 19.5M gallons, 1961–1971.
+          behind Stellman et&nbsp;al. (2003): 8,360 spray runs, 19.5M gallons, 1961–1971.
         </p>
         <ul className="explorer-guide">
           <li>Press play to watch the decade fall month by month.</li>
-          <li>Each dot is a grid cell&apos;s gallons — click it for the record.</li>
+          <li>Each dot is a grid cell&apos;s gallons. Click it for the record.</li>
           <li>Zoom in until the dots give way to the flight tracks themselves.</li>
-          <li>Every view is shareable straight from its URL.</li>
         </ul>
       </header>
 

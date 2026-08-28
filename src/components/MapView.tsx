@@ -265,13 +265,12 @@ function readUrlState(): UrlState {
     const lng = Number(q.get('lng'))
     if (Number.isFinite(lat) && Number.isFinite(lng)) {
       const r = Number(q.get('r'))
-      const monthOk = (v: string | null) => (v && /^\d{4}-\d{2}$/.test(v) ? v : null)
       out.lookup = {
         lat,
         lng,
         radiusKm: [1, 2, 5, 10].includes(r) ? r : 5,
-        from: monthOk(q.get('from')) ?? '1961-01',
-        to: monthOk(q.get('to')) ?? '1971-12',
+        from: '1961-01',
+        to: '1971-12',
       }
     }
   }
@@ -308,8 +307,6 @@ function buildSearch(
     q.set('lat', lookup.center.lat.toFixed(4))
     q.set('lng', lookup.center.lng.toFixed(4))
     if (lookup.radiusKm !== 5) q.set('r', String(lookup.radiusKm))
-    if (lookup.from !== '1961-01') q.set('from', lookup.from)
-    if (lookup.to !== '1971-12') q.set('to', lookup.to)
   }
   return q.toString()
 }
@@ -1442,7 +1439,6 @@ export default function MapView() {
               groupLabels={choices.filter((c) => c.indices && c.color).map((c) => c.label)}
               onPickToggle={() => setLookup((s) => ({ ...s, picking: !s.picking }))}
               onRadius={(km) => setLookup((s) => ({ ...s, radiusKm: km }))}
-              onRange={(from, to) => setLookup((s) => ({ ...s, from, to }))}
               onClear={() =>
                 setLookup((s) => ({ ...s, center: null, picking: false, place: undefined }))
               }
