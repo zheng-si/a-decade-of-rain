@@ -270,8 +270,6 @@ export default function LocationLookup({
         )}
       </div>
 
-      {picking && <p className="lookup-place-hint">Click the map to set the point.</p>}
-
       <div className="lookup-row">
         <span className="lookup-row-label">Within</span>
         <div className="lookup-radii" role="group" aria-label="Search radius">
@@ -404,6 +402,16 @@ export default function LocationLookup({
               </button>
               {listOpen && (
                 <>
+                  {/* Four columns with no names read as a code table. The
+                      header is aria-hidden: the buttons below already carry
+                      their own reading order, and a screen reader announcing
+                      four headings for a list of links helps nobody. */}
+                  <div className="lookup-head" aria-hidden="true">
+                    <span>Mission·Run</span>
+                    <span>Date</span>
+                    <span>Agent</span>
+                    <span>Distance</span>
+                  </div>
                   <ol className="lookup-list">
                     {shown!.map((h) => (
                       <li key={h.key}>

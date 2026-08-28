@@ -121,7 +121,10 @@
    and this panel goes back to being the record card's phone home. */
 @media (min-width: 641px) {
   .map-wrap .archive-key {
-    width: 20rem;
+    /* 22rem, not 20: the record list carries four columns and the widest row
+       is a mission id, a full date, an agent name and a distance. At 20 the
+       agent was the column that gave way. */
+    width: 22rem;
     padding: 0.875rem 1rem 1.125rem;
     /* It now holds a list, so it needs a floor. Scrolls inside rather than
        running off the screen — the same treatment the control sheet has on a
@@ -131,27 +134,25 @@
   }
 
   /* First in the panel, so the seam it used to draw against the agent block
-     has nothing above it to divide. */
+     has nothing above it to divide — and its label starts the panel rather
+     than sitting a line below the top padding. */
   .map-wrap .archive-key .lookup {
     margin-top: 0;
     padding-top: 0;
     border-top: none;
   }
 
-  /* The seam between the answer and the legend — the one place in this panel
-     where two different KINDS of thing meet. */
-  .map-wrap .archive-key-rule {
-    height: 1px;
-    margin: 1rem 0 0.875rem;
-    background: var(--rule);
+  .map-wrap .archive-key .lookup > .explorer-section-label:first-child {
+    margin-top: 0;
   }
 
   /* Tighter than the control sheet's copy: this column is narrower than the
      left panel was, and the agent name is the column that must not be the one
      that gets clipped. */
+  .map-wrap .archive-key .lookup-head,
   .map-wrap .archive-key .lookup-item {
-    grid-template-columns: minmax(5.5rem, auto) 5rem 1fr auto;
-    gap: 0.4rem;
+    grid-template-columns: minmax(5.75rem, auto) 5.25rem 1fr auto;
+    gap: 0.45rem;
   }
 
   /* The card arrives under the query that produced it, with no divider of its
@@ -552,15 +553,15 @@
 }
 
 /* ── the key ───────────────────────────────────────────────────────────── */
-.map-wrap .archive-key .map-key-view,
-.map-wrap .archive-key .map-key-view-btn {
+.map-wrap .archive-key-legend .map-key-view,
+.map-wrap .archive-key-legend .map-key-view-btn {
   border-radius: 0;
 }
 
 /* The 2px inset existed to let a rounded thumb sit inside a rounded track.
    With both square there is nothing to inset for, and the gap only blurred
    the edge the switch is made of. */
-.map-wrap .archive-key .map-key-view {
+.map-wrap .archive-key-legend .map-key-view {
   padding: 0;
   /* The 6% forest track, no hairline — the B decision (2026-08), same rules
      as every other switch on both surfaces. */
@@ -568,15 +569,15 @@
   background: rgba(33, 53, 40, 0.06);
 }
 
-.map-wrap .archive-key .map-key-view-btn.is-active {
+.map-wrap .archive-key-legend .map-key-view-btn.is-active {
   background: var(--v2-fill);
 }
 
-.map-wrap .archive-key .map-key-view-label {
+.map-wrap .archive-key-legend .map-key-view-label {
   text-transform: uppercase;
 }
 
-.map-wrap .archive-key .map-key-view-btn {
+.map-wrap .archive-key-legend .map-key-view-btn {
   font-size: 0.75rem;
   font-weight: 500;
 }

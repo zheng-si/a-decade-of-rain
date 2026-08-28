@@ -515,6 +515,21 @@
    explorer panel took that job over long ago. Its identity type has since been
    rewritten twice in ArchiveSkinV2.css, on the panel. */
 
+/* The key's own block in the left panel: a rule above it, and the phone does
+   without it entirely (the one-line `.explorer-maplegend` is the phone's
+   legend, and a full key would cost the map half the sheet). */
+.archive-key-legend {
+  margin-top: 0.875rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--rule);
+}
+
+@media (max-width: 640px) {
+  .archive-key-legend {
+    display: none;
+  }
+}
+
 /* ── Archive map key ──────────────────────────────────────────────────────
    Top-right, in the story MapKey's language (near-opaque paper, no backdrop
    filter — this one sits over the map, not over a scrolling page). Inner
@@ -546,38 +561,38 @@
 
 /* Uniform 12px rhythm for the key's control half (label→capsule stays a
    tight pair); the kicker matches the inspect section's spec. */
-/* The `.archive-key .map-key-view-label` override that used to sit here is
+/* The `.archive-key-legend .map-key-view-label` override that used to sit here is
    gone: it was correcting the base rule in Story.css toward the structural-
    label spec, which meant the Story kept the wrong values. The spec now lives
    on the base rule itself, so both surfaces get it and neither needs an
    override. (Three tiers: ink = titles and labels · soft = content ·
    faint = notes.) */
 
-.archive-key .map-key-view {
+.archive-key-legend .map-key-view {
   margin-bottom: 0.75rem;
 }
 
-.archive-key .map-key-view-btn {
+.archive-key-legend .map-key-view-btn {
   font-size: 0.6875rem;
 }
 
 /* The scale row's rule is not needed here — legend rows follow directly. */
-.archive-key .map-key-top {
+.archive-key-legend .map-key-top {
   border-bottom: none;
   padding-bottom: 0;
   margin-bottom: 0.75rem;
 }
 
-.archive-key .map-key-list {
+.archive-key-legend .map-key-list {
   gap: 0.5rem;
 }
 
-.archive-key .map-key-scale-label {
+.archive-key-legend .map-key-scale-label {
   white-space: nowrap;
 }
 
 /* Legend swatches specific to the volume-symbol map. */
-.archive-key .key-dot {
+.archive-key-legend .key-dot {
   display: block;
   width: 0.625rem;
   height: 0.625rem;
@@ -589,7 +604,7 @@
   opacity: 0.9;
 }
 
-.archive-key .key-dot-dim {
+.archive-key-legend .key-dot-dim {
   background: #c9cdc4;
   opacity: 1;
 }
@@ -597,7 +612,7 @@
 /* SPIKE A — the track map's two swatches. A line and a dashed line, at the
    width the map itself draws them near the middle of its ramp, so the key
    reads as a sample of the map rather than as an icon of it. */
-.archive-key .key-line {
+.archive-key-legend .key-line {
   display: block;
   width: 0.875rem;
   height: 3px;
@@ -605,7 +620,7 @@
   opacity: 0.75;
 }
 
-.archive-key .key-line-dash {
+.archive-key-legend .key-line-dash {
   display: block;
   width: 0.875rem;
   height: 0;
@@ -618,7 +633,7 @@
    pixels smaller than .key-dot so the legend keeps the map's own hierarchy —
    a ring is subordinate to a filled dot there too. The border colour is set
    inline from the current selection, like the dot above it. */
-.archive-key .key-ring {
+.archive-key-legend .key-ring {
   display: block;
   width: 0.5rem;
   height: 0.5rem;
@@ -630,11 +645,11 @@
 
 /* The same two composited values as .key-mr / .key-border in Story.css -- see
    the note there. Both are what the map COMPOSITES to, not its paint value. */
-.archive-key .key-mr {
+.archive-key-legend .key-mr {
   border-top: 1.5px dashed #ec7066;
 }
 
-.archive-key .key-border {
+.archive-key-legend .key-border {
   border-top: 1px solid #c6c9c2;
 }
 
@@ -1238,7 +1253,7 @@
    fails AA for text. --ink-faint is the token for a note and measures 6.92.
    The divider is drawn in black alpha where every other divider on both
    surfaces uses --rule, which carries the system's green cast. */
-.archive-key .map-key-note {
+.archive-key-legend .map-key-note {
   margin: 0.5rem 0 0;
   padding-top: 0.5rem;
   border-top: 1px solid var(--rule);
@@ -1298,8 +1313,16 @@
 }
 .lookup-radii {
   display: flex;
+  flex: 1;
   gap: 0;
   background: rgba(33, 53, 40, 0.06);
+}
+/* Equal shares of the row rather than four labels huddled at one end — the
+   four radii are one scale, and a scale reads as a scale when its steps are
+   the same size. */
+.lookup-radii .lookup-chip {
+  flex: 1;
+  text-align: center;
 }
 .lookup-chip {
   position: relative;
@@ -1348,6 +1371,9 @@
   max-height: 13.5rem;
   overflow-y: auto;
 }
+/* The header and the rows are one grid, declared once: a header on its own
+   column widths is a header that lies as soon as either changes. */
+.lookup-head,
 .lookup-item {
   display: grid;
   grid-template-columns: minmax(5.75rem, auto) 5.75rem 1fr auto;
@@ -1364,6 +1390,28 @@
   color: inherit;
   cursor: pointer;
 }
+.lookup-head {
+  align-items: baseline;
+  margin: 0.375rem 0 0;
+  padding: 0 0.125rem 0.25rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint, #6f6a5e);
+}
+.lookup-head span:last-child {
+  justify-self: end;
+}
+/* The header owns the top rule now, so the first row must not draw a second
+   one two pixels under it. */
+.lookup-head + .lookup-list .lookup-item {
+  border-top: none;
+}
+.lookup-head + .lookup-list li + li .lookup-item {
+  border-top: 1px solid var(--rule, #ded8cc);
+}
+
 .lookup-item:hover {
   background: rgba(33, 53, 40, 0.05);
 }
@@ -1429,6 +1477,41 @@
 .inspect-coords.is-runid {
   margin-top: 0.5rem;
 }
+/* The armed state, over the map it is asking the reader to click. Centred on
+   the map's own width rather than the panel's, and out of every panel's flow
+   so nothing moves when it appears or goes. */
+.map-pick-hint {
+  position: absolute;
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.4375rem 0.4375rem 0.4375rem 0.875rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #f2efe7;
+  background: rgba(33, 53, 40, 0.94);
+  box-shadow: 0 2px 10px rgba(40, 38, 30, 0.18);
+}
+.map-pick-hint button {
+  border: none;
+  border-radius: 0;
+  padding: 0.25rem 0.5rem;
+  font: inherit;
+  font-size: 0.6875rem;
+  background: rgba(255, 255, 255, 0.14);
+  color: inherit;
+  cursor: pointer;
+}
+.map-pick-hint button:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
 .lookup-center-pin {
   width: 14px;
   height: 14px;
@@ -1552,9 +1635,20 @@
   font-size: 0.6875rem;
   color: var(--ink-faint, #6f6a5e);
 }
+/* OUT of the row's flow. As a flex child of `.lookup-search` it took a share
+   of the row for itself — measured: the input went from 169px to 7px and the
+   divider to nothing, so the reader could no longer see what they had typed
+   at the exact moment the field was telling them it did not match. It hangs
+   under the row like the dropdown it replaces. */
 .lookup-search-none {
-  margin: 0.375rem 0 0;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  margin: 0.25rem 0 0;
   font-size: 0.6875rem;
+  line-height: 1.45;
   color: var(--ink-faint, #6f6a5e);
 }
 .lookup-place-hint {

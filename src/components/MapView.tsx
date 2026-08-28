@@ -33,6 +33,7 @@ import {
 import {
   addTrackLayers,
   TRACK_LAYER,
+  TRACK_MARK_LAYER,
   TRACK_DIM_LAYER,
   TRACK_NIL_LAYER,
   setTrackHover,
@@ -457,6 +458,35 @@ function useIsPhone(): boolean {
   return phone
 }
 
+/** What the highlight is currently pointing at: an identity for the no-op
+ *  check, and the geometry to light.
+ *
+ *  It carries the FEATURES rather than an index because the two sources of a
+ *  highlight light different amounts. A hover lights the leg under the
+ *  pointer; a row opened from the lookup list lights the whole run, every leg
+ *  and mark of it. Holding an index meant the pinned run collapsed to one leg
+ *  the moment the reader moved the pointer back over the map — the highlight
+ *  quietly shrinking to something they had not asked for. */
+type Lit = { key: string; features: GeoJSON.Feature[] }
+
+/** The single writer for the highlight — the map effect and the panel
+ *  callbacks both go through it, so the key and the geometry can never
+ *  disagree about what is lit. */
+function paintLit(map: maplibregl.Map, lit: Lit | null) {
+  setTrackHover(map, lit?.key ?? null, lit?.features ?? null)
+}
+
+/** One feature of the track tier, wrapped for the highlight. `mark` picks the
+ *  set: id 41 in the lines is not id 41 in the marks. */
+function litFeature(
+  tracks: TrackDataset | null | undefined,
+  id: number,
+  mark: boolean,
+): Lit | null {
+  const f = tracks ? (mark ? tracks.marks : tracks.lines).features[id] : null
+  return f ? { key: `${mark ? 'm' : 'l'}${id}`, features: [f as GeoJSON.Feature] } : null
+}
+
 export default function MapView() {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -565,8 +595,9 @@ export default function MapView() {
    *  the mouse to read it — the card would be about "this one" with no "this"
    *  left on screen. Hover wins while it lasts, so the reader can still compare
    *  a neighbour against the pinned run without losing it. */
-  const hoverRunRef = useRef<number | null>(null)
-  const pinnedRunRef = useRef<number | null>(null)
+  const hoverRunRef = useRef<Lit | null>(null)
+  /** The run the reader opened, lit until they close or open another. */
+  const pinnedRunRef = useRef<Lit | null>(null)
   const dayRef = useRef(0)
   const colorsRef = useRef<string[] | null>(null)
   const playingRef = useRef(false)
@@ -726,8 +757,14 @@ export default function MapView() {
         // and the strokes had neither. Queried FIRST, because in their band the
         // grid tiers are already out and the raw dots are hidden, so anything
         // else under the pointer is the basemap.
+        // TRACK_MARK_LAYER is in the list because the key names what it draws:
+        // 2,829 runs are logged against ONE grid reference, the legend calls
+        // them "Logged at One Point", and until this they were the only mark on
+        // the map that answered nothing when you pointed at or clicked them.
         const trackLayers = () =>
-          [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER].filter((id) => map.getLayer(id))
+          [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER].filter((id) =>
+            map.getLayer(id),
+          )
         /** The run under the pointer, or null. Also the one place that knows a
          *  run is only pickable where it is actually drawn. */
         const trackAt = (pt: maplibregl.PointLike) => {
@@ -751,10 +788,7 @@ export default function MapView() {
          *  geometry, and a run cut by a tile boundary would light up in pieces.
          *  `generateId` numbers features in source order, so the rendered id is
          *  the index here — verified on the running page. */
-        const paintHover = () => {
-          const id = hoverRunRef.current ?? pinnedRunRef.current
-          setTrackHover(map, id, id != null ? tracksRef.current?.lines.features[id] : null)
-        }
+        const paintHover = () => paintLit(map, hoverRunRef.current ?? pinnedRunRef.current)
         map.on('mousemove', (e) => {
           // While the reader is arming a lookup point the map is a target,
           // not a browsable record: hold the crosshair and mute the hovers.
@@ -766,7 +800,9 @@ export default function MapView() {
           const t = trackAt(e.point)
           if (t) {
             const p = t.properties as Record<string, number>
-            hoverRunRef.current = typeof t.id === 'number' ? t.id : null
+            const isMark = t.layer.id === TRACK_MARK_LAYER
+            hoverRunRef.current =
+              typeof t.id === 'number' ? litFeature(tracksRef.current, t.id, isMark) : null
             paintHover()
             map.getCanvas().style.cursor = 'pointer'
             hover
@@ -779,10 +815,19 @@ export default function MapView() {
                 // the stroke encodes — its colour and its width.
                 `<strong>${
                   p.gallons > 0
-                    ? `<span class="n">${fmtGallons(p.gallons)}</span> Gallons<span class="gap"></span><span class="n">${Math.round(p.gpk).toLocaleString()}</span> Gal/km`
+                    ? `<span class="n">${fmtGallons(p.gallons)}</span> Gallons${
+                        isMark
+                          ? ''
+                          : `<span class="gap"></span><span class="n">${Math.round(p.gpk).toLocaleString()}</span> Gal/km`
+                      }`
                     : 'No Volume Logged'
                 }</strong>` +
-                  `<span>${groupLabels[p.gi] ?? 'Unknown'} · ${dayLabel(p.day)} · ${p.km.toFixed(1)} km</span>`,
+                  // A point has no length: `km` is absent on the marks, and
+                  // printing "0.0 km" for a run whose extent the record simply
+                  // does not give would be inventing a fact.
+                  `<span>${groupLabels[p.gi] ?? 'Unknown'} · ${dayLabel(p.day)}${
+                    isMark ? ' · Logged at one point' : ` · ${p.km.toFixed(1)} km`
+                  }</span>`,
               )
               .addTo(map)
             return
@@ -830,7 +875,9 @@ export default function MapView() {
           const t = trackAt(e.point)
           if (t) {
             const p = t.properties as Record<string, number>
-            pinnedRunRef.current = typeof t.id === 'number' ? t.id : null
+            const isMark = t.layer.id === TRACK_MARK_LAYER
+            pinnedRunRef.current =
+              typeof t.id === 'number' ? litFeature(tracksRef.current, t.id, isMark) : null
             paintHover()
             setInspect({
               kind: 'run',
@@ -841,8 +888,10 @@ export default function MapView() {
               day: p.day,
               groupIndex: p.gi ?? -1,
               gallons: p.gallons,
-              km: p.km,
-              gpk: p.gpk,
+              // Absent on a single-point run, and ArchiveInspect reads their
+              // presence as "this subject has an extent" — so omitting them is
+              // what makes the card say point rather than line.
+              ...(isMark ? {} : { km: p.km, gpk: p.gpk }),
               mission: p.mission,
               run: p.run,
               fwac: p.fwac,
@@ -1318,6 +1367,18 @@ export default function MapView() {
     const coords = (
       line ? line.geometry.coordinates[0] : mark!.geometry.coordinates
     ) as [number, number]
+    // Fly AND light. The map answered a list click by moving, which on a
+    // screen already full of strokes is not an answer: the reader arrives
+    // somewhere plausible with nothing saying which of the forty lines under
+    // the pin is the one they asked for. The whole run lights up, every
+    // segment and mark of it, because a run cut into three legs is still one
+    // flight — the same reason the hover highlight carries the whole geometry.
+    const geom = [
+      ...hit.lineIdx.map((i) => t.lines.features[i]),
+      ...hit.markIdx.map((i) => t.marks.features[i]),
+    ] as GeoJSON.Feature[]
+    pinnedRunRef.current = geom.length ? { key: `run:${hit.mission}|${hit.run}`, features: geom } : null
+    paintLit(map, pinnedRunRef.current)
     const kmTotal = hit.lineIdx.reduce((acc, i) => acc + t.lines.features[i].properties.km, 0)
     setInspect({
       kind: 'run',
@@ -1333,6 +1394,17 @@ export default function MapView() {
       fwac: hit.fwac,
     })
   }
+
+  // A mode needs a way out that is not a second trip to the control that
+  // opened it. Escape is the one every reader already tries.
+  useEffect(() => {
+    if (!lookup.picking) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLookup((s) => ({ ...s, picking: false }))
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lookup.picking])
 
   /** A place chosen from the search: center there, widen city-level queries
    *  to 10 km per the brief, and ease the map over so the circle is on
@@ -1402,7 +1474,7 @@ export default function MapView() {
       onBack={() => {
         setInspect(null)
         pinnedRunRef.current = null
-        if (mapRef.current) setTrackHover(mapRef.current, hoverRunRef.current)
+        if (mapRef.current) paintLit(mapRef.current, hoverRunRef.current)
       }}
     />
   )
@@ -1417,6 +1489,16 @@ export default function MapView() {
     // panel with the grab handle. Desktop CSS never reads the class.
     <div ref={wrapRef} className={inspect ? 'map-wrap inspect-open' : 'map-wrap'}>
       <div ref={containerRef} className="map-root" />
+      {/* Armed: the map is a target, and it says so over the map the reader is
+          aiming at. In the panel this was a line of text appearing under the
+          search box, which pushed the radius chips and the whole answer down a
+          row the moment the pointer left for the map. */}
+      {lookup.picking && (
+        <p className="map-pick-hint" role="status">
+          Click the map to set the point
+          <button onClick={() => setLookup((s) => ({ ...s, picking: false }))}>Cancel</button>
+        </p>
+      )}
       {/* The Archive IS the map — there is no prose to fall back to — so when
           the basemap or the record cannot be fetched, saying so is the whole
           of what this surface can still do. Rendered outside the `ready` gate
@@ -1428,16 +1510,13 @@ export default function MapView() {
         </p>
       )}
       {ready && (
-        <ArchiveKey
-          map={mapRef.current}
-          ready={ready}
-          is3D={is3D}
-          onToggle3D={toggleView}
-          tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
-          filtered={agentKey !== 'all'}
-          tracks={TRACKS}
-          lookupSlot={isPhone ? null : lookupPanel}
-        >
+        <aside className="archive-key" aria-label="Place">
+          {/* The place column: what the reader asked, and the record they
+              opened. `archive-key` is kept as the class because the phone
+              still turns THIS box into the record sheet — the name is the
+              container's, not the legend's, which now lives in the left
+              panel. */}
+          {isPhone ? null : lookupPanel}
           {inspect && (
             <ArchiveInspect
               data={inspect}
@@ -1447,11 +1526,11 @@ export default function MapView() {
               onClose={() => {
                 setInspect(null)
                 pinnedRunRef.current = null
-                if (mapRef.current) setTrackHover(mapRef.current, hoverRunRef.current)
+                if (mapRef.current) paintLit(mapRef.current, hoverRunRef.current)
               }}
             />
           )}
-        </ArchiveKey>
+        </aside>
       )}
       {/* Mounted only when the gate is open — dev, or ?tune on the URL. A
           reader on the live site never evaluates this branch, so the chunk is
@@ -1488,6 +1567,19 @@ export default function MapView() {
           }}
           onSelectAgent={setAgentKey}
           lookupSlot={isPhone ? lookupPanel : null}
+          keySlot={
+            isPhone ? null : (
+              <ArchiveKey
+                map={mapRef.current}
+                ready={ready}
+                is3D={is3D}
+                onToggle3D={toggleView}
+                tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
+                filtered={agentKey !== 'all'}
+                tracks={TRACKS}
+              />
+            )
+          }
         />
       )}
     </div>

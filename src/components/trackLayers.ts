@@ -67,6 +67,8 @@ export const TRACK_MARK_LAYER = 'spray-track-mark'
  *  boundary has cut it into pieces — hovering the middle of an 11 km line
  *  should not highlight 3 km of it. */
 export const TRACK_HI_LAYER = 'spray-track-hi'
+/** The point form of the highlight — see TRACK_HI_LAYER's filter. */
+export const TRACK_HI_MARK_LAYER = 'spray-track-hi-mark'
 /** The hovered run's own source, holding at most one feature.
  *
  *  It began as a filter on the record's own source, which is the obvious way
@@ -472,7 +474,7 @@ const HI_BUMP = 1.6
 
 /** Which run the highlight source currently holds, so an unchanged hover is
  *  not a write. A mousemove fires many times over one stroke. */
-let hoverId: number | null = null
+let hoverKey: number | string | null = null
 
 /** Put the highlight on one run, or clear it. Takes the FEATURE, not an id:
  *  `queryRenderedFeatures` hands back tile-CLIPPED geometry, so highlighting
@@ -480,16 +482,20 @@ let hoverId: number | null = null
  *  The caller passes the whole run out of the loaded dataset. */
 export function setTrackHover(
   map: maplibregl.Map,
-  id: number | null,
-  feature?: GeoJSON.Feature | null,
+  /** Identity of what is lit, for the no-op check. A number for a hovered
+   *  feature; a string for a whole run opened from the lookup list, which is
+   *  several features at once and has no single feature id. */
+  key: number | string | null,
+  features?: GeoJSON.Feature | GeoJSON.Feature[] | null,
 ) {
-  if (id === hoverId) return
-  hoverId = id
+  if (key === hoverKey) return
+  hoverKey = key
   const src = map.getSource(TRACK_HI_SOURCE) as maplibregl.GeoJSONSource | undefined
   if (!src) return
+  const list = features == null ? [] : Array.isArray(features) ? features : [features]
   src.setData({
     type: 'FeatureCollection',
-    features: id != null && feature ? [feature] : [],
+    features: key != null ? list : [],
   })
 }
 
@@ -519,7 +525,7 @@ export function applyTracks(map: maplibregl.Map) {
   // console could open a blank band between the two encodings and nothing said
   // so. minzoom is a layer property like any other; it belongs in the same
   // apply as the paint.
-  for (const id of [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER, TRACK_END_LAYER, TRACK_DRAW_LAYER, TRACK_HI_LAYER]) {
+  for (const id of [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER, TRACK_END_LAYER, TRACK_DRAW_LAYER, TRACK_HI_LAYER, TRACK_HI_MARK_LAYER]) {
     if (map.getLayer(id)) map.setLayerZoomRange(id, trackStart, 24)
   }
   // The highlight is the stroke's own ramp plus a constant, so a console change
@@ -730,11 +736,35 @@ export function addTrackLayers(
       type: 'line',
       source: TRACK_HI_SOURCE,
       minzoom: Z_NEAR,
+      // Geometry-typed, because the source now carries both: a run opened from
+      // the lookup list hands over every piece of itself at once, and 2,829 of
+      // the record's runs are a single grid reference with no line to draw.
+      filter: ['==', ['geometry-type'], 'LineString'],
       layout: { 'line-cap': TRACKS.cap, 'line-join': 'round' },
       paint: {
         'line-color': tint,
         'line-width': hiWidthRamp(),
         'line-opacity': 1,
+      },
+    },
+    labelId,
+  )
+  // The same highlight for the single-point runs — a ring around the mark
+  // rather than a fill, so the dot's own area still reads as its volume.
+  map.addLayer(
+    {
+      id: TRACK_HI_MARK_LAYER,
+      type: 'circle',
+      source: TRACK_HI_SOURCE,
+      minzoom: Z_NEAR,
+      filter: ['==', ['geometry-type'], 'Point'],
+      paint: {
+        'circle-color': 'rgba(0,0,0,0)',
+        'circle-radius': ['+', markRamp(), 2.5] as never,
+        'circle-stroke-color': tint,
+        'circle-stroke-width': 1.75,
+        'circle-pitch-alignment': 'map',
+        'circle-pitch-scale': 'map',
       },
     },
     labelId,

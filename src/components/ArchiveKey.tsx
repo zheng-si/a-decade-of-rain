@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import type maplibregl from 'maplibre-gl'
 import { TRACK_LAYER, TRACKS } from './trackLayers'
 // The key's shared furniture. Both surfaces render these classes, so the
@@ -7,10 +7,15 @@ import { computeScale } from './mapScale'
 import './MapKey.css'
 
 // ── the Explorer's map key ────────────────────────────────────────────────
-// Top-right panel in the story MapKey's language (near-opaque paper, small
-// tracked furniture): Flat/3D switch, share, scale bar and the legend for the
-// volume-symbol encoding — dot area ∝ gallons, tint = the current selection,
-// grey = the rest of the record kept as context.
+// Flat/3D switch, scale bar, compass and the legend for the volume-symbol
+// encoding — dot area ∝ gallons, tint = the current selection, grey = the rest
+// of the record kept as context.
+//
+// It sits in the LEFT panel, under the agent filter. The key describes how to
+// read the map's marks; it changes with the zoom and with the selection, and
+// with nothing the reader clicks or searches. That put it in the wrong column
+// once the right-hand panel became the place column, where every block is an
+// answer to something the reader just did.
 
 interface Props {
   map: maplibregl.Map | null
@@ -25,13 +30,6 @@ interface Props {
    *  lines. A key that shows a dot over a map of lines is not a smaller
    *  problem than a key with the wrong words on it. */
   tracks?: boolean
-  /** The Location Lookup — its query and its answer — on desktop. Rendered
-   *  ABOVE the key, because it is what the reader is asking and the key is
-   *  only how to read the reply. Null on a phone, where the control sheet
-   *  keeps it (see useIsPhone in MapView). */
-  lookupSlot?: ReactNode
-  /** Extra section rendered below the legend (the inspect card). */
-  children?: ReactNode
 }
 
 export default function ArchiveKey({
@@ -42,8 +40,6 @@ export default function ArchiveKey({
   tint,
   filtered,
   tracks = false,
-  lookupSlot,
-  children,
 }: Props) {
   const [scale, setScale] = useState<{ label: string; w: number }>({ label: '', w: 0 })
   /** Whether the TRACK layer is drawing right now.
@@ -95,13 +91,7 @@ export default function ArchiveKey({
   }, [ready, map, tracks])
 
   return (
-    <div className="archive-key">
-      {lookupSlot}
-      {/* The record card sits with the query it came from, not under the
-          legend: dot, track and circle are three ways of naming one place and
-          their answers share a column. */}
-      {children}
-      {lookupSlot && <div className="archive-key-rule" />}
+    <div className="archive-key-legend">
       <p className="map-key-view-label">Map View</p>
       <div className="map-key-view" role="group" aria-label="Map view">
         {/* aria-pressed, not the class alone: `is-active` is a paint
@@ -224,9 +214,6 @@ export default function ArchiveKey({
           ? 'Stroke width is gallons per kilometre. Each run fades away from its first waypoint on file.'
           : 'Dot area is the gallons that fell in the cell, counted along every run that crossed it.'}
       </p>
-      {/* Phone only: with no lookup slot the card has nowhere else to go, and
-          the inspect-open sheet hides everything but this. */}
-      {!lookupSlot && children}
     </div>
   )
 }

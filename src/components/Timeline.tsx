@@ -67,8 +67,13 @@ interface TimelineProps {
    *  an expanded panel under an open card reads as two stacked cards. */
   inspectOpen?: boolean
   /** The Location Lookup section, composed by MapView (which owns the query
-   *  state and the map). Rendered between the agents block and the legend. */
+   *  state and the map). Phone only — on a desktop it lives in the place
+   *  column (see useIsPhone in MapView). */
   lookupSlot?: ReactNode
+  /** The map key: view switch, scale, legend. It belongs with the other
+   *  things that say how to READ the map rather than with the things that
+   *  answer a question, so it closes this panel. Desktop only. */
+  keySlot?: ReactNode
   onScrub: (day: number) => void
   onPlay: () => void
   onPause: () => void
@@ -105,6 +110,7 @@ export default function Timeline({
   onToggle3D,
   inspectOpen = false,
   lookupSlot,
+  keySlot,
   onScrub,
   onPlay,
   onPause,
@@ -421,6 +427,8 @@ export default function Timeline({
       <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
 
       {lookupSlot}
+
+      {keySlot}
 
       {/* The phone's whole legend. The key panel — dot scale, compass, view
           toggle — is hidden below 640px, which also took away any hint that
