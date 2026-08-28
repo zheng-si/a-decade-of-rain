@@ -306,6 +306,11 @@ export default function Timeline({
             <strong>Zoom in</strong> until the dots give way to the flight tracks themselves.
           </li>
         </ul>
+        {/* With the guide, not at the foot of the panel: it is the fourth
+            thing the reader can do, and the three above it are verbs too. */}
+        <p className="explorer-links">
+          <Link to="/">← Read the Story</Link>
+        </p>
       </header>
 
       {/* The key reads before the controls, not after them: it says what the
@@ -452,9 +457,6 @@ export default function Timeline({
         Dot size is a cell&apos;s gallons. Tap any dot to open its record.
       </p>
 
-      <p className="explorer-links">
-        <Link to="/">← Read the Story</Link>
-      </p>
     </section>
   )
 }

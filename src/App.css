@@ -239,11 +239,17 @@
 .explorer-guide li + li {
   margin-top: 0.25rem;
 }
+/* A tick, not a dash. An en dash at the head of a line reads as punctuation
+   waiting for a second half, and three of them stacked read as a torn-off
+   list; a short rule at x-height is a marker and nothing else. */
 .explorer-guide li::before {
-  content: '\2013';
+  content: '';
   position: absolute;
   left: 0;
-  color: var(--ink-faint);
+  top: 0.5625rem;
+  width: 0.375rem;
+  height: 1px;
+  background: var(--ink-faint);
 }
 
 /* Cumulative counters: red figures over quiet labels, pairs separated by
@@ -531,6 +537,7 @@
   border-bottom: 2px solid rgba(33, 53, 40, 0.55);
   border-radius: 0;
   background: none;
+  position: relative;
   font-family: var(--font-sans);
   font-size: 0.625rem;
   font-weight: 600;
@@ -540,6 +547,26 @@
   text-shadow:
     0 0 3px rgba(250, 249, 244, 0.9),
     0 0 2px rgba(250, 249, 244, 0.9);
+}
+
+/* The two ends, so it reads as a measured length rather than as an underline
+   under a number. maplibre sets the element's WIDTH to the distance, so the
+   ticks can only hang off its corners — the figure stays above the bar rather
+   than beside it, which is the one way this differs from Flood Hub's. */
+.map-wrap .maplibregl-ctrl-scale::before,
+.map-wrap .maplibregl-ctrl-scale::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 2px;
+  height: 6px;
+  background: rgba(33, 53, 40, 0.55);
+}
+.map-wrap .maplibregl-ctrl-scale::before {
+  left: 0;
+}
+.map-wrap .maplibregl-ctrl-scale::after {
+  right: 0;
 }
 
 /* The key's own block in the left panel: a rule above it, and the phone does
@@ -1281,9 +1308,7 @@
    The divider is drawn in black alpha where every other divider on both
    surfaces uses --rule, which carries the system's green cast. */
 .archive-key-legend .map-key-note {
-  margin: 0.5rem 0 0;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--rule);
+  margin: 0.625rem 0 0;
   font-size: 0.625rem;
   line-height: 1.5;
   color: var(--ink-faint);

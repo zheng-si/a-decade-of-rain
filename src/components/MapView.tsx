@@ -36,7 +36,6 @@ import {
   TRACK_MARK_LAYER,
   TRACK_DIM_LAYER,
   TRACK_END_LAYER,
-  applyTracks,
   TRACK_NIL_LAYER,
   setTrackHover,
   setTrackTaper,
@@ -180,6 +179,25 @@ const RECORD_TIERS = [
   TRACK_MARK_LAYER,
   TRACK_END_LAYER,
 ]
+/** Hide the record's own tiers for a lookup, remembering what each one was. */
+function hideRecordTiers(map: maplibregl.Map, saved: Map<string, string>) {
+  for (const id of RECORD_TIERS) {
+    if (!map.getLayer(id)) continue
+    if (!saved.has(id))
+      saved.set(id, (map.getLayoutProperty(id, 'visibility') as string) ?? 'visible')
+    map.setLayoutProperty(id, 'visibility', 'none')
+  }
+}
+
+/** Put them back exactly as they were. */
+function restoreRecordTiers(map: maplibregl.Map, saved?: Map<string, string>) {
+  if (!saved?.size) return
+  for (const [id, vis] of saved) {
+    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis)
+  }
+  saved.clear()
+}
+
 const LOOKUP_EPOCH_MS = Date.UTC(1961, 0, 1)
 /** 'YYYY-MM' → first/last day number of that month (day 1 = 1961-01-01). */
 const monthToFirstDay = (m: string) => {
@@ -1277,18 +1295,23 @@ export default function MapView() {
   // with no minzoom, because a hit must be visible at ANY zoom while the base
   // track layers only exist near.
   const lookupMarkerRef = useRef<maplibregl.Marker | null>(null)
+  /** What each record tier's `visibility` was before a lookup hid it.
+   *
+   *  A snapshot, not a rule. The first version of this asked applyTracks to
+   *  put the record back, on the reasoning that it owns which tiers are shown
+   *  — but it only ever sets the three OPTIONAL ones (ends, nils, marks),
+   *  because the main stroke layer and its dim twin are never hidden by
+   *  anything. Hiding them here and handing the restore to a function that
+   *  does not touch them turned every cleared lookup into a map with no
+   *  flight tracks on it at all, back to dots at z11. Remembering beats
+   *  inferring: whatever each layer was, that is what it goes back to. */
+  const hiddenTiersRef = useRef<Map<string, string>>(new Map())
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
     const c = lookup.center
     if (!c) {
-      // The record comes back exactly as the console left it: applyTracks
-      // owns which track tiers are shown, so asking it is the only restore
-      // that cannot turn something on that was deliberately off.
-      for (const id of GRID_TIERS) {
-        if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'visible')
-      }
-      if (map.getLayer(TRACK_LAYER)) applyTracks(map)
+      restoreRecordTiers(map, hiddenTiersRef.current)
       for (const id of [LOOKUP_HI_PT, LOOKUP_HI_LINE, LOOKUP_CIRCLE_LAYER, LOOKUP_VEIL_LAYER])
         if (map.getLayer(id)) map.removeLayer(id)
       for (const id of [LOOKUP_HI_SRC, LOOKUP_CIRCLE_SRC, LOOKUP_VEIL_SRC])
@@ -1357,15 +1380,31 @@ export default function MapView() {
     }
     ;(map.getSource(LOOKUP_HI_SRC) as maplibregl.GeoJSONSource).setData(fc(hi))
 
+    // One record open: the other fifty-nine step back to a fifth. They are
+    // still there — the reader chose this one OUT of them, and the answer is
+    // partly the company it keeps — but they stop competing with it. Keyed on
+    // mission and run rather than a feature id because a run is several
+    // features and all of them belong to the same record.
+    const sel = inspect?.kind === 'run' && inspect.mission != null ? inspect : null
+    const fade = (base: number): maplibregl.ExpressionSpecification | number =>
+      sel
+        ? ([
+            'case',
+            ['all', ['==', ['get', 'mission'], sel.mission], ['==', ['get', 'run'], sel.run]],
+            base,
+            base * 0.2,
+          ] as maplibregl.ExpressionSpecification)
+        : base
+    if (map.getLayer(LOOKUP_HI_LINE)) map.setPaintProperty(LOOKUP_HI_LINE, 'line-opacity', fade(1))
+    if (map.getLayer(LOOKUP_HI_PT)) map.setPaintProperty(LOOKUP_HI_PT, 'circle-opacity', fade(1))
+
     // Everything outside the circle leaves the map. The veil alone was a 55%
     // paper wash over the record, which in the dense provinces is still a
     // thousand strokes showing through the answer — the reader was asked to
     // find sixty runs inside a field of them. The record tiers go dark and the
     // hit runs, drawn on the lookup's own layers, are what is left: the circle
     // stops being an annotation and becomes the view.
-    for (const id of RECORD_TIERS) {
-      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none')
-    }
+    hideRecordTiers(map, hiddenTiersRef.current)
     if (!lookupMarkerRef.current) {
       const el = document.createElement('div')
       el.className = 'lookup-center-pin'
@@ -1380,7 +1419,7 @@ export default function MapView() {
     } else {
       lookupMarkerRef.current.setLngLat([c.lng, c.lat])
     }
-  }, [ready, lookup.center, lookup.radiusKm, lookupResults])
+  }, [ready, lookup.center, lookup.radiusKm, lookupResults, inspect])
 
   // Crosshair while arming a pick (the map handlers hold it during moves).
   useEffect(() => {
