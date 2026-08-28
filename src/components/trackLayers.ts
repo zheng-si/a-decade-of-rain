@@ -275,6 +275,23 @@ function gradient(colour: string): maplibregl.ExpressionSpecification {
   ] as unknown as maplibregl.ExpressionSpecification
 }
 
+/** The record's fade, for strokes drawn on somebody else's layer.
+ *
+ *  The Location Lookup redraws its hit runs on its own layers, and the key
+ *  three inches away says "Each run fades away from its first waypoint on
+ *  file". Left to build its own fade, the circle would be the one place on the
+ *  map where that sentence is a second implementation — which is how the width
+ *  ramp went wrong before it was taken from the stroke layer itself. Null when
+ *  there is no taper to draw, and the caller paints flat.
+ *
+ *  Deliberately NOT gated on `taperLive`. That suspension exists because
+ *  11,273 strokes regenerate a 256-step ramp per tile on every playhead step;
+ *  a lookup's hits are tens of runs inside one circle, which is not the same
+ *  bill. */
+export function taperGradient(colour: string): maplibregl.ExpressionSpecification | null {
+  return TRACKS.taper > 0 ? gradient(colour) : null
+}
+
 /** Console hook. Merges in place so TRACKS stays one object; the nested
  *  groups are deep-copied for the same aliasing reason as setDots. */
 export function setTracks(next: Partial<TrackStyle>) {

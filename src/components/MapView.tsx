@@ -39,6 +39,7 @@ import {
   TRACK_NIL_LAYER,
   setTrackHover,
   setTrackTaper,
+  taperGradient,
   setTrackTime,
   setTrackAgents,
   setTrackDraw,
@@ -167,8 +168,22 @@ const LOOKUP_CIRCLE_SRC = 'lookup-circle'
 const LOOKUP_HI_SRC = 'lookup-hi'
 const LOOKUP_VEIL_LAYER = 'lookup-veil-fill'
 const LOOKUP_CIRCLE_LAYER = 'lookup-circle-line'
-const LOOKUP_HI_LINE = 'lookup-hi-line'
 const LOOKUP_HI_PT = 'lookup-hi-pt'
+/** ONE STROKE LAYER PER AGENT COLOUR.
+ *
+ *  The hits are coloured by agent — that is what makes the "By Agent" bars in
+ *  the answer legible on the map — and the fade is a `line-gradient`, which
+ *  can read `line-progress` and nothing else: it cannot see which agent a
+ *  stroke belongs to. So the split has to be a FILTER, exactly as it is for
+ *  the record's stroke and its dim twin (see applyTrackColour). Four colours,
+ *  four layers, decided once from the palette rather than rebuilt per lookup.
+ *
+ *  The last one is the catch-all rather than a fourth equality test: a run
+ *  whose colour matched no layer would not fall back to flat, it would leave
+ *  the map, which is worse than any colour. Every LineString is drawn by
+ *  exactly one of these. */
+const LOOKUP_HI_COLOURS = Array.from(new Set(mapConfig.agents.map((g) => g.color)))
+const LOOKUP_HI_LINES = LOOKUP_HI_COLOURS.map((_, i) => `lookup-hi-line-${i}`)
 /** The tiers that draw THE RECORD — the two grids, the raw dots and every
  *  track layer. A lookup hides them all and draws its hits itself. */
 const GRID_TIERS = [VOL_COARSE_LAYER, VOL_FINE_LAYER, VOL_RAW_LAYER]
@@ -818,7 +833,7 @@ export default function MapView() {
         // finds a run. Without this the circle took the map's whole click
         // behaviour away with it: the runs were on screen, lit, and inert.
         const hitLayers = () =>
-          [LOOKUP_HI_LINE, LOOKUP_HI_PT].filter((id) => map.getLayer(id))
+          [...LOOKUP_HI_LINES, LOOKUP_HI_PT].filter((id) => map.getLayer(id))
         const pickLayers = () => [...hitLayers(), ...trackLayers()]
         /** The run under the pointer, or null. Also the one place that knows a
          *  run is only pickable where it is actually drawn. */
@@ -849,7 +864,8 @@ export default function MapView() {
          *  layers it is an index into one of the two feature sets. */
         const readPick = (t: maplibregl.MapGeoJSONFeature) => {
           const p = t.properties as Record<string, number>
-          const onHitLayer = t.layer.id === LOOKUP_HI_LINE || t.layer.id === LOOKUP_HI_PT
+          const onHitLayer =
+            t.layer.id === LOOKUP_HI_PT || LOOKUP_HI_LINES.includes(t.layer.id)
           if (onHitLayer) {
             const hit = lookupResultsRef.current?.find(
               (h) => h.mission === p.mission && h.run === p.run,
@@ -1392,7 +1408,12 @@ export default function MapView() {
     const c = lookup.center
     if (!c) {
       restoreRecordTiers(map, hiddenTiersRef.current)
-      for (const id of [LOOKUP_HI_PT, LOOKUP_HI_LINE, LOOKUP_CIRCLE_LAYER, LOOKUP_VEIL_LAYER])
+      for (const id of [
+        LOOKUP_HI_PT,
+        ...LOOKUP_HI_LINES,
+        LOOKUP_CIRCLE_LAYER,
+        LOOKUP_VEIL_LAYER,
+      ])
         if (map.getLayer(id)) map.removeLayer(id)
       for (const id of [LOOKUP_HI_SRC, LOOKUP_CIRCLE_SRC, LOOKUP_VEIL_SRC])
         if (map.getSource(id)) map.removeSource(id)
@@ -1407,7 +1428,10 @@ export default function MapView() {
     if (!map.getSource(LOOKUP_VEIL_SRC)) {
       map.addSource(LOOKUP_VEIL_SRC, { type: 'geojson', data: fc([]) })
       map.addSource(LOOKUP_CIRCLE_SRC, { type: 'geojson', data: fc([]) })
-      map.addSource(LOOKUP_HI_SRC, { type: 'geojson', data: fc([]) })
+      // lineMetrics is what makes `line-progress` — and so the fade — possible,
+      // the same reason the record's own source sets it. Without it the
+      // gradient installs, reports itself set, and paints nothing.
+      map.addSource(LOOKUP_HI_SRC, { type: 'geojson', data: fc([]), lineMetrics: true })
       map.addLayer({
         id: LOOKUP_VEIL_LAYER,
         type: 'fill',
@@ -1423,24 +1447,40 @@ export default function MapView() {
         source: LOOKUP_CIRCLE_SRC,
         paint: { 'line-color': '#213528', 'line-width': 1.4, 'line-dasharray': [3, 2] },
       })
-      map.addLayer({
-        id: LOOKUP_HI_LINE,
-        type: 'line',
-        source: LOOKUP_HI_SRC,
-        filter: ['==', ['geometry-type'], 'LineString'],
-        layout: { 'line-cap': 'round' },
-        // WIDTH IS GALLONS PER KILOMETRE — the key says so three inches away,
-        // and a flat 2.4 said every hit was the same dose. A lookup redraws
-        // the record's runs on its own layer; drawing them there in a
-        // different language makes the circle the one place on this map where
-        // the legend is wrong. The ramp is taken from the stroke layer itself
-        // rather than rebuilt, so a console change to the width reaches both.
-        paint: {
-          'line-color': ['get', 'c'],
-          'line-width': (map.getLayer(TRACK_LAYER)
-            ? map.getPaintProperty(TRACK_LAYER, 'line-width')
-            : 2.4) as never,
-        },
+      // WIDTH IS GALLONS PER KILOMETRE AND EACH RUN FADES FROM ITS FIRST
+      // WAYPOINT — the key says both, three inches away, and a flat 2.4 in one
+      // colour said neither. A lookup redraws the record's runs on its own
+      // layers; drawing them there in a different language makes the circle
+      // the one place on this map where the legend is wrong. Both the ramp and
+      // the fade are taken from the record's own definitions rather than
+      // rebuilt, so a console change to either reaches both.
+      LOOKUP_HI_COLOURS.forEach((colour, i) => {
+        const taper = taperGradient(colour)
+        map.addLayer({
+          id: LOOKUP_HI_LINES[i],
+          type: 'line',
+          source: LOOKUP_HI_SRC,
+          filter:
+            i === LOOKUP_HI_COLOURS.length - 1
+              ? [
+                  'all',
+                  ['==', ['geometry-type'], 'LineString'],
+                  ['!', ['in', ['get', 'c'], ['literal', LOOKUP_HI_COLOURS.slice(0, -1)]]],
+                ]
+              : ['all', ['==', ['geometry-type'], 'LineString'], ['==', ['get', 'c'], colour]],
+          layout: { 'line-cap': 'round' },
+          paint: {
+            // line-color stays set under the gradient for the same reason the
+            // record leaves it alone: clearing it resets the property to its
+            // spec default of BLACK, so a path where the gradient failed to
+            // install would paint the hits black instead of flat colour.
+            'line-color': colour,
+            ...(taper ? { 'line-gradient': taper as never } : {}),
+            'line-width': (map.getLayer(TRACK_LAYER)
+              ? map.getPaintProperty(TRACK_LAYER, 'line-width')
+              : 2.4) as never,
+          },
+        })
       })
       map.addLayer({
         id: LOOKUP_HI_PT,
@@ -1490,7 +1530,8 @@ export default function MapView() {
             base * 0.2,
           ] as maplibregl.ExpressionSpecification)
         : base
-    if (map.getLayer(LOOKUP_HI_LINE)) map.setPaintProperty(LOOKUP_HI_LINE, 'line-opacity', fade(1))
+    for (const id of LOOKUP_HI_LINES)
+      if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', fade(1))
     if (map.getLayer(LOOKUP_HI_PT)) map.setPaintProperty(LOOKUP_HI_PT, 'circle-opacity', fade(1))
 
     // Everything outside the circle leaves the map. The veil alone was a 55%

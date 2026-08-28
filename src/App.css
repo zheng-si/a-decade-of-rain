@@ -1365,13 +1365,20 @@
   gap: 0.625rem;
   margin-top: 0.5rem;
 }
+/* A structural label, so it takes the structural label's colour: ink, the
+   same tier as MAP VIEW and SPRAYING AGENTS two panels away (ink = titles and
+   labels · soft = content · faint = notes). It was in faint — the notes tier —
+   which put the name of the control below the caveat text underneath it, and
+   left a 10px caps label in a grey-green that reads as disabled next to the
+   chips it labels. The stale #6f6a5e fallback went with it; --ink-faint has
+   been #4b5a50 since the contrast pass. */
 .lookup-row-label {
   flex: 0 0 3.25rem;
   font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: var(--track-caps);
   text-transform: uppercase;
-  color: var(--ink-faint, #6f6a5e);
+  color: var(--ink);
 }
 .lookup-radii {
   display: flex;
