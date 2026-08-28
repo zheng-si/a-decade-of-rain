@@ -1429,7 +1429,18 @@ export default function MapView() {
         source: LOOKUP_HI_SRC,
         filter: ['==', ['geometry-type'], 'LineString'],
         layout: { 'line-cap': 'round' },
-        paint: { 'line-color': ['get', 'c'], 'line-width': 2.4 },
+        // WIDTH IS GALLONS PER KILOMETRE — the key says so three inches away,
+        // and a flat 2.4 said every hit was the same dose. A lookup redraws
+        // the record's runs on its own layer; drawing them there in a
+        // different language makes the circle the one place on this map where
+        // the legend is wrong. The ramp is taken from the stroke layer itself
+        // rather than rebuilt, so a console change to the width reaches both.
+        paint: {
+          'line-color': ['get', 'c'],
+          'line-width': (map.getLayer(TRACK_LAYER)
+            ? map.getPaintProperty(TRACK_LAYER, 'line-width')
+            : 2.4) as never,
+        },
       })
       map.addLayer({
         id: LOOKUP_HI_PT,
@@ -1438,7 +1449,11 @@ export default function MapView() {
         filter: ['==', ['geometry-type'], 'Point'],
         paint: {
           'circle-color': ['get', 'c'],
-          'circle-radius': 4,
+          // And AREA IS GALLONS for the single-point runs, the same as the
+          // record's own marks — same reason as the strokes above.
+          'circle-radius': (map.getLayer(TRACK_MARK_LAYER)
+            ? map.getPaintProperty(TRACK_MARK_LAYER, 'circle-radius')
+            : 4) as never,
           'circle-stroke-color': '#ffffff',
           'circle-stroke-width': 1,
         },

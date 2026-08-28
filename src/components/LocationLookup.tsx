@@ -274,7 +274,10 @@ export default function LocationLookup({
       </div>
 
       <div className="lookup-row">
-        <span className="lookup-row-label">Within</span>
+        {/* "Radius", not "Within": the row is a property of the search and the
+            label names it, rather than starting a sentence the chips have to
+            finish. Cased like the panel's other structural labels. */}
+        <span className="lookup-row-label">Radius</span>
         <div className="lookup-radii" role="group" aria-label="Search radius">
           {RADII.map((r) => (
             <button

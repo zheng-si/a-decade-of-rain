@@ -483,7 +483,12 @@
 }
 
 /* Borderless chip inside the capsule; active = filled with entity colour. */
+/* Fills the row. `1 1 auto` and not `1`: five EQUAL cells give "All" the same
+   55px as "Orange", and the longer labels lose their last letters. Sharing the
+   slack in proportion to what each chip contains fills the same width with
+   nothing clipped. */
 .agent-chip {
+  flex: 1 1 auto;
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
@@ -1362,7 +1367,10 @@
 }
 .lookup-row-label {
   flex: 0 0 3.25rem;
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
   color: var(--ink-faint, #6f6a5e);
 }
 .lookup-radii {
@@ -1377,6 +1385,23 @@
 .lookup-radii .lookup-chip {
   flex: 1;
   text-align: center;
+}
+/* The same hairline the agent row draws between its chips: one switch system,
+   not two that resemble each other. It retires either side of the selected
+   chip, because a divider against a filled dark reads as a nick in the fill. */
+.lookup-radii .lookup-chip + .lookup-chip::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 0.875rem;
+  background: rgba(33, 53, 40, 0.14);
+}
+.lookup-radii .lookup-chip.is-active::before,
+.lookup-radii .lookup-chip.is-active + .lookup-chip::before {
+  display: none;
 }
 .lookup-chip {
   position: relative;
