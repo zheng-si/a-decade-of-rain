@@ -224,6 +224,11 @@ export default function ArchiveInspect({ data, groups, showClose = true, onClose
                 <strong>{fmtGallons(data.gallons)}</strong>
                 <span className="inspect-figure-unit">Gallons</span>
               </>
+            ) : data.mission != null && data.mission > 0 ? (
+              // A whole run with nothing booked against it — the key's "Flown,
+              // No Volume". Distinct from the line below, which is one WAYPOINT
+              // of a run whose gallons sit on another of its legs.
+              'No volume logged'
             ) : (
               'Flight path point'
             )}
@@ -250,7 +255,18 @@ export default function ArchiveInspect({ data, groups, showClose = true, onClose
               )}
             </p>
           )}
-          {data.gallons === 0 && data.km == null && (
+          {/* The run IS the subject and it carries no volume: say that, rather
+              than the waypoint explanation below, which describes a piece of a
+              run whose gallons are elsewhere. Reached from the map now that the
+              single-point runs are clickable, where it read as a claim about a
+              longer flight this record does not have. */}
+          {data.gallons === 0 && data.km == null && data.mission != null && data.mission > 0 && (
+            <p className="inspect-note">
+              Logged against one grid reference, with no volume recorded against it. The record
+              carries the flight; it does not say what fell.
+            </p>
+          )}
+          {data.gallons === 0 && data.km == null && !(data.mission != null && data.mission > 0) && (
             <p className="inspect-note">
               A waypoint on a spray run&apos;s track. HERBS records the run as a line — leg 1A, 1B,
               1C — and books its whole volume against 1A, so every later waypoint reads zero.
@@ -262,12 +278,17 @@ export default function ArchiveInspect({ data, groups, showClose = true, onClose
               were booked to another leg of the same run.
             </p>
           )}
-          {/* The citation. A lookup result has to be checkable against the
-              source, and Mission + Run is exactly the key HERBS files the row
-              under — so the card prints it rather than keeping it internal. */}
+          {/* The citation, in the LIST's own notation. A lookup result has to
+              be checkable against the source, and Mission + Run is exactly the
+              key HERBS files the row under. It used to spell the two words out
+              here and abbreviate them in the list two inches away, so the same
+              identifier read as two different things: M704·R877 in the row the
+              reader clicked, "Mission 704 · Run 877" on the card it opened.
+              One notation, and HERBS stays to say whose numbers these are. */}
           {data.mission != null && data.mission > 0 && (
             <p className="inspect-coords is-runid">
-              HERBS Mission {data.mission} · Run {data.run}
+              HERBS M{data.mission}
+              {data.run !== data.mission ? `·R${data.run}` : ''}
               {data.fwac != null && data.fwac > 0 && (
                 <> · {data.fwac} aircraft</>
               )}

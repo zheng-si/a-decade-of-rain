@@ -508,6 +508,16 @@ function paintLit(map: maplibregl.Map, lit: Lit | null) {
   setTrackHover(map, lit?.key ?? null, lit?.features ?? null)
 }
 
+/** Every piece of one hit, wrapped for the highlight. */
+function litHit(tracks: TrackDataset | null | undefined, hit: LookupHit): Lit | null {
+  if (!tracks) return null
+  const features = [
+    ...hit.lineIdx.map((i) => tracks.lines.features[i]),
+    ...hit.markIdx.map((i) => tracks.marks.features[i]),
+  ] as GeoJSON.Feature[]
+  return features.length ? { key: `run:${hit.mission}|${hit.run}`, features } : null
+}
+
 /** One feature of the track tier, wrapped for the highlight. `mark` picks the
  *  set: id 41 in the lines is not id 41 in the marks. */
 function litFeature(
@@ -803,10 +813,17 @@ export default function MapView() {
           [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER].filter((id) =>
             map.getLayer(id),
           )
+        // While a lookup is up the record's tiers are hidden and the hits are
+        // drawn on the lookup's own two layers — so those are where a pointer
+        // finds a run. Without this the circle took the map's whole click
+        // behaviour away with it: the runs were on screen, lit, and inert.
+        const hitLayers = () =>
+          [LOOKUP_HI_LINE, LOOKUP_HI_PT].filter((id) => map.getLayer(id))
+        const pickLayers = () => [...hitLayers(), ...trackLayers()]
         /** The run under the pointer, or null. Also the one place that knows a
          *  run is only pickable where it is actually drawn. */
         const trackAt = (pt: maplibregl.PointLike) => {
-          const ids = trackLayers()
+          const ids = pickLayers()
           if (!ids.length) return null
           // The playhead is a paint gate now, not a filter (see trackLayers),
           // and queryRenderedFeatures honours filters but not opacity — so
@@ -827,6 +844,25 @@ export default function MapView() {
          *  `generateId` numbers features in source order, so the rendered id is
          *  the index here — verified on the running page. */
         const paintHover = () => paintLit(map, hoverRunRef.current ?? pinnedRunRef.current)
+        /** What a picked feature means. On the lookup's layers a feature is a
+         *  piece of a HIT, and the hit knows all its own pieces; on the record's
+         *  layers it is an index into one of the two feature sets. */
+        const readPick = (t: maplibregl.MapGeoJSONFeature) => {
+          const p = t.properties as Record<string, number>
+          const onHitLayer = t.layer.id === LOOKUP_HI_LINE || t.layer.id === LOOKUP_HI_PT
+          if (onHitLayer) {
+            const hit = lookupResultsRef.current?.find(
+              (h) => h.mission === p.mission && h.run === p.run,
+            )
+            return { hit, lit: hit ? litHit(tracksRef.current, hit) : null, mark: t.layer.id === LOOKUP_HI_PT }
+          }
+          const mark = t.layer.id === TRACK_MARK_LAYER
+          return {
+            hit: undefined,
+            lit: typeof t.id === 'number' ? litFeature(tracksRef.current, t.id, mark) : null,
+            mark,
+          }
+        }
         map.on('mousemove', (e) => {
           // While the reader is arming a lookup point the map is a target,
           // not a browsable record: hold the crosshair and mute the hovers.
@@ -838,9 +874,9 @@ export default function MapView() {
           const t = trackAt(e.point)
           if (t) {
             const p = t.properties as Record<string, number>
-            const isMark = t.layer.id === TRACK_MARK_LAYER
-            hoverRunRef.current =
-              typeof t.id === 'number' ? litFeature(tracksRef.current, t.id, isMark) : null
+            const pick = readPick(t)
+            const isMark = pick.mark
+            hoverRunRef.current = pick.lit
             paintHover()
             map.getCanvas().style.cursor = 'pointer'
             hover
@@ -913,10 +949,37 @@ export default function MapView() {
           const t = trackAt(e.point)
           if (t) {
             const p = t.properties as Record<string, number>
-            const isMark = t.layer.id === TRACK_MARK_LAYER
-            pinnedRunRef.current =
-              typeof t.id === 'number' ? litFeature(tracksRef.current, t.id, isMark) : null
+            const pick = readPick(t)
+            const isMark = pick.mark
+            pinnedRunRef.current = pick.lit
             paintHover()
+            // A hit clicked ON THE MAP has to say what the same hit says when
+            // it is clicked in the LIST. The feature under the pointer is one
+            // leg; the hit is the whole run, and its gallons and kilometres
+            // are the run's. Reading the leg here would have given the same
+            // record two different volumes depending on which way in the
+            // reader took.
+            if (pick.hit) {
+              const hit = pick.hit
+              const ts = tracksRef.current
+              const kmTotal = ts
+                ? hit.lineIdx.reduce((acc, i) => acc + ts.lines.features[i].properties.km, 0)
+                : 0
+              setInspect({
+                kind: 'run',
+                coords: [e.lngLat.lng, e.lngLat.lat],
+                day: hit.day,
+                groupIndex: hit.gi,
+                gallons: hit.gallons,
+                ...(kmTotal > 0
+                  ? { km: Number(kmTotal.toFixed(1)), gpk: Number((hit.gallons / kmTotal).toFixed(1)) }
+                  : {}),
+                mission: hit.mission,
+                run: hit.run,
+                fwac: hit.fwac,
+              })
+              return
+            }
             setInspect({
               kind: 'run',
               // Unused by the track card — a line has no single position — but
@@ -1272,6 +1335,7 @@ export default function MapView() {
   useEffect(() => {
     const t = tracksRef.current
     if (!tracksReady || !t || !lookup.center) {
+      lookupResultsRef.current = null
       setLookupResults(null)
       setLookupMs(null)
       return
@@ -1285,6 +1349,7 @@ export default function MapView() {
       dayTo: monthToLastDay(lookup.to),
     })
     setLookupMs(performance.now() - t0)
+    lookupResultsRef.current = res
     setLookupResults(res)
   }, [tracksReady, lookup])
 
@@ -1318,6 +1383,9 @@ export default function MapView() {
    *  flight tracks on it at all, back to dots at z11. Remembering beats
    *  inferring: whatever each layer was, that is what it goes back to. */
   const hiddenTiersRef = useRef<Map<string, string>>(new Map())
+  /** The current hits, for the map handlers: while a lookup is up they are the
+   *  only runs on screen, and clicking one has to find its whole record. */
+  const lookupResultsRef = useRef<LookupHit[] | null>(null)
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
