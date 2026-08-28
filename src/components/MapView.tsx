@@ -205,11 +205,31 @@ function hideRecordTiers(map: maplibregl.Map, saved: Map<string, string>) {
   }
 }
 
-/** Put them back exactly as they were. */
-function restoreRecordTiers(map: maplibregl.Map, saved?: Map<string, string>) {
+/** Put them back as they were — except where "as they were" has since stopped
+ *  being true.
+ *
+ *  A remembered value is only good while nobody else writes the thing it
+ *  remembers, and one layer has an owner that does: the RAW dot tier steps
+ *  aside for the tracks the moment spray-tracks.json lands (see the load
+ *  callback). Open a lookup before that file arrives — which is every shared
+ *  Location Lookup URL, since the deep link sets the circle on the first
+ *  frame — and the snapshot records 'visible', the tracks arrive and set it
+ *  to 'none', and clearing the circle puts 8,360 agent-coloured dots and
+ *  rings back over the strokes. That is the "sometimes" in it: only the
+ *  lookups that started before the record finished loading.
+ *
+ *  So the raw tier is asked of its owner rather than of the memory. The rule
+ *  is one line in one place either way; the memory was a second copy of it
+ *  that could go stale. */
+function restoreRecordTiers(
+  map: maplibregl.Map,
+  saved: Map<string, string> | undefined,
+  tracksOn: boolean,
+) {
   if (!saved?.size) return
   for (const [id, vis] of saved) {
-    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', vis)
+    if (!map.getLayer(id)) continue
+    map.setLayoutProperty(id, 'visibility', id === VOL_RAW_LAYER && tracksOn ? 'none' : vis)
   }
   saved.clear()
 }
@@ -1407,7 +1427,7 @@ export default function MapView() {
     if (!ready || !map) return
     const c = lookup.center
     if (!c) {
-      restoreRecordTiers(map, hiddenTiersRef.current)
+      restoreRecordTiers(map, hiddenTiersRef.current, tracksRef.current != null)
       for (const id of [
         LOOKUP_HI_PT,
         ...LOOKUP_HI_LINES,
