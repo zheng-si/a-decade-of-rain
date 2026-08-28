@@ -232,10 +232,14 @@ export const mapConfig: MapConfig = {
     // disputed-island notes (112°E / 114°E) on screen without asking for them.
     minZoomMargin: 0.35,
     minZoom: 5.6,
-    // Stops where the data does. HERBS records flight runs; past z12 a dot
-    // carries no more information, and letting the reader keep going implies a
-    // precision the record does not have. (CF caps its equivalent map at 9.)
-    maxZoom: 11,
+    // 13, not 11. The old ceiling was written for a map whose near tier was
+    // DOTS, where past z12 a mark carried no more information and going
+    // further implied a precision the record does not have. The near tier is
+    // flight tracks now, and a line keeps saying something as it grows: its
+    // bearing, its length, where it crosses a river or a village. The stroke
+    // width stops growing at Z_TOP (11) either way, so the extra two steps
+    // magnify the geography and not the encoding.
+    maxZoom: 13,
     // Still a loose leash, but half the old width: wide enough that an
     // ultrawide viewport at the zoom floor never fights the clamp, tight enough
     // that the map cannot drift to India or the Philippines. It has to contain

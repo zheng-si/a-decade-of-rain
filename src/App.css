@@ -527,46 +527,43 @@
    explorer panel took that job over long ago. Its identity type has since been
    rewritten twice in ArchiveSkinV2.css, on the panel. */
 
-/* maplibre's scale control, dressed like the bar it replaces: a rule and a
-   figure, no box. Left/top borders removed — the default draws three sides of
-   a rectangle, which reads as a broken frame rather than as a measure. */
-.map-wrap .maplibregl-ctrl-scale {
-  margin: 0 0.625rem 0.625rem 0;
-  padding: 0 0.25rem 0.125rem;
-  border: none;
-  border-bottom: 2px solid rgba(33, 53, 40, 0.55);
-  border-radius: 0;
-  background: none;
-  position: relative;
+/* ── the scale bar ────────────────────────────────────────────────────────
+   Ours, not maplibre's. Theirs sets the ELEMENT's width to the distance, which
+   pins the figure above the rule; the figure belongs beside it, where every
+   map in the world puts it. A span for the number and a rule whose width IS
+   the measured length, on one baseline, sitting to the left of the
+   attribution's ⓘ so the map's two footers read as one line. */
+/* ABOVE the attribution, not beside it. The gap to the left of the ⓘ is where
+   the attribution's own text runs — "OpenFreeMap © OpenMapTiles Data from
+   OpenStreetMap", 313px of it — and that line has to stay readable (ODbL), so
+   sitting there put the bar on top of the credit. Directly above it, right
+   aligned to the same edge, the two still read as one corner. */
+.map-scale {
+  position: absolute;
+  right: 0.625rem;
+  bottom: 2.625rem;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.4375rem;
+  pointer-events: none;
   font-family: var(--font-sans);
   font-size: 0.625rem;
   font-weight: 600;
   letter-spacing: var(--track-caps);
-  line-height: 1.6;
   color: var(--ink-soft);
   text-shadow:
     0 0 3px rgba(250, 249, 244, 0.9),
     0 0 2px rgba(250, 249, 244, 0.9);
 }
 
-/* The two ends, so it reads as a measured length rather than as an underline
-   under a number. maplibre sets the element's WIDTH to the distance, so the
-   ticks can only hang off its corners — the figure stays above the bar rather
-   than beside it, which is the one way this differs from Flood Hub's. */
-.map-wrap .maplibregl-ctrl-scale::before,
-.map-wrap .maplibregl-ctrl-scale::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  width: 2px;
-  height: 6px;
-  background: rgba(33, 53, 40, 0.55);
-}
-.map-wrap .maplibregl-ctrl-scale::before {
-  left: 0;
-}
-.map-wrap .maplibregl-ctrl-scale::after {
-  right: 0;
+/* A measured length has two ends. */
+.map-scale-bar {
+  position: relative;
+  height: 5px;
+  border: 2px solid rgba(33, 53, 40, 0.55);
+  border-top: none;
+  transition: width 0.1s linear;
 }
 
 /* The key's own block in the left panel: a rule above it, and the phone does
@@ -575,6 +572,11 @@
 .archive-key-legend {
   margin-top: 0.875rem;
   padding-top: 0.875rem;
+  /* And room UNDER it: the next block (the transport) draws its own rule at
+     its top, and the note was landing five pixels above that line — two
+     things touching that belong to different sections. The transport pays
+     1.125rem below the rule, so this pays about the same above it. */
+  padding-bottom: 1rem;
   border-top: 1px solid var(--rule);
 }
 

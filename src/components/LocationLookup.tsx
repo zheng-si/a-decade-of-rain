@@ -171,10 +171,12 @@ export default function LocationLookup({
         <input
           type="text"
           value={query}
-          // The brief's scope, stated where the reader types: places, not
-          // unit numbers.
-          placeholder="Bases, firebases, place names…"
-          aria-label="Search bases, firebases and place names"
+          // The scope, stated where the reader types. "Firebases" went: to
+          // anyone outside the period's vocabulary it reads as two words, and
+          // one of them is a Google product. These are the things the index
+          // actually holds.
+          placeholder="Search an air base, camp or town…"
+          aria-label="Search air bases, camps and towns"
           onFocus={() => {
             ensureGaz()
             setOpen(true)
@@ -265,7 +267,8 @@ export default function LocationLookup({
         )}
         {open && query.trim() !== '' && gazReady && matches.length === 0 && (
           <p className="lookup-search-none">
-            No match. The index covers bases, firebases and place names — not unit numbers.
+            No match. The index covers air bases, army and marine bases, firebases, landing
+            zones, camps and towns — not unit numbers.
           </p>
         )}
       </div>

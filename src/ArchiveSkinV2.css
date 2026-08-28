@@ -113,18 +113,18 @@
 /* ── the place column (desktop) ────────────────────────────────────────────
    The key panel takes the Location Lookup and the record card, so it stops
    being a legend and becomes the column that answers WHERE: query at the top,
-   the answer under it, the legend at the foot. 20rem because the record list
-   carries four columns — mission id, date, agent, distance — and 12rem could
-   not hold them; the legend rows are the same rows at any width.
+   the answer under it. It grew 12 -> 20 -> 22rem as the record list moved in,
+   each step chasing the four columns that list carries.
 
    Below 641px none of this applies: the lookup renders in the control sheet
    and this panel goes back to being the record card's phone home. */
 @media (min-width: 641px) {
   .map-wrap .archive-key {
-    /* 22rem, not 20: the record list carries four columns and the widest row
-       is a mission id, a full date, an agent name and a distance. At 20 the
-       agent was the column that gave way. */
-    width: 22rem;
+    /* The SAME width as the left column, and stated as the same expression.
+       Two panels a rem and a half apart do not read as a deliberate pair of
+       different sizes; they read as one of them being slightly wrong. Whatever
+       the left column is, this matches it. */
+    width: min(23.25rem, calc(100vw - 3rem));
     padding: 0.875rem 1rem 1.125rem;
     /* It now holds a list, so it needs a floor. Scrolls inside rather than
        running off the screen — the same treatment the control sheet has on a
@@ -345,17 +345,20 @@
   border-radius: 0;
 }
 
-/* The reset button. It used to say `box-shadow: none` -- written when the
-   skin's position was that white-on-glass takes no depth at all, which is the
-   position this pass reverses. It is a 30px white square on a white panel; if
-   anything on this surface needs the recipe, it is this. */
+/* The reset button, on the switch system with everything else. It was the last
+   white-on-white control left on this surface — a 30px white square carrying a
+   hairline and a shadow to stay visible, from the era before the 6% forest
+   track existed. The track is what every other control here sits on (the
+   radius chips, the fold, the search row, the pin), and it needs no edge at
+   all. Play keeps the filled dark, because that is this system's SELECTED
+   state and play is the one control that acts rather than waits. */
 .map-wrap .transport-btn.is-ghost {
-  background: rgba(255, 255, 255, 0.75);
-  box-shadow: var(--v2-lift);
+  background: rgba(33, 53, 40, 0.06);
+  box-shadow: none;
 }
 
 .map-wrap .transport-btn.is-ghost:hover:not(:disabled) {
-  background: #fff;
+  background: rgba(33, 53, 40, 0.11);
 }
 
 .map-wrap .explorer-date {

@@ -50,6 +50,7 @@ import { loadTracks, type TrackDataset } from '../data/tracks'
 import LocationLookup, { type LookupState } from './LocationLookup'
 import { queryLookup, circlePolygon, veilPolygon, type LookupHit, type GazPlace } from './lookup'
 import { binTracks, resetTrackGrid } from './trackGrid'
+import { computeScale } from './mapScale'
 import ArchiveInspect, {
   fmtGallons,
   type Inspect,
@@ -539,6 +540,11 @@ export default function MapView() {
   const [volume, setVolume] = useState<VolumeChart | null>(null)
   const [inspect, setInspect] = useState<Inspect | null>(null)
   const isPhone = useIsPhone()
+  /** The map's scale bar. maplibre's own control puts the figure ABOVE the
+   *  rule, because it sets the element's width to the measured distance —
+   *  so this draws it instead, from the same computeScale the key used to
+   *  call, with the figure beside the rule where a map reader expects it. */
+  const [scale, setScale] = useState<{ label: string; w: number }>({ label: '', w: 0 })
   // ── location lookup ──────────────────────────────────────────────────────
   const [lookup, setLookup] = useState<LookupState>({
     center: null,
@@ -691,14 +697,7 @@ export default function MapView() {
       })
       // bottom-right keeps the top-right clear for the site nav.
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
-      // The scale belongs against the thing it measures. It lived in the key
-      // panel, which made reading a distance mean looking away from the map;
-      // maplibre's own control sits on the map and follows the camera for
-      // free, so the panel gives up both the bar and the compass.
-      map.addControl(
-        new maplibregl.ScaleControl({ maxWidth: 96, unit: 'metric' }),
-        'bottom-right',
-      )
+
       map.on('moveend', () => setCamTick((t) => t + 1))
 
       // The two military-region files are fetched ONLY when they will be drawn.
@@ -1294,6 +1293,19 @@ export default function MapView() {
   // the hit runs redrawn at full strength above the veil — their own layers
   // with no minzoom, because a hit must be visible at ANY zoom while the base
   // track layers only exist near.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map) return
+    const update = () => setScale(computeScale(map))
+    update()
+    map.on('move', update)
+    window.addEventListener('resize', update)
+    return () => {
+      map.off('move', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [ready])
+
   const lookupMarkerRef = useRef<maplibregl.Marker | null>(null)
   /** What each record tier's `visibility` was before a lookup hid it.
    *
@@ -1569,6 +1581,12 @@ export default function MapView() {
     // panel with the grab handle. Desktop CSS never reads the class.
     <div ref={wrapRef} className={inspect ? 'map-wrap inspect-open' : 'map-wrap'}>
       <div ref={containerRef} className="map-root" />
+      {ready && scale.w > 0 && (
+        <div className="map-scale" aria-hidden="true">
+          <span>{scale.label}</span>
+          <i className="map-scale-bar" style={{ width: `${scale.w}px` }} />
+        </div>
+      )}
       {/* Armed: the map is a target, and it says so over the map the reader is
           aiming at. In the panel this was a line of text appearing under the
           search box, which pushed the radius chips and the whole answer down a
