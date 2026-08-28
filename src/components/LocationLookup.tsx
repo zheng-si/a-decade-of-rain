@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { dayToDate } from '../data/spray'
 import { loadGazetteer, searchGazetteer, type GazPlace, type LookupHit } from './lookup'
 import type { GroupInfo } from './ArchiveInspect'
@@ -152,6 +152,15 @@ export default function LocationLookup({
     return { byAgent, byYear }
   }, [results, groups])
 
+  /* The × in this row used to clear the field as well as the circle, and the
+     map's own Clear could not reach in here to do the same — so the same act
+     through the other door would have left the box saying "Bien Hoa" over a
+     record with no circle on it. One rule instead, for both doors: no circle,
+     no query. Typing does not change `center`, so this cannot fire mid-word. */
+  useEffect(() => {
+    if (!center) setQuery('')
+  }, [center])
+
   return (
     <div className="lookup">
       <p className="explorer-section-label">Location Lookup</p>
@@ -218,16 +227,20 @@ export default function LocationLookup({
             />
             <circle cx="8" cy="5.7" r="1.5" fill="currentColor" />
           </svg>
+          {/* A pin on its own is a picture of a place, not an instruction. It
+              carried the whole meaning of the second way to ask a question
+              here, and the row it sits in is otherwise a search box — so it
+              read as an ornament on the end of a field. The word is measured
+              to fit: the placeholder renders at 161px inside a 218px box, so
+              there are 57px spare and this spends about 26 of them. */}
+          <span className="lookup-search-word">Pick</span>
         </button>
         {(center || query) && (
           <button
             className="lookup-search-btn"
             aria-label="Clear the search"
             title="Clear"
-            onClick={() => {
-              setQuery('')
-              onClear()
-            }}
+            onClick={onClear}
           >
             <svg viewBox="0 0 16 16" width="11" height="11" aria-hidden="true">
               <path

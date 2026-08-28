@@ -1705,12 +1705,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.3125rem;
   width: 1.875rem;
   border: none;
   border-radius: 0;
   background: none;
   color: inherit;
   cursor: pointer;
+}
+/* The one button in the row that carries a word takes its width from the word.
+   The × keeps the square: a cross needs no gloss, and two labels in a 275px
+   row would leave nothing for the field. */
+.lookup-search-btn:has(.lookup-search-word) {
+  width: auto;
+  padding: 0 0.5rem;
+}
+.lookup-search-word {
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
 }
 .lookup-search-btn:hover {
   background: rgba(33, 53, 40, 0.05);

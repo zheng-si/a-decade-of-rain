@@ -633,6 +633,14 @@ export default function MapView() {
     return () => ro.disconnect()
   }, [ready])
 
+  /** The one way out of a lookup. Hoisted because there are now two doors
+   *  onto it — the × in the search row and the Clear on the map's own hint —
+   *  and two exits that do almost the same thing is how they drift apart. */
+  const clearLookup = useCallback(
+    () => setLookup((s) => ({ ...s, center: null, picking: false, place: undefined })),
+    [],
+  )
+
   // Bumped on moveend so the URL mirror below sees camera changes.
   const [camTick, setCamTick] = useState(0)
 
@@ -1730,7 +1738,7 @@ export default function MapView() {
       cardOpen={inspect != null}
       onPickToggle={() => setLookup((s) => ({ ...s, picking: !s.picking }))}
       onRadius={(km) => setLookup((s) => ({ ...s, radiusKm: km }))}
-      onClear={() => setLookup((s) => ({ ...s, center: null, picking: false, place: undefined }))}
+      onClear={clearLookup}
       onOpen={openLookupHit}
       onPlace={handlePlace}
       onBack={() => {
@@ -1765,6 +1773,20 @@ export default function MapView() {
         <p className="map-pick-hint" role="status">
           Click the map to set the point
           <button onClick={() => setLookup((s) => ({ ...s, picking: false }))}>Cancel</button>
+        </p>
+      )}
+      {/* And the same sign for the state the circle leaves the map IN. A
+          lookup hides every run outside it, which is most of the record, and
+          the only thing on the map that said so was the dashed circle itself —
+          the way out lived in a × in the panel, three hundred pixels from
+          where the reader is looking. Same furniture as the pick hint above,
+          because it is the same kind of fact: the map is in a mode, and here
+          is how it ends. Never both at once: while picking, the pick hint is
+          the one that matters. */}
+      {ready && !lookup.picking && lookup.center && (
+        <p className="map-pick-hint" role="status">
+          Showing {lookup.radiusKm} km around {lookup.place ? lookup.place.name : 'this point'}
+          <button onClick={clearLookup}>Clear</button>
         </p>
       )}
       {/* The Archive IS the map — there is no prose to fall back to — so when
