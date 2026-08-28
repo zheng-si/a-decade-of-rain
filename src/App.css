@@ -541,10 +541,10 @@
    map in the world puts it. A span for the number and a rule whose width IS
    the measured length, on one baseline, sitting to the left of the
    attribution's ⓘ so the map's two footers read as one line. */
-/* Above the credit on a phone, where the line collapses to the ⓘ badge and
-   the sheet owns the bottom of the screen; BESIDE it on a desktop, where it
-   stands open (see the desktop rule below). Either way it is right-aligned to
-   the same edge, so the map's two footers read as one corner. */
+/* Above the credit on a phone, where the sheet owns the bottom of the screen;
+   to the LEFT of it on a desktop (see the rule below). Either way it is
+   right-aligned to the same edge, so the map's two footers read as one
+   corner. */
 .map-scale {
   position: absolute;
   right: 0.625rem;
@@ -564,18 +564,21 @@
     0 0 2px rgba(250, 249, 244, 0.9);
 }
 
-/* One line, in the order the eye reads it: the measured length, then who
-   measured the ground. The credit's width is not a constant — MapLibre
-   collapses it to a badge under 640px and opens it above — so the offset is
-   the measured width plus a gap, mirrored onto the wrap by the component. The
-   fallback keeps the bar off the credit on the frame before the first
-   measurement. */
+/* One line, in the order the eye reads it: the measured length, then the ⓘ
+   that says whose ground it was measured on. The badge's width is not a
+   constant — 24px closed, the whole credit line open, and the reader flips
+   between them by pressing it — so the offset is its MEASURED width plus a
+   gap (--attrib-w, mirrored onto the wrap by the component). Open the credit
+   and the bar slides left ahead of it instead of being written over. The
+   fallback is the badge closed, for the frame before the first measurement. */
 @media (min-width: 641px) {
   .map-scale {
-    right: calc(var(--attrib-w, 20rem) + 1.125rem);
-    /* Centred on the credit's line, not on its box: MapLibre's own padding
-       sits the text 5px above the middle of the element it measures. */
-    bottom: 0.375rem;
+    /* px, not rem, alone on this surface: everything this aligns to is
+       MapLibre's own — a 24px badge on a 10px margin — and none of it scales
+       with our type. 18 = that margin plus an 8px gap; 16 puts the bar's
+       middle on the badge's. */
+    right: calc(var(--attrib-w, 24px) + 18px);
+    bottom: 16px;
   }
 }
 

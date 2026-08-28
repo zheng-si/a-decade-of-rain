@@ -617,10 +617,10 @@ export default function MapView() {
     ro.observe(panel)
     return () => ro.disconnect()
   }, [ready])
-  // And the credit line's width, for the scale bar that sits beside it. The
-  // line is one string, but not one width: it collapses to the ⓘ badge under
-  // 640px and stands open above it, and the reader can resize across that.
-  // Measured rather than assumed for the same reason the panel is.
+  // The credit's width, for the scale bar that sits to its left. Not a
+  // constant and not a media query: the badge is 24px closed and 300-odd open,
+  // and the reader flips between the two by pressing it. Measured, so the bar
+  // moves when it moves.
   useEffect(() => {
     const wrap = wrapRef.current
     if (!wrap || !ready) return
@@ -725,13 +725,11 @@ export default function MapView() {
         maxZoom: mapConfig.view.maxZoom,
         maxBounds: mapConfig.view.maxBounds,
         maxPitch: mapConfig.view.maxPitch,
-        // No `compact`, on purpose. Left to itself MapLibre reads the map's
-        // own width: under 640px the credit collapses to the ⓘ badge, above
-        // it the line stands open, and it re-decides on every resize. Forced
-        // compact, the desktop shipped a badge the reader had to press to see
-        // who made the map — and a scale bar could not sit beside it, because
-        // the thing it would sit beside changed width on a click.
-        attributionControl: {},
+        // Compact everywhere: the credit is a ⓘ badge until the reader asks
+        // for it. The scale bar sits to its LEFT and follows it — pressing the
+        // badge opens the credit line and slides the bar along with it (the
+        // --attrib-w observer below is what makes that work).
+        attributionControl: { compact: true },
       })
       mapRef.current = map
 
@@ -763,9 +761,10 @@ export default function MapView() {
         resizeTimer = window.setTimeout(() => applyHome(true), 120)
       })
       // Still bottom-right, but the CSS steps it left of the place column and
-      // above the credit line — the column now runs the full height of the
-      // left panel, and its floor lands exactly where this pair used to sit.
-      // The corners belong to the columns; the strip between them does not.
+      // above the credit line. An expanded record list can reach the bottom of
+      // the screen, and where it does, the panel drew straight over the + —
+      // the reader could see the button and not press it. The corner belongs
+      // to the column; the strip between the two panels does not.
       // (Bottom-LEFT was tried first and is worse: the left panel has no
       // height cap, so on a 700px-tall window it buries the pair the same
       // way — measured, nav 632-690 under a panel ending at 696.)

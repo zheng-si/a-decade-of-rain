@@ -131,23 +131,16 @@
        as the wider one — which it was, where it counts. Same box, same inset,
        and the two columns' first lines now sit on one baseline. */
     padding: 1.5rem 1.5rem 1.375rem;
-    /* And the same BOTTOM. The two columns start on one line at top 1.5rem,
-       so matching the left column's height is what makes them end on one too
-       — and an expanded record list is the only thing on this surface long
-       enough to have an opinion about where the column stops. --panel-h is
-       the left panel's live height, already mirrored onto the wrap for the
-       phone card (see the ResizeObserver in MapView); the viewport cap stays
-       behind it for the short-window case, where the left column itself runs
-       off the screen.
+    /* It holds a list, so it needs a floor. Scrolls inside rather than running
+       off the screen — the same treatment the control sheet has on a phone,
+       for the same reason.
 
-       A column with a floor still has to decide WHICH part of it scrolls. The
-       whole panel scrolling took the search field away with it, so the list
-       is the part that gives: the flex chain below lets it shrink to whatever
-       is left after the query and the answer, and `overflow-y` here is the
-       fallback for the window too short to hold even those. */
-    max-height: min(var(--panel-h, 100vh), calc(100vh - 3rem));
-    display: flex;
-    flex-direction: column;
+       The floor is the VIEWPORT, not the left column. Matching the left
+       column's height was tried and reverted: two columns read as one height
+       only while the list is open, so the right column grew and shrank by
+       260px as the reader folded it — a column that changes height on a press
+       is worse than two columns that were never the same height. */
+    max-height: calc(100vh - 3rem);
     overflow-y: auto;
   }
 
@@ -168,23 +161,6 @@
        -1.7px, which is to say it did not. */
     margin-right: calc(var(--place-col) + 2.25rem);
     margin-bottom: 2.375rem;
-  }
-
-  /* min-height: 0 twice, because a flex item will not shrink below its content
-     without it — the pair of declarations that make the list, and not the
-     panel, the thing that absorbs a 200-row answer. */
-  .map-wrap .archive-key > .lookup {
-    display: flex;
-    flex-direction: column;
-    min-height: 0;
-  }
-
-  .map-wrap .archive-key .lookup-list {
-    /* 13.5rem was a guess at how much list a panel could hold. The panel now
-       knows exactly, so the list takes the rest of the column instead. */
-    max-height: none;
-    flex: 1 1 auto;
-    min-height: 0;
   }
 
   /* First in the panel, so the seam it used to draw against the agent block
