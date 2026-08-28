@@ -527,6 +527,61 @@ function markRamp(): maplibregl.ExpressionSpecification {
   ] as unknown as maplibregl.ExpressionSpecification
 }
 
+/** The mark ramp plus a ring's worth of clearance.
+ *
+ *  Written as its own ramp rather than `['+', markRamp(), 2.5]`, which is what
+ *  it was: a `zoom` expression may only be the input to a top-level step or
+ *  interpolate, so wrapping one in an arithmetic operator makes a layer
+ *  MapLibre refuses — and refuses QUIETLY, because addLayer validates, logs and
+ *  returns. The layer never existed. Every Archive load logged the rejection
+ *  and the 2,829 runs logged at one point highlighted nothing, hovered or
+ *  opened, while line runs lit up normally. The constant goes inside each zoom
+ *  stop, where it is allowed, exactly as endRamp already does with head/tail. */
+function markHiRamp(): maplibregl.ExpressionSpecification {
+  const m = TRACKS.marks
+  const at = (k: number) => ['+', ['min', ['*', k, ['sqrt', ['get', 'gallons']]], m.cap], 2.5]
+  return [
+    'interpolate', ['linear'], ['zoom'],
+    Z_FAR, at(m.kFar),
+    Z_TOP, at(m.kNear),
+  ] as unknown as maplibregl.ExpressionSpecification
+}
+
+/** The record's stroke and mark ramps WITH A FLOOR, for a lookup's hit runs.
+ *
+ *  A run with no volume booked has gpk 0, and 0 gallons per km is 0 px of
+ *  stroke. In the record that is correct and invisible on purpose — the nil
+ *  tier draws those runs as a dashed line when it is switched on. Inside a
+ *  lookup circle there is no nil tier: the answer said "32 runs within 5 km",
+ *  the By Agent bars counted 32 and the list held 32 rows, while the map drew
+ *  26 — and the missing six could not be clicked either, because a stroke with
+ *  no width has nothing to hit. The floor is the thinnest mark this map makes,
+ *  so a no-volume run reads as the least of them rather than as nothing.
+ *
+ *  Exported so the lookup builds the ENCODING rather than copying a number:
+ *  these read TRACKS at call time, like every other ramp here. Taking them off
+ *  the track layer's live paint (which is what the lookup did) also meant a
+ *  deep link — where the circle exists before spray-tracks.json lands — baked
+ *  in the 2.4px fallback and never revisited it. */
+export function hitWidthRamp(floor: number): maplibregl.ExpressionSpecification {
+  const at = (w: TrackRamp) => ['max', ['min', ['*', w.k, ['get', 'gpk']], w.cap], floor]
+  return [
+    'interpolate', ['linear'], ['zoom'],
+    Z_FAR, at(TRACKS.far),
+    Z_TOP, at(TRACKS.near),
+  ] as unknown as maplibregl.ExpressionSpecification
+}
+
+export function hitMarkRamp(floor: number): maplibregl.ExpressionSpecification {
+  const m = TRACKS.marks
+  const at = (k: number) => ['max', ['min', ['*', k, ['sqrt', ['get', 'gallons']]], m.cap], floor]
+  return [
+    'interpolate', ['linear'], ['zoom'],
+    Z_FAR, at(m.kFar),
+    Z_TOP, at(m.kNear),
+  ] as unknown as maplibregl.ExpressionSpecification
+}
+
 /** Push the current TRACKS onto a live map — one function that knows how a
  *  track parameter reaches the screen, called at creation and by the console. */
 export function applyTracks(map: maplibregl.Map) {
@@ -777,7 +832,7 @@ export function addTrackLayers(
       filter: ['==', ['geometry-type'], 'Point'],
       paint: {
         'circle-color': 'rgba(0,0,0,0)',
-        'circle-radius': ['+', markRamp(), 2.5] as never,
+        'circle-radius': markHiRamp() as never,
         'circle-stroke-color': tint,
         'circle-stroke-width': 1.75,
         'circle-pitch-alignment': 'map',

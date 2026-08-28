@@ -40,6 +40,8 @@ import {
   setTrackHover,
   setTrackTaper,
   taperGradient,
+  hitWidthRamp,
+  hitMarkRamp,
   setTrackTime,
   setTrackAgents,
   setTrackDraw,
@@ -324,14 +326,14 @@ function readUrlState(): UrlState {
   const agent = q.get('agent')
   if (agent) out.agent = agent
   const cam = (q.get('cam') ?? '').split(',').map(Number)
-  if (cam.length === 3 && cam.every(Number.isFinite))
+  if (cam.length === 3 && cam.every(Number.isFinite) && onEarth(cam[0], cam[1]))
     out.cam = { center: [cam[0], cam[1]], zoom: cam[2] }
   if (q.get('view') === '3d') out.is3D = true
   // Location lookup, per the brief's own parameter names: lat, lng, r, from, to.
   if (q.get('lat') != null && q.get('lng') != null) {
     const lat = Number(q.get('lat'))
     const lng = Number(q.get('lng'))
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    if (Number.isFinite(lat) && Number.isFinite(lng) && onEarth(lng, lat)) {
       const r = Number(q.get('r'))
       out.lookup = {
         lat,
@@ -344,6 +346,17 @@ function readUrlState(): UrlState {
   }
   return out
 }
+
+/** Whether a pair of numbers is a place on Earth.
+ *
+ *  isFinite is not that test, and it was the only one here: ?lat=106.8&lng=10.9
+ *  — the two swapped, which is the commonest way to mistype a coordinate —
+ *  handed 106.8 to LngLat as a latitude, which throws, and the throw happened
+ *  during render. #root ended up with zero children: a white page, no map, no
+ *  panel, no message, no way back. A URL is untrusted input like any other; a
+ *  bad one should cost the reader the deep link, not the site. */
+const onEarth = (lng: number, lat: number) =>
+  lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180
 
 /** Serialise the current view; defaults (full record, all agents, home camera,
  *  flat) are omitted so the canonical URL stays clean. */
@@ -633,6 +646,21 @@ export default function MapView() {
     return () => ro.disconnect()
   }, [ready])
 
+  /** A NEW QUESTION CLOSES THE OLD ANSWER.
+   *
+   *  Searching a second place, or picking a second point, while a record card
+   *  was open left the card up — a Bien Hoa run reading over a map that had
+   *  already flown to Da Nang, with the panel offering "← Back to 4 results"
+   *  and no answer at all, because the card's presence is what suppresses it.
+   *  Every door into a new centre had to remember to close it; this is the one
+   *  place that knows a centre changed. Opening a record from the list does
+   *  not move the centre, so it does not trip this. */
+  useEffect(() => {
+    setInspect(null)
+    pinnedRunRef.current = null
+    if (mapRef.current) paintLit(mapRef.current, hoverRunRef.current)
+  }, [lookup.center?.lng, lookup.center?.lat])
+
   /** The one way out of a lookup. Hoisted because there are now two doors
    *  onto it — the × in the search row and the Clear on the map's own hint —
    *  and two exits that do almost the same thing is how they drift apart. */
@@ -776,6 +804,26 @@ export default function MapView() {
       // in the middle of the map, which is worse than the collision. Left
       // where readers expect them.
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
+
+      // Fold the credit to its ⓘ once, the way the Story already does.
+      // MapLibre's compact attribution renders EXPANDED and folds on the map's
+      // own `drag` — so the Archive sat with the full 351px line across the
+      // corner until the reader happened to pan, which on a phone covered 90%
+      // of the map's top edge, and here also parked the scale bar 327px left of
+      // where it settles. The class is not there at load (it arrives when the
+      // source's attribution resolves), so this watches for it rather than
+      // guessing a moment, folds it, and disconnects: one add, one removal, and
+      // the reader's own press on the ⓘ still works.
+      const attribEl = map.getContainer().querySelector('.maplibregl-ctrl-attrib')
+      if (attribEl) {
+        const obs = new MutationObserver(() => {
+          if (attribEl.classList.contains('maplibregl-compact-show')) {
+            attribEl.classList.remove('maplibregl-compact-show')
+            obs.disconnect()
+          }
+        })
+        obs.observe(attribEl, { attributes: true, attributeFilter: ['class'] })
+      }
 
       map.on('moveend', () => setCamTick((t) => t + 1))
 
@@ -1530,9 +1578,7 @@ export default function MapView() {
             // install would paint the hits black instead of flat colour.
             'line-color': colour,
             ...(taper ? { 'line-gradient': taper as never } : {}),
-            'line-width': (map.getLayer(TRACK_LAYER)
-              ? map.getPaintProperty(TRACK_LAYER, 'line-width')
-              : 2.4) as never,
+            'line-width': hitWidthRamp(1.2) as never,
           },
         })
       })
@@ -1545,9 +1591,7 @@ export default function MapView() {
           'circle-color': ['get', 'c'],
           // And AREA IS GALLONS for the single-point runs, the same as the
           // record's own marks — same reason as the strokes above.
-          'circle-radius': (map.getLayer(TRACK_MARK_LAYER)
-            ? map.getPaintProperty(TRACK_MARK_LAYER, 'circle-radius')
-            : 4) as never,
+          'circle-radius': hitMarkRamp(2.2) as never,
           'circle-stroke-color': '#ffffff',
           'circle-stroke-width': 1,
         },
