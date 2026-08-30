@@ -225,62 +225,54 @@
 }
 
 /* ── the identity block ────────────────────────────────────────────────── */
-/* The year joins the two lines below it in the display serif — see the note on
-   .explorer-title. It is the third element of the same block, and leaving it in
-   Geist left that block reading sans / serif / serif.
-
-   Its size moves with the family: 1rem was the only font-size on this surface
-   that was not on the type ladder, and the Story card sets its own eyebrow at
-   the SAME tier as its title. So this lands on 1.5rem alongside .explorer-title
-   and fixes the off-ladder value in the same edit rather than leaving it for a
-   later sweep. */
+/* The span, in the panel's own caps tier — the same 10-ish px, 600, 0.06em
+   the section labels and the list head are set in. It had been 16px Courier,
+   sized to sit beside a title in the same face; against a Geist title it was
+   a second heading rather than the label above one. */
 .map-wrap .explorer-eyebrow {
-  /* All three values are .story-eyebrow's, measured off it rather than guessed:
-     `normal` leading (1.324 for Playfair) against the 1.05 this used to carry,
-     and 0.5rem below against 0.25. Same face, same size, same tier — and the
-     year-to-title baseline was landing 26.6px apart here against 30.9 there. */
-  /* Slimmed (2026-08, reader feedback): the identity block was crowding the
-     controls out of the first screen. Ladder is now 1 / 1.25 / 0.875 — the
-     year steps DOWN from the title instead of matching it, which is what an
-     eyebrow is. */
   margin: 0 0 0.375rem;
-  font-family: 'Courier Prime', 'Courier Viet Fallback', 'Courier New', Courier, monospace;
+  font-family: var(--font-sans);
   text-transform: uppercase;
-  font-weight: 400;
-  font-size: 1rem;
-  line-height: normal;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: var(--track-caps);
+  line-height: 1.2;
 }
 
-/* THE ONE DELIBERATE EXCEPTION TO §1's "one typeface", and it is worth stating
-   plainly rather than leaving as a mystery in the diff.
+/* THE EXCEPTION IS OVER, and the reason it existed is worth keeping next to
+   the reason it stopped.
 
-   This block is the Archive's answer to the Story's node card: same job (a
-   year, a name, a line that says what you are looking at), read by the same
-   person minutes apart. In Geist it read as a different KIND of thing —
-   interface chrome rather than the head of a document — and the two surfaces
-   stopped rhyming at the one place a reader compares them directly.
+   These three lines were Courier because this block was the Archive's answer
+   to the Story's node card — same job (a year, a name, a line saying what you
+   are looking at), read by the same person minutes apart — and in Geist the
+   pair stopped rhyming at the one place a reader compares them directly.
 
-   The values are not invented: App.css already set exactly these before the v2
-   spike overrode them, and they are exactly `.story-name` and `.story-dek`'s
-   tier (1.5rem / 1.0625rem, weight 400). So this restores an agreement rather
-   than proposing one. Weight stays 400 because Playfair carries its emphasis
-   in the letterforms; 500 would give it a semibold it was never drawn to need.
+   That argument holds only while the Archive is a chapter of the Story. It is
+   a place you come to LOOK SOMETHING UP, reached on its own and increasingly
+   linked to on its own, and a typewriter face borrowed from a neighbour makes
+   it read as that neighbour's annexe. One typeface for the whole surface now,
+   with the emphasis carried by weight the way the rest of the panel carries
+   it: 600 names things, 400 says them.
 
-   Everything else in the panel stays Geist. --font-serif is still pointed at
-   the sans for the subtree, so nothing else drifts back by accident — these two
-   rules name the face explicitly, which is what makes them the exception
-   rather than a hole in the rule. */
+   Uppercase goes with the face. It was a typewriter conceit — Courier has no
+   real bold, so caps were how that face shouted — and Geist at 600 does not
+   need it. "The HERBS Record" also keeps its own caps in the acronym, which
+   an all-caps setting would have flattened away. */
 .map-wrap .explorer-title,
 .map-wrap .explorer-subtitle {
-  font-family: 'Courier Prime', 'Courier Viet Fallback', 'Courier New', Courier, monospace;
-  font-weight: 400;
+  font-family: var(--font-sans);
 }
 
 .map-wrap .explorer-title {
-  text-transform: uppercase;
-  margin: 0 0 0.5rem;
+  text-transform: none;
+  margin: 0 0 0.375rem;
   font-size: 1.25rem;
-  line-height: 1.14;
+  font-weight: 600;
+  /* Geist sets loose at display sizes next to the 11px it runs at everywhere
+     else in this panel; a hair negative brings the title back to the density
+     of what it heads. */
+  letter-spacing: -0.01em;
+  line-height: 1.2;
 }
 
 /* 12, not 16. The subtitle and the paragraph under it are one thought — the
@@ -290,8 +282,10 @@
    reading as caption under a 20px title. */
 .map-wrap .explorer-subtitle {
   margin: 0 0 0.625rem;
-  font-size: 1rem;
-  line-height: 1.35;
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--ink-soft);
 }
 
 /* Regular 12px. Light was too thin to hold at 12 against a Medium title and

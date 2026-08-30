@@ -305,21 +305,31 @@ export default function Timeline({
       </button>
       <header className="explorer-head">
         <p className="explorer-eyebrow">1961–1971</p>
-        <h1 className="explorer-title">The Archive</h1>
-        <p className="explorer-subtitle">The Decade of Defoliation, Replayable.</p>
+        {/* The source's own name, and what you can do with it. "The Archive /
+            The Decade of Defoliation, Replayable." named a chapter of the
+            Story and promised a replay; this is a place you come to LOOK
+            something up, and it should say so before the reader has to find
+            the search box to learn it. */}
+        <h1 className="explorer-title">The HERBS Record</h1>
+        <p className="explorer-subtitle">Every logged spray run, searchable by place.</p>
         {/* One citation line, then verbs. The old three-sentence paragraph
             answered "what is this" beautifully and was read by nobody — the
             reader wants to know what their hands can do. Each bullet is one
             action; the mechanics (how the dots are counted, how volume is
             spread) live in Methods, not here. */}
         <p className="explorer-dek">
-          The complete{' '}
+          {/* "HERBS" moved up into the title, so the link drops it: the head
+              read "The HERBS Record" and then, two lines down and underlined,
+              "the complete HERBS record". Same link, same target, same claims
+              — the title now says whose record it is and this says how
+              complete it is and who assembled it. */}
+          The{' '}
           <a
             href="https://github.com/andrewstellman/hea-v"
             target="_blank"
             rel="noopener noreferrer"
           >
-            HERBS record
+            complete record
           </a>{' '}
           behind Stellman et&nbsp;al. (2003): 8,360 spray runs, 19.5M gallons, 1961–1971.
         </p>
