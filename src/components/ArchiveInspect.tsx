@@ -99,9 +99,14 @@ interface Props {
    *  apart, is one more than the reader needs to read. */
   showClose?: boolean
   /** Rendered inside the lookup's own list, under the row it belongs to.
-   *  The row above already prints Mission·Run under a MISSION·RUN header, so
-   *  the citation line would say the identifier twice; the aircraft count,
-   *  which is the only other thing that line carried, joins the agent. */
+   *
+   *  The record opens with what the ROW does not already say. The row prints
+   *  Mission·Run, the date and the agent under their own headings and stands
+   *  on the agent's colour, so the citation, the date and the agent line are
+   *  all repetitions — three of the record's five lines saying again what the
+   *  reader clicked ON. What is left is one line: the volume, and what the
+   *  flight did with it. The aircraft count, homeless once the agent line
+   *  goes, joins the counts it belongs with. */
   compact?: boolean
   onClose: () => void
 }
@@ -255,18 +260,21 @@ export default function ArchiveInspect({
 
               A line's "where" is its date; the waypoint card keeps the
               coordinate because a waypoint really is one place. */}
-          <p className="inspect-coords">
-            {data.km != null ? fullDate(data.day) : fmtCoords(data.coords)}
-          </p>
-          <p className="inspect-coords is-span">
-            <span
-              className="inspect-dot"
-              style={{ background: groups[data.groupIndex]?.color ?? '#999' }}
-            />{' '}
-            {groups[data.groupIndex]?.label ?? 'Unknown'}
-            {data.km == null && <> · {fullDate(data.day)}</>}
-            {compact && data.fwac != null && data.fwac > 0 && <> · {data.fwac} aircraft</>}
-          </p>
+          {!compact && (
+            <>
+              <p className="inspect-coords">
+                {data.km != null ? fullDate(data.day) : fmtCoords(data.coords)}
+              </p>
+              <p className="inspect-coords is-span">
+                <span
+                  className="inspect-dot"
+                  style={{ background: groups[data.groupIndex]?.color ?? '#999' }}
+                />{' '}
+                {groups[data.groupIndex]?.label ?? 'Unknown'}
+                {data.km == null && <> · {fullDate(data.day)}</>}
+              </p>
+            </>
+          )}
           <p className="inspect-figure">
             {data.gallons > 0 ? (
               <>
@@ -282,11 +290,21 @@ export default function ArchiveInspect({
               'Flight path point'
             )}
           </p>
+          {/* A run with no line is a single waypoint, and its coordinate is the
+              one locating fact the row above does not carry — the row's "6.9
+              km" is the distance from the searched point, not a position. It
+              takes the stats' column, and comes AFTER the figure in the DOM
+              because grid auto-placement only moves forward: a column-2 item
+              written first would push the column-1 figure onto the next row.
+              Without it the fold answered "275 Gallons" and nothing else. */}
+          {compact && data.km == null && (
+            <p className="inspect-coords is-span">{fmtCoords(data.coords)}</p>
+          )}
           {/* Length and dose, in the cell card's own stats grammar. The second
               figure is the one the stroke's width encodes, so the card names
               the quantity the reader is looking at rather than leaving them to
               divide the first two. */}
-          {data.km != null && (
+          {(data.km != null || (compact && data.fwac != null && data.fwac > 0)) && (
             <p className="inspect-sub is-stats">
               {/* Bare units, not "km Flown" and "Gal / km". The card is 210px
                   wide and the longer pair of words broke each figure away from
@@ -294,12 +312,22 @@ export default function ArchiveInspect({
                   slash in "Gal / km" left dangling at the end of the first. A
                   figure and its unit are one atom, so they get nowrap and short
                   enough words to keep it. */}
-              <span className="stat-pair">
-                <strong>{data.km.toFixed(1)}</strong> km
-              </span>
+              {data.km != null && (
+                <span className="stat-pair">
+                  <strong>{data.km.toFixed(1)}</strong> km
+                </span>
+              )}
               {data.gpk != null && data.gpk > 0 && (
                 <span className="stat-pair">
                   <strong>{Math.round(data.gpk).toLocaleString()}</strong> Gal/km
+                </span>
+              )}
+              {/* Only inline. On the standalone card it stays on the citation
+                  line, where it says how many aircraft flew the mission the
+                  line is citing. */}
+              {compact && data.fwac != null && data.fwac > 0 && (
+                <span className="stat-pair">
+                  <strong>{data.fwac}</strong> aircraft
                 </span>
               )}
             </p>

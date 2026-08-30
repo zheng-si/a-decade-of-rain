@@ -881,8 +881,18 @@
   grid-column: 1;
   display: inline-flex;
   align-items: baseline;
-  gap: 0.25rem;
+  /* A word space, because that is what it is. Every other figure on the card
+     is written "<strong>18.1</strong> km" and gets the 2.4px the font gives a
+     space; this one is a span, and the flex gap I gave it landed ON TOP of the
+     margin-left the span already carried — 6.78px between "4K" and "Gallons"
+     against 2.4px between "18.1" and "km", in one line of four figures. The
+     margin goes; the gap stays and is set to a space. */
+  gap: 0.1875rem;
   white-space: nowrap;
+}
+.map-wrap .lookup-detail .inspect-figure-unit,
+.map-wrap .archive-key > .archive-inspect .inspect-figure-unit {
+  margin-left: 0;
 }
 .map-wrap .lookup-detail .inspect-sub.is-stats,
 .map-wrap .archive-key > .archive-inspect .inspect-sub.is-stats {
