@@ -166,7 +166,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
       { name: 'Cần Thơ', lng: 105.78, lat: 10.03 },
     ],
     dek: 'The coastal forests of Cà Mau and the Rừng Sác.',
-    body: 'Mangroves prove catastrophically fragile: a single spraying can kill a whole forest. The Rừng Sác shipping channels and the Cà Mau peninsula are among the hardest hit; across the war, some 3.1 million hectares of forest and mangrove are defoliated between Quảng Trị and Cà Mau — damage scientists later brand an “ecocide.”',
+    body: 'Mangroves prove catastrophically fragile: a single spraying can kill a whole forest. The Rừng Sác shipping channels and the Cà Mau peninsula are among the hardest hit; across the war, some 3.1 million hectares of forest and mangrove are defoliated between Quảng Trị and Cà Mau, damage scientists later brand an “ecocide.”',
     stat: { value: '3.1M\u00A0ha', label: 'forest and mangrove defoliated' },
   },
   {
@@ -183,7 +183,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
       { name: 'A Lưới', lng: 107.28, lat: 16.22 },
     ],
     dek: 'A corridor to the Ho Chi Minh Trail, drenched again and again.',
-    body: 'Some 224 spray runs cross the A Sầu / A Lưới valley between 1965 and 1970, parts of it sprayed as many as eleven times. Decades later, soil around the former A So air base still held nearly 900\u00A0ppt of dioxin — one of the country’s enduring hotspots. Residents have told the Pulitzer Center that for years after the spraying, no rice would grow.',
+    body: 'Some 224 spray runs cross the A Sầu / A Lưới valley between 1965 and 1970, parts of it sprayed as many as eleven times. Decades later, soil around the former A So air base still held nearly 900\u00A0ppt of dioxin, one of the country’s enduring hotspots. Residents have told the Pulitzer Center that for years after the spraying, no rice would grow.',
     stat: { value: '11', label: 'times sprayed, in places' },
   },
   {
@@ -202,7 +202,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
     dek: 'Spraying stops; the poison stays at the bases.',
     body: 'Ranch Hand winds down and ends in 1971. But the dioxin concentrates where the drums were stored and loaded: the air bases. Biên Hòa remains the single largest reservoir of contamination, the focus of remediation that continues to this day.',
     quote: {
-      text: 'the largest remaining dioxin hotspot in Vietnam — and, arguably, in the entire world.',
+      text: 'the largest remaining dioxin hotspot in Vietnam and, arguably, in the entire world.',
       speaker: 'On Biên Hòa Air Base',
       sourceId: 'aspen_bienhoa',
     },

@@ -141,7 +141,7 @@ function StoryQuote({
       <div className="story-quote-body">
         <p>“{quote.text}”</p>
         <cite>
-          — {quote.speaker}
+          {quote.speaker}
           {src && (
             <>
               {', '}

@@ -67,8 +67,13 @@ interface TimelineProps {
    *  an expanded panel under an open card reads as two stacked cards. */
   inspectOpen?: boolean
   /** The Location Lookup section, composed by MapView (which owns the query
-   *  state and the map). Rendered between the agents block and the legend. */
+   *  state and the map). Phone only — on a desktop it lives in the place
+   *  column (see useIsPhone in MapView). */
   lookupSlot?: ReactNode
+  /** The map key: view switch, scale, legend. It belongs with the other
+   *  things that say how to READ the map rather than with the things that
+   *  answer a question, so it closes this panel. Desktop only. */
+  keySlot?: ReactNode
   onScrub: (day: number) => void
   onPlay: () => void
   onPause: () => void
@@ -105,6 +110,7 @@ export default function Timeline({
   onToggle3D,
   inspectOpen = false,
   lookupSlot,
+  keySlot,
   onScrub,
   onPlay,
   onPause,
@@ -287,11 +293,35 @@ export default function Timeline({
           behind Stellman et&nbsp;al. (2003): 8,360 spray runs, 19.5M gallons, 1961–1971.
         </p>
         <ul className="explorer-guide">
+          {/* The verb is the point of each line — bold it and the three
+              bullets can be read as three actions at a glance, without
+              reading the sentences at all. */}
+          <li>
+            <strong>Press play</strong> to watch the decade fall month by month.
+          </li>
+          <li>
+            Each dot is a grid cell&apos;s gallons. <strong>Click</strong> it for the record.
+          </li>
+          <li>
+            <strong>Zoom in</strong> until the dots give way to the flight tracks themselves.
+          </li>
+        </ul>
+        {/* With the guide, not at the foot of the panel: it is the fourth
+            thing the reader can do, and the three above it are verbs too. */}
+        <p className="explorer-links">
+          <Link to="/">← Read the Story</Link>
+        </p>
+        <ul className="explorer-guide">
           <li>Press play to watch the decade fall month by month.</li>
           <li>Each dot is a grid cell&apos;s gallons. Click it for the record.</li>
           <li>Zoom in until the dots give way to the flight tracks themselves.</li>
         </ul>
       </header>
+
+      {/* The key reads before the controls, not after them: it says what the
+          marks on the map ARE, and the transport and the filter below it are
+          what the reader does to them. */}
+      {keySlot}
 
       <div className="explorer-transport">
         <div className="transport-buttons">
@@ -432,9 +462,6 @@ export default function Timeline({
         Dot size is a cell&apos;s gallons. Tap any dot to open its record.
       </p>
 
-      <p className="explorer-links">
-        <Link to="/">← Read the Story</Link>
-      </p>
     </section>
   )
 }

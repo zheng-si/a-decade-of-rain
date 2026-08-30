@@ -34,10 +34,16 @@ import {
 import {
   addTrackLayers,
   TRACK_LAYER,
+  TRACK_MARK_LAYER,
   TRACK_DIM_LAYER,
+  TRACK_END_LAYER,
   TRACK_NIL_LAYER,
   setTrackHover,
+  setHighlightByFeature,
   setTrackTaper,
+  taperGradient,
+  hitWidthRamp,
+  hitMarkRamp,
   setTrackTime,
   setTrackAgents,
   setTrackDraw,
@@ -47,8 +53,16 @@ import {
 } from './trackLayers'
 import { loadTracks, type TrackDataset } from '../data/tracks'
 import LocationLookup, { type LookupState } from './LocationLookup'
-import { queryLookup, circlePolygon, veilPolygon, type LookupHit, type GazPlace } from './lookup'
+import {
+  queryLookup,
+  circlePolygon,
+  veilPolygon,
+  loadGazetteer,
+  type LookupHit,
+  type GazPlace,
+} from './lookup'
 import { binTracks, resetTrackGrid } from './trackGrid'
+import { computeScale } from './mapScale'
 import ArchiveInspect, {
   fmtGallons,
   type Inspect,
@@ -165,8 +179,85 @@ const LOOKUP_CIRCLE_SRC = 'lookup-circle'
 const LOOKUP_HI_SRC = 'lookup-hi'
 const LOOKUP_VEIL_LAYER = 'lookup-veil-fill'
 const LOOKUP_CIRCLE_LAYER = 'lookup-circle-line'
-const LOOKUP_HI_LINE = 'lookup-hi-line'
 const LOOKUP_HI_PT = 'lookup-hi-pt'
+/** ONE STROKE LAYER PER AGENT COLOUR.
+ *
+ *  The hits are coloured by agent — that is what makes the "By Agent" bars in
+ *  the answer legible on the map — and the fade is a `line-gradient`, which
+ *  can read `line-progress` and nothing else: it cannot see which agent a
+ *  stroke belongs to. So the split has to be a FILTER, exactly as it is for
+ *  the record's stroke and its dim twin (see applyTrackColour). Four colours,
+ *  four layers, decided once from the palette rather than rebuilt per lookup.
+ *
+ *  The last one is the catch-all rather than a fourth equality test: a run
+ *  whose colour matched no layer would not fall back to flat, it would leave
+ *  the map, which is worse than any colour. Every LineString is drawn by
+ *  exactly one of these. */
+const LOOKUP_HI_COLOURS = Array.from(new Set(mapConfig.agents.map((g) => g.color)))
+const LOOKUP_HI_LINES = LOOKUP_HI_COLOURS.map((_, i) => `lookup-hi-line-${i}`)
+/** The tiers that draw THE RECORD — the two grids, the raw dots and every
+ *  track layer. A lookup hides them all and draws its hits itself. */
+const GRID_TIERS = [VOL_COARSE_LAYER, VOL_FINE_LAYER, VOL_RAW_LAYER]
+const RECORD_TIERS = [
+  ...GRID_TIERS,
+  TRACK_LAYER,
+  TRACK_DIM_LAYER,
+  TRACK_NIL_LAYER,
+  TRACK_MARK_LAYER,
+  TRACK_END_LAYER,
+]
+/** Hide the record's own tiers for a lookup, remembering what each one was. */
+function hideRecordTiers(map: maplibregl.Map, saved: Map<string, string>) {
+  for (const id of RECORD_TIERS) {
+    if (!map.getLayer(id)) continue
+    if (!saved.has(id))
+      saved.set(id, (map.getLayoutProperty(id, 'visibility') as string) ?? 'visible')
+    map.setLayoutProperty(id, 'visibility', 'none')
+  }
+}
+
+/** Put them back as they were — except where "as they were" has since stopped
+ *  being true.
+ *
+ *  A remembered value is only good while nobody else writes the thing it
+ *  remembers, and one layer has an owner that does: the RAW dot tier steps
+ *  aside for the tracks the moment spray-tracks.json lands (see the load
+ *  callback). Open a lookup before that file arrives — which is every shared
+ *  Location Lookup URL, since the deep link sets the circle on the first
+ *  frame — and the snapshot records 'visible', the tracks arrive and set it
+ *  to 'none', and clearing the circle puts 8,360 agent-coloured dots and
+ *  rings back over the strokes. That is the "sometimes" in it: only the
+ *  lookups that started before the record finished loading.
+ *
+ *  So the raw tier is asked of its owner rather than of the memory. The rule
+ *  is one line in one place either way; the memory was a second copy of it
+ *  that could go stale. */
+function restoreRecordTiers(
+  map: maplibregl.Map,
+  saved: Map<string, string> | undefined,
+  tracksOn: boolean,
+) {
+  if (!saved?.size) return
+  for (const [id, vis] of saved) {
+    if (!map.getLayer(id)) continue
+    map.setLayoutProperty(id, 'visibility', id === VOL_RAW_LAYER && tracksOn ? 'none' : vis)
+  }
+  saved.clear()
+}
+
+/** requestIdleCallback with a setTimeout stand-in (Safari). The timeout cap
+ *  matters: an idle callback on a busy map can starve, and a pre-bin that
+ *  arrives after the reader has already crossed the hand-off did nothing. */
+type IdleHandle = { ric: number } | { t: number }
+const scheduleIdle = (fn: () => void): IdleHandle =>
+  typeof window.requestIdleCallback === 'function'
+    ? { ric: window.requestIdleCallback(fn, { timeout: 1500 }) }
+    : { t: window.setTimeout(fn, 300) }
+const cancelIdle = (h: IdleHandle) => {
+  if ('ric' in h) window.cancelIdleCallback(h.ric)
+  else window.clearTimeout(h.t)
+}
+
 const LOOKUP_EPOCH_MS = Date.UTC(1961, 0, 1)
 /** 'YYYY-MM' → first/last day number of that month (day 1 = 1961-01-01). */
 const monthToFirstDay = (m: string) => {
@@ -244,7 +335,7 @@ function aggregateCell(
 interface UrlState {
   day?: number
   agent?: string
-  cam?: { center: [number, number]; zoom: number }
+  cam?: { center: [number, number]; zoom: number; bearing: number; pitch: number }
   is3D?: boolean
   lookup?: { lng: number; lat: number; radiusKm: number; from: string; to: string }
 }
@@ -253,18 +344,37 @@ function readUrlState(): UrlState {
   const q = new URLSearchParams(window.location.search)
   const out: UrlState = {}
   const t = q.get('t')
-  if (t && /^\d{4}-\d{2}-\d{2}$/.test(t)) out.day = dateToDay(t)
+  // The shape test alone let "1969-99-99" through: dateToDay parses it to NaN,
+  // and NaN survives the clamp at the apply site (Math.min(NaN, x) is NaN), so
+  // the transport read INVALID DATE over a parked playhead. A date that does
+  // not exist is a date that was not given.
+  if (t && /^\d{4}-\d{2}-\d{2}$/.test(t)) {
+    const d = dateToDay(t)
+    if (Number.isFinite(d)) out.day = d
+  }
   const agent = q.get('agent')
   if (agent) out.agent = agent
+  // Three or five parts: lng,lat,zoom grew bearing,pitch so a rotated or
+  // tilted camera survives sharing. Old three-part links parse as before, and
+  // buildSearch omits the two when both are zero, so untouched cameras keep
+  // the short form.
   const cam = (q.get('cam') ?? '').split(',').map(Number)
-  if (cam.length === 3 && cam.every(Number.isFinite))
-    out.cam = { center: [cam[0], cam[1]], zoom: cam[2] }
+  if ((cam.length === 3 || cam.length === 5) && cam.every(Number.isFinite) && onEarth(cam[0], cam[1]))
+    out.cam = {
+      center: [cam[0], cam[1]],
+      zoom: cam[2],
+      bearing: cam.length === 5 ? cam[3] : 0,
+      pitch: cam.length === 5 ? Math.min(Math.max(cam[4], 0), 85) : 0,
+    }
   if (q.get('view') === '3d') out.is3D = true
   // Location lookup, per the brief's own parameter names: lat, lng, r, from, to.
-  if (q.get('lat') != null && q.get('lng') != null) {
+  // Truthiness, not just presence: ?lat=&lng= gave Number('') = 0 twice, and
+  // the page opened a real lookup on 0°N 0°E — then wrote the zeros back into
+  // the URL for the next person to copy.
+  if (q.get('lat') && q.get('lng')) {
     const lat = Number(q.get('lat'))
     const lng = Number(q.get('lng'))
-    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+    if (Number.isFinite(lat) && Number.isFinite(lng) && onEarth(lng, lat)) {
       const r = Number(q.get('r'))
       out.lookup = {
         lat,
@@ -277,6 +387,17 @@ function readUrlState(): UrlState {
   }
   return out
 }
+
+/** Whether a pair of numbers is a place on Earth.
+ *
+ *  isFinite is not that test, and it was the only one here: ?lat=106.8&lng=10.9
+ *  — the two swapped, which is the commonest way to mistype a coordinate —
+ *  handed 106.8 to LngLat as a latitude, which throws, and the throw happened
+ *  during render. #root ended up with zero children: a white page, no map, no
+ *  panel, no message, no way back. A URL is untrusted input like any other; a
+ *  bad one should cost the reader the deep link, not the site. */
+const onEarth = (lng: number, lat: number) =>
+  lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180
 
 /** Serialise the current view; defaults (full record, all agents, home camera,
  *  flat) are omitted so the canonical URL stays clean. */
@@ -301,7 +422,15 @@ function buildSearch(
       Math.abs(c.lng - h.center[0]) > 0.02 ||
       Math.abs(c.lat - h.center[1]) > 0.02 ||
       Math.abs(map.getZoom() - h.zoom) > 0.05
-    if (moved) q.set('cam', `${c.lng.toFixed(3)},${c.lat.toFixed(3)},${map.getZoom().toFixed(2)}`)
+    const bearing = map.getBearing()
+    const pitch = map.getPitch()
+    const turned = Math.abs(bearing) > 0.5 || pitch > 0.5
+    if (moved || turned)
+      q.set(
+        'cam',
+        `${c.lng.toFixed(3)},${c.lat.toFixed(3)},${map.getZoom().toFixed(2)}` +
+          (turned ? `,${bearing.toFixed(0)},${pitch.toFixed(0)}` : ''),
+      )
   }
   if (is3D) q.set('view', '3d')
   if (lookup.center) {
@@ -437,6 +566,66 @@ function cumulative(data: SprayDataset, day: number, indices: number[] | null) {
   return { missions, runs, gallons }
 }
 
+/** True below the phone breakpoint — the one place layout is decided in JS.
+ *
+ *  640px, the same number every phone rule on the site breaks at (App.css's
+ *  sheet, index.css's rem scale, the Story's deck). It is read, not assumed:
+ *  a reader who resizes across the breakpoint gets the lookup moved to the
+ *  container that is actually on screen, rather than into a panel CSS has
+ *  hidden. SSR-safe default (false) because the Archive is client-rendered and
+ *  the desktop home is the common case. */
+function useIsPhone(): boolean {
+  const [phone, setPhone] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)')
+    const onChange = () => setPhone(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return phone
+}
+
+/** What the highlight is currently pointing at: an identity for the no-op
+ *  check, and the geometry to light.
+ *
+ *  It carries the FEATURES rather than an index because the two sources of a
+ *  highlight light different amounts. A hover lights the leg under the
+ *  pointer; a row opened from the lookup list lights the whole run, every leg
+ *  and mark of it. Holding an index meant the pinned run collapsed to one leg
+ *  the moment the reader moved the pointer back over the map — the highlight
+ *  quietly shrinking to something they had not asked for. */
+type Lit = { key: string; features: GeoJSON.Feature[] }
+
+/** The single writer for the highlight — the map effect and the panel
+ *  callbacks both go through it, so the key and the geometry can never
+ *  disagree about what is lit. */
+function paintLit(map: maplibregl.Map, lit: Lit | null) {
+  setTrackHover(map, lit?.key ?? null, lit?.features ?? null)
+}
+
+/** Every piece of one hit, wrapped for the highlight. */
+function litHit(tracks: TrackDataset | null | undefined, hit: LookupHit): Lit | null {
+  if (!tracks) return null
+  const features = [
+    ...hit.lineIdx.map((i) => tracks.lines.features[i]),
+    ...hit.markIdx.map((i) => tracks.marks.features[i]),
+  ] as GeoJSON.Feature[]
+  return features.length ? { key: `run:${hit.mission}|${hit.run}`, features } : null
+}
+
+/** One feature of the track tier, wrapped for the highlight. `mark` picks the
+ *  set: id 41 in the lines is not id 41 in the marks. */
+function litFeature(
+  tracks: TrackDataset | null | undefined,
+  id: number,
+  mark: boolean,
+): Lit | null {
+  const f = tracks ? (mark ? tracks.marks : tracks.lines).features[id] : null
+  return f ? { key: `${mark ? 'm' : 'l'}${id}`, features: [f as GeoJSON.Feature] } : null
+}
+
 export default function MapView() {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -457,6 +646,12 @@ export default function MapView() {
   const [stats, setStats] = useState({ missions: 0, runs: 0, gallons: 0 })
   const [volume, setVolume] = useState<VolumeChart | null>(null)
   const [inspect, setInspect] = useState<Inspect | null>(null)
+  const isPhone = useIsPhone()
+  /** The map's scale bar. maplibre's own control puts the figure ABOVE the
+   *  rule, because it sets the element's width to the measured distance —
+   *  so this draws it instead, from the same computeScale the key used to
+   *  call, with the figure beside the rule where a map reader expects it. */
+  const [scale, setScale] = useState<{ label: string; w: number }>({ label: '', w: 0 })
   // ── location lookup ──────────────────────────────────────────────────────
   const [lookup, setLookup] = useState<LookupState>({
     center: null,
@@ -468,7 +663,6 @@ export default function MapView() {
   const lookupPickRef = useRef(false)
   lookupPickRef.current = lookup.picking
   const [lookupResults, setLookupResults] = useState<LookupHit[] | null>(null)
-  const [lookupMs, setLookupMs] = useState<number | null>(null)
   // Phone: the record card sits ON TOP of the control sheet, and the sheet
   // has two heights (peek / expanded) plus text that can rewrap — so the
   // card's bottom offset cannot be a constant. A ResizeObserver mirrors the
@@ -484,6 +678,45 @@ export default function MapView() {
     ro.observe(panel)
     return () => ro.disconnect()
   }, [ready])
+  // The credit's width, for the scale bar that sits to its left. Not a
+  // constant and not a media query: the badge is 24px closed and 300-odd open,
+  // and the reader flips between the two by pressing it. Measured, so the bar
+  // moves when it moves.
+  useEffect(() => {
+    const wrap = wrapRef.current
+    if (!wrap || !ready) return
+    const attrib = wrap.querySelector('.maplibregl-ctrl-attrib')
+    if (!attrib) return
+    const ro = new ResizeObserver(() => {
+      wrap.style.setProperty('--attrib-w', `${(attrib as HTMLElement).offsetWidth}px`)
+    })
+    ro.observe(attrib)
+    return () => ro.disconnect()
+  }, [ready])
+
+  /** A NEW QUESTION CLOSES THE OLD ANSWER.
+   *
+   *  Searching a second place, or picking a second point, while a record card
+   *  was open left the card up — a Bien Hoa run reading over a map that had
+   *  already flown to Da Nang, with the panel offering "← Back to 4 results"
+   *  and no answer at all, because the card's presence is what suppresses it.
+   *  Every door into a new centre had to remember to close it; this is the one
+   *  place that knows a centre changed. Opening a record from the list does
+   *  not move the centre, so it does not trip this. */
+  useEffect(() => {
+    setInspect(null)
+    pinnedRunRef.current = null
+    if (mapRef.current) paintLit(mapRef.current, hoverRunRef.current)
+  }, [lookup.center?.lng, lookup.center?.lat])
+
+  /** The one way out of a lookup. Hoisted because there are now two doors
+   *  onto it — the × in the search row and the Clear on the map's own hint —
+   *  and two exits that do almost the same thing is how they drift apart. */
+  const clearLookup = useCallback(
+    () => setLookup((s) => ({ ...s, center: null, picking: false, place: undefined })),
+    [],
+  )
+
   // Bumped on moveend so the URL mirror below sees camera changes.
   const [camTick, setCamTick] = useState(0)
 
@@ -526,6 +759,8 @@ export default function MapView() {
    *  without recording it would be the real bug: the reader would zoom out onto
    *  a grid still showing the agent they had deselected. */
   const gridsStaleRef = useRef(false)
+  /** The pending idle pre-bin, so a newer state can cancel an older one. */
+  const prebinRef = useRef<IdleHandle | null>(null)
   /** The throttle key each grid TIER was last binned for, or '' if it was
    *  skipped because it was off screen. Per tier rather than one flag, because
    *  only one of the two is ever visible and binning the other is pure waste. */
@@ -544,8 +779,9 @@ export default function MapView() {
    *  the mouse to read it — the card would be about "this one" with no "this"
    *  left on screen. Hover wins while it lasts, so the reader can still compare
    *  a neighbour against the pinned run without losing it. */
-  const hoverRunRef = useRef<number | null>(null)
-  const pinnedRunRef = useRef<number | null>(null)
+  const hoverRunRef = useRef<Lit | null>(null)
+  /** The run the reader opened, lit until they close or open another. */
+  const pinnedRunRef = useRef<Lit | null>(null)
   const dayRef = useRef(0)
   const colorsRef = useRef<string[] | null>(null)
   const playingRef = useRef(false)
@@ -575,6 +811,10 @@ export default function MapView() {
         maxZoom: mapConfig.view.maxZoom,
         maxBounds: mapConfig.view.maxBounds,
         maxPitch: mapConfig.view.maxPitch,
+        // Compact everywhere: the credit is a ⓘ badge until the reader asks
+        // for it. The scale bar sits to its LEFT and follows it — pressing the
+        // badge opens the credit line and slides the bar along with it (the
+        // --attrib-w observer below is what makes that work).
         attributionControl: { compact: true },
       })
       mapRef.current = map
@@ -607,7 +847,34 @@ export default function MapView() {
         resizeTimer = window.setTimeout(() => applyHome(true), 120)
       })
       // bottom-right keeps the top-right clear for the site nav.
+      //
+      // It shares that corner with a tall place column, and where the column
+      // reaches the bottom of the screen it draws over the +. Stepping the
+      // pair left of the column fixes that and was tried; it put the buttons
+      // in the middle of the map, which is worse than the collision. Left
+      // where readers expect them.
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right')
+
+      // Fold the credit to its ⓘ once, the way the Story already does.
+      // MapLibre's compact attribution renders EXPANDED and folds on the map's
+      // own `drag` — so the Archive sat with the full 351px line across the
+      // corner until the reader happened to pan, which on a phone covered 90%
+      // of the map's top edge, and here also parked the scale bar 327px left of
+      // where it settles. The class is not there at load (it arrives when the
+      // source's attribution resolves), so this watches for it rather than
+      // guessing a moment, folds it, and disconnects: one add, one removal, and
+      // the reader's own press on the ⓘ still works.
+      const attribEl = map.getContainer().querySelector('.maplibregl-ctrl-attrib')
+      if (attribEl) {
+        const obs = new MutationObserver(() => {
+          if (attribEl.classList.contains('maplibregl-compact-show')) {
+            attribEl.classList.remove('maplibregl-compact-show')
+            obs.disconnect()
+          }
+        })
+        obs.observe(attribEl, { attributes: true, attributeFilter: ['class'] })
+      }
+
       map.on('moveend', () => setCamTick((t) => t + 1))
 
       // The two military-region files are fetched ONLY when they will be drawn.
@@ -705,12 +972,25 @@ export default function MapView() {
         // and the strokes had neither. Queried FIRST, because in their band the
         // grid tiers are already out and the raw dots are hidden, so anything
         // else under the pointer is the basemap.
+        // TRACK_MARK_LAYER is in the list because the key names what it draws:
+        // 2,829 runs are logged against ONE grid reference, the legend calls
+        // them "Logged at One Point", and until this they were the only mark on
+        // the map that answered nothing when you pointed at or clicked them.
         const trackLayers = () =>
-          [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER].filter((id) => map.getLayer(id))
+          [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER].filter((id) =>
+            map.getLayer(id),
+          )
+        // While a lookup is up the record's tiers are hidden and the hits are
+        // drawn on the lookup's own two layers — so those are where a pointer
+        // finds a run. Without this the circle took the map's whole click
+        // behaviour away with it: the runs were on screen, lit, and inert.
+        const hitLayers = () =>
+          [...LOOKUP_HI_LINES, LOOKUP_HI_PT].filter((id) => map.getLayer(id))
+        const pickLayers = () => [...hitLayers(), ...trackLayers()]
         /** The run under the pointer, or null. Also the one place that knows a
          *  run is only pickable where it is actually drawn. */
         const trackAt = (pt: maplibregl.PointLike) => {
-          const ids = trackLayers()
+          const ids = pickLayers()
           if (!ids.length) return null
           // The playhead is a paint gate now, not a filter (see trackLayers),
           // and queryRenderedFeatures honours filters but not opacity — so
@@ -730,9 +1010,26 @@ export default function MapView() {
          *  geometry, and a run cut by a tile boundary would light up in pieces.
          *  `generateId` numbers features in source order, so the rendered id is
          *  the index here — verified on the running page. */
-        const paintHover = () => {
-          const id = hoverRunRef.current ?? pinnedRunRef.current
-          setTrackHover(map, id, id != null ? tracksRef.current?.lines.features[id] : null)
+        const paintHover = () => paintLit(map, hoverRunRef.current ?? pinnedRunRef.current)
+        /** What a picked feature means. On the lookup's layers a feature is a
+         *  piece of a HIT, and the hit knows all its own pieces; on the record's
+         *  layers it is an index into one of the two feature sets. */
+        const readPick = (t: maplibregl.MapGeoJSONFeature) => {
+          const p = t.properties as Record<string, number>
+          const onHitLayer =
+            t.layer.id === LOOKUP_HI_PT || LOOKUP_HI_LINES.includes(t.layer.id)
+          if (onHitLayer) {
+            const hit = lookupResultsRef.current?.find(
+              (h) => h.mission === p.mission && h.run === p.run,
+            )
+            return { hit, lit: hit ? litHit(tracksRef.current, hit) : null, mark: t.layer.id === LOOKUP_HI_PT }
+          }
+          const mark = t.layer.id === TRACK_MARK_LAYER
+          return {
+            hit: undefined,
+            lit: typeof t.id === 'number' ? litFeature(tracksRef.current, t.id, mark) : null,
+            mark,
+          }
         }
         map.on('mousemove', (e) => {
           // While the reader is arming a lookup point the map is a target,
@@ -745,7 +1042,9 @@ export default function MapView() {
           const t = trackAt(e.point)
           if (t) {
             const p = t.properties as Record<string, number>
-            hoverRunRef.current = typeof t.id === 'number' ? t.id : null
+            const pick = readPick(t)
+            const isMark = pick.mark
+            hoverRunRef.current = pick.lit
             paintHover()
             map.getCanvas().style.cursor = 'pointer'
             hover
@@ -758,10 +1057,19 @@ export default function MapView() {
                 // the stroke encodes — its colour and its width.
                 `<strong>${
                   p.gallons > 0
-                    ? `<span class="n">${fmtGallons(p.gallons)}</span> Gallons<span class="gap"></span><span class="n">${Math.round(p.gpk).toLocaleString()}</span> Gal/km`
+                    ? `<span class="n">${fmtGallons(p.gallons)}</span> Gallons${
+                        isMark
+                          ? ''
+                          : `<span class="gap"></span><span class="n">${Math.round(p.gpk).toLocaleString()}</span> Gal/km`
+                      }`
                     : 'No Volume Logged'
                 }</strong>` +
-                  `<span>${groupLabels[p.gi] ?? 'Unknown'} · ${dayLabel(p.day)} · ${p.km.toFixed(1)} km</span>`,
+                  // A point has no length: `km` is absent on the marks, and
+                  // printing "0.0 km" for a run whose extent the record simply
+                  // does not give would be inventing a fact.
+                  `<span>${groupLabels[p.gi] ?? 'Unknown'} · ${dayLabel(p.day)}${
+                    isMark ? ' · Logged at one point' : ` · ${p.km.toFixed(1)} km`
+                  }</span>`,
               )
               .addTo(map)
             return
@@ -809,9 +1117,40 @@ export default function MapView() {
           const t = trackAt(e.point)
           if (t) {
             const p = t.properties as Record<string, number>
-            pinnedRunRef.current = typeof t.id === 'number' ? t.id : null
+            const pick = readPick(t)
+            const isMark = pick.mark
+            pinnedRunRef.current = pick.lit
             paintHover()
+            // Both doors into a run's record are the same event: the map's own
+            // stroke here, the list's row in openLookupHit.
             track('archive_record', { via: 'track' })
+            // A hit clicked ON THE MAP has to say what the same hit says when
+            // it is clicked in the LIST. The feature under the pointer is one
+            // leg; the hit is the whole run, and its gallons and kilometres
+            // are the run's. Reading the leg here would have given the same
+            // record two different volumes depending on which way in the
+            // reader took.
+            if (pick.hit) {
+              const hit = pick.hit
+              const ts = tracksRef.current
+              const kmTotal = ts
+                ? hit.lineIdx.reduce((acc, i) => acc + ts.lines.features[i].properties.km, 0)
+                : 0
+              setInspect({
+                kind: 'run',
+                coords: [e.lngLat.lng, e.lngLat.lat],
+                day: hit.day,
+                groupIndex: hit.gi,
+                gallons: hit.gallons,
+                ...(kmTotal > 0
+                  ? { km: Number(kmTotal.toFixed(1)), gpk: Number((hit.gallons / kmTotal).toFixed(1)) }
+                  : {}),
+                mission: hit.mission,
+                run: hit.run,
+                fwac: hit.fwac,
+              })
+              return
+            }
             setInspect({
               kind: 'run',
               // Unused by the track card — a line has no single position — but
@@ -821,8 +1160,10 @@ export default function MapView() {
               day: p.day,
               groupIndex: p.gi ?? -1,
               gallons: p.gallons,
-              km: p.km,
-              gpk: p.gpk,
+              // Absent on a single-point run, and ArchiveInspect reads their
+              // presence as "this subject has an extent" — so omitting them is
+              // what makes the card say point rather than line.
+              ...(isMark ? {} : { km: p.km, gpk: p.gpk }),
               mission: p.mission,
               run: p.run,
               fwac: p.fwac,
@@ -905,7 +1246,13 @@ export default function MapView() {
 
         // Restore a deep-linked view, else start showing the full record.
         const urlState = readUrlState()
-        if (urlState.cam) map.jumpTo({ center: urlState.cam.center, zoom: urlState.cam.zoom })
+        if (urlState.cam)
+          map.jumpTo({
+            center: urlState.cam.center,
+            zoom: urlState.cam.zoom,
+            bearing: urlState.cam.bearing,
+            pitch: urlState.cam.pitch,
+          })
         if (urlState.agent && agentChoices.some((c) => c.key === urlState.agent))
           setAgentKey(urlState.agent)
         setDay(
@@ -926,6 +1273,32 @@ export default function MapView() {
             from: lk.from,
             to: lk.to,
           }))
+          // The sender searched "Bien Hoa Air Base"; the URL carries only the
+          // rounded coordinates, so the recipient read "10.977°N 106.818°E" —
+          // right counts, no identity. The coordinates are looked back up in
+          // the gazetteer: lat/lng print at 4 decimals (≤55m of rounding) and
+          // no two entries sit that close, so an exact-ish match IS the place.
+          // Guarded against a centre that moved while the file loaded.
+          loadGazetteer()
+            .then((places) => {
+              const hit = places.find(
+                (pl) => Math.abs(pl.lat - lk.lat) < 5e-4 && Math.abs(pl.lng - lk.lng) < 5e-4,
+              )
+              if (!hit) return
+              setLookup((s) =>
+                s.center && Math.abs(s.center.lat - lk.lat) < 1e-9 && Math.abs(s.center.lng - lk.lng) < 1e-9
+                  ? {
+                      ...s,
+                      place: {
+                        name: hit.n,
+                        coarse: hit.t === 'city' || hit.t === 'town',
+                        low: hit.c === 'low',
+                      },
+                    }
+                  : s,
+              )
+            })
+            .catch(() => {})
         }
         setReady(true)
       }, failed('the record failed to load'))
@@ -1002,6 +1375,44 @@ export default function MapView() {
       gridsStaleRef.current = false
     } else {
       gridsStaleRef.current = true
+    }
+
+    // ── pre-bin the tiers the reader is ABOUT to see ──────────────────────
+    // "Bin only the tier on screen" bought the playhead its frame budget and
+    // sold the hand-off: one zoom click across the coarse-to-fine boundary
+    // left the map with no spray record at all for up to ~1.7s — the old tier
+    // past its maxzoom, the new one waiting for zoomend, a bin, and a worker
+    // parse. So the hidden grid tiers are filled IN THE IDLE TIME after the
+    // visible one settles, and marked with the same key the arrival check
+    // compares against — by the time the camera crosses, the data is already
+    // parsed in the source and the hand-off costs nothing. Playback keeps the
+    // old economy: the gate below skips the work the optimization existed to
+    // avoid, and the zoomend watcher still covers whatever idle never filled.
+    if (TRACKS && tracksRef.current) {
+      if (prebinRef.current != null) cancelIdle(prebinRef.current)
+      prebinRef.current = scheduleIdle(() => {
+        prebinRef.current = null
+        const t = tracksRef.current
+        if (!t || playingRef.current) return
+        if (appliedKeyRef.current !== key) return
+        const tint = choices.find((x) => x.key === agentKey)?.color ?? DOTS.tint
+        const deg = gridDegrees()
+        let filled = true
+        for (const [layer, source, cellDeg] of [
+          [VOL_FINE_LAYER, VOL_FINE_SOURCE, deg.fine],
+          [VOL_COARSE_LAYER, VOL_COARSE_SOURCE, deg.coarse],
+        ] as const) {
+          if (gridTierKeyRef.current[layer] === key) continue
+          if (!map.getLayer(layer)) { filled = false; continue }
+          const src = map.getSource(source) as maplibregl.GeoJSONSource | undefined
+          if (!src) { filled = false; continue }
+          src.setData(binTracks(t, day, activeIndices, cellDeg, tint))
+          gridTierKeyRef.current[layer] = key
+        }
+        // Both tiers current: coming back down from the track band needs no
+        // catch-up re-bin either.
+        if (filled) gridsStaleRef.current = false
+      })
     }
 
     // The track LAYERS need no re-bin — the playhead is a filter and the
@@ -1177,11 +1588,10 @@ export default function MapView() {
   useEffect(() => {
     const t = tracksRef.current
     if (!tracksReady || !t || !lookup.center) {
+      lookupResultsRef.current = null
       setLookupResults(null)
-      setLookupMs(null)
       return
     }
-    const t0 = performance.now()
     const res = queryLookup(t, {
       lng: lookup.center.lng,
       lat: lookup.center.lat,
@@ -1189,7 +1599,7 @@ export default function MapView() {
       dayFrom: monthToFirstDay(lookup.from),
       dayTo: monthToLastDay(lookup.to),
     })
-    setLookupMs(performance.now() - t0)
+    lookupResultsRef.current = res
     setLookupResults(res)
   }, [tracksReady, lookup])
 
@@ -1198,13 +1608,50 @@ export default function MapView() {
   // the hit runs redrawn at full strength above the veil — their own layers
   // with no minzoom, because a hit must be visible at ANY zoom while the base
   // track layers only exist near.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!ready || !map) return
+    const update = () => setScale(computeScale(map))
+    update()
+    map.on('move', update)
+    window.addEventListener('resize', update)
+    return () => {
+      map.off('move', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [ready])
+
   const lookupMarkerRef = useRef<maplibregl.Marker | null>(null)
+  /** What each record tier's `visibility` was before a lookup hid it.
+   *
+   *  A snapshot, not a rule. The first version of this asked applyTracks to
+   *  put the record back, on the reasoning that it owns which tiers are shown
+   *  — but it only ever sets the three OPTIONAL ones (ends, nils, marks),
+   *  because the main stroke layer and its dim twin are never hidden by
+   *  anything. Hiding them here and handing the restore to a function that
+   *  does not touch them turned every cleared lookup into a map with no
+   *  flight tracks on it at all, back to dots at z11. Remembering beats
+   *  inferring: whatever each layer was, that is what it goes back to. */
+  const hiddenTiersRef = useRef<Map<string, string>>(new Map())
+  /** The current hits, for the map handlers: while a lookup is up they are the
+   *  only runs on screen, and clicking one has to find its whole record. */
+  const lookupResultsRef = useRef<LookupHit[] | null>(null)
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
     const c = lookup.center
+    // The highlight follows the hits' own colours while the circle is up: in
+    // there a run is drawn per agent, and lighting a blue one in the brand red
+    // produced a stroke that ran red at one end and blue at the other.
+    setHighlightByFeature(map, c != null)
     if (!c) {
-      for (const id of [LOOKUP_HI_PT, LOOKUP_HI_LINE, LOOKUP_CIRCLE_LAYER, LOOKUP_VEIL_LAYER])
+      restoreRecordTiers(map, hiddenTiersRef.current, tracksRef.current != null)
+      for (const id of [
+        LOOKUP_HI_PT,
+        ...LOOKUP_HI_LINES,
+        LOOKUP_CIRCLE_LAYER,
+        LOOKUP_VEIL_LAYER,
+      ])
         if (map.getLayer(id)) map.removeLayer(id)
       for (const id of [LOOKUP_HI_SRC, LOOKUP_CIRCLE_SRC, LOOKUP_VEIL_SRC])
         if (map.getSource(id)) map.removeSource(id)
@@ -1219,12 +1666,18 @@ export default function MapView() {
     if (!map.getSource(LOOKUP_VEIL_SRC)) {
       map.addSource(LOOKUP_VEIL_SRC, { type: 'geojson', data: fc([]) })
       map.addSource(LOOKUP_CIRCLE_SRC, { type: 'geojson', data: fc([]) })
-      map.addSource(LOOKUP_HI_SRC, { type: 'geojson', data: fc([]) })
+      // lineMetrics is what makes `line-progress` — and so the fade — possible,
+      // the same reason the record's own source sets it. Without it the
+      // gradient installs, reports itself set, and paints nothing.
+      map.addSource(LOOKUP_HI_SRC, { type: 'geojson', data: fc([]), lineMetrics: true })
       map.addLayer({
         id: LOOKUP_VEIL_LAYER,
         type: 'fill',
         source: LOOKUP_VEIL_SRC,
-        paint: { 'fill-color': '#f7f3ec', 'fill-opacity': 0.55 },
+        // Lighter than it was: with the record's own tiers hidden there is
+        // nothing under this but the basemap, and 0.55 over bare paper reads as
+        // a smudge rather than as a focus.
+        paint: { 'fill-color': '#f7f3ec', 'fill-opacity': 0.32 },
       })
       map.addLayer({
         id: LOOKUP_CIRCLE_LAYER,
@@ -1232,13 +1685,38 @@ export default function MapView() {
         source: LOOKUP_CIRCLE_SRC,
         paint: { 'line-color': '#213528', 'line-width': 1.4, 'line-dasharray': [3, 2] },
       })
-      map.addLayer({
-        id: LOOKUP_HI_LINE,
-        type: 'line',
-        source: LOOKUP_HI_SRC,
-        filter: ['==', ['geometry-type'], 'LineString'],
-        layout: { 'line-cap': 'round' },
-        paint: { 'line-color': ['get', 'c'], 'line-width': 2.4 },
+      // WIDTH IS GALLONS PER KILOMETRE AND EACH RUN FADES FROM ITS FIRST
+      // WAYPOINT — the key says both, three inches away, and a flat 2.4 in one
+      // colour said neither. A lookup redraws the record's runs on its own
+      // layers; drawing them there in a different language makes the circle
+      // the one place on this map where the legend is wrong. Both the ramp and
+      // the fade are taken from the record's own definitions rather than
+      // rebuilt, so a console change to either reaches both.
+      LOOKUP_HI_COLOURS.forEach((colour, i) => {
+        const taper = taperGradient(colour)
+        map.addLayer({
+          id: LOOKUP_HI_LINES[i],
+          type: 'line',
+          source: LOOKUP_HI_SRC,
+          filter:
+            i === LOOKUP_HI_COLOURS.length - 1
+              ? [
+                  'all',
+                  ['==', ['geometry-type'], 'LineString'],
+                  ['!', ['in', ['get', 'c'], ['literal', LOOKUP_HI_COLOURS.slice(0, -1)]]],
+                ]
+              : ['all', ['==', ['geometry-type'], 'LineString'], ['==', ['get', 'c'], colour]],
+          layout: { 'line-cap': 'round' },
+          paint: {
+            // line-color stays set under the gradient for the same reason the
+            // record leaves it alone: clearing it resets the property to its
+            // spec default of BLACK, so a path where the gradient failed to
+            // install would paint the hits black instead of flat colour.
+            'line-color': colour,
+            ...(taper ? { 'line-gradient': taper as never } : {}),
+            'line-width': hitWidthRamp(1.2) as never,
+          },
+        })
       })
       map.addLayer({
         id: LOOKUP_HI_PT,
@@ -1247,7 +1725,9 @@ export default function MapView() {
         filter: ['==', ['geometry-type'], 'Point'],
         paint: {
           'circle-color': ['get', 'c'],
-          'circle-radius': 4,
+          // And AREA IS GALLONS for the single-point runs, the same as the
+          // record's own marks — same reason as the strokes above.
+          'circle-radius': hitMarkRamp(2.2) as never,
           'circle-stroke-color': '#ffffff',
           'circle-stroke-width': 1,
         },
@@ -1268,6 +1748,33 @@ export default function MapView() {
       }
     }
     ;(map.getSource(LOOKUP_HI_SRC) as maplibregl.GeoJSONSource).setData(fc(hi))
+
+    // One record open: the other fifty-nine step back to a fifth. They are
+    // still there — the reader chose this one OUT of them, and the answer is
+    // partly the company it keeps — but they stop competing with it. Keyed on
+    // mission and run rather than a feature id because a run is several
+    // features and all of them belong to the same record.
+    const sel = inspect?.kind === 'run' && inspect.mission != null ? inspect : null
+    const fade = (base: number): maplibregl.ExpressionSpecification | number =>
+      sel
+        ? ([
+            'case',
+            ['all', ['==', ['get', 'mission'], sel.mission], ['==', ['get', 'run'], sel.run]],
+            base,
+            base * 0.2,
+          ] as maplibregl.ExpressionSpecification)
+        : base
+    for (const id of LOOKUP_HI_LINES)
+      if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', fade(1))
+    if (map.getLayer(LOOKUP_HI_PT)) map.setPaintProperty(LOOKUP_HI_PT, 'circle-opacity', fade(1))
+
+    // Everything outside the circle leaves the map. The veil alone was a 55%
+    // paper wash over the record, which in the dense provinces is still a
+    // thousand strokes showing through the answer — the reader was asked to
+    // find sixty runs inside a field of them. The record tiers go dark and the
+    // hit runs, drawn on the lookup's own layers, are what is left: the circle
+    // stops being an annotation and becomes the view.
+    hideRecordTiers(map, hiddenTiersRef.current)
     if (!lookupMarkerRef.current) {
       const el = document.createElement('div')
       el.className = 'lookup-center-pin'
@@ -1282,7 +1789,7 @@ export default function MapView() {
     } else {
       lookupMarkerRef.current.setLngLat([c.lng, c.lat])
     }
-  }, [ready, lookup.center, lookup.radiusKm, lookupResults])
+  }, [ready, lookup.center, lookup.radiusKm, lookupResults, inspect])
 
   // Crosshair while arming a pick (the map handlers hold it during moves).
   useEffect(() => {
@@ -1296,6 +1803,14 @@ export default function MapView() {
     const map = mapRef.current
     const t = tracksRef.current
     if (!map || !t) return
+    // A second press on the open row folds it — the row is a disclosure now,
+    // and a disclosure that only opens is a trap.
+    if (inspect?.kind === 'run' && inspect.mission === hit.mission && inspect.run === hit.run) {
+      setInspect(null)
+      pinnedRunRef.current = null
+      paintLit(map, hoverRunRef.current)
+      return
+    }
     const [w, sBound, e, n] = hit.bounds
     if (w <= e)
       map.fitBounds(
@@ -1310,6 +1825,18 @@ export default function MapView() {
     const coords = (
       line ? line.geometry.coordinates[0] : mark!.geometry.coordinates
     ) as [number, number]
+    // Fly AND light. The map answered a list click by moving, which on a
+    // screen already full of strokes is not an answer: the reader arrives
+    // somewhere plausible with nothing saying which of the forty lines under
+    // the pin is the one they asked for. The whole run lights up, every
+    // segment and mark of it, because a run cut into three legs is still one
+    // flight — the same reason the hover highlight carries the whole geometry.
+    const geom = [
+      ...hit.lineIdx.map((i) => t.lines.features[i]),
+      ...hit.markIdx.map((i) => t.marks.features[i]),
+    ] as GeoJSON.Feature[]
+    pinnedRunRef.current = geom.length ? { key: `run:${hit.mission}|${hit.run}`, features: geom } : null
+    paintLit(map, pinnedRunRef.current)
     const kmTotal = hit.lineIdx.reduce((acc, i) => acc + t.lines.features[i].properties.km, 0)
     setInspect({
       kind: 'run',
@@ -1325,6 +1852,17 @@ export default function MapView() {
       fwac: hit.fwac,
     })
   }
+
+  // A mode needs a way out that is not a second trip to the control that
+  // opened it. Escape is the one every reader already tries.
+  useEffect(() => {
+    if (!lookup.picking) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLookup((s) => ({ ...s, picking: false }))
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lookup.picking])
 
   /** A place chosen from the search: center there, widen city-level queries
    *  to 10 km per the brief, and ease the map over so the circle is on
@@ -1366,6 +1904,70 @@ export default function MapView() {
     return () => window.clearTimeout(id)
   }, [ready, day, agentKey, is3D, camTick, bounds.max, lookup])
 
+  // ── where the lookup lives ──────────────────────────────────────────────
+  // One element, two homes. On a desktop it belongs to the KEY panel, beside
+  // the record card: a clicked dot, a clicked track and a drawn circle are
+  // three ways of asking about one place, and all three answers belong in the
+  // same column — the left panel reads as TIME, the right as PLACE. On a phone
+  // the key panel is display:none until a record opens, so the query would
+  // vanish with it; there it stays in the control sheet, where it began.
+  //
+  // A width test in JS, not two renders and a CSS hide: rendered twice, the
+  // search box would carry two copies of its own state and the reader would be
+  // typing into the hidden one half the time.
+  /** The record belongs INSIDE the list when it is one of the list's own
+   *  rows: same panel, same scroll, the reader's eye never leaves the column.
+   *  Everything else — a dot, a run clicked with no circle up, the phone —
+   *  keeps the standalone card. */
+  const inlineHit =
+    !isPhone &&
+    inspect?.kind === 'run' &&
+    inspect.mission != null &&
+    lookup.center != null &&
+    (lookupResults?.some((h) => h.mission === inspect.mission && h.run === inspect.run) ?? false)
+
+  const lookupPanel = (
+    <LocationLookup
+      state={lookup}
+      results={lookupResults}
+      groups={choices
+        .filter((c) => c.indices && c.color)
+        .map((c) => ({ label: c.label, color: c.color! }))}
+      // Desktop opens records INLINE in the list (detailKey/detail below), so
+      // the fold-to-a-back-link behaviour is the phone's alone — there the
+      // record is its own sheet and the lookup lives in another.
+      cardOpen={isPhone && inspect != null}
+      detailKey={inlineHit ? `${inspect!.mission}|${inspect!.run}` : null}
+      detail={
+        inlineHit ? (
+          <ArchiveInspect
+            data={inspect!}
+            showClose={false}
+            compact
+            groups={choices
+              .filter((c) => c.indices && c.color)
+              .map((c) => ({ label: c.label, color: c.color! }))}
+            onClose={() => {
+              setInspect(null)
+              pinnedRunRef.current = null
+              if (mapRef.current) paintLit(mapRef.current, hoverRunRef.current)
+            }}
+          />
+        ) : null
+      }
+      onPickToggle={() => setLookup((s) => ({ ...s, picking: !s.picking }))}
+      onRadius={(km) => setLookup((s) => ({ ...s, radiusKm: km }))}
+      onClear={clearLookup}
+      onOpen={openLookupHit}
+      onPlace={handlePlace}
+      onBack={() => {
+        setInspect(null)
+        pinnedRunRef.current = null
+        if (mapRef.current) paintLit(mapRef.current, hoverRunRef.current)
+      }}
+    />
+  )
+
   return (
     // `inspect-open` is for the phone layout: below 640px the key panel that
     // hosts the record card is display:none, so opening a record flips the
@@ -1376,6 +1978,36 @@ export default function MapView() {
     // panel with the grab handle. Desktop CSS never reads the class.
     <div ref={wrapRef} className={inspect ? 'map-wrap inspect-open' : 'map-wrap'}>
       <div ref={containerRef} className="map-root" />
+      {ready && scale.w > 0 && (
+        <div className="map-scale" aria-hidden="true">
+          <span>{scale.label}</span>
+          <i className="map-scale-bar" style={{ width: `${scale.w}px` }} />
+        </div>
+      )}
+      {/* Armed: the map is a target, and it says so over the map the reader is
+          aiming at. In the panel this was a line of text appearing under the
+          search box, which pushed the radius chips and the whole answer down a
+          row the moment the pointer left for the map. */}
+      {lookup.picking && (
+        <p className="map-pick-hint" role="status">
+          Click the map to set the point
+          <button onClick={() => setLookup((s) => ({ ...s, picking: false }))}>Cancel</button>
+        </p>
+      )}
+      {/* And the same sign for the state the circle leaves the map IN. A
+          lookup hides every run outside it, which is most of the record, and
+          the only thing on the map that said so was the dashed circle itself —
+          the way out lived in a × in the panel, three hundred pixels from
+          where the reader is looking. Same furniture as the pick hint above,
+          because it is the same kind of fact: the map is in a mode, and here
+          is how it ends. Never both at once: while picking, the pick hint is
+          the one that matters. */}
+      {ready && !lookup.picking && lookup.center && (
+        <p className="map-pick-hint" role="status">
+          Showing {lookup.radiusKm} km around {lookup.place ? lookup.place.name : 'this point'}
+          <button onClick={clearLookup}>Clear</button>
+        </p>
+      )}
       {/* The Archive IS the map — there is no prose to fall back to — so when
           the basemap or the record cannot be fetched, saying so is the whole
           of what this surface can still do. Rendered outside the `ready` gate
@@ -1387,29 +2019,30 @@ export default function MapView() {
         </p>
       )}
       {ready && (
-        <ArchiveKey
-          map={mapRef.current}
-          ready={ready}
-          is3D={is3D}
-          onToggle3D={toggleView}
-          tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
-          filtered={agentKey !== 'all'}
-          tracks={TRACKS}
-        >
-          {inspect && (
+        <aside className="archive-key" aria-label="Place">
+          {/* The place column: what the reader asked, and the record they
+              opened. `archive-key` is kept as the class because the phone
+              still turns THIS box into the record sheet — the name is the
+              container's, not the legend's, which now lives in the left
+              panel. */}
+          {isPhone ? null : lookupPanel}
+          {inspect && !inlineHit && (
             <ArchiveInspect
               data={inspect}
+              // The back link exists only where the lookup does, and only when
+              // it has results to go back to.
+              showClose={isPhone || !(lookup.center && lookupResults?.length)}
               groups={choices
                 .filter((c) => c.indices && c.color)
                 .map((c) => ({ label: c.label, color: c.color! }))}
               onClose={() => {
                 setInspect(null)
                 pinnedRunRef.current = null
-                if (mapRef.current) setTrackHover(mapRef.current, hoverRunRef.current)
+                if (mapRef.current) paintLit(mapRef.current, hoverRunRef.current)
               }}
             />
           )}
-        </ArchiveKey>
+        </aside>
       )}
       {/* Mounted only when the gate is open — dev, or ?tune on the URL. A
           reader on the live site never evaluates this branch, so the chunk is
@@ -1453,20 +2086,19 @@ export default function MapView() {
             if (key !== 'all') track('archive_agent', { agent: key })
             setAgentKey(key)
           }}
-          lookupSlot={
-            <LocationLookup
-              state={lookup}
-              results={lookupResults}
-              queryMs={lookupMs}
-              groupLabels={choices.filter((c) => c.indices && c.color).map((c) => c.label)}
-              onPickToggle={() => setLookup((s) => ({ ...s, picking: !s.picking }))}
-              onRadius={(km) => setLookup((s) => ({ ...s, radiusKm: km }))}
-              onClear={() =>
-                setLookup((s) => ({ ...s, center: null, picking: false, place: undefined }))
-              }
-              onOpen={openLookupHit}
-              onPlace={handlePlace}
-            />
+          lookupSlot={isPhone ? lookupPanel : null}
+          keySlot={
+            isPhone ? null : (
+              <ArchiveKey
+                map={mapRef.current}
+                ready={ready}
+                is3D={is3D}
+                onToggle3D={toggleView}
+                tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
+                filtered={agentKey !== 'all'}
+                tracks={TRACKS}
+              />
+            )
           }
         />
       )}

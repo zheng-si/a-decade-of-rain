@@ -110,6 +110,79 @@
   backdrop-filter: var(--v2-blur);
 }
 
+/* ── the place column (desktop) ────────────────────────────────────────────
+   The key panel takes the Location Lookup and the record card, so it stops
+   being a legend and becomes the column that answers WHERE: query at the top,
+   the answer under it. It grew 12 -> 20 -> 22rem as the record list moved in,
+   each step chasing the four columns that list carries.
+
+   Below 641px none of this applies: the lookup renders in the control sheet
+   and this panel goes back to being the record card's phone home. */
+@media (min-width: 641px) {
+  .map-wrap .archive-key {
+    /* The SAME width as the left column, and stated as the same expression.
+       Two panels a rem and a half apart do not read as a deliberate pair of
+       different sizes; they read as one of them being slightly wrong. Whatever
+       the left column is, this matches it. */
+    width: min(23.25rem, calc(100vw - 3rem));
+    /* And the same PADDING. Equal outer widths with different insets is not
+       equal: at 1rem against the left column's 1.5 the content box was 14px
+       wider, and with a table and two bar blocks filling it, that column read
+       as the wider one — which it was, where it counts. Same box, same inset,
+       and the two columns' first lines now sit on one baseline. */
+    padding: 1.5rem 1.5rem 1.375rem;
+    /* It holds a list, so it needs a floor. Scrolls inside rather than running
+       off the screen — the same treatment the control sheet has on a phone,
+       for the same reason.
+
+       The floor is the VIEWPORT, not the left column. Matching the left
+       column's height was tried and reverted: two columns read as one height
+       only while the list is open, so the right column grew and shrank by
+       260px as the reader folded it — a column that changes height on a press
+       is worse than two columns that were never the same height.
+
+       10rem, not 3rem: the last 7rem of the corner belong to the zoom pair
+       and the credit line. At 1280x720 with a long list the column drew over
+       the +/- buttons' centres — visible, and inert to the click (50.8%
+       covered, ~10px of edge left). The column yields; the buttons stay where
+       readers reach for them. (10 rather than 9 because the column's box runs
+       ~22px past its max-height's arithmetic — the 1.5rem top inset plus its
+       border — measured, not assumed.) */
+    max-height: calc(100vh - 10rem);
+    overflow-y: auto;
+  }
+
+  /* First in the panel, so the seam it used to draw against the agent block
+     has nothing above it to divide — and its label starts the panel rather
+     than sitting a line below the top padding. */
+  .map-wrap .archive-key .lookup {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  .map-wrap .archive-key .lookup > .explorer-section-label:first-child {
+    margin-top: 0;
+  }
+
+  /* Tighter than the control sheet's copy: this column is narrower than the
+     left panel was, and the agent name is the column that must not be the one
+     that gets clipped. */
+  .map-wrap .archive-key .lookup-head,
+  .map-wrap .archive-key .lookup-item {
+    grid-template-columns: minmax(5.75rem, auto) 5.25rem 1fr auto;
+    gap: 0.45rem;
+  }
+
+  /* The card arrives under the query that produced it, with no divider of its
+     own — the back link above it already says where it came from. */
+  .map-wrap .archive-key .archive-inspect {
+    margin-top: 0.875rem;
+    padding-top: 0;
+    border-top: none;
+  }
+}
+
 /* The phone sheet's geometry, restated here because App.css's version never
    wins: its media rule carries one class against the two above, so whatever
    it asks for loses on specificity (the trap that once clipped the 'Other'
@@ -213,10 +286,12 @@
 /* 12, not 16. The subtitle and the paragraph under it are one thought — the
    deck expands the line above it — so they sit closer than the 16 that
    separates the identity block from the controls. */
+/* Up a step. It is the line that says what the Archive IS, and at 14 it was
+   reading as caption under a 20px title. */
 .map-wrap .explorer-subtitle {
   margin: 0 0 0.625rem;
-  font-size: 0.875rem;
-  line-height: 1.4;
+  font-size: 1rem;
+  line-height: 1.35;
 }
 
 /* Regular 12px. Light was too thin to hold at 12 against a Medium title and
@@ -224,11 +299,13 @@
    things, Regular says them. The bottom margin matches the transport's
    padding-top, so the rule sits exactly between the prose and the controls
    instead of 24 above and 16 below. */
+/* Down a step, and tighter. The citation is provenance, not prose: it earns
+   its place by being checkable, not by being read at body size. */
 .map-wrap .explorer-dek {
-  margin-bottom: 1rem;
+  margin-bottom: 0.875rem;
   font-weight: 400;
-  font-size: 0.75rem;
-  line-height: 1.65;
+  font-size: 0.6875rem;
+  line-height: 1.5;
 }
 
 /* ── transport ─────────────────────────────────────────────────────────── */
@@ -287,17 +364,20 @@
   border-radius: 0;
 }
 
-/* The reset button. It used to say `box-shadow: none` -- written when the
-   skin's position was that white-on-glass takes no depth at all, which is the
-   position this pass reverses. It is a 30px white square on a white panel; if
-   anything on this surface needs the recipe, it is this. */
+/* The reset button, on the switch system with everything else. It was the last
+   white-on-white control left on this surface — a 30px white square carrying a
+   hairline and a shadow to stay visible, from the era before the 6% forest
+   track existed. The track is what every other control here sits on (the
+   radius chips, the fold, the search row, the pin), and it needs no edge at
+   all. Play keeps the filled dark, because that is this system's SELECTED
+   state and play is the one control that acts rather than waits. */
 .map-wrap .transport-btn.is-ghost {
-  background: rgba(255, 255, 255, 0.75);
-  box-shadow: var(--v2-lift);
+  background: rgba(33, 53, 40, 0.06);
+  box-shadow: none;
 }
 
 .map-wrap .transport-btn.is-ghost:hover:not(:disabled) {
-  background: #fff;
+  background: rgba(33, 53, 40, 0.11);
 }
 
 .map-wrap .explorer-date {
@@ -499,15 +579,15 @@
 }
 
 /* ── the key ───────────────────────────────────────────────────────────── */
-.map-wrap .archive-key .map-key-view,
-.map-wrap .archive-key .map-key-view-btn {
+.map-wrap .archive-key-legend .map-key-view,
+.map-wrap .archive-key-legend .map-key-view-btn {
   border-radius: 0;
 }
 
 /* The 2px inset existed to let a rounded thumb sit inside a rounded track.
    With both square there is nothing to inset for, and the gap only blurred
    the edge the switch is made of. */
-.map-wrap .archive-key .map-key-view {
+.map-wrap .archive-key-legend .map-key-view {
   padding: 0;
   /* The 6% forest track, no hairline — the B decision (2026-08), same rules
      as every other switch on both surfaces. */
@@ -515,15 +595,15 @@
   background: rgba(33, 53, 40, 0.06);
 }
 
-.map-wrap .archive-key .map-key-view-btn.is-active {
+.map-wrap .archive-key-legend .map-key-view-btn.is-active {
   background: var(--v2-fill);
 }
 
-.map-wrap .archive-key .map-key-view-label {
+.map-wrap .archive-key-legend .map-key-view-label {
   text-transform: uppercase;
 }
 
-.map-wrap .archive-key .map-key-view-btn {
+.map-wrap .archive-key-legend .map-key-view-btn {
   font-size: 0.75rem;
   font-weight: 500;
 }
@@ -698,8 +778,111 @@
   background: rgba(33, 53, 40, 0.45);
 }
 
+.map-wrap .inspect-year-tick.is-major::before {
+  height: 6px;
+  background: rgba(33, 53, 40, 0.6);
+}
+
 .map-wrap .inspect-year-labels {
   margin-top: 0.1875rem;
+}
+
+/* ── the inline record, laid out for the width it actually has ───────────
+   Read down its own column the standalone card is right: one fact per line,
+   the figure large. Nested under its list row that same portrait stack left
+   the right half of the panel empty — and a single wrapping line, which was
+   the first fix, broke wherever it happened to run out of room: "6K Gallons"
+   stranded beside the date, "1,207 Gal/km" beside the citation. Neither is a
+   layout, both were an absence of one.
+
+   A grid is: two columns, one row per KIND of fact — when and who, then how
+   much and how far, then the citation across the foot. The breaks are stated
+   instead of discovered, the second column carries the weight the empty half
+   used to, and every row of every open record lines up with the next. */
+/* margin: 0 stated HERE, at three classes: `.map-wrap .archive-key
+   .archive-inspect` sets the card's 0.875rem top margin and outranked the
+   two-class rule in App.css, so the record opened 20px below its own row
+   while the CSS that meant to close that gap read as if it had. */
+.map-wrap .lookup-detail .archive-inspect {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 0.875rem;
+  /* One rhythm: 5px between the rows of facts, and a line-height that is the
+     same for all of them — the figure carried 10.3px against its neighbours'
+     12, so the block sat unevenly no matter what the gaps did. */
+  row-gap: 0.3125rem;
+  align-items: baseline;
+  margin: 0;
+  line-height: 1.45;
+}
+.map-wrap .lookup-detail .archive-inspect > * {
+  line-height: 1.45;
+}
+.map-wrap .lookup-detail .inspect-kicker {
+  display: none;
+}
+.map-wrap .lookup-detail .inspect-coords,
+.map-wrap .lookup-detail .inspect-figure,
+.map-wrap .lookup-detail .inspect-sub.is-stats,
+.map-wrap .lookup-detail .inspect-note {
+  margin: 0;
+}
+.map-wrap .lookup-detail .inspect-coords {
+  grid-column: 1;
+}
+.map-wrap .lookup-detail .inspect-coords.is-span {
+  grid-column: 2;
+}
+.map-wrap .lookup-detail .inspect-figure {
+  grid-column: 1;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  white-space: nowrap;
+}
+/* ── one type system inside the row ─────────────────────────────────────
+   The card brings its own: a 19px serif headline in accent red, an 11px
+   stats line whose figures are red too, a 10px faint locating pair, a 10px
+   citation. Four sizes and four colours in a 70px block that sits INSIDE a
+   table — and the table three pixels above it runs on two sizes and three
+   colours. The record adopts the list's system instead of importing the
+   card's: everything factual at the row's own size, numbers in ink, their
+   units and labels in soft, sentences (the note, the citation) at the notes
+   tier in faint. Nothing here is accent red: in the standalone card the red
+   marks the one headline figure, and in a row of facts it marks nothing. */
+.map-wrap .lookup-detail .archive-inspect,
+.map-wrap .lookup-detail .inspect-coords,
+.map-wrap .lookup-detail .inspect-figure,
+.map-wrap .lookup-detail .inspect-figure-unit,
+.map-wrap .lookup-detail .inspect-sub.is-stats,
+.map-wrap .lookup-detail .inspect-sub.is-stats .stat-pair {
+  font-size: 0.6875rem;
+  letter-spacing: 0;
+  color: var(--ink-soft);
+}
+.map-wrap .lookup-detail .inspect-figure strong,
+.map-wrap .lookup-detail .inspect-sub.is-stats strong {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+/* Only the note reaches this scope now: the citation does not render inline
+   at all (the row above it already prints Mission·Run under that heading), so
+   a rule for it here would be a rule for nothing. */
+.map-wrap .lookup-detail .inspect-note {
+  font-size: 0.625rem;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+.map-wrap .lookup-detail .inspect-sub.is-stats {
+  grid-column: 2;
+  gap: 0.875rem;
+}
+/* A sentence, not a fact in the row: its own line, across both columns. */
+.map-wrap .lookup-detail .inspect-note {
+  grid-column: 1 / -1;
+  margin-top: 0.125rem;
 }
 
 /* MapLibre's own controls are part of the surface too. */

@@ -48,6 +48,10 @@ export default function App() {
           <Route path="/" element={<Story />} />
           <Route path="/archive" element={<Archive />} />
           <Route path="/explore" element={<LegacyExploreRedirect />} />
+          {/* A mistyped path rendered HTTP 200 of nothing: no text, no way
+              back, the index title over a white page. The Story is the site's
+              front door, so an unknown door leads there. */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

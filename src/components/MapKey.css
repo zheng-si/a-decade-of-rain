@@ -90,6 +90,18 @@
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
+/* The hover every other switch on both surfaces already has: one more step of
+   the same ink on the 6% forest track (.agent-chip, .lookup-chip). This pair
+   answered a pointer with nothing, which on a control that looks like a label
+   is the difference between "you may press this" and "this is a caption".
+   Not on the selected half — a hover over a filled dark chip reads as a nick
+   in the fill, the same reason the radius row retires its dividers there.
+   On the base rule, so the Story gets it too: both surfaces draw this switch
+   on the same track, and only its corners differ. */
+.map-key-view-btn:hover:not(.is-active) {
+  background: rgba(33, 53, 40, 0.05);
+}
+
 /* --forest-text, not #fff: this fill is always --forest, and the token exists
    for exactly that pairing. The Story's skin already corrected it here and the
    Archive kept inheriting the raw white, so one control was painting its

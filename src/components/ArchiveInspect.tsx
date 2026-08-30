@@ -80,15 +80,32 @@ const fullDate = (day: number) =>
 interface Props {
   data: Inspect
   groups: GroupInfo[]
+  /** Hidden when the panel above already carries a way back to the results
+   *  the card came from — two controls that do the same thing, a hand's width
+   *  apart, is one more than the reader needs to read. */
+  showClose?: boolean
+  /** Rendered inside the lookup's own list, under the row it belongs to.
+   *  The row above already prints Mission·Run under a MISSION·RUN header, so
+   *  the citation line would say the identifier twice; the aircraft count,
+   *  which is the only other thing that line carried, joins the agent. */
+  compact?: boolean
   onClose: () => void
 }
 
-export default function ArchiveInspect({ data, groups, onClose }: Props) {
+export default function ArchiveInspect({
+  data,
+  groups,
+  showClose = true,
+  compact = false,
+  onClose,
+}: Props) {
   return (
     <aside className="archive-inspect" aria-label="Inspect">
-      <button className="inspect-close" onClick={onClose} aria-label="Close">
-        ×
-      </button>
+      {showClose && (
+        <button className="inspect-close" onClick={onClose} aria-label="Close">
+          ×
+        </button>
+      )}
 
       {data.kind === 'cell' ? (
         <>
@@ -211,6 +228,7 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
             />{' '}
             {groups[data.groupIndex]?.label ?? 'Unknown'}
             {data.km == null && <> · {fullDate(data.day)}</>}
+            {compact && data.fwac != null && data.fwac > 0 && <> · {data.fwac} aircraft</>}
           </p>
           <p className="inspect-figure">
             {data.gallons > 0 ? (
@@ -218,6 +236,11 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
                 <strong>{fmtGallons(data.gallons)}</strong>
                 <span className="inspect-figure-unit">Gallons</span>
               </>
+            ) : data.mission != null && data.mission > 0 ? (
+              // A whole run with nothing booked against it — the key's "Flown,
+              // No Volume". Distinct from the line below, which is one WAYPOINT
+              // of a run whose gallons sit on another of its legs.
+              'No volume logged'
             ) : (
               'Flight path point'
             )}
@@ -244,24 +267,41 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
               )}
             </p>
           )}
-          {data.gallons === 0 && data.km == null && (
+          {/* The run IS the subject and it carries no volume: say that, rather
+              than the waypoint explanation below, which describes a piece of a
+              run whose gallons are elsewhere. Reached from the map now that the
+              single-point runs are clickable, where it read as a claim about a
+              longer flight this record does not have. */}
+          {data.gallons === 0 && data.km == null && data.mission != null && data.mission > 0 && (
             <p className="inspect-note">
-              A waypoint on a spray run&apos;s track. HERBS records the run as a line — leg 1A, 1B,
-              1C — and books its whole volume against 1A, so every later waypoint reads zero.
+              Logged against one grid reference, with no volume recorded against it. The record
+              carries the flight; it does not say what fell.
+            </p>
+          )}
+          {data.gallons === 0 && data.km == null && !(data.mission != null && data.mission > 0) && (
+            <p className="inspect-note">
+              A waypoint on a spray run&apos;s track. HERBS records the run as a line of legs
+              (1A, 1B, 1C) and books its whole volume against 1A, so every later waypoint reads
+              zero.
             </p>
           )}
           {data.gallons === 0 && data.km != null && (
             <p className="inspect-note">
-              A leg the record carries no volume against — the aircraft flew it, but the gallons
+              A leg the record carries no volume against. The aircraft flew it, but the gallons
               were booked to another leg of the same run.
             </p>
           )}
-          {/* The citation. A lookup result has to be checkable against the
-              source, and Mission + Run is exactly the key HERBS files the row
-              under — so the card prints it rather than keeping it internal. */}
-          {data.mission != null && data.mission > 0 && (
+          {/* The citation, in the LIST's own notation. A lookup result has to
+              be checkable against the source, and Mission + Run is exactly the
+              key HERBS files the row under. It used to spell the two words out
+              here and abbreviate them in the list two inches away, so the same
+              identifier read as two different things: M704·R877 in the row the
+              reader clicked, "Mission 704 · Run 877" on the card it opened.
+              One notation, and HERBS stays to say whose numbers these are. */}
+          {!compact && data.mission != null && data.mission > 0 && (
             <p className="inspect-coords is-runid">
-              HERBS Mission {data.mission} · Run {data.run}
+              HERBS M{data.mission}
+              {data.run !== data.mission ? `·R${data.run}` : ''}
               {data.fwac != null && data.fwac > 0 && (
                 <> · {data.fwac} aircraft</>
               )}

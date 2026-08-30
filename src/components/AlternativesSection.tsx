@@ -110,7 +110,10 @@ export default function AlternativesSection() {
             <div className="alt-axis is-co2" aria-hidden="true">
               {CO2_TICKS.map((t) => (
                 <span key={t} style={{ bottom: `${(t / CO2_MAX) * 100}%` }}>
-                  {t === 0 ? '0' : `${t} K`}
+                  {/* Bare, like the cost axis beside it: the title already
+                      says kilotonnes, so "60 K" read as 60,000 of them —
+                      1000x the value the bar draws. */}
+                  {t}
                 </span>
               ))}
             </div>

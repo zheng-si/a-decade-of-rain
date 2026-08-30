@@ -1071,6 +1071,18 @@
   .map-key {
     display: none;
   }
+
+  /* The basemap credit moves to the top corner, exactly as the Archive's
+     phone layout already does and for the same reason: the bottom edge
+     belongs to a fixed card (the deck), and measured at 390x844 the card
+     covered 84% of the ⓘ button — the ODbL attribution was neither visible
+     nor tappable for the entire scrollytelling section. The top edge is the
+     one strip no card or deck ever reaches. */
+  .story .maplibregl-ctrl-bottom-right {
+    top: 0.375rem;
+    right: 0;
+    bottom: auto;
+  }
   /* ── DECK: the node card on a phone ─────────────────────────────────────
      A caption deck docked to the bottom edge that FOLLOWS THE FINGER: every
      card is fixed in the same slot, and its horizontal offset is a CSS calc
@@ -2146,6 +2158,15 @@
 }
 .wall-tile:hover .wall-cap {
   opacity: 1;
+}
+/* No hover, no reveal: on touch screens the captions and the photographers'
+   credits simply did not exist — six real captions ("Kan Lay holds her
+   son…") at opacity 0 with no gesture to summon them. Attribution is not a
+   hover reward; where hover is absent the caption stands. */
+@media (hover: none) {
+  .wall-cap {
+    opacity: 1;
+  }
 }
 .wall-cap em {
   display: block;

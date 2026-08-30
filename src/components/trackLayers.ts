@@ -67,6 +67,8 @@ export const TRACK_MARK_LAYER = 'spray-track-mark'
  *  boundary has cut it into pieces — hovering the middle of an 11 km line
  *  should not highlight 3 km of it. */
 export const TRACK_HI_LAYER = 'spray-track-hi'
+/** The point form of the highlight — see TRACK_HI_LAYER's filter. */
+export const TRACK_HI_MARK_LAYER = 'spray-track-hi-mark'
 /** The hovered run's own source, holding at most one feature.
  *
  *  It began as a filter on the record's own source, which is the obvious way
@@ -273,6 +275,23 @@ function gradient(colour: string): maplibregl.ExpressionSpecification {
   ] as unknown as maplibregl.ExpressionSpecification
 }
 
+/** The record's fade, for strokes drawn on somebody else's layer.
+ *
+ *  The Location Lookup redraws its hit runs on its own layers, and the key
+ *  three inches away says "Each run fades away from its first waypoint on
+ *  file". Left to build its own fade, the circle would be the one place on the
+ *  map where that sentence is a second implementation — which is how the width
+ *  ramp went wrong before it was taken from the stroke layer itself. Null when
+ *  there is no taper to draw, and the caller paints flat.
+ *
+ *  Deliberately NOT gated on `taperLive`. That suspension exists because
+ *  11,273 strokes regenerate a 256-step ramp per tile on every playhead step;
+ *  a lookup's hits are tens of runs inside one circle, which is not the same
+ *  bill. */
+export function taperGradient(colour: string): maplibregl.ExpressionSpecification | null {
+  return TRACKS.taper > 0 ? gradient(colour) : null
+}
+
 /** Console hook. Merges in place so TRACKS stays one object; the nested
  *  groups are deep-copied for the same aliasing reason as setDots. */
 export function setTracks(next: Partial<TrackStyle>) {
@@ -472,7 +491,7 @@ const HI_BUMP = 1.6
 
 /** Which run the highlight source currently holds, so an unchanged hover is
  *  not a write. A mousemove fires many times over one stroke. */
-let hoverId: number | null = null
+let hoverKey: number | string | null = null
 
 /** Put the highlight on one run, or clear it. Takes the FEATURE, not an id:
  *  `queryRenderedFeatures` hands back tile-CLIPPED geometry, so highlighting
@@ -480,16 +499,20 @@ let hoverId: number | null = null
  *  The caller passes the whole run out of the loaded dataset. */
 export function setTrackHover(
   map: maplibregl.Map,
-  id: number | null,
-  feature?: GeoJSON.Feature | null,
+  /** Identity of what is lit, for the no-op check. A number for a hovered
+   *  feature; a string for a whole run opened from the lookup list, which is
+   *  several features at once and has no single feature id. */
+  key: number | string | null,
+  features?: GeoJSON.Feature | GeoJSON.Feature[] | null,
 ) {
-  if (id === hoverId) return
-  hoverId = id
+  if (key === hoverKey) return
+  hoverKey = key
   const src = map.getSource(TRACK_HI_SOURCE) as maplibregl.GeoJSONSource | undefined
   if (!src) return
+  const list = features == null ? [] : Array.isArray(features) ? features : [features]
   src.setData({
     type: 'FeatureCollection',
-    features: id != null && feature ? [feature] : [],
+    features: key != null ? list : [],
   })
 }
 
@@ -501,6 +524,61 @@ function markRamp(): maplibregl.ExpressionSpecification {
     'interpolate', ['linear'], ['zoom'],
     Z_FAR, ['min', ['*', m.kFar, ['sqrt', ['get', 'gallons']]], m.cap],
     Z_TOP, ['min', ['*', m.kNear, ['sqrt', ['get', 'gallons']]], m.cap],
+  ] as unknown as maplibregl.ExpressionSpecification
+}
+
+/** The mark ramp plus a ring's worth of clearance.
+ *
+ *  Written as its own ramp rather than `['+', markRamp(), 2.5]`, which is what
+ *  it was: a `zoom` expression may only be the input to a top-level step or
+ *  interpolate, so wrapping one in an arithmetic operator makes a layer
+ *  MapLibre refuses — and refuses QUIETLY, because addLayer validates, logs and
+ *  returns. The layer never existed. Every Archive load logged the rejection
+ *  and the 2,829 runs logged at one point highlighted nothing, hovered or
+ *  opened, while line runs lit up normally. The constant goes inside each zoom
+ *  stop, where it is allowed, exactly as endRamp already does with head/tail. */
+function markHiRamp(): maplibregl.ExpressionSpecification {
+  const m = TRACKS.marks
+  const at = (k: number) => ['+', ['min', ['*', k, ['sqrt', ['get', 'gallons']]], m.cap], 2.5]
+  return [
+    'interpolate', ['linear'], ['zoom'],
+    Z_FAR, at(m.kFar),
+    Z_TOP, at(m.kNear),
+  ] as unknown as maplibregl.ExpressionSpecification
+}
+
+/** The record's stroke and mark ramps WITH A FLOOR, for a lookup's hit runs.
+ *
+ *  A run with no volume booked has gpk 0, and 0 gallons per km is 0 px of
+ *  stroke. In the record that is correct and invisible on purpose — the nil
+ *  tier draws those runs as a dashed line when it is switched on. Inside a
+ *  lookup circle there is no nil tier: the answer said "32 runs within 5 km",
+ *  the By Agent bars counted 32 and the list held 32 rows, while the map drew
+ *  26 — and the missing six could not be clicked either, because a stroke with
+ *  no width has nothing to hit. The floor is the thinnest mark this map makes,
+ *  so a no-volume run reads as the least of them rather than as nothing.
+ *
+ *  Exported so the lookup builds the ENCODING rather than copying a number:
+ *  these read TRACKS at call time, like every other ramp here. Taking them off
+ *  the track layer's live paint (which is what the lookup did) also meant a
+ *  deep link — where the circle exists before spray-tracks.json lands — baked
+ *  in the 2.4px fallback and never revisited it. */
+export function hitWidthRamp(floor: number): maplibregl.ExpressionSpecification {
+  const at = (w: TrackRamp) => ['max', ['min', ['*', w.k, ['get', 'gpk']], w.cap], floor]
+  return [
+    'interpolate', ['linear'], ['zoom'],
+    Z_FAR, at(TRACKS.far),
+    Z_TOP, at(TRACKS.near),
+  ] as unknown as maplibregl.ExpressionSpecification
+}
+
+export function hitMarkRamp(floor: number): maplibregl.ExpressionSpecification {
+  const m = TRACKS.marks
+  const at = (k: number) => ['max', ['min', ['*', k, ['sqrt', ['get', 'gallons']]], m.cap], floor]
+  return [
+    'interpolate', ['linear'], ['zoom'],
+    Z_FAR, at(m.kFar),
+    Z_TOP, at(m.kNear),
   ] as unknown as maplibregl.ExpressionSpecification
 }
 
@@ -519,7 +597,7 @@ export function applyTracks(map: maplibregl.Map) {
   // console could open a blank band between the two encodings and nothing said
   // so. minzoom is a layer property like any other; it belongs in the same
   // apply as the paint.
-  for (const id of [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER, TRACK_END_LAYER, TRACK_DRAW_LAYER, TRACK_HI_LAYER]) {
+  for (const id of [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER, TRACK_END_LAYER, TRACK_DRAW_LAYER, TRACK_HI_LAYER, TRACK_HI_MARK_LAYER]) {
     if (map.getLayer(id)) map.setLayerZoomRange(id, trackStart, 24)
   }
   // The highlight is the stroke's own ramp plus a constant, so a console change
@@ -730,11 +808,35 @@ export function addTrackLayers(
       type: 'line',
       source: TRACK_HI_SOURCE,
       minzoom: Z_NEAR,
+      // Geometry-typed, because the source now carries both: a run opened from
+      // the lookup list hands over every piece of itself at once, and 2,829 of
+      // the record's runs are a single grid reference with no line to draw.
+      filter: ['==', ['geometry-type'], 'LineString'],
       layout: { 'line-cap': TRACKS.cap, 'line-join': 'round' },
       paint: {
         'line-color': tint,
         'line-width': hiWidthRamp(),
         'line-opacity': 1,
+      },
+    },
+    labelId,
+  )
+  // The same highlight for the single-point runs — a ring around the mark
+  // rather than a fill, so the dot's own area still reads as its volume.
+  map.addLayer(
+    {
+      id: TRACK_HI_MARK_LAYER,
+      type: 'circle',
+      source: TRACK_HI_SOURCE,
+      minzoom: Z_NEAR,
+      filter: ['==', ['geometry-type'], 'Point'],
+      paint: {
+        'circle-color': 'rgba(0,0,0,0)',
+        'circle-radius': markHiRamp() as never,
+        'circle-stroke-color': tint,
+        'circle-stroke-width': 1.75,
+        'circle-pitch-alignment': 'map',
+        'circle-pitch-scale': 'map',
       },
     },
     labelId,
@@ -859,6 +961,26 @@ export function setTrackAgents(
  *  fades. Two ramp regenerations per play-through instead of eleven a second. */
 let taperLive = true
 
+/** Whether the highlight takes the LIT FEATURE'S own colour instead of the
+ *  selection's tint.
+ *
+ *  The rule this file already states — "the highlight never changes a run's
+ *  hue, only its weight" — held while the record drew every run in one tint.
+ *  Inside a lookup circle it does not: the hits are drawn per agent, so a blue
+ *  run lit in the brand red came out as a red stroke under a blue one, and the
+ *  blue's own taper faded along it — a run that went from blue at the head to
+ *  red at the tail, which is not a colour either encoding claims. Same rule,
+ *  applied to what is actually on screen: the highlight reads `c` off the
+ *  feature, exactly as the lookup's own layers do. */
+let hiByFeature = false
+
+/** Flipped by the lookup as its circle opens and closes. */
+export function setHighlightByFeature(map: maplibregl.Map, on: boolean) {
+  if (hiByFeature === on) return
+  hiByFeature = on
+  applyTrackColour(map)
+}
+
 /** Suspend or restore the taper. One reload of the source when it flips, which
  *  is a price paid twice per play-through rather than 300 times. */
 export function setTrackTaper(map: maplibregl.Map, on: boolean) {
@@ -911,7 +1033,10 @@ function applyTrackColour(map: maplibregl.Map) {
   // hue — only its weight. Picking out a greyed-out run in the SELECTION's tint
   // would say it belonged to the isolated agent, which is the one thing the
   // grey exists to deny.
-  if (has(TRACK_HI_LAYER)) map.setPaintProperty(TRACK_HI_LAYER, 'line-color', colour)
+  const hiColour = (hiByFeature ? ['get', 'c'] : colour) as never
+  if (has(TRACK_HI_LAYER)) map.setPaintProperty(TRACK_HI_LAYER, 'line-color', hiColour)
+  if (has(TRACK_HI_MARK_LAYER))
+    map.setPaintProperty(TRACK_HI_MARK_LAYER, 'circle-stroke-color', hiColour)
   for (const id of [TRACK_MARK_LAYER, TRACK_END_LAYER]) {
     if (!off(map, id)) map.setPaintProperty(id, 'circle-color', colour)
   }
