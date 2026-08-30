@@ -100,8 +100,7 @@ interface Props {
   showClose?: boolean
   /** Rendered inside the lookup's own list, under the row it belongs to.
    *  The row above already prints Mission·Run under a MISSION·RUN header, so
-   *  the citation line would say the identifier twice; the aircraft count,
-   *  which is the only other thing that line carried, joins the agent. */
+   *  the citation line would say the identifier twice and is dropped. */
   compact?: boolean
   onClose: () => void
 }
@@ -265,7 +264,12 @@ export default function ArchiveInspect({
             />{' '}
             {groups[data.groupIndex]?.label ?? 'Unknown'}
             {data.km == null && <> · {fullDate(data.day)}</>}
-            {compact && data.fwac != null && data.fwac > 0 && <> · {data.fwac} aircraft</>}
+            {/* The aircraft count belongs to the agent, not to the citation:
+                "Blue · 3 aircraft" is one statement about who flew this, and
+                it had been split across two lines with the volume and the
+                distance in between. Both homes of the record read it here
+                now — the inline one always did. */}
+            {data.fwac != null && data.fwac > 0 && <> · {data.fwac} aircraft</>}
           </p>
           <p className="inspect-figure">
             {data.gallons > 0 ? (
@@ -339,9 +343,6 @@ export default function ArchiveInspect({
             <p className="inspect-coords is-runid">
               HERBS M{data.mission}
               {data.run !== data.mission ? `·R${data.run}` : ''}
-              {data.fwac != null && data.fwac > 0 && (
-                <> · {data.fwac} aircraft</>
-              )}
             </p>
           )}
         </>
