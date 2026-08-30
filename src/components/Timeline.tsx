@@ -342,11 +342,6 @@ export default function Timeline({
         <p className="explorer-links">
           <Link to="/">← Read the Story</Link>
         </p>
-        <ul className="explorer-guide">
-          <li>Press play to watch the decade fall month by month.</li>
-          <li>Each dot is a grid cell&apos;s gallons. Click it for the record.</li>
-          <li>Zoom in until the dots give way to the flight tracks themselves.</li>
-        </ul>
       </header>
 
       {/* The key reads before the controls, not after them: it says what the
