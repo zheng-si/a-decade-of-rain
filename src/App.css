@@ -1495,14 +1495,27 @@
   color: #f2efe7;
 }
 /* Label + unit switch on one line; the switch is the radius chips' little
-   sibling — same track, same fill, chart-furniture scale. */
+   sibling — same track, same fill, chart-furniture scale.
+   The RULE moves to the row. `.inspect-section-label` carries its own
+   border-top (each heading takes over the divider of the block it heads), and
+   as a flex item the label is only as wide as its text — so the divider
+   stopped a third of the way across the panel. The row is the full-width
+   thing now, and the label inside it gives up the border and the margins the
+   row has taken over, which is also what puts the label and the switch on one
+   centre line. */
 .inspect-section-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
+  margin: 0.75rem 0 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--rule, #ded8cc);
 }
-.inspect-section-row .inspect-section-label {
+.map-wrap .inspect-section-row .inspect-section-label {
+  margin: 0;
+  padding-top: 0;
+  border-top: none;
   margin-right: auto;
 }
 .lookup-unit {
@@ -1527,6 +1540,110 @@
 .lookup-unit button.is-active {
   background: #213528;
   color: #f2efe7;
+}
+
+/* The method note's handle: a 10px letter in a circle, the quietest control
+   in the panel — it qualifies the figures, it does not compete with them. */
+.lookup-note-btn {
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  padding: 0;
+  border: 1px solid rgba(33, 53, 40, 0.22);
+  border-radius: 50%;
+  font: inherit;
+  font-size: 0.625rem;
+  font-style: italic;
+  font-family: var(--font-serif, Georgia, serif);
+  line-height: 1;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.lookup-note-btn:hover,
+.lookup-note-btn.is-active {
+  background: #213528;
+  border-color: #213528;
+  color: #f2efe7;
+}
+.lookup-note {
+  margin: 0 0 0.5rem;
+  padding: 0.5rem 0.625rem;
+  background: rgba(33, 53, 40, 0.05);
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--ink-faint, #4b5a50);
+}
+
+/* ── the year chart, half again as tall and readable ─────────────────────
+   At 46px eleven stacked bars were a texture, not a chart: a year with a
+   fifth of another year's volume had two pixels to say so. */
+.inspect-years.is-tall {
+  /* 1.5x the sparkline's 2.875rem. In rem so it rides the panel's own type
+     scale, like every other height here. */
+  height: 4.3125rem;
+  margin-top: 0;
+  cursor: default;
+}
+.inspect-year-col.is-hi .inspect-year-seg {
+  opacity: 1;
+}
+.inspect-year-col:not(.is-hi) .inspect-year-stack {
+  transition: opacity 0.12s;
+}
+.lookup-years-wrap:hover .inspect-year-col:not(.is-hi) .inspect-year-stack {
+  opacity: 0.55;
+}
+
+/* A fixed readout slot above the bars, not a floating box over them: eleven
+   columns in a 275px panel leave no room for a tooltip that would cover its
+   own neighbours, and a reserved row means nothing jumps as the pointer
+   moves. */
+.lookup-year-readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+  min-height: 1.125rem;
+  margin: 0 0 0.25rem;
+  font-size: 0.625rem;
+  color: var(--ink-soft);
+}
+.lookup-year-readout strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.lookup-year-readout.is-idle {
+  color: var(--ink-faint, #4b5a50);
+}
+.lookup-year-part {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1875rem;
+  color: var(--ink-faint, #4b5a50);
+}
+.lookup-year-part i {
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+}
+
+/* Every other year labelled, and only the labelled ticks run full length —
+   two end labels left the reader counting columns to place a bar. */
+.inspect-year-tick.is-major {
+  height: 0.3125rem;
+  opacity: 0.75;
+}
+.lookup-year-axis {
+  display: flex;
+  margin-top: 0.1875rem;
+  font-size: 0.5625rem;
+  color: var(--ink-faint, #4b5a50);
+  font-variant-numeric: tabular-nums;
+}
+.lookup-year-axis span {
+  flex: 1;
+  text-align: center;
 }
 
 /* The stacked year bar: total height carries the year, the segments carry

@@ -778,8 +778,53 @@
   background: rgba(33, 53, 40, 0.45);
 }
 
+.map-wrap .inspect-year-tick.is-major::before {
+  height: 6px;
+  background: rgba(33, 53, 40, 0.6);
+}
+
 .map-wrap .inspect-year-labels {
   margin-top: 0.1875rem;
+}
+
+/* ── the inline record, laid out for the width it actually has ───────────
+   Read down its own column the standalone card is right: one fact per line,
+   the figure large. Nested under its own list row it was that same portrait
+   stack with the right half of the panel empty — and the reader is comparing
+   it against the rows above and below, not studying it alone. So it turns
+   landscape: one wrapping line of facts in the row's own grammar, then the
+   citation under it. The kicker goes because the row above already names the
+   record, and the headline figure drops to the stats' size — inline, a 19px
+   serif number beside 11px labels reads as a poster in a table. */
+.map-wrap .lookup-detail .archive-inspect {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.125rem 0.5625rem;
+}
+.map-wrap .lookup-detail .inspect-kicker {
+  display: none;
+}
+.map-wrap .lookup-detail .inspect-coords,
+.map-wrap .lookup-detail .inspect-figure,
+.map-wrap .lookup-detail .inspect-sub.is-stats {
+  margin: 0;
+}
+.map-wrap .lookup-detail .inspect-figure {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+.map-wrap .lookup-detail .inspect-figure strong {
+  font-family: var(--font-sans);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+/* Citation and notes are sentences, not facts in the row: their own line. */
+.map-wrap .lookup-detail .inspect-cite,
+.map-wrap .lookup-detail .inspect-note {
+  flex: 0 0 100%;
+  margin: 0.25rem 0 0;
 }
 
 /* MapLibre's own controls are part of the surface too. */

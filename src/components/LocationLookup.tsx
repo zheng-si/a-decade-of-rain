@@ -127,6 +127,11 @@ export default function LocationLookup({
    *  stay one press away — they are the honest unit when volumes are partial
    *  (a fifth of hit runs can carry 0 logged gallons). */
   const [unit, setUnit] = useState<'volume' | 'runs'>('volume')
+  /** The year column under the pointer, and whether the method note is open.
+   *  Both live here rather than in CSS because both carry TEXT that has to be
+   *  built from the data. */
+  const [hoverYear, setHoverYear] = useState<number | null>(null)
+  const [noteOpen, setNoteOpen] = useState(false)
   /** The list scrolls the inline-open record into view — a map click can open
    *  a row the reader has never scrolled to. */
   const openRowRef = useRef<HTMLLIElement | null>(null)
@@ -447,7 +452,30 @@ export default function LocationLookup({
                             Runs
                           </button>
                         </div>
+                        {/* The method note behind an ⓘ. It is four lines of
+                            standing caveat that the reader needs ONCE — and
+                            it sat between the charts and the list, which is
+                            where their eye travels. Kept one press away, next
+                            to the switch whose unit it qualifies, rather than
+                            deleted: the fixed-wing scope and the
+                            whole-run-volume caveat are load-bearing. */}
+                        <button
+                          className={`lookup-note-btn${noteOpen ? ' is-active' : ''}`}
+                          aria-expanded={noteOpen}
+                          aria-label="About these figures"
+                          onClick={() => setNoteOpen((v) => !v)}
+                        >
+                          i
+                        </button>
                       </div>
+                      {noteOpen && (
+                        <p className="lookup-note" role="note">
+                          Fixed-wing (Ranch Hand) records only — no helicopter, ground or
+                          base-perimeter spraying.
+                          {unit === 'volume' &&
+                            ' Gallons are each run’s whole logged volume, booked at its first waypoint — not the share that fell inside this circle.'}
+                        </p>
+                      )}
                       <div className="inspect-groups">
                         {/* Skip only agents with NOTHING here. One whose runs
                             all carry zero logged gallons keeps its row in
@@ -489,48 +517,88 @@ export default function LocationLookup({
                           palette was already this panel's vocabulary one block
                           up. Segment order is the group order, Orange at the
                           base. */}
-                      <div className="inspect-years" aria-hidden="true">
-                        {byYear.map((gs, i) => (
-                          <span key={i} className="inspect-year-col">
-                            <span
-                              className="inspect-year-stack"
-                              style={{
-                                height: `${Math.max(yearTotals[i] > 0 ? 2 : 0, (yearTotals[i] / yearMax) * 100)}%`,
-                              }}
-                            >
-                              {gs.map((v, gi) =>
+                      <div className="lookup-years-wrap" onMouseLeave={() => setHoverYear(null)}>
+                        {/* The readout rides ABOVE the bars rather than
+                            floating over them: eleven columns in 275px are
+                            too narrow to host a box that would cover its own
+                            neighbours, and a fixed slot means nothing jumps.
+                            It holds the row's place when nothing is hovered,
+                            so the chart does not shift under the pointer. */}
+                        <p className={`lookup-year-readout${hoverYear == null ? ' is-idle' : ''}`}>
+                          {hoverYear == null ? (
+                            'Hover a year'
+                          ) : (
+                            <>
+                              <strong>{YEAR_FROM + hoverYear}</strong>
+                              <span>{fmt(yearTotals[hoverYear])}</span>
+                              {byYear[hoverYear].map((v, gi) =>
                                 v > 0 ? (
-                                  <span
-                                    key={gi}
-                                    className="inspect-year-seg"
-                                    style={{ flexGrow: v, background: groups[gi]?.color }}
-                                  />
+                                  <span key={gi} className="lookup-year-part">
+                                    <i style={{ background: groups[gi]?.color }} />
+                                    {groups[gi]?.label} {fmt(v)}
+                                  </span>
                                 ) : null,
                               )}
+                            </>
+                          )}
+                        </p>
+                        <div className="inspect-years is-tall" aria-hidden="true">
+                          {byYear.map((gs, i) => (
+                            <span
+                              key={i}
+                              className={`inspect-year-col${hoverYear === i ? ' is-hi' : ''}`}
+                              onMouseEnter={() => setHoverYear(i)}
+                            >
+                              <span
+                                className="inspect-year-stack"
+                                style={{
+                                  height: `${Math.max(yearTotals[i] > 0 ? 2 : 0, (yearTotals[i] / yearMax) * 100)}%`,
+                                }}
+                              >
+                                {gs.map((v, gi) =>
+                                  v > 0 ? (
+                                    <span
+                                      key={gi}
+                                      className="inspect-year-seg"
+                                      style={{ flexGrow: v, background: groups[gi]?.color }}
+                                    />
+                                  ) : null,
+                                )}
+                              </span>
                             </span>
-                          </span>
-                        ))}
-                      </div>
-                      <div className="inspect-year-ticks" aria-hidden="true">
-                        {byYear.map((_, i) => (
-                          <span key={i} className="inspect-year-tick" />
-                        ))}
-                      </div>
-                      <div className="inspect-year-labels" aria-hidden="true">
-                        <span>{YEAR_FROM}</span>
-                        <span>{YEAR_TO}</span>
+                          ))}
+                        </div>
+                        {/* Every other year carries a label, and only the
+                            labelled ticks are full-length: two end-labels left
+                            the reader counting columns to place a bar. */}
+                        <div className="inspect-year-ticks" aria-hidden="true">
+                          {byYear.map((_, i) => (
+                            <span
+                              key={i}
+                              className={`inspect-year-tick${i % 2 === 0 ? ' is-major' : ''}`}
+                            />
+                          ))}
+                        </div>
+                        <div className="lookup-year-axis" aria-hidden="true">
+                          {byYear.map((_, i) => (
+                            <span key={i}>{i % 2 === 0 ? YEAR_FROM + i : ''}</span>
+                          ))}
+                        </div>
                       </div>
                     </>
                   )
                 })()
               )}
 
-              <p className="lookup-caveat">
-                Fixed-wing (Ranch Hand) records only — no helicopter, ground or base-perimeter
-                spraying.
-                {unit === 'volume' &&
-                  ' Gallons are each run’s whole logged volume, booked at its first waypoint — not the share that fell inside this circle.'}
-              </p>
+              {/* The caveat moved into the ⓘ beside the unit switch (above).
+                  It stays in the empty state, where there is no chart to hang
+                  it off and the reader most needs to know what was searched. */}
+              {results.length === 0 && (
+                <p className="lookup-caveat">
+                  Fixed-wing (Ranch Hand) records only — no helicopter, ground or base-perimeter
+                  spraying.
+                </p>
+              )}
             </>
           )}
 
