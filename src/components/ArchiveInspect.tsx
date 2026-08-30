@@ -84,10 +84,21 @@ interface Props {
    *  the card came from — two controls that do the same thing, a hand's width
    *  apart, is one more than the reader needs to read. */
   showClose?: boolean
+  /** Rendered inside the lookup's own list, under the row it belongs to.
+   *  The row above already prints Mission·Run under a MISSION·RUN header, so
+   *  the citation line would say the identifier twice; the aircraft count,
+   *  which is the only other thing that line carried, joins the agent. */
+  compact?: boolean
   onClose: () => void
 }
 
-export default function ArchiveInspect({ data, groups, showClose = true, onClose }: Props) {
+export default function ArchiveInspect({
+  data,
+  groups,
+  showClose = true,
+  compact = false,
+  onClose,
+}: Props) {
   return (
     <aside className="archive-inspect" aria-label="Inspect">
       {showClose && (
@@ -217,6 +228,7 @@ export default function ArchiveInspect({ data, groups, showClose = true, onClose
             />{' '}
             {groups[data.groupIndex]?.label ?? 'Unknown'}
             {data.km == null && <> · {fullDate(data.day)}</>}
+            {compact && data.fwac != null && data.fwac > 0 && <> · {data.fwac} aircraft</>}
           </p>
           <p className="inspect-figure">
             {data.gallons > 0 ? (
@@ -286,7 +298,7 @@ export default function ArchiveInspect({ data, groups, showClose = true, onClose
               identifier read as two different things: M704·R877 in the row the
               reader clicked, "Mission 704 · Run 877" on the card it opened.
               One notation, and HERBS stays to say whose numbers these are. */}
-          {data.mission != null && data.mission > 0 && (
+          {!compact && data.mission != null && data.mission > 0 && (
             <p className="inspect-coords is-runid">
               HERBS M{data.mission}
               {data.run !== data.mission ? `·R${data.run}` : ''}

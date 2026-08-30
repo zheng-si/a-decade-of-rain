@@ -867,12 +867,9 @@
   font-weight: 600;
   color: var(--ink);
 }
-/* The citation is `.inspect-coords.is-runid` — the same class as the date,
-   so the notes tier and the row span below have to name the modifier. Rules
-   written for a class this card has never had landed nowhere: the citation
-   kept the locating pair's size and colour, which is how it came to read as
-   a fact rather than a footnote. */
-.map-wrap .lookup-detail .inspect-coords.is-runid,
+/* Only the note reaches this scope now: the citation does not render inline
+   at all (the row above it already prints Mission·Run under that heading), so
+   a rule for it here would be a rule for nothing. */
 .map-wrap .lookup-detail .inspect-note {
   font-size: 0.625rem;
   line-height: 1.5;
@@ -882,8 +879,7 @@
   grid-column: 2;
   gap: 0.875rem;
 }
-/* Sentences, not facts in a row: their own line, across both columns. */
-.map-wrap .lookup-detail .inspect-coords.is-runid,
+/* A sentence, not a fact in the row: its own line, across both columns. */
 .map-wrap .lookup-detail .inspect-note {
   grid-column: 1 / -1;
   margin-top: 0.125rem;

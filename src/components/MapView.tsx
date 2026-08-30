@@ -1927,6 +1927,7 @@ export default function MapView() {
           <ArchiveInspect
             data={inspect!}
             showClose={false}
+            compact
             groups={choices
               .filter((c) => c.indices && c.color)
               .map((c) => ({ label: c.label, color: c.color! }))}
