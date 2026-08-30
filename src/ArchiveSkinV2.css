@@ -1051,3 +1051,21 @@
   width: 4px;
   height: 4px;
 }
+
+/* One line through the four hues, masked so it still fades the way the map's
+   strokes do. A hue gradient cannot also be an alpha gradient in one
+   `background`, and four separate fading segments read as a dashed stroke. */
+.map-wrap .key-line.is-hues {
+  /* To 0.3, not to nothing: TRACKS.taper is 0.7, so a run keeps three tenths
+     of itself at the tail. A mask to transparent would fade out exactly the
+     half of the bar Blue and Other live in — the swatch would show two of the
+     four agents and claim to show the encoding. */
+  -webkit-mask-image: linear-gradient(90deg, #000, rgba(0, 0, 0, 0.3));
+  mask-image: linear-gradient(90deg, #000, rgba(0, 0, 0, 0.3));
+}
+/* The grey row holds its place while it has nothing to say, so pressing an
+   agent chip does not grow the panel by a row and step the chart, the chips
+   and the note down with it. */
+.map-wrap .map-key-list li.is-placeholder {
+  visibility: hidden;
+}

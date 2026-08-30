@@ -100,6 +100,51 @@ export default function ArchiveKey({
     }
   }, [ready, map, tracks])
 
+  // One row, two homes: in place while it is saying something, at the foot
+  // of the list while it is only holding its height open.
+  const otherAgents = (
+    <li>
+    <span className="key-swatch" aria-hidden="true">
+    {/* A line above the hand-off, a dot below it — the same split
+    the tiers themselves make. Measured with an agent isolated
+    at track zoom: 1,834 de-emphasised runs drawn as grey LINES
+    against 167 grey points, and the key showed a dot. The grey
+    line fades like the coloured one, because the dim twin
+    carries the same taper. */}
+    {onTracks ? (
+    <span
+    className="key-line"
+    style={{ background: 'linear-gradient(90deg, #c9cdc4, rgba(201, 205, 196, 0))' }}
+    />
+    ) : (
+    <span className="key-dot key-dot-dim" />
+    )}
+    </span>
+    Other Agents
+    </li>
+  )
+  const placeholder = (
+    <li className="is-placeholder" aria-hidden="true">
+    <span className="key-swatch" aria-hidden="true">
+    {/* A line above the hand-off, a dot below it — the same split
+    the tiers themselves make. Measured with an agent isolated
+    at track zoom: 1,834 de-emphasised runs drawn as grey LINES
+    against 167 grey points, and the key showed a dot. The grey
+    line fades like the coloured one, because the dim twin
+    carries the same taper. */}
+    {onTracks ? (
+    <span
+    className="key-line"
+    style={{ background: 'linear-gradient(90deg, #c9cdc4, rgba(201, 205, 196, 0))' }}
+    />
+    ) : (
+    <span className="key-dot key-dot-dim" />
+    )}
+    </span>
+    Other Agents
+    </li>
+  )
+
   return (
     <div className="archive-key-legend">
       <p className="map-key-view-label">Map View</p>
@@ -165,17 +210,16 @@ export default function ArchiveKey({
                   the ring and the military regions: a key describing a mark
                   that is not on the map. */}
               <span
-                className="key-line"
+                className={byAgent ? 'key-line is-hues' : 'key-line'}
                 style={{
+                  // One line through all four hues, not four stubs of one
+                  // each: four segments in a 24px bar read as a DASHED stroke,
+                  // and the map draws none. The taper survives as a mask that
+                  // stops where the strokes stop — at 1 − TRACKS.taper, not at
+                  // nothing, or it would fade out exactly the half of the bar
+                  // Blue and Other live in.
                   background: byAgent
-                    ? // Four strokes' worth of the map in one 24px bar, each
-                      // fading as its own does.
-                      hues!
-                        .map(
-                          (h, i) =>
-                            `linear-gradient(90deg, ${h}, ${h}00) ${(i * 100) / hues!.length}% / ${100 / hues!.length}% 100% no-repeat`,
-                        )
-                        .join(', ')
+                    ? `linear-gradient(90deg, ${hues!.join(', ')})`
                     : `linear-gradient(90deg, ${tint}, ${tint}00)`,
                 }}
               />
@@ -205,27 +249,7 @@ export default function ArchiveKey({
             Logged at One Point
           </li>
         )}
-        {filtered && (
-          <li>
-            <span className="key-swatch" aria-hidden="true">
-              {/* A line above the hand-off, a dot below it — the same split
-                  the tiers themselves make. Measured with an agent isolated
-                  at track zoom: 1,834 de-emphasised runs drawn as grey LINES
-                  against 167 grey points, and the key showed a dot. The grey
-                  line fades like the coloured one, because the dim twin
-                  carries the same taper. */}
-              {onTracks ? (
-                <span
-                  className="key-line"
-                  style={{ background: 'linear-gradient(90deg, #c9cdc4, rgba(201, 205, 196, 0))' }}
-                />
-              ) : (
-                <span className="key-dot key-dot-dim" />
-              )}
-            </span>
-            Other Agents
-          </li>
-        )}
+        {filtered && otherAgents}
         {/* The no-volume mark: a dashed track above the hand-off, a hollow ring
             below it. Above, it is drawn only while TRACKS.nil.shown — turning
             that off in the console and leaving the row here would put the key
@@ -250,6 +274,13 @@ export default function ArchiveKey({
           <span className="key-swatch key-border" aria-hidden="true" />
           National Border
         </li>
+        {/* The same row, holding its height open at the FOOT of the list while
+            it has nothing to say. It applies only with an agent isolated, but
+            appearing on the chip press grew the panel by a row and stepped the
+            chart, the chips and the note down with it — and reserving the space
+            IN PLACE left a hole in the middle of the legend that read as a
+            missing item. At the foot it reads as the padding it is. */}
+        {!filtered && placeholder}
       </ul>
       {/* The encoding, once. Width is gallons per KM, not gallons — the only
           quantity comparable between a 2 km run and a 40 km one. The fade names

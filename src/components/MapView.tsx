@@ -34,6 +34,7 @@ import {
 import {
   addTrackLayers,
   TRACK_LAYER,
+  TRACK_HUE_LAYERS,
   TRACK_MARK_LAYER,
   TRACK_DIM_LAYER,
   TRACK_END_LAYER,
@@ -201,6 +202,11 @@ const GRID_TIERS = [VOL_COARSE_LAYER, VOL_FINE_LAYER, VOL_RAW_LAYER]
 const RECORD_TIERS = [
   ...GRID_TIERS,
   TRACK_LAYER,
+  // EVERY track layer, the four per-agent twins included. Left out, a lookup
+  // hid the single-tint layer that is empty while they are carrying the
+  // record, and the whole country stayed on screen behind a circle whose
+  // answer was "42 runs within 2 km".
+  ...TRACK_HUE_LAYERS,
   TRACK_DIM_LAYER,
   TRACK_NIL_LAYER,
   TRACK_MARK_LAYER,
@@ -985,8 +991,11 @@ export default function MapView() {
         // them "Logged at One Point", and until this they were the only mark on
         // the map that answered nothing when you pointed at or clicked them.
         const trackLayers = () =>
-          [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER].filter((id) =>
-            map.getLayer(id),
+          // The hue twins are where the strokes actually ARE with nothing
+          // isolated, so a click that only queried the single-tint layer found
+          // nothing under a map full of lines.
+          [TRACK_LAYER, ...TRACK_HUE_LAYERS, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER].filter(
+            (id) => map.getLayer(id),
           )
         // While a lookup is up the record's tiers are hidden and the hits are
         // drawn on the lookup's own two layers — so those are where a pointer
