@@ -1647,7 +1647,10 @@
 /* The inline record: a quiet inset panel under its row, tinted a step lighter
    than the row so the two read as one block with a head. */
 .lookup-detail {
-  padding: 0.5rem 0.5rem 0.5625rem;
+  /* Tight to its own row: the record is that row continued, so the space above
+     the first line matches the row's own inset rather than opening a gap the
+     eye reads as a break. */
+  padding: 0.375rem 0.5rem 0.5rem;
   border-top: 1px solid var(--rule, #ded8cc);
 }
 .lookup-detail .archive-inspect {
@@ -1681,11 +1684,6 @@
   font-weight: 600;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
-}
-.lookup-ms {
-  font-size: 0.625rem;
-  color: var(--ink-faint, #4b5a50);
-  white-space: nowrap;
 }
 .lookup-empty {
   margin: 0.5rem 0 0;

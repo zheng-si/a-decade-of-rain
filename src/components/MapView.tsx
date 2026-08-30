@@ -662,7 +662,6 @@ export default function MapView() {
   const lookupPickRef = useRef(false)
   lookupPickRef.current = lookup.picking
   const [lookupResults, setLookupResults] = useState<LookupHit[] | null>(null)
-  const [lookupMs, setLookupMs] = useState<number | null>(null)
   // Phone: the record card sits ON TOP of the control sheet, and the sheet
   // has two heights (peek / expanded) plus text that can rewrap — so the
   // card's bottom offset cannot be a constant. A ResizeObserver mirrors the
@@ -1575,10 +1574,8 @@ export default function MapView() {
     if (!tracksReady || !t || !lookup.center) {
       lookupResultsRef.current = null
       setLookupResults(null)
-      setLookupMs(null)
       return
     }
-    const t0 = performance.now()
     const res = queryLookup(t, {
       lng: lookup.center.lng,
       lat: lookup.center.lat,
@@ -1586,7 +1583,6 @@ export default function MapView() {
       dayFrom: monthToFirstDay(lookup.from),
       dayTo: monthToLastDay(lookup.to),
     })
-    setLookupMs(performance.now() - t0)
     lookupResultsRef.current = res
     setLookupResults(res)
   }, [tracksReady, lookup])
@@ -1918,7 +1914,6 @@ export default function MapView() {
     <LocationLookup
       state={lookup}
       results={lookupResults}
-      queryMs={lookupMs}
       groups={choices
         .filter((c) => c.indices && c.color)
         .map((c) => ({ label: c.label, color: c.color! }))}

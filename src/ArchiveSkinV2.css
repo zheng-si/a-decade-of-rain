@@ -799,12 +799,24 @@
    much and how far, then the citation across the foot. The breaks are stated
    instead of discovered, the second column carries the weight the empty half
    used to, and every row of every open record lines up with the next. */
+/* margin: 0 stated HERE, at three classes: `.map-wrap .archive-key
+   .archive-inspect` sets the card's 0.875rem top margin and outranked the
+   two-class rule in App.css, so the record opened 20px below its own row
+   while the CSS that meant to close that gap read as if it had. */
 .map-wrap .lookup-detail .archive-inspect {
   display: grid;
   grid-template-columns: max-content 1fr;
   column-gap: 0.875rem;
-  row-gap: 0.25rem;
+  /* One rhythm: 5px between the rows of facts, and a line-height that is the
+     same for all of them — the figure carried 10.3px against its neighbours'
+     12, so the block sat unevenly no matter what the gaps did. */
+  row-gap: 0.3125rem;
   align-items: baseline;
+  margin: 0;
+  line-height: 1.45;
+}
+.map-wrap .lookup-detail .archive-inspect > * {
+  line-height: 1.45;
 }
 .map-wrap .lookup-detail .inspect-kicker {
   display: none;

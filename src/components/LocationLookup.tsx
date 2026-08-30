@@ -49,8 +49,6 @@ interface Props {
   /** Label and colour per agent group — the same objects the record card
    *  takes, because the two draw the same bars. */
   groups: GroupInfo[]
-  /** Query took this long, ms — printed small, it is part of the method. */
-  queryMs: number | null
   /** A record card is open below. The answer folds to a way back, because the
    *  card is the reader's subject now and two summaries of the same place
    *  stacked is a worse answer than either. */
@@ -113,7 +111,6 @@ export default function LocationLookup({
   state,
   results,
   groups,
-  queryMs,
   cardOpen = false,
   detailKey = null,
   detail = null,
@@ -368,7 +365,7 @@ export default function LocationLookup({
         {open && query.trim() !== '' && gazReady && matches.length === 0 && (
           <p className="lookup-search-none">
             No match. The index covers air bases, army and marine bases, firebases, landing
-            zones, camps and towns — not unit numbers.
+            zones, camps and towns. It does not cover unit numbers.
           </p>
         )}
       </div>
@@ -394,12 +391,13 @@ export default function LocationLookup({
 
       {place?.coarse && (
         <p className="lookup-place-hint">
-          City-level place — the radius is set to 10 km and the answer is correspondingly coarse.
+          City-level place, so the radius is set to 10 km and the answer is correspondingly
+          coarse.
         </p>
       )}
       {place?.low && (
         <p className="lookup-place-hint">
-          This place&apos;s coordinate is inferred — check the pin against the map before reading
+          This place&apos;s coordinate is inferred. Check the pin against the map before reading
           the list.
         </p>
       )}
@@ -419,7 +417,6 @@ export default function LocationLookup({
                 <strong>{results.length}</strong>
                 {results.length === 1 ? ' run' : ' runs'} within {radiusKm} km of{' '}
                 <span className="lookup-where">{place ? place.name : fmtCenter(center)}</span>
-                {queryMs != null && <span className="lookup-ms"> · {queryMs.toFixed(0)} ms</span>}
               </p>
 
               {results.length === 0 ? (
@@ -582,11 +579,11 @@ export default function LocationLookup({
               )}
 
               <p className="lookup-caveat">
-                Fixed-wing (Ranch Hand) records only — no helicopter, ground or base-perimeter
+                Fixed-wing (Ranch Hand) records only. No helicopter, ground or base-perimeter
                 spraying.
                 {results.length > 0 &&
                   unit === 'volume' &&
-                  ' Gallons are each run’s whole logged volume, booked at its first waypoint — not the share that fell inside this circle.'}
+                  ' Gallons are each run’s whole logged volume, booked at its first waypoint, not the share that fell inside this circle.'}
               </p>
             </>
           )}

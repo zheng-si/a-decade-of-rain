@@ -268,13 +268,14 @@ export default function ArchiveInspect({ data, groups, showClose = true, onClose
           )}
           {data.gallons === 0 && data.km == null && !(data.mission != null && data.mission > 0) && (
             <p className="inspect-note">
-              A waypoint on a spray run&apos;s track. HERBS records the run as a line — leg 1A, 1B,
-              1C — and books its whole volume against 1A, so every later waypoint reads zero.
+              A waypoint on a spray run&apos;s track. HERBS records the run as a line of legs
+              (1A, 1B, 1C) and books its whole volume against 1A, so every later waypoint reads
+              zero.
             </p>
           )}
           {data.gallons === 0 && data.km != null && (
             <p className="inspect-note">
-              A leg the record carries no volume against — the aircraft flew it, but the gallons
+              A leg the record carries no volume against. The aircraft flew it, but the gallons
               were booked to another leg of the same run.
             </p>
           )}
