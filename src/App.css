@@ -1494,6 +1494,76 @@
   background: #213528;
   color: #f2efe7;
 }
+/* Label + unit switch on one line; the switch is the radius chips' little
+   sibling — same track, same fill, chart-furniture scale. */
+.inspect-section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.inspect-section-row .inspect-section-label {
+  margin-right: auto;
+}
+.lookup-unit {
+  display: inline-flex;
+  gap: 0;
+  background: rgba(33, 53, 40, 0.06);
+}
+.lookup-unit button {
+  border: none;
+  border-radius: 0;
+  padding: 0.1875rem 0.4375rem;
+  font: inherit;
+  font-size: 0.625rem;
+  font-weight: 500;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.lookup-unit button:hover:not(.is-active) {
+  background: rgba(33, 53, 40, 0.05);
+}
+.lookup-unit button.is-active {
+  background: #213528;
+  color: #f2efe7;
+}
+
+/* The stacked year bar: total height carries the year, the segments carry
+   the agents. column-reverse so the group order reads bottom-up — Orange at
+   the base, exactly the By Agent rows' order. */
+.inspect-year-stack {
+  display: flex;
+  flex-direction: column-reverse;
+  width: 100%;
+  border-radius: 1px;
+  overflow: hidden;
+}
+.inspect-year-seg {
+  display: block;
+  width: 100%;
+  min-height: 1px;
+  opacity: 0.9;
+}
+
+/* A row whose record is open below it: held, not hovered. */
+.lookup-item.is-open {
+  background: rgba(33, 53, 40, 0.05);
+  font-weight: 600;
+}
+/* The inline record: quiet inset panel under its row. The card's own top
+   rule and margin retire — the row above IS the divider. */
+.lookup-detail {
+  padding: 0 0.5rem 0.25rem;
+  background: rgba(33, 53, 40, 0.03);
+  border-top: 1px solid var(--rule, #ded8cc);
+}
+.lookup-detail .archive-inspect {
+  margin-top: 0;
+  padding-top: 0.75rem;
+  border-top: none;
+}
+
 .lookup-caveat {
   margin: 0.625rem 0 0;
   font-size: 0.6875rem;

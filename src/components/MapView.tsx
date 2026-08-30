@@ -1786,6 +1786,14 @@ export default function MapView() {
     const map = mapRef.current
     const t = tracksRef.current
     if (!map || !t) return
+    // A second press on the open row folds it — the row is a disclosure now,
+    // and a disclosure that only opens is a trap.
+    if (inspect?.kind === 'run' && inspect.mission === hit.mission && inspect.run === hit.run) {
+      setInspect(null)
+      pinnedRunRef.current = null
+      paintLit(map, hoverRunRef.current)
+      return
+    }
     const [w, sBound, e, n] = hit.bounds
     if (w <= e)
       map.fitBounds(
@@ -1890,6 +1898,17 @@ export default function MapView() {
   // A width test in JS, not two renders and a CSS hide: rendered twice, the
   // search box would carry two copies of its own state and the reader would be
   // typing into the hidden one half the time.
+  /** The record belongs INSIDE the list when it is one of the list's own
+   *  rows: same panel, same scroll, the reader's eye never leaves the column.
+   *  Everything else — a dot, a run clicked with no circle up, the phone —
+   *  keeps the standalone card. */
+  const inlineHit =
+    !isPhone &&
+    inspect?.kind === 'run' &&
+    inspect.mission != null &&
+    lookup.center != null &&
+    (lookupResults?.some((h) => h.mission === inspect.mission && h.run === inspect.run) ?? false)
+
   const lookupPanel = (
     <LocationLookup
       state={lookup}
@@ -1898,7 +1917,27 @@ export default function MapView() {
       groups={choices
         .filter((c) => c.indices && c.color)
         .map((c) => ({ label: c.label, color: c.color! }))}
-      cardOpen={inspect != null}
+      // Desktop opens records INLINE in the list (detailKey/detail below), so
+      // the fold-to-a-back-link behaviour is the phone's alone — there the
+      // record is its own sheet and the lookup lives in another.
+      cardOpen={isPhone && inspect != null}
+      detailKey={inlineHit ? `${inspect!.mission}|${inspect!.run}` : null}
+      detail={
+        inlineHit ? (
+          <ArchiveInspect
+            data={inspect!}
+            showClose={false}
+            groups={choices
+              .filter((c) => c.indices && c.color)
+              .map((c) => ({ label: c.label, color: c.color! }))}
+            onClose={() => {
+              setInspect(null)
+              pinnedRunRef.current = null
+              if (mapRef.current) paintLit(mapRef.current, hoverRunRef.current)
+            }}
+          />
+        ) : null
+      }
       onPickToggle={() => setLookup((s) => ({ ...s, picking: !s.picking }))}
       onRadius={(km) => setLookup((s) => ({ ...s, radiusKm: km }))}
       onClear={clearLookup}
@@ -1970,7 +2009,7 @@ export default function MapView() {
               container's, not the legend's, which now lives in the left
               panel. */}
           {isPhone ? null : lookupPanel}
-          {inspect && (
+          {inspect && !inlineHit && (
             <ArchiveInspect
               data={inspect}
               // The back link exists only where the lookup does, and only when

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { dayToDate } from '../data/spray'
+import type { ReactNode } from 'react'
 import { loadGazetteer, searchGazetteer, type GazPlace, type LookupHit } from './lookup'
+import { fmtGallons } from './ArchiveInspect'
 import type { GroupInfo } from './ArchiveInspect'
 
 // ── location lookup: the place column's query and its answer ──────────────
@@ -59,6 +61,11 @@ interface Props {
   onOpen: (hit: LookupHit) => void
   onPlace: (place: GazPlace) => void
   onBack?: () => void
+  /** `mission|run` of the record open INLINE in the list (desktop), plus the
+   *  card to render there. The card expands under its own row — the reader
+   *  compares a record against its neighbours without leaving the list. */
+  detailKey?: string | null
+  detail?: ReactNode
 }
 
 const RADII = [1, 2, 5, 10]
@@ -96,6 +103,8 @@ export default function LocationLookup({
   groups,
   queryMs,
   cardOpen = false,
+  detailKey = null,
+  detail = null,
   onPickToggle,
   onRadius,
   onClear,
@@ -113,6 +122,23 @@ export default function LocationLookup({
   const [gazReady, setGazReady] = useState(false)
   /** The records, folded by default — see the note at the top. */
   const [listOpen, setListOpen] = useState(false)
+  /** What the two charts COUNT. Volume by default: gallons are what the whole
+   *  surface is about, and the record card next door already speaks them. Runs
+   *  stay one press away — they are the honest unit when volumes are partial
+   *  (a fifth of hit runs can carry 0 logged gallons). */
+  const [unit, setUnit] = useState<'volume' | 'runs'>('volume')
+  /** The list scrolls the inline-open record into view — a map click can open
+   *  a row the reader has never scrolled to. */
+  const openRowRef = useRef<HTMLLIElement | null>(null)
+  useEffect(() => {
+    if (!detailKey) return
+    setListOpen(true)
+    const t = window.setTimeout(
+      () => openRowRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }),
+      60,
+    )
+    return () => window.clearTimeout(t)
+  }, [detailKey])
 
   const ensureGaz = () => {
     if (gazRef.current) return
@@ -141,15 +167,29 @@ export default function LocationLookup({
    *  hits, not the 200 the list caps at — the shape is of the answer, not of
    *  the page of it that fits. */
   const shape = useMemo(() => {
+    /* Both units computed once: byAgent[gi], and byYear[yearIdx][gi] so the
+       year bars can stack in agent colours. Gallons are each hit run's WHOLE
+       recorded volume (LookupHit.gallons says so) — the caveat under the
+       charts owns that honesty. */
     if (!results?.length) return null
-    const byAgent = groups.map(() => 0)
-    const byYear = new Array(YEAR_TO - YEAR_FROM + 1).fill(0)
+    const years = YEAR_TO - YEAR_FROM + 1
+    const agentRuns = groups.map(() => 0)
+    const agentGal = groups.map(() => 0)
+    const yearRuns = Array.from({ length: years }, () => groups.map(() => 0))
+    const yearGal = Array.from({ length: years }, () => groups.map(() => 0))
     for (const h of results) {
-      if (h.gi >= 0 && h.gi < byAgent.length) byAgent[h.gi]++
-      const y = dayToDate(h.day).getUTCFullYear()
-      if (y >= YEAR_FROM && y <= YEAR_TO) byYear[y - YEAR_FROM]++
+      const gi = h.gi >= 0 && h.gi < groups.length ? h.gi : -1
+      const y = dayToDate(h.day).getUTCFullYear() - YEAR_FROM
+      if (gi >= 0) {
+        agentRuns[gi]++
+        agentGal[gi] += h.gallons
+      }
+      if (gi >= 0 && y >= 0 && y < years) {
+        yearRuns[y][gi]++
+        yearGal[y][gi] += h.gallons
+      }
     }
-    return { byAgent, byYear }
+    return { agentRuns, agentGal, yearRuns, yearGal }
   }, [results, groups])
 
   /* The × in this row used to clear the field as well as the circle, and the
@@ -372,71 +412,124 @@ export default function LocationLookup({
                   sprayed.
                 </p>
               ) : (
-                shape && (
-                  <>
-                    {/* The unit is in the label because the same bars mean
-                        gallons on the record card. */}
-                    <p className="inspect-section-label">By Agent · runs</p>
-                    <div className="inspect-groups">
-                      {groups.map((g, gi) => {
-                        const v = shape.byAgent[gi]
-                        if (!v) return null
-                        const max = Math.max(1, ...shape.byAgent)
-                        return (
-                          <div key={g.label} className="inspect-group-row">
-                            <span className="inspect-group-label">{g.label}</span>
-                            <span className="inspect-bar-track">
-                              <span
-                                className="inspect-bar"
-                                style={{ width: `${(v / max) * 100}%`, background: g.color }}
-                              />
-                            </span>
-                            <span className="inspect-group-value">{v}</span>
-                          </div>
-                        )
-                      })}
-                    </div>
+                shape &&
+                (() => {
+                  const byAgent = unit === 'volume' ? shape.agentGal : shape.agentRuns
+                  const byYear = unit === 'volume' ? shape.yearGal : shape.yearRuns
+                  const yearTotals = byYear.map((gs) => gs.reduce((a, b) => a + b, 0))
+                  const yearMax = Math.max(1, ...yearTotals)
+                  const agentMax = Math.max(1, ...byAgent)
+                  const fmt = (v: number) => (unit === 'volume' ? fmtGallons(v) : String(v))
+                  return (
+                    <>
+                      {/* One unit for both charts, and the reader holds the
+                          switch. Volume by default — gallons are what this
+                          surface is about, and the record card next door
+                          already speaks them; runs stay one press away for
+                          the hits that carry no logged volume. */}
+                      <div className="inspect-section-row">
+                        <p className="inspect-section-label">
+                          By Agent · {unit === 'volume' ? 'gallons' : 'runs'}
+                        </p>
+                        <div className="lookup-unit" role="group" aria-label="Chart unit">
+                          <button
+                            className={unit === 'volume' ? 'is-active' : ''}
+                            aria-pressed={unit === 'volume'}
+                            onClick={() => setUnit('volume')}
+                          >
+                            Gallons
+                          </button>
+                          <button
+                            className={unit === 'runs' ? 'is-active' : ''}
+                            aria-pressed={unit === 'runs'}
+                            onClick={() => setUnit('runs')}
+                          >
+                            Runs
+                          </button>
+                        </div>
+                      </div>
+                      <div className="inspect-groups">
+                        {/* Skip only agents with NOTHING here. One whose runs
+                            all carry zero logged gallons keeps its row in
+                            volume mode — a zero the reader can see is the
+                            honest answer; a vanished row says it never flew. */}
+                        {groups.map((g, gi) => {
+                          if (!shape.agentRuns[gi]) return null
+                          const v = byAgent[gi]
+                          return (
+                            <div key={g.label} className="inspect-group-row">
+                              <span className="inspect-group-label">{g.label}</span>
+                              <span className="inspect-bar-track">
+                                <span
+                                  className="inspect-bar"
+                                  style={{ width: `${(v / agentMax) * 100}%`, background: g.color }}
+                                />
+                              </span>
+                              <span className="inspect-group-value">{fmt(v)}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
 
-                    <p className="inspect-section-label">By Year</p>
-                    {/* The bars are aria-hidden and nothing else carried the
-                        numbers, so a screen reader heard the heading and then
-                        silence. One hidden sentence, zero years skipped that
-                        have runs. */}
-                    <p className="sr-live">
-                      {shape.byYear
-                        .map((v, i) => (v > 0 ? `${YEAR_FROM + i}: ${v}` : null))
-                        .filter(Boolean)
-                        .join(', ') || 'No runs in any year'}
-                    </p>
-                    <div className="inspect-years" aria-hidden="true">
-                      {shape.byYear.map((v, i) => {
-                        const max = Math.max(1, ...shape.byYear)
-                        return (
+                      <p className="inspect-section-label">
+                        By Year · {unit === 'volume' ? 'gallons' : 'runs'}
+                      </p>
+                      {/* The bars are aria-hidden and nothing else carried the
+                          numbers, so a screen reader heard the heading and
+                          then silence. One hidden sentence, zero years skipped
+                          that have runs. */}
+                      <p className="sr-live">
+                        {yearTotals
+                          .map((v, i) => (v > 0 ? `${YEAR_FROM + i}: ${fmt(v)}` : null))
+                          .filter(Boolean)
+                          .join(', ') || 'Nothing in any year'}
+                      </p>
+                      {/* Stacked in the agent colours — the year bars answered
+                          "when" and said nothing about "what", while the agent
+                          palette was already this panel's vocabulary one block
+                          up. Segment order is the group order, Orange at the
+                          base. */}
+                      <div className="inspect-years" aria-hidden="true">
+                        {byYear.map((gs, i) => (
                           <span key={i} className="inspect-year-col">
                             <span
-                              className="inspect-year-bar"
-                              style={{ height: `${Math.max(v > 0 ? 2 : 0, (v / max) * 100)}%` }}
-                            />
+                              className="inspect-year-stack"
+                              style={{
+                                height: `${Math.max(yearTotals[i] > 0 ? 2 : 0, (yearTotals[i] / yearMax) * 100)}%`,
+                              }}
+                            >
+                              {gs.map((v, gi) =>
+                                v > 0 ? (
+                                  <span
+                                    key={gi}
+                                    className="inspect-year-seg"
+                                    style={{ flexGrow: v, background: groups[gi]?.color }}
+                                  />
+                                ) : null,
+                              )}
+                            </span>
                           </span>
-                        )
-                      })}
-                    </div>
-                    <div className="inspect-year-ticks" aria-hidden="true">
-                      {shape.byYear.map((_, i) => (
-                        <span key={i} className="inspect-year-tick" />
-                      ))}
-                    </div>
-                    <div className="inspect-year-labels" aria-hidden="true">
-                      <span>{YEAR_FROM}</span>
-                      <span>{YEAR_TO}</span>
-                    </div>
-                  </>
-                )
+                        ))}
+                      </div>
+                      <div className="inspect-year-ticks" aria-hidden="true">
+                        {byYear.map((_, i) => (
+                          <span key={i} className="inspect-year-tick" />
+                        ))}
+                      </div>
+                      <div className="inspect-year-labels" aria-hidden="true">
+                        <span>{YEAR_FROM}</span>
+                        <span>{YEAR_TO}</span>
+                      </div>
+                    </>
+                  )
+                })()
               )}
 
               <p className="lookup-caveat">
                 Fixed-wing (Ranch Hand) records only — no helicopter, ground or base-perimeter
                 spraying.
+                {unit === 'volume' &&
+                  ' Gallons are each run’s whole logged volume, booked at its first waypoint — not the share that fell inside this circle.'}
               </p>
             </>
           )}
@@ -473,19 +566,31 @@ export default function LocationLookup({
                     <span>Distance</span>
                   </div>
                   <ol className="lookup-list">
-                    {shown!.map((h) => (
-                      <li key={h.key}>
-                        <button className="lookup-item" onClick={() => onOpen(h)}>
-                          <span className="lookup-item-id">
-                            M{h.mission}
-                            {h.run !== h.mission ? `·R${h.run}` : ''}
-                          </span>
-                          <span className="lookup-item-date">{fmtDay(h.day)}</span>
-                          <span className="lookup-item-agent">{groups[h.gi]?.label ?? '?'}</span>
-                          <span className="lookup-item-dist">{h.distanceKm.toFixed(1)} km</span>
-                        </button>
-                      </li>
-                    ))}
+                    {shown!.map((h) => {
+                      const isOpen = detailKey === `${h.mission}|${h.run}`
+                      return (
+                        <li key={h.key} ref={isOpen ? openRowRef : undefined}>
+                          <button
+                            className={`lookup-item${isOpen ? ' is-open' : ''}`}
+                            aria-expanded={isOpen}
+                            onClick={() => onOpen(h)}
+                          >
+                            <span className="lookup-item-id">
+                              M{h.mission}
+                              {h.run !== h.mission ? `·R${h.run}` : ''}
+                            </span>
+                            <span className="lookup-item-date">{fmtDay(h.day)}</span>
+                            <span className="lookup-item-agent">{groups[h.gi]?.label ?? '?'}</span>
+                            <span className="lookup-item-dist">{h.distanceKm.toFixed(1)} km</span>
+                          </button>
+                          {/* The record opens UNDER its own row instead of
+                              replacing the panel: the reader keeps the list,
+                              the neighbours and the place their eye was — the
+                              card was a page-turn where a fold answers. */}
+                          {isOpen && detail != null && <div className="lookup-detail">{detail}</div>}
+                        </li>
+                      )
+                    })}
                   </ol>
                   {truncated && (
                     <p className="lookup-truncated">
