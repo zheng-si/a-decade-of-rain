@@ -305,23 +305,61 @@ export default function Timeline({
       </button>
       <header className="explorer-head">
         <p className="explorer-eyebrow">1961–1971</p>
-        <h1 className="explorer-title">The Archive</h1>
-        <p className="explorer-subtitle">The Decade of Defoliation, Replayable.</p>
+        {/* Two lines, two jobs. The title names the OBJECT — a reader who
+            knows nothing still knows they are looking at herbicide, in
+            Vietnam, before reading a second word. The subtitle narrates: how
+            long, who flew it, and what kind of record this is drawn from. The
+            counts and the citation stay below, in the dek.
+
+            ATLAS, NOT MAP. There are dozens of static Agent Orange maps
+            online and their titles are figure captions — "Aerial herbicide
+            spray missions in southern Viet Nam, 1965 to 1971", "Defoliation
+            Missions in South Vietnam, 1965–1971" — one image, one caption.
+            This is not one of those: it has a place search, a record for
+            every run, and a decade you can play. That is the genre EJAtlas
+            and the Atlas of Economic Complexity are in, and "atlas" is the
+            word that genre uses — a collection bound for consultation rather
+            than a single view. "Map" filed us under the captions and
+            undersold the search box. "Archive" carries the records but drops
+            the map, which is the main interface here; the subtitle's
+            "herbicide reporting records" carries that half instead.
+
+            Every earlier pair had both lines describing the same thing at two
+            levels of detail. "The Archive / The Decade of Defoliation,
+            Replayable." named a chapter of the Story twice over; "The HERBS
+            Record / Every Logged Spray Run" named the file twice over; and
+            neither said Vietnam, the U.S., or herbicide — the three facts
+            without which the map below is coloured lines over a country the
+            reader has not been told the name of.
+
+            "herbicide reporting records" rather than HERBS: that is what the
+            acronym stands for, and spelling it out costs three words and
+            saves the reader a lookup. */}
+        <h1 className="explorer-title">The Herbicide Atlas of Vietnam</h1>
+        <p className="explorer-subtitle">
+          A decade of U.S. Air Force defoliation flights, drawn from its own herbicide reporting
+          records, run by run
+        </p>
         {/* One citation line, then verbs. The old three-sentence paragraph
             answered "what is this" beautifully and was read by nobody — the
             reader wants to know what their hands can do. Each bullet is one
             action; the mechanics (how the dots are counted, how volume is
             spread) live in Methods, not here. */}
         <p className="explorer-dek">
-          The complete{' '}
+          {/* "HERBS" moved up into the title, so the link drops it: the head
+              read "The HERBS Record" and then, two lines down and underlined,
+              "the complete HERBS record". Same link, same target, same claims
+              — the title now says whose record it is and this says how
+              complete it is and who assembled it. */}
+          The{' '}
           <a
             href="https://github.com/andrewstellman/hea-v"
             target="_blank"
             rel="noopener noreferrer"
           >
-            HERBS record
+            complete record
           </a>{' '}
-          behind Stellman et&nbsp;al. (2003): 8,360 spray runs, 19.5M gallons, 1961–1971.
+          behind Stellman et&nbsp;al. (2003): 8,360 spray runs, 19.5M gallons.
         </p>
         <ul className="explorer-guide">
           {/* The verb is the point of each line — bold it and the three
@@ -342,11 +380,6 @@ export default function Timeline({
         <p className="explorer-links">
           <Link to="/">← Read the Story</Link>
         </p>
-        <ul className="explorer-guide">
-          <li>Press play to watch the decade fall month by month.</li>
-          <li>Each dot is a grid cell&apos;s gallons. Click it for the record.</li>
-          <li>Zoom in until the dots give way to the flight tracks themselves.</li>
-        </ul>
       </header>
 
       {/* The key reads before the controls, not after them: it says what the
