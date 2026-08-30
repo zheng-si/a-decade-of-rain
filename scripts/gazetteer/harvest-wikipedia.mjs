@@ -64,11 +64,38 @@ const ROOTS = [
     title: 'Category:Installations of the United States Air Force in South Vietnam',
     origin: 'usaf',
   },
+  // ── settlements ─────────────────────────────────────────────────────────
+  // The search field promises "an air base, camp or town" and the audit
+  // caught the table keeping only a third of that promise: nine town-name
+  // queries, nine "No match". Three category roots, each with its own walk
+  // depth because their shapes differ (probed 2026-08-30):
+  //   · Cities in Vietnam — direct pages are the six municipalities (plus
+  //     list pages, which have no coordinate and drop out); its SUBCATS are
+  //     whole city trees (all of Ho Chi Minh City's districts), so depth 0.
+  //   · Provincial capitals in Vietnam — 57 direct pages, exactly the towns
+  //     a reader will type: Bien Hoa, Nha Trang, Pleiku, Da Lat. depth 0.
+  //   · Populated places in Vietnam by province — a by-province tree whose
+  //     province subcats hold the notable towns as DIRECT pages; depth 1
+  //     collects those without descending into the commune tiers below.
+  // The bbox filter keeps the sprayed south either way.
+  { title: 'Category:Cities in Vietnam', origin: 'city', depth: 0 },
+  { title: 'Category:Provincial capitals in Vietnam', origin: 'city', depth: 0 },
+  { title: 'Category:Populated places in Vietnam by province', origin: 'town', depth: 1 },
 ]
 const MAX_DEPTH = 2 // root -> subcat -> pages; deeper starts pulling in noise
 
 // Vietnam box, generous: the record's own bbox plus margin.
 const BOX = { w: 102, e: 110.8, s: 8, n: 18 }
+
+// Rows excluded by hand, each with the reason a rule could not carry:
+//   · 'Sơn Hải, Bắc Ninh' — the article is a northern commune (Bắc Giang,
+//     21°N) whose own coordinate tag points to 11.42°N on the south coast:
+//     a Wikipedia data error, visible in the title/coordinate contradiction.
+//     No automatic rule survives the 2025 province mergers (titles carry new
+//     province names, provinces.geojson the old), so it is named here.
+//   · 'Thổ Châu islands' — duplicate article of 'Thổ Châu Island' at the
+//     identical coordinate; one entry per place.
+const EXCLUDE = new Set(['Sơn Hải, Bắc Ninh', 'Thổ Châu islands'])
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
@@ -91,11 +118,11 @@ async function api(params) {
 }
 
 /** Pages in a category tree, to MAX_DEPTH, with a visited guard. */
-async function categoryPages(root) {
+async function categoryPages(root, maxDepth = MAX_DEPTH) {
   const pages = []
   const seen = new Set()
   const walk = async (cat, depth) => {
-    if (seen.has(cat) || depth > MAX_DEPTH) return
+    if (seen.has(cat) || depth > maxDepth) return
     seen.add(cat)
     let cmcontinue
     do {
@@ -144,6 +171,10 @@ const stripDiacritics = (s) =>
     .replace(/đ/g, 'd')
 
 function classify(title, origin) {
+  // Settlement origins decide the type by themselves: a city named for its
+  // airport ("Cam Ranh") must not fall into the installation regexes below.
+  if (origin === 'city') return 'city'
+  if (origin === 'town') return 'town'
   const t = title.toLowerCase()
   if (/air (base|field)|airfield|airport|\bab\b/.test(t)) return 'airbase'
   if (/fire ?(support )?base|\bfsb\b/.test(t)) return 'firebase'
@@ -184,8 +215,8 @@ const csvField = (v) => {
 async function main() {
   // 1. category members per branch (a page can sit in several branches)
   const origins = new Map() // title -> Set(origin)
-  for (const { title, origin } of ROOTS) {
-    const pages = await categoryPages(title)
+  for (const { title, origin, depth } of ROOTS) {
+    const pages = await categoryPages(title, depth ?? MAX_DEPTH)
     console.log(`${title}: ${pages.length} pages`)
     for (const p of pages) {
       if (!origins.has(p)) origins.set(p, new Set())
@@ -299,7 +330,27 @@ async function main() {
   // 5. rows
   const rows = []
   for (const [title, c] of kept) {
+    if (EXCLUDE.has(title)) continue
     const origin = [...(origins.get(title) ?? [])][0] ?? 'usaf'
+    // 'Đồng Nai' sits in Category:Cities in Vietnam, but it is the PROVINCE
+    // article — the cities that share their province's name get a '(city)'
+    // suffix on Wikipedia ('Cà Mau (city)'), so a bare title equal to a
+    // modern province name is the province, not a settlement. EXCEPT the
+    // municipalities, which are province-level BECAUSE they are the city:
+    // the first run of this rule deleted Da Nang and Can Tho.
+    const MUNICIPALITIES = new Set(
+      ['Da Nang', 'Can Tho', 'Ho Chi Minh City', 'Hue', 'Hanoi', 'Haiphong'].map(stripDiacritics),
+    )
+    if (
+      (origin === 'city' || origin === 'town') &&
+      !MUNICIPALITIES.has(stripDiacritics(title)) &&
+      provinces.features.some(
+        (f) =>
+          stripDiacritics(f.properties.name ?? f.properties.NAME_1 ?? '') ===
+          stripDiacritics(title),
+      )
+    )
+      continue
     const allOrigins = [...(origins.get(title) ?? [])].join('+')
     const type = classify(title, origin)
     const vset = new Set(variants.get(title) ?? [])

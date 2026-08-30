@@ -1,17 +1,35 @@
 name_canonical,name_variants,type,lat,lng,province_rvn,province_modern,source_url,confidence,notes
 A Lưới Camp,A Luoi Camp,camp,16.26861,107.22861,,Thừa Thiên Huế,https://en.wikipedia.org/wiki/A_L%C6%B0%E1%BB%9Bi_Camp,medium,from: army
 An Hoa Combat Base,,marine_base,15.78500,108.07300,,Quảng Nam,https://en.wikipedia.org/wiki/An_Hoa_Combat_Base,medium,from: marine; coord via Wikidata P625
+An Khê,An Khe|An Khe District|An Khê Town|An Khê District|An Khê district-level town,town,13.95306,108.65694,,Gia Lai,https://en.wikipedia.org/wiki/An_Kh%C3%AA,medium,from: town
+"An Lão, Gia Lai","An Lão, Bình Định|An Lao, Gia Lai",town,14.61083,108.89194,,Bình Định,https://en.wikipedia.org/wiki/An_L%C3%A3o%2C_Gia_Lai,medium,from: town
+"An Nhơn, Bình Định","An Nhon District|An Nhơn Town|An Nhơn District|An Nhơn district|An Nhon, Binh Dinh",town,13.91700,109.08300,,Bình Định,https://en.wikipedia.org/wiki/An_Nh%C6%A1n%2C_B%C3%ACnh_%C4%90%E1%BB%8Bnh,medium,from: town
+"An Nhơn, Gia Lai","Dap Da|Đập Đá|An Nhon, Gia Lai",town,13.92028,109.09139,,Bình Định,https://en.wikipedia.org/wiki/An_Nh%C6%A1n%2C_Gia_Lai,medium,from: town
+Ayun Pa,Cheo Reo|A Yun Pa|Ayun Pa District|Hậu Bổn|Hau Bon|Ayun Pa district-level town,town,13.39389,108.44083,,Gia Lai,https://en.wikipedia.org/wiki/Ayun_Pa,medium,from: town
+Ba Đồn,Ba Don|Ba Đồn district-level town,town,17.75472,106.42306,,Quảng Bình,https://en.wikipedia.org/wiki/Ba_%C4%90%E1%BB%93n,medium,from: town; coord via Wikidata P625
+Bà Rịa,"Ba Ria|Bà Rịa, Bà Rịa-Vũng Tàu|Bà Rịa, Bà Rịa–Vũng Tàu|Bà Rịa (city)",city,10.49917,107.16750,,Bà Rịa–Vũng Tàu,https://en.wikipedia.org/wiki/B%C3%A0_R%E1%BB%8Ba,medium,from: city
+"Bắc Bình, Lâm Đồng","Bắc Bình|Chợ Lầu|Bac Binh, Lam Dong",town,11.22083,108.50972,,Bình Thuận,https://en.wikipedia.org/wiki/B%E1%BA%AFc_B%C3%ACnh%2C_L%C3%A2m_%C4%90%E1%BB%93ng,medium,from: town
+Bắc Nha Trang,"Vĩnh Thọ, Nha Trang|Vĩnh Phước, Nha Trang|Vĩnh Hòa, Nha Trang|Vĩnh Phương|Vĩnh Lương|Vĩnh Hải, Nha Trang|Bac Nha Trang",town,12.28139,109.18972,,Khánh Hòa,https://en.wikipedia.org/wiki/B%E1%BA%AFc_Nha_Trang,medium,from: town
 Ban Me Thuot East Airfield,,airbase,12.66583,108.11778,,Đắk Lắk,https://en.wikipedia.org/wiki/Ban_Me_Thuot_East_Airfield,medium,from: usaf
+Bảo Lộc,Bảo Lộc District|Bao Loc District|Bảo Lộc city|Bao Loc,town,11.54806,107.80750,,Lâm Đồng,https://en.wikipedia.org/wiki/B%E1%BA%A3o_L%E1%BB%99c,medium,from: town
 Bearcat Base,,army_base,10.83500,106.96000,,Đồng Nai,https://en.wikipedia.org/wiki/Bearcat_Base,medium,from: army
 Ben Het Camp,,camp,14.68861,107.66111,,Kon Tum,https://en.wikipedia.org/wiki/Ben_Het_Camp,medium,from: army
+Biên Hòa,Bienhua|Biên Hoà|Bien Hoa City|Bien Hoa|Biênhoà|Bienhoa|Biên Hòa City|History of Biên Hòa|Biên Hòa provincial city,city,10.95000,106.81667,,Đồng Nai,https://en.wikipedia.org/wiki/Bi%C3%AAn_H%C3%B2a,medium,from: city
 Bien Hoa Air Base,Bien Hoa AB|Biên Hòa Air Base|Bien Hoa Airport,airbase,10.97694,106.81833,,Đồng Nai,https://en.wikipedia.org/wiki/Bien_Hoa_Air_Base,medium,from: army+usaf
+"Bình Dương, Gia Lai","Bình Dương, Bình Định|Binh Duong, Gia Lai",town,14.29444,109.07972,,Bình Định,https://en.wikipedia.org/wiki/B%C3%ACnh_D%C6%B0%C6%A1ng%2C_Gia_Lai,medium,from: town
+Bình Minh,Binh Minh District|Bình Minh District|Bình Minh district-level town|Binh Minh|Bình Minh (town),town,10.13300,105.83300,,Vĩnh Long,https://en.wikipedia.org/wiki/B%C3%ACnh_Minh,medium,from: town
 Binh Thuy Air Base,Binh Thuy AB,airbase,10.08520,105.71200,,Cần Thơ,https://en.wikipedia.org/wiki/Binh_Thuy_Air_Base,medium,from: usaf
 Black Virgin Mountain,Ba Den|Nui Ba Den|Black virgin mountain|Black Virgin Mountain (Vietnam)|Bà Đen Mountain|Nui Ba Den gondola,army_base,11.36667,106.16667,,Tây Ninh,https://en.wikipedia.org/wiki/Black_Virgin_Mountain,medium,from: army
 Blackhorse Base Camp,Camp Blackhorse,camp,10.82700,107.22900,,Đồng Nai,https://en.wikipedia.org/wiki/Blackhorse_Base_Camp,medium,from: army
+Bồng Sơn,Bong Son,town,14.43333,109.01667,,Bình Định,https://en.wikipedia.org/wiki/B%E1%BB%93ng_S%C6%A1n,medium,from: town
 Bù Đốp Camp,Bu Dop Camp,camp,12.01861,106.81444,,Bình Phước,https://en.wikipedia.org/wiki/B%C3%B9_%C4%90%E1%BB%91p_Camp,medium,from: army
 Bu Prang Camp,,camp,12.23800,107.31600,,Đắk Nông,https://en.wikipedia.org/wiki/Bu_Prang_Camp,medium,from: army
+Buôn Hồ,Buon Ho|Phường Buôn Hồ|Buôn Hồ district-level town,town,12.85440,108.27030,,Đắk Lắk,https://en.wikipedia.org/wiki/Bu%C3%B4n_H%E1%BB%93,medium,from: town
+Buôn Ma Thuột,Buon Me Thuot|Ban Me Thuot|Buonmathuot|Ban Me Thout|Buon Ma Thout|Lac Giao|Buon Ma Thuot|Buôn Ma Thuột city|Ban Mê Thuột|Buôn Mê Thuột|Phường Buôn Ma Thuột|Thành phố Buôn Ma Thuột|Buôn Ma Thuột provincial city,city,12.66667,108.05000,,Đắk Lắk,https://en.wikipedia.org/wiki/Bu%C3%B4n_Ma_Thu%E1%BB%99t,medium,from: city
 Ca Lu Combat Base,Ca Lu,marine_base,16.69209,106.88569,,Quảng Trị,https://en.wikipedia.org/wiki/Ca_Lu_Combat_Base,medium,from: marine; coord via Wikidata P625
+Cà Mau (city),Ca Mau city|Ca Mau City|Ca Mau (city)|Cà Mau City,city,9.18333,105.15000,,Cà Mau,https://en.wikipedia.org/wiki/C%C3%A0_Mau_(city),medium,from: city+town
 Cai Cai Camp,,camp,10.92580,105.51000,,Đồng Tháp,https://en.wikipedia.org/wiki/Cai_Cai_Camp,medium,from: army
+"Cai Lậy, Tiền Giang","Cai Lậy Town|Cai Lậy (town)|Cai Lậy district-level town|Cai Lậy (district-level town)|Cai Lậy, Mekong Delta|Cai Lậy town|Cai Lay, Tien Giang",town,10.41700,106.08300,,Tiền Giang,https://en.wikipedia.org/wiki/Cai_L%E1%BA%ADy%2C_Ti%E1%BB%81n_Giang,medium,from: town
 Cam Lộ Combat Base,Cam Lo Combat Base,army_base,16.81200,106.99300,,Quảng Trị,https://en.wikipedia.org/wiki/Cam_L%E1%BB%99_Combat_Base,medium,from: army+marine
 Cam Ranh Base,Cam Ranh Bay Air Base|Cam Ranh AB|Cam Ranh Bay AB|Cam Ranh Air Base|Cam Ranh Air Force Base,airbase,11.99806,109.21944,,Khánh Hòa,https://en.wikipedia.org/wiki/Cam_Ranh_Base,medium,from: usaf
 Camp Carroll,,camp,16.76306,106.93056,,Quảng Trị,https://en.wikipedia.org/wiki/Camp_Carroll,medium,from: marine
@@ -22,55 +40,160 @@ Camp Evans (Vietnam),,camp,16.56200,107.38000,,Thừa Thiên Huế,https://en.wi
 Camp Holloway,,camp,13.97300,108.03100,,Gia Lai,https://en.wikipedia.org/wiki/Camp_Holloway,medium,from: army
 Camp Horn,,camp,16.07400,108.23600,,Đà Nẵng,https://en.wikipedia.org/wiki/Camp_Horn,medium,from: army+marine
 Camp Radcliff,An Khe Airfield,camp,13.99300,108.64850,,Gia Lai,https://en.wikipedia.org/wiki/Camp_Radcliff,medium,from: army
+Cần Thơ,Cân Thỏ|Can Tho province|Cantho|Can Tho City|Cần Thơ City|Cần Thơ Province|Can Tho Province|Can Tho|Canthô|Can Tho city|Cần Thơ province|Phong Dinh province|History of Cần Thơ,city,10.03333,105.78333,,Cần Thơ,https://en.wikipedia.org/wiki/C%E1%BA%A7n_Th%C6%A1,medium,from: city
+Cao Lãnh,Cao Lanh|History of Cao Lãnh|Cao Lãnh City|Cao Lãnh (city)|Cao Lanh (city)|Cao Lãnh provincial city,city,10.46722,105.63028,,Đồng Tháp,https://en.wikipedia.org/wiki/Cao_L%C3%A3nh,medium,from: city+town
+Cát Tiên,Cat Tien,town,11.58321,107.36215,,Lâm Đồng,https://en.wikipedia.org/wiki/C%C3%A1t_Ti%C3%AAn,medium,from: town
 Catecka Base Camp,,camp,13.86500,107.96200,,Gia Lai,https://en.wikipedia.org/wiki/Catecka_Base_Camp,medium,from: army
 Charlie 2,,army_base,16.85500,107.00500,,Quảng Trị,https://en.wikipedia.org/wiki/Charlie_2,medium,from: army+marine
+Châu Đốc,Chau Doc|History of Châu Đốc|Chaudoc|Châu Phú B|Châu Đốc provincial city|Châu Đốc (city),town,10.70000,105.11667,,An Giang,https://en.wikipedia.org/wiki/Ch%C3%A2u_%C4%90%E1%BB%91c,medium,from: town
 Chi Lăng Training Center,Chi Lang Training Center,army_base,10.52700,105.02400,,An Giang,https://en.wikipedia.org/wiki/Chi_L%C4%83ng_Training_Center,medium,from: army
 Chí Linh Camp,Chi Linh Camp,camp,11.51400,106.75490,,Bình Phước,https://en.wikipedia.org/wiki/Ch%C3%AD_Linh_Camp,medium,from: army
+Chợ Thủ,Cho Thu,town,10.53611,105.46889,,An Giang,https://en.wikipedia.org/wiki/Ch%E1%BB%A3_Th%E1%BB%A7,medium,from: town
 Chơn Thành Camp,Chon Thanh Camp,camp,11.40200,106.61950,,Bình Phước,https://en.wikipedia.org/wiki/Ch%C6%A1n_Th%C3%A0nh_Camp,medium,from: army
 Chu Lai Air Base,,airbase,15.40611,108.70556,,Quảng Nam,https://en.wikipedia.org/wiki/Chu_Lai_Air_Base,medium,from: marine; coord via Wikidata P625
 Chu Lai Base Area,Kỳ Hà Air Facility|Ky Ha Air Facility,army_base,15.45500,108.69000,,Quảng Nam,https://en.wikipedia.org/wiki/Chu_Lai_Base_Area,medium,from: army+marine
+"Chư Păh, Gia Lai","Phú Hòa, Gia Lai|Chu Pah, Gia Lai",town,14.10167,107.97306,,Gia Lai,https://en.wikipedia.org/wiki/Ch%C6%B0_P%C4%83h%2C_Gia_Lai,medium,from: town
+Chư Prông,Chu Prong,town,13.75444,107.88639,,Gia Lai,https://en.wikipedia.org/wiki/Ch%C6%B0_Pr%C3%B4ng,medium,from: town
+Chư Pưh,"Nhơn Hòa, Gia Lai|Chu Puh",town,13.54667,108.09972,,Gia Lai,https://en.wikipedia.org/wiki/Ch%C6%B0_P%C6%B0h,medium,from: town
+Chư Sê,Chu Se,town,13.69361,108.07778,,Gia Lai,https://en.wikipedia.org/wiki/Ch%C6%B0_S%C3%AA,medium,from: town
 Con Thien,Con Tien,marine_base,16.90972,106.98000,,Quảng Trị,https://en.wikipedia.org/wiki/Con_Thien,medium,from: marine
 Củ Chi Base Camp,Cu Chi Base Camp,camp,10.98750,106.51250,,Ho Chi Minh,https://en.wikipedia.org/wiki/C%E1%BB%A7_Chi_Base_Camp,medium,from: army
+"Cư Jút, Lâm Đồng","Ea T'ling|Cu Jut, Lam Dong",town,12.58667,107.89361,,Đắk Nông,https://en.wikipedia.org/wiki/C%C6%B0_J%C3%BAt%2C_L%C3%A2m_%C4%90%E1%BB%93ng,medium,from: town
 Cửa Việt Base,Cua Viet Base,army_base,16.90500,107.18700,,Quảng Trị,https://en.wikipedia.org/wiki/C%E1%BB%ADa_Vi%E1%BB%87t_Base,medium,from: army+marine
+Da Lat,"Đà Lạt|Dalat, Vietnam|Đà-lạt|History of Da Lat|Da Lat, Vietnam",city,11.94167,108.43833,,Lâm Đồng,https://en.wikipedia.org/wiki/Da_Lat,medium,from: city+town
+Da Nang,"Tourane|Danang, Vietnam|Đà Nẵng|Ðà Nang|Da Nang, Vietnam|Thanh pho Da Nang|Da-Nang|沱灢|Ðà Nẵng|Names of Da Nang|History of Danang|Danang|History of Da Nang|Geography of Da Nang|Da nang|Cuisine of Da Nang|Đà Nẵng City|Đà Nẵng province",city,16.06944,108.20972,,Đà Nẵng,https://en.wikipedia.org/wiki/Da_Nang,medium,from: city
 Da Nang Air Base,Da Nang AB|Danang Air Base,airbase,16.04389,108.19944,,Đà Nẵng,https://en.wikipedia.org/wiki/Da_Nang_Air_Base,medium,from: army+usaf
+Đạ Tẻh,Da Teh,town,11.50667,107.48639,,Lâm Đồng,https://en.wikipedia.org/wiki/%C4%90%E1%BA%A1_T%E1%BA%BBh,medium,from: town
+Đak Đoa,Đắk Đoa|Dak Doa,town,13.99389,108.11611,,Gia Lai,https://en.wikipedia.org/wiki/%C4%90ak_%C4%90oa,medium,from: town
+Đắk Mil,Dak Mil,town,12.44889,107.62056,,Đắk Nông,https://en.wikipedia.org/wiki/%C4%90%E1%BA%AFk_Mil,medium,from: town
+Đăk Pék,Đắk Glei|Đăk Glei|Dak Glei|Dak Pek,town,15.07833,107.73917,,Kon Tum,https://en.wikipedia.org/wiki/%C4%90%C4%83k_P%C3%A9k,medium,from: town
 Dak Pek Camp,,camp,15.07500,107.73889,,Kon Tum,https://en.wikipedia.org/wiki/Dak_Pek_Camp,medium,from: army
+Đak Pơ,Đắk Pơ|Dak Po,town,13.97306,108.55278,,Gia Lai,https://en.wikipedia.org/wiki/%C4%90ak_P%C6%A1,medium,from: town
+Đăk Tô,"Dak To|Đắk Tô|Dak To, Kon Tum Province",town,14.66083,107.83861,,Kon Tum,https://en.wikipedia.org/wiki/%C4%90%C4%83k_T%C3%B4,medium,from: town
 Đắk Tô Base Camp,Dak To Base Camp,camp,14.65300,107.79400,,Kon Tum,https://en.wikipedia.org/wiki/%C4%90%E1%BA%AFk_T%C3%B4_Base_Camp,medium,from: army; coord via Wikidata P625
 Dĩ An Base Camp,Di An Base Camp,camp,10.90000,106.73900,,Bình Dương,https://en.wikipedia.org/wiki/D%C4%A9_An_Base_Camp,medium,from: army; coord via Wikidata P625
+Di Linh,,town,11.57778,108.07509,,Lâm Đồng,https://en.wikipedia.org/wiki/Di_Linh,medium,from: town
+Diên Khánh,Dien Khanh,town,12.26250,109.09833,,Khánh Hòa,https://en.wikipedia.org/wiki/Di%C3%AAn_Kh%C3%A1nh,medium,from: town; coord via Wikidata P625
+Đông Hà,Dong Ha|Dongha|History of Đông Hà|Đông Hà provincial city,city,16.80556,107.09056,,Quảng Trị,https://en.wikipedia.org/wiki/%C4%90%C3%B4ng_H%C3%A0,medium,from: city+town; coord via Wikidata P625
 Đông Hà Combat Base,Dong Ha Combat Base,army_base,16.81300,107.11600,,Quảng Trị,https://en.wikipedia.org/wiki/%C4%90%C3%B4ng_H%C3%A0_Combat_Base,medium,from: army+marine; coord via Wikidata P625
+"Đông Hòa, Phú Yên","Dong Hoa District|Đông Hòa (town)|Đông Hòa District|Đông Hòa district|Dong Hoa, Phu Yen",town,12.99306,109.33139,,Phú Yên,https://en.wikipedia.org/wiki/%C4%90%C3%B4ng_H%C3%B2a%2C_Ph%C3%BA_Y%C3%AAn,medium,from: town
+Đồng Hới,Đồng Hới city|Dong Hoi|Đồng Hới District|History of Đồng Hới|Đồng Hới provincial city,city,17.48306,106.59972,,Quảng Bình,https://en.wikipedia.org/wiki/%C4%90%E1%BB%93ng_H%E1%BB%9Bi,medium,from: city+town
 Đồng Tâm Base Camp,Dong Tam Base Camp,camp,10.35000,106.29000,,Tiền Giang,https://en.wikipedia.org/wiki/%C4%90%E1%BB%93ng_T%C3%A2m_Base_Camp,medium,from: army; coord via Wikidata P625
+Đông Thái,Dong Thai,town,9.76111,105.00639,,Kiên Giang,https://en.wikipedia.org/wiki/%C4%90%C3%B4ng_Th%C3%A1i,medium,from: town
+Đồng Xoài,"Đôn Luân|Dong Xoai|Đôn Luân District|Đồng Xoài provincial city|Đồng Xoài, Bình Phước",city,11.51694,106.83917,,Bình Phước,https://en.wikipedia.org/wiki/%C4%90%E1%BB%93ng_Xo%C3%A0i,medium,from: city
+Đức An,Duc An,town,12.25444,107.61111,,Đắk Nông,https://en.wikipedia.org/wiki/%C4%90%E1%BB%A9c_An,medium,from: town
 Đức Cơ Camp,Duc Co Camp,camp,13.78800,107.62700,,Gia Lai,https://en.wikipedia.org/wiki/%C4%90%E1%BB%A9c_C%C6%A1_Camp,medium,from: army
+"Đức Cơ, Gia Lai","Chư Ty|Duc Co, Gia Lai",town,13.79806,107.69361,,Gia Lai,https://en.wikipedia.org/wiki/%C4%90%E1%BB%A9c_C%C6%A1%2C_Gia_Lai,medium,from: town
+"Đức Linh, Lâm Đồng","Đức Linh|Võ Xu|Duc Linh, Lam Dong",town,11.18778,107.56667,,Bình Thuận,https://en.wikipedia.org/wiki/%C4%90%E1%BB%A9c_Linh%2C_L%C3%A2m_%C4%90%E1%BB%93ng,medium,from: town
 Đức Phổ Base Camp,Duc Pho Base Camp,camp,11.80000,107.23000,,Bình Phước,https://en.wikipedia.org/wiki/%C4%90%E1%BB%A9c_Ph%E1%BB%95_Base_Camp,medium,from: army+marine
 Đức Phong Camp,Duc Phong Camp,camp,11.80000,107.23000,,Bình Phước,https://en.wikipedia.org/wiki/%C4%90%E1%BB%A9c_Phong_Camp,medium,from: army
 Firebase Bastogne,,firebase,16.35556,107.44861,,Thừa Thiên Huế,https://en.wikipedia.org/wiki/Firebase_Bastogne,medium,from: army; coord via Wikidata P625
 Firebase Crook,,firebase,11.39000,105.97000,,Tây Ninh,https://en.wikipedia.org/wiki/Firebase_Crook,medium,from: army; coord via Wikidata P625
 Firebase Gio Linh,,firebase,16.94300,107.07600,,Quảng Trị,https://en.wikipedia.org/wiki/Firebase_Gio_Linh,medium,from: army+marine; coord via Wikidata P625
 Firebase Pedro,,firebase,16.71000,107.10600,,Quảng Trị,https://en.wikipedia.org/wiki/Firebase_Pedro,medium,from: army; coord via Wikidata P625
+Gia Nghĩa,Gia Nghia|Gia Nghĩa provincial city,city,11.98333,107.70000,,Đắk Nông,https://en.wikipedia.org/wiki/Gia_Ngh%C4%A9a,medium,from: city+town
+Gò Công,"Gò Công provincial city|Gò Công (city)|Gò Công City|Gò Công, Tiền Giang|Go Cong",town,10.36667,106.66667,,Tiền Giang,https://en.wikipedia.org/wiki/G%C3%B2_C%C3%B4ng,medium,from: town
+Hà Tiên,"Ha-tien|Hà Tiên, Kiên Giang|Ha Tien,Kien Giang|Hatien|Ha Tien, Kien Giang|Ha Tien|Hà Tiên District|History of Hà Tiên|Hà Tiên provincial city",town,10.38333,104.48333,,Kiên Giang,https://en.wikipedia.org/wiki/H%C3%A0_Ti%C3%AAn,medium,from: town
+"Hải Ninh, Lâm Đồng","Hải Ninh, Bình Thuận|Hai Ninh, Lam Dong",town,11.24903,108.50449,,Bình Thuận,https://en.wikipedia.org/wiki/H%E1%BA%A3i_Ninh%2C_L%C3%A2m_%C4%90%E1%BB%93ng,medium,from: town; coord via Wikidata P625
+"Hàm Tân, Lâm Đồng","Hàm Tân|Tân Nghĩa, Bình Thuận|Ham Tan, Lam Dong",town,10.82333,107.72667,,Bình Thuận,https://en.wikipedia.org/wiki/H%C3%A0m_T%C3%A2n%2C_L%C3%A2m_%C4%90%E1%BB%93ng,medium,from: town
+Hàm Thuận,"Ma Lâm|Hàm Thuận, Lâm Đồng|Ham Thuan",town,11.06833,108.13000,,Bình Thuận,https://en.wikipedia.org/wiki/H%C3%A0m_Thu%E1%BA%ADn,medium,from: town
+"Hàm Thuận Nam, Lâm Đồng","Hàm Thuận Nam|Thuận Nam, Bình Thuận|Ham Thuan Nam, Lam Dong",town,10.84472,107.87500,,Bình Thuận,https://en.wikipedia.org/wiki/H%C3%A0m_Thu%E1%BA%ADn_Nam%2C_L%C3%A2m_%C4%90%E1%BB%93ng,medium,from: town
 Hill 327,,army_base,16.01300,108.16700,,Đà Nẵng,https://en.wikipedia.org/wiki/Hill_327,medium,from: army+marine; coord via Wikidata P625
 Hill 55,,marine_base,15.92104,108.15639,,Quảng Nam,https://en.wikipedia.org/wiki/Hill_55,medium,from: marine; coord via Wikidata P625
+Ho Chi Minh City,"Ho Chih Minh City|Sài Gòn|Sàigòn|Sai Gon|Thành Phó Hò Chí Minh|Thành Phô Hô Chí Minh|Thanh Pho Ho Chi Minh|Ho Chi Minh City, Viet Nam|Saigon City|Ho Chi Minh city|Ho Chi Minh City People's Committee|Thành phố Hồ Chí Minh|Saigon (Vietnam)|Hochiminh City|Ho Chi Min City|Thành Phố Hồ Chí Minh|Hồ Chí Minh City|TPHCM|Districts of Ho Chi Minh City|HCM City|Saigon|Saïgon|Saigon, Vietnam|Thanh pho Ho Chi Minh|Ho chi Minhh City|UN/LOCODE:VNSGN|Sài-gòn|Ho Chi Minh City, Vietnam|HCMC, Vietnam|Sai Gon, Vietnam|Sai Gon, Viet Nam|Sai-gon|SaiGon|Hochiminh City, Vietnam|HoChiMinh-City|Ho Chi Minh C|City of Saigon|T.P. Ho Chi Minh|TP.HCM|Ho-chiming City|Ho-Chi-Minh City|Thành-Phô Hô Chí Minh|胡志明市|城舖胡志明|Ho Chi Minh, Vietnam|Hohochiminh|HoChiMinh City|H.C.M.C.|Districts of HCMC|Districts of HCM|HCM Districts|Sài Gòn, Vietnam|Sài Gòn, Việt Nam|Ho Chi Minh City (Saigon)|Hochi Min City|Saïgon–Cholon|Saïgon–Cholon, Vietnam|Hochiminh city|Saïgon-Cholon, Vietnam|Saïgon-Cholon|History of Ho Chi Minh City|Saigon, South Vietnam|Hochimin City|Geography of Ho Chi Minh City|TP. Hồ Chí Minh|TP. Ho Chi Minh|TP. HCM|TP HCM|TP Hồ Chí Minh|TP Ho Chi Minh|Demographics of Ho Chi Minh City|Hồ Chí Minh city|Public transport in Ho Chi Minh City|Ethnic groups in Ho Chi Minh City|Saigon–Cholon|Saigon-Cholon|Tphcm|Economy of Ho Chi Minh City|Tourism in Ho Chi Minh City|Universities in Ho Chi Minh City|Water transport in Ho Chi Minh City|Climate of Ho Chi Minh City|Healthcare in Ho Chi Minh City|Saigonese|History of Saigon|Media in Ho Chi Minh City|サイゴン|Hochiminhcity.gov.vn|Sigon|Sài Gòn – Gia Định|Sài Gòn - Gia Định",city,10.77556,106.70194,,Ho Chi Minh,https://en.wikipedia.org/wiki/Ho_Chi_Minh_City,medium,from: city
+Hòa Thành,Hòa Thành District|Hoa Thanh District|Hoà Thành|Hòa Thành district|Hòa Thành district-level town|Hoa Thanh,town,11.28306,106.12972,,Tây Ninh,https://en.wikipedia.org/wiki/H%C3%B2a_Th%C3%A0nh,medium,from: town
+"Hoài Ân, Gia Lai","Tăng Bạt Hổ, Bình Định|Hoai An, Gia Lai",town,14.36944,108.96917,,Bình Định,https://en.wikipedia.org/wiki/Ho%C3%A0i_%C3%82n%2C_Gia_Lai,medium,from: town
+Hoài Nhơn,Hoai Nhon|Hoài Nhơn (town)|Hoai Nhon District|Hoài Nhơn district|Hoài Nhơn District,town,14.50528,109.02306,,Bình Định,https://en.wikipedia.org/wiki/Ho%C3%A0i_Nh%C6%A1n,medium,from: town; coord via Wikidata P625
+Hòn Đất,Hon Dat,town,10.18722,104.92667,,Kiên Giang,https://en.wikipedia.org/wiki/H%C3%B2n_%C4%90%E1%BA%A5t,medium,from: town
+Hồng Ngự (city),Hong Ngu|Hong Ngu (town)|Hồng Ngự Town|Hồng Ngự (town)|Hồng Ngự town|Hong Ngu (city),town,10.83300,105.28300,,Đồng Tháp,https://en.wikipedia.org/wiki/H%E1%BB%93ng_Ng%E1%BB%B1_(city),medium,from: town
+Huế,"Hue, Vietnam|Hué|Huê|Thua Thien-Hue province|Huế (city)|Tha Thien|Thua Thien|Thua Thien province|Thừa Thiên-Huế|Thua Thien-Hue|Thua Thien Hue Province|Thua Thien - Hue|Thua Thien Hue|Thừa Thiên Huế|Thua Thien-Hue Province|Thừa Thien-Hue Province|Thua Thien-Huế Province|承天化|Thua Thien-Huế province|Thua Thien - Hue province|Thua Thien – Hue province|Thừa Thiên province|Thua Thien – Hue Province|Thừa Thiên Province|Thừa Thiên - Huế Province|Thua Thien–Hue Province|Thừa Thiên–Huế|Huë|Thừa Thiên–Huế Province|Huế City|Thừa Thiên|Thua Thien - Hue Province|History of Huế|Thừa Thiên-Huế Province|Thừa Thiên — Huế|Thừa Thiên - Huế province|Thừa Thiên Huế Province|Thừa Thiên-Huế province|Thừa Thiên–Huế province|Public holidays in Thừa Thiên Huế|Thua Thien Province|Thừa Thiên Huế province|Hue´|Hue",city,16.46390,107.58670,,Thừa Thiên Huế,https://en.wikipedia.org/wiki/Hu%E1%BA%BF,medium,from: city
+"Ia Grai, Gia Lai",Ia Kha,town,13.96111,107.84028,,Gia Lai,https://en.wikipedia.org/wiki/Ia_Grai%2C_Gia_Lai,medium,from: town
+Ia Ly,,town,14.20667,107.83722,,Gia Lai,https://en.wikipedia.org/wiki/Ia_Ly,medium,from: town
+"Ia Pa, Gia Lai","Ia Trok|Kim Tân, Gia Lai",town,13.52889,108.45861,,Gia Lai,https://en.wikipedia.org/wiki/Ia_Pa%2C_Gia_Lai,medium,from: town
+K'Bang,K Bang|KBang|Kbang,town,14.14389,108.60222,,Gia Lai,https://en.wikipedia.org/wiki/K'Bang,medium,from: town
 Khe Sanh Combat Base,,army_base,16.65420,106.72423,,Quảng Trị,https://en.wikipedia.org/wiki/Khe_Sanh_Combat_Base,medium,from: army+marine
+Kiến Đức,Kien Duc,town,11.99639,107.51194,,Đắk Nông,https://en.wikipedia.org/wiki/Ki%E1%BA%BFn_%C4%90%E1%BB%A9c,medium,from: town
+Kiên Hải,Kien Hai|Kiên Hải special administrative region|Kien Hai District|Kiên Hải District|Kiên Hải district,town,10.00000,104.75000,,,https://en.wikipedia.org/wiki/Ki%C3%AAn_H%E1%BA%A3i,medium,from: town
+Kiên Lương,Kien Luong,town,10.26505,104.61209,,Kiên Giang,https://en.wikipedia.org/wiki/Ki%C3%AAn_L%C6%B0%C6%A1ng,medium,from: town; coord via Wikidata P625
+Kiến Tường,History of Kiến Tường|Kien Tuong|Kiến Tường district-level town|Kiến Tường (district-level town),town,10.78000,105.94000,,Long An,https://en.wikipedia.org/wiki/Ki%E1%BA%BFn_T%C6%B0%E1%BB%9Dng,medium,from: town
+Kông Chro,Kong Chro,town,13.77889,108.52611,,Gia Lai,https://en.wikipedia.org/wiki/K%C3%B4ng_Chro,medium,from: town
 Kontum Airfield,,airbase,14.35583,108.01500,,Kon Tum,https://en.wikipedia.org/wiki/Kontum_Airfield,medium,from: army
+"Krông Nô, Lâm Đồng","Krông Nô|Đắk Mâm|Krong No, Lam Dong",town,12.46417,107.85972,,Đắk Nông,https://en.wikipedia.org/wiki/Kr%C3%B4ng_N%C3%B4%2C_L%C3%A2m_%C4%90%E1%BB%93ng,medium,from: town
+La Dạ,Da Mi|Đa Mi|La Da,town,11.30333,107.87694,,Bình Thuận,https://en.wikipedia.org/wiki/La_D%E1%BA%A1,medium,from: town
+La Vang,Lavang,town,16.71667,107.23333,,Quảng Trị,https://en.wikipedia.org/wiki/La_Vang,medium,from: town
+Lang Biang – Đà Lạt,Lang Biang - Đà Lạt|Lang Biang – Da Lat,town,12.00867,108.41904,,Lâm Đồng,https://en.wikipedia.org/wiki/Lang_Biang_%E2%80%93_%C4%90%C3%A0_L%E1%BA%A1t,medium,from: town
+Liên Hương,Lien Huong,town,11.22389,108.73028,,Bình Thuận,https://en.wikipedia.org/wiki/Li%C3%AAn_H%C6%B0%C6%A1ng,medium,from: town
 Long Bình Jail,Long Binh Jail,army_base,10.91731,106.86749,,Đồng Nai,https://en.wikipedia.org/wiki/Long_B%C3%ACnh_Jail,medium,from: army; coord via Wikidata P625
 Long Binh Post,Long Binh military base|Long Binh Junction,army_base,10.93167,106.83746,,Đồng Nai,https://en.wikipedia.org/wiki/Long_Binh_Post,medium,from: army; coord via Wikidata P625
+Long Xuyên,"Longxuyen|Thoai Ngoc Hau High School|Long Xuyen City|Long Xuyen|History of Long Xuyên|Long Xuyên provincial city|Long Xuyên (provincial city)|Long Xuyên, Mekong Delta|Long Xuyên (city)",city,10.37361,105.44583,,An Giang,https://en.wikipedia.org/wiki/Long_Xuy%C3%AAn,medium,from: city
+"Mai Xá, Gio Mai","Mai Xa, Gio Mai|Mai Xa",town,16.87870,107.13250,,Quảng Trị,https://en.wikipedia.org/wiki/Mai_X%C3%A1%2C_Gio_Mai,medium,from: town
+Măng Đen,Mang Den,town,14.60028,108.29083,,Kon Tum,https://en.wikipedia.org/wiki/M%C4%83ng_%C4%90en,medium,from: town
+"Mang Yang, Gia Lai",Kon Dơng,town,14.04278,108.25472,,Gia Lai,https://en.wikipedia.org/wiki/Mang_Yang%2C_Gia_Lai,medium,from: town
 Marble Mountain Air Facility,Marble Mountain Airfield|Marble Mountain Army Airfield,marine_base,16.02594,108.25347,,Đà Nẵng,https://en.wikipedia.org/wiki/Marble_Mountain_Air_Facility,medium,from: marine
+Mộ Đức,Mo Duc,town,14.93750,108.89056,,Quảng Ngãi,https://en.wikipedia.org/wiki/M%E1%BB%99_%C4%90%E1%BB%A9c,medium,from: town
+Mũi Né,Mui Ne,town,10.93333,108.28333,,Bình Thuận,https://en.wikipedia.org/wiki/M%C5%A9i_N%C3%A9,medium,from: town
+Mỹ Tho (city),Mỹ Tho provincial city|Mỹ Tho (provincial city)|Mỹ Tho City|My Tho (city),city,10.35806,106.36417,,Tiền Giang,https://en.wikipedia.org/wiki/M%E1%BB%B9_Tho_(city),medium,from: city
+Nam Nha Trang,"Vĩnh Trường, Nha Trang|Phước Long, Nha Trang|Phước Hải, Nha Trang|Phước Đồng|Vĩnh Thái, Nha Trang",town,12.22667,109.15917,,Khánh Hòa,https://en.wikipedia.org/wiki/Nam_Nha_Trang,medium,from: town
+Nam Nung,Nâm Nung,town,12.36750,107.79778,,Đắk Nông,https://en.wikipedia.org/wiki/Nam_Nung,medium,from: town; coord via Wikidata P625
+Nha Trang,"Nhatrang|Na Trang|Nah Trang|Nha Trang, Vietnam|History of Nha Trang|Nha Trang provincial city|Nha Trang (city)",city,12.24500,109.19167,,Khánh Hòa,https://en.wikipedia.org/wiki/Nha_Trang,medium,from: city
 Nha Trang Air Base,,airbase,12.22750,109.19278,,Khánh Hòa,https://en.wikipedia.org/wiki/Nha_Trang_Air_Base,medium,from: usaf
+"Nha Trang, Khánh Hòa","Xương Huân|Vĩnh Nguyên|Vạn Thạnh, Nha Trang|Vạn Thắng, Nha Trang|Phước Tiến, Nha Trang|Phước Tân, Nha Trang|Phước Hòa, Nha Trang|Lộc Thọ|Tân Lập, Nha Trang|Nha Trang ward|Nha Trang, Khanh Hoa",town,12.24111,109.19111,,Khánh Hòa,https://en.wikipedia.org/wiki/Nha_Trang%2C_Kh%C3%A1nh_H%C3%B2a,medium,from: town
+Ninh Hòa,"Ninh Hòa District|Ninh Hoa District|Ninh Hoa|Ninh Hoà|Ninh Vân, Vietnam|Ninh Hòa district|Ninh Hòa district-level town",town,12.49167,109.12583,,Khánh Hòa,https://en.wikipedia.org/wiki/Ninh_H%C3%B2a,medium,from: town
 Ninh Hòa Base,Ninh Hoa Base,army_base,12.50444,109.14667,,Khánh Hòa,https://en.wikipedia.org/wiki/Ninh_H%C3%B2a_Base,medium,from: army
 Ocean View (Vietnam),"Ocean View, Viet Nam",marine_base,16.96500,107.12400,,Quảng Trị,https://en.wikipedia.org/wiki/Ocean_View_(Vietnam),medium,from: marine; coord via Wikidata P625
 Phan Rang Air Base,"Phan Rang AB|Phan Rang Air Base, South Vietnam",airbase,11.63361,108.95194,,Ninh Thuận,https://en.wikipedia.org/wiki/Phan_Rang_Air_Base,medium,from: usaf
+Phan Rang–Tháp Chàm,"Phan Rang|Phan Rang-Tháp Chàm|Phan Rang - Thap Cham|Phan Rang-Thap Cham|Phan Rang - Tháp Chàm|Phan Rang – Tháp Chàm|Phan Rang–Thap Cham|History of Phan Rang–Tháp Chàm|History of Phan Rang-Tháp Chàm|Phan Rang, Vietnam",city,11.56667,108.98333,,Ninh Thuận,https://en.wikipedia.org/wiki/Phan_Rang%E2%80%93Th%C3%A1p_Ch%C3%A0m,medium,from: city+town
+Phan Rí Cửa,Phan Ri Cua,town,11.17389,108.56611,,Bình Thuận,https://en.wikipedia.org/wiki/Phan_R%C3%AD_C%E1%BB%ADa,medium,from: town
+Phan Thiết,Phan Thiet|History of Phan Thiết|Phan Thiết provincial city|Phan Thiết (ward),town,10.92833,108.10361,,Bình Thuận,https://en.wikipedia.org/wiki/Phan_Thi%E1%BA%BFt,medium,from: town
+Phan Thiết (city),Phan Thiet (city),city,10.93333,108.10000,,Bình Thuận,https://en.wikipedia.org/wiki/Phan_Thi%E1%BA%BFt_(city),medium,from: city+town
 Phu Bai Combat Base,,army_base,16.40167,107.70278,,Thừa Thiên Huế,https://en.wikipedia.org/wiki/Phu_Bai_Combat_Base,medium,from: army; coord via Wikidata P625
 Phù Cát Air Base,Phu Cat AB|Phu Cat Air Base,airbase,13.95500,109.04222,,Bình Định,https://en.wikipedia.org/wiki/Ph%C3%B9_C%C3%A1t_Air_Base,medium,from: usaf; coord via Wikidata P625
+"Phù Cát, Gia Lai","Ngô Mây, Phù Cát|Phu Cat, Gia Lai",town,13.99750,109.06000,,Bình Định,https://en.wikipedia.org/wiki/Ph%C3%B9_C%C3%A1t%2C_Gia_Lai,medium,from: town
+Phù Mỹ,Phu My,town,14.17167,109.05000,,Bình Định,https://en.wikipedia.org/wiki/Ph%C3%B9_M%E1%BB%B9,medium,from: town
+"Phú Túc, Gia Lai","Phu Tuc, Gia Lai",town,13.19583,108.68694,,Gia Lai,https://en.wikipedia.org/wiki/Ph%C3%BA_T%C3%BAc%2C_Gia_Lai,medium,from: town
+"Phước Hậu, Khánh Hòa","Phuoc Hau, Khanh Hoa",town,11.61000,108.88028,,Ninh Thuận,https://en.wikipedia.org/wiki/Ph%C6%B0%E1%BB%9Bc_H%E1%BA%ADu%2C_Kh%C3%A1nh_H%C3%B2a,medium,from: town
 PK-17,,army_base,16.54700,107.44900,,Thừa Thiên Huế,https://en.wikipedia.org/wiki/PK-17,medium,from: army; coord via Wikidata P625
 Plei Djereng Camp,,camp,13.97000,107.64200,,Gia Lai,https://en.wikipedia.org/wiki/Plei_Djereng_Camp,medium,from: army; coord via Wikidata P625
+Pleiku,PleiKu|Play Cu|Play Ku|Pleiku Province|History of Pleiku|Pờ-lây-cu|Pleiku provincial city,city,13.98333,108.00000,,Gia Lai,https://en.wikipedia.org/wiki/Pleiku,medium,from: city+town
 Pleiku Air Base,Pleiku AB,airbase,14.00444,108.01722,,Gia Lai,https://en.wikipedia.org/wiki/Pleiku_Air_Base,medium,from: usaf
 Quản Lợi Base Camp,Quan Loi Base Camp|Quần Lợi Base Camp,camp,11.67400,106.66300,,Bình Phước,https://en.wikipedia.org/wiki/Qu%E1%BA%A3n_L%E1%BB%A3i_Base_Camp,medium,from: army; coord via Wikidata P625
+"Quảng Khê, Lâm Đồng","Quảng Khê, Đắk Nông|Quang Khe, Lam Dong",town,11.90944,107.79611,,Đắk Nông,https://en.wikipedia.org/wiki/Qu%E1%BA%A3ng_Kh%C3%AA%2C_L%C3%A2m_%C4%90%E1%BB%93ng,medium,from: town
+Quảng Ngãi (city),Quang Ngai City|Thành phố Quảng Ngãi|Quang Ngai town|Quang Ngai (city),city,15.11667,108.80000,,Quảng Ngãi,https://en.wikipedia.org/wiki/Qu%E1%BA%A3ng_Ng%C3%A3i_(city),medium,from: city+town
 Quang Ngai Airfield,Quảng Ngãi Airfield,airbase,15.11550,108.77100,,Quảng Ngãi,https://en.wikipedia.org/wiki/Quang_Ngai_Airfield,medium,from: army+marine+usaf; coord via Wikidata P625
 Qui Nhon Airfield,Qui Nhơn Air Base|Qui Nhơn Airfield,airbase,13.78167,109.24056,,,https://en.wikipedia.org/wiki/Qui_Nhon_Airfield,medium,from: army+usaf; coord via Wikidata P625
+Quy Nhơn,Qui Nhon Bay|Qui Nhon|History of Qui Nhơn|Qui Nhơn|Quinhon|Quy Nhon|Quy Nhơn provincial city,city,13.76667,109.23333,,Bình Định,https://en.wikipedia.org/wiki/Quy_Nh%C6%A1n,medium,from: city+town
+Rạch Giá,Rach Gia|Rạch Giá provincial city|Rạch Giá (provincial city)|Rạch Giá (city),city,10.01667,105.08333,,,https://en.wikipedia.org/wiki/R%E1%BA%A1ch_Gi%C3%A1,medium,from: city+town
+Sa Đéc (city),Sa Đéc provincial city|Sa Đéc (provincial city)|Sa Dec (city),town,10.30000,105.76670,,Đồng Tháp,https://en.wikipedia.org/wiki/Sa_%C4%90%C3%A9c_(city),medium,from: town
+Sa Thầy,Sa Thay,town,14.40806,107.79722,,Kon Tum,https://en.wikipedia.org/wiki/Sa_Th%E1%BA%A7y,medium,from: town
 Soc Trang Airfield,Sóc Trăng Airfield,airbase,9.58000,105.95900,,Sóc Trăng,https://en.wikipedia.org/wiki/Soc_Trang_Airfield,medium,from: army; coord via Wikidata P625
 Sông Bé Base Camp,Song Be Base Camp,camp,11.81900,106.96100,,Bình Phước,https://en.wikipedia.org/wiki/S%C3%B4ng_B%C3%A9_Base_Camp,medium,from: army; coord via Wikidata P625
+Sông Cầu,Sông Cầu District|Song Cau Town|Sông Cầu Town|Song Cau|Sông Cầu district|Phường Sông Cầu|Sông Cầu district-level town,town,13.55000,109.20000,,Phú Yên,https://en.wikipedia.org/wiki/S%C3%B4ng_C%E1%BA%A7u,medium,from: town
+Tam Kỳ,Tam Ky City|Tam-Ky|Tam Ky|Tam Kỳ provincial city,city,15.56667,108.48333,,Quảng Nam,https://en.wikipedia.org/wiki/Tam_K%E1%BB%B3,medium,from: city
+Tam Quan,,town,14.54861,109.04167,,Bình Định,https://en.wikipedia.org/wiki/Tam_Quan,medium,from: town
+Tân An,"Tan An Town|Tan An, Long An|Tan An|History of Tân An, Long An|Tân An, Long An|Tân An, Long An Province|Tân An provincial city",city,10.53333,106.41667,,Long An,https://en.wikipedia.org/wiki/T%C3%A2n_An,medium,from: city+town
+Tân Châu (town),"Tan Chau District, An Giang|Tân Châu District, An Giang|Tân Châu town, An Giang|Tân Châu district-level town|Tân Châu, Mekong Delta|Tân Châu (town), An Giang|Tan Chau (town)",town,10.77389,105.23694,,An Giang,https://en.wikipedia.org/wiki/T%C3%A2n_Ch%C3%A2u_(town),medium,from: town
+Tân Dĩnh,Thái Đào|Đại Lâm|Dai Lam|Thai Dao|Tan Dinh,town,16.80000,106.98333,,Quảng Trị,https://en.wikipedia.org/wiki/T%C3%A2n_D%C4%A9nh,medium,from: town
 Tan Son Nhut Air Base,Tan Son Nhut AB|Tân Sơn Nhứt Air Base|Ton Son Nuht AB|Tan Son Nhat Air Base|Davis Station (Tan Son Nhut),airbase,10.81889,106.65194,,Ho Chi Minh,https://en.wikipedia.org/wiki/Tan_Son_Nhut_Air_Base,medium,from: usaf; coord via Wikidata P625
+"Tánh Linh, Lâm Đồng","Tánh Linh|Lạc Tánh|Tanh Linh, Lam Dong",town,11.08333,107.68167,,Bình Thuận,https://en.wikipedia.org/wiki/T%C3%A1nh_Linh%2C_L%C3%A2m_%C4%90%E1%BB%93ng,medium,from: town
 Tay Loc Airfield,Tây Lộc Airfield,airbase,16.47444,107.57306,,Thừa Thiên Huế,https://en.wikipedia.org/wiki/Tay_Loc_Airfield,medium,from: usaf; coord via Wikidata P625
+Tây Nha Trang,"Phương Sơn, Nha Trang|Phương Sài|Ngọc Hiệp|Vĩnh Thạnh, Nha Trang|Vĩnh Trung, Nha Trang|Vĩnh Hiệp, Nha Trang|Vĩnh Ngọc, Nha Trang|Tay Nha Trang",town,12.27611,109.16500,,Khánh Hòa,https://en.wikipedia.org/wiki/T%C3%A2y_Nha_Trang,medium,from: town
+Tây Ninh (city),Tay Ninh City|Tây Ninh provincial city|Tay Ninh (city),city,11.36778,106.11889,,Tây Ninh,https://en.wikipedia.org/wiki/T%C3%A2y_Ninh_(city),medium,from: city+town
+"Tây Sơn, Gia Lai","Phú Phong, Bình Định|Tay Son, Gia Lai",town,13.90938,108.91861,,Bình Định,https://en.wikipedia.org/wiki/T%C3%A2y_S%C6%A1n%2C_Gia_Lai,medium,from: town; coord via Wikidata P625
 The Rockpile,,marine_base,16.78050,106.85200,,Quảng Trị,https://en.wikipedia.org/wiki/The_Rockpile,medium,from: marine; coord via Wikidata P625
+Thổ Châu Island,Tho Chu island|Tho Chu Island|Thổ Chu Island|Tho Chau Island,town,9.30000,103.48333,,,https://en.wikipedia.org/wiki/Th%E1%BB%95_Ch%C3%A2u_Island,medium,from: town
+Thủ Dầu Một,Thu Dao Mot|Thudaumot|Thu Dau Mot|Thudâumôt|Thu Dau Mot City|Thủ Dầu Một provincial city,city,10.96667,106.65000,,Bình Dương,https://en.wikipedia.org/wiki/Th%E1%BB%A7_D%E1%BA%A7u_M%E1%BB%99t,medium,from: city
+Tịnh Biên,Tinh Bien|Tinh Bien District|Tịnh Biên District|Tịnh Biên district|An Hảo|Tịnh Biên district-level town|Tịnh Biên (district-level town),town,10.58300,105.00000,,An Giang,https://en.wikipedia.org/wiki/T%E1%BB%8Bnh_Bi%C3%AAn,medium,from: town
+Trảng Bàng,Trảng Bàng District|Trang Bang|Trang Bang District|Trảng Bàng district-level town,town,11.03300,106.36700,,Tây Ninh,https://en.wikipedia.org/wiki/Tr%E1%BA%A3ng_B%C3%A0ng,medium,from: town
+"Tuy Đức, Lâm Đồng","Tuy Đức|Đắk Buk So|Tuy Duc, Lam Dong",town,12.21361,107.46583,,Đắk Nông,https://en.wikipedia.org/wiki/Tuy_%C4%90%E1%BB%A9c%2C_L%C3%A2m_%C4%90%E1%BB%93ng,medium,from: town
+Tuy Hòa,"Tuy Hoa Province|Tuy Hoa|Tuy Hoà|Phường Tuy Hòa|Tuy Hòa provincial city|Tuy Hòa, Phú Yên",city,13.08687,109.30859,,Phú Yên,https://en.wikipedia.org/wiki/Tuy_H%C3%B2a,medium,from: city; coord via Wikidata P625
 Tuy Hoa Air Base,,airbase,13.04944,109.33361,,Phú Yên,https://en.wikipedia.org/wiki/Tuy_Hoa_Air_Base,medium,from: usaf
 Tuy Hòa Base Camp,Tuy Hoa Base Camp,camp,12.98500,109.37972,,Phú Yên,https://en.wikipedia.org/wiki/Tuy_H%C3%B2a_Base_Camp,medium,from: army
+Tuy Phước,Tuy Phuoc|Diêu Trì|Dieu Tri,town,13.82778,109.16583,,Bình Định,https://en.wikipedia.org/wiki/Tuy_Ph%C6%B0%E1%BB%9Bc,medium,from: town
+"Vân Canh, Gia Lai","Vân Canh, Bình Định|Van Canh, Gia Lai",town,13.62667,108.99556,,Bình Định,https://en.wikipedia.org/wiki/V%C3%A2n_Canh%2C_Gia_Lai,medium,from: town
+Vị Thanh (city),"Vị-Thanh|Long-My|Vi Thanh city|Vị Thanh city|Vị Thanh provincial city|Vi Thanh City|Vị Thanh, Hậu Giang|Vi Thanh (city)",city,9.78333,105.46667,,Hậu Giang,https://en.wikipedia.org/wiki/V%E1%BB%8B_Thanh_(city),medium,from: city
+Vĩnh Long (city),Vinh Long City|Vĩnh Long provincial city|Vinh Long (city),city,10.25000,105.96667,,Vĩnh Long,https://en.wikipedia.org/wiki/V%C4%A9nh_Long_(city),medium,from: city
+"Vĩnh Thạnh, Gia Lai","Vĩnh Thạnh, Bình Định|Vinh Thanh, Gia Lai",town,14.10611,108.78306,,Bình Định,https://en.wikipedia.org/wiki/V%C4%A9nh_Th%E1%BA%A1nh%2C_Gia_Lai,medium,from: town
 Vũng Rô Bay,Vung Ro Bay|Port Lane|Vịnh Vũng Rô,other,12.86667,109.43333,,,https://en.wikipedia.org/wiki/V%C5%A9ng_R%C3%B4_Bay,medium,from: 
 Vung Tau Air Base,,airbase,10.37028,107.09333,,Bà Rịa–Vũng Tàu,https://en.wikipedia.org/wiki/Vung_Tau_Air_Base,medium,from: army; coord via Wikidata P625
+Xuân Hương – Đà Lạt,"Ward 1, Da Lat|Xuân Hương - Đà Lạt|Xuan Huong – Da Lat",town,11.95225,108.44186,,Lâm Đồng,https://en.wikipedia.org/wiki/Xu%C3%A2n_H%C6%B0%C6%A1ng_%E2%80%93_%C4%90%C3%A0_L%E1%BA%A1t,medium,from: town; coord via Wikidata P625
 Xuân Lộc Base Camp,Xuan Loc Base Camp,camp,10.92139,107.25556,,Đồng Nai,https://en.wikipedia.org/wiki/Xu%C3%A2n_L%E1%BB%99c_Base_Camp,medium,from: army
