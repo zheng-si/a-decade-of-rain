@@ -289,7 +289,8 @@
    now comes from size and weight alone, which is what the rest of the panel
    uses. */
 .map-wrap .explorer-subtitle {
-  margin: 0 0 0.625rem;
+  /* 1.25rem, the head's one block gap — see the note on .explorer-dek. */
+  margin: 0 0 1.25rem;
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.4;
@@ -303,8 +304,19 @@
    instead of 24 above and 16 below. */
 /* Down a step, and tighter. The citation is provenance, not prose: it earns
    its place by being checkable, not by being read at body size. */
+/* ONE BLOCK GAP FOR THE WHOLE HEAD, and this is where it is stated.
+   The head is four things — the name (year, title, subtitle), the citation,
+   the three actions, and the way back to the Story — and the three boundaries
+   between them were 8.5px, 11.9px and 17px. Three different numbers for three
+   boundaries of the same KIND, which is what made the block feel arbitrary
+   however carefully each number had been chosen on its own. They are all
+   1.25rem now, the value the last of them already had, so nothing that was
+   already reading as separate reads as less so.
+   (The earlier note here argued the subtitle and the dek were one thought and
+   should sit closer. They are not: the subtitle names the thing and the dek
+   cites it, and the reader is not confused about which is which.) */
 .map-wrap .explorer-dek {
-  margin-bottom: 0.875rem;
+  margin-bottom: 1.25rem;
   font-weight: 400;
   font-size: 0.6875rem;
   line-height: 1.5;
