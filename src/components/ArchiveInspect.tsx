@@ -100,7 +100,11 @@ export default function ArchiveInspect({
   onClose,
 }: Props) {
   return (
-    <aside className="archive-inspect" aria-label="Inspect">
+    // The kind rides on the element because the two cards lay out differently
+    // in the same two-column grid: a run's first column is a date, a cell's is
+    // a coordinate pair plus its cell size — three times as wide, and it takes
+    // the whole row rather than squeezing the column beside it to nothing.
+    <aside className={`archive-inspect is-${data.kind}`} aria-label="Inspect">
       {showClose && (
         <button className="inspect-close" onClick={onClose} aria-label="Close">
           ×

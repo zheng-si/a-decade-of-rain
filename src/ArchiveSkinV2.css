@@ -787,23 +787,27 @@
   margin-top: 0.1875rem;
 }
 
-/* ── the inline record, laid out for the width it actually has ───────────
-   Read down its own column the standalone card is right: one fact per line,
-   the figure large. Nested under its list row that same portrait stack left
-   the right half of the panel empty — and a single wrapping line, which was
-   the first fix, broke wherever it happened to run out of room: "6K Gallons"
-   stranded beside the date, "1,207 Gal/km" beside the citation. Neither is a
-   layout, both were an absence of one.
+/* ── one record layout, two homes ────────────────────────────────────────
+   Read down its own column the standalone card was right: one fact per line.
+   Nested under its list row that same portrait stack left the right half of
+   the panel empty — and a single wrapping line, which was the first fix,
+   broke wherever it happened to run out of room: "6K Gallons" stranded
+   beside the date, "1,207 Gal/km" beside the citation. Neither is a layout,
+   both were an absence of one.
 
    A grid is: two columns, one row per KIND of fact — when and who, then how
    much and how far, then the citation across the foot. The breaks are stated
    instead of discovered, the second column carries the weight the empty half
-   used to, and every row of every open record lines up with the next. */
-/* margin: 0 stated HERE, at three classes: `.map-wrap .archive-key
-   .archive-inspect` sets the card's 0.875rem top margin and outranked the
-   two-class rule in App.css, so the record opened 20px below its own row
-   while the CSS that meant to close that gap read as if it had. */
-.map-wrap .lookup-detail .archive-inspect {
+   used to, and every row of every open record lines up with the next.
+
+   The SAME grid, now, for the card the map opens directly. A record is one
+   kind of object however the reader reached it — a circle drawn round a
+   village, a track clicked on the map, a dot clicked on the map — and the
+   three arrived in the same column of the same screen looking like two
+   different products: a portrait stack of red figures over a faint 10px
+   locating pair, three pixels from a table on two sizes and three colours. */
+.map-wrap .lookup-detail .archive-inspect,
+.map-wrap .archive-key > .archive-inspect {
   display: grid;
   grid-template-columns: max-content 1fr;
   column-gap: 0.875rem;
@@ -812,77 +816,127 @@
      12, so the block sat unevenly no matter what the gaps did. */
   row-gap: 0.3125rem;
   align-items: baseline;
+  line-height: 1.45;
+}
+/* margin: 0 stated HERE, at three classes: `.map-wrap .archive-key
+   .archive-inspect` sets the card's 0.875rem top margin and outranked the
+   two-class rule in App.css, so the record opened 20px below its own row
+   while the CSS that meant to close that gap read as if it had. The
+   standalone card keeps that margin and the rule above it: it is a second
+   block under the query, not a row continued. */
+.map-wrap .lookup-detail .archive-inspect {
   margin: 0;
+}
+.map-wrap .lookup-detail .archive-inspect > *,
+.map-wrap .archive-key > .archive-inspect > * {
   line-height: 1.45;
 }
-.map-wrap .lookup-detail .archive-inspect > * {
-  line-height: 1.45;
-}
+/* The list row above already names the record it opened; a card standing on
+   its own has nothing else to say what it is, so it keeps its title — across
+   both columns, a head to the grid rather than a cell in it. */
 .map-wrap .lookup-detail .inspect-kicker {
   display: none;
+}
+.map-wrap .archive-key > .archive-inspect .inspect-kicker {
+  grid-column: 1 / -1;
+  margin: 0;
 }
 .map-wrap .lookup-detail .inspect-coords,
 .map-wrap .lookup-detail .inspect-figure,
 .map-wrap .lookup-detail .inspect-sub.is-stats,
-.map-wrap .lookup-detail .inspect-note {
+.map-wrap .lookup-detail .inspect-note,
+.map-wrap .archive-key > .archive-inspect .inspect-coords,
+.map-wrap .archive-key > .archive-inspect .inspect-figure,
+.map-wrap .archive-key > .archive-inspect .inspect-sub.is-stats,
+.map-wrap .archive-key > .archive-inspect .inspect-note {
   margin: 0;
 }
-.map-wrap .lookup-detail .inspect-coords {
+.map-wrap .lookup-detail .inspect-coords,
+.map-wrap .archive-key > .archive-inspect .inspect-coords {
   grid-column: 1;
 }
-.map-wrap .lookup-detail .inspect-coords.is-span {
+.map-wrap .lookup-detail .inspect-coords.is-span,
+.map-wrap .archive-key > .archive-inspect .inspect-coords.is-span {
   grid-column: 2;
 }
-.map-wrap .lookup-detail .inspect-figure {
+.map-wrap .lookup-detail .inspect-figure,
+.map-wrap .archive-key > .archive-inspect .inspect-figure {
   grid-column: 1;
   display: inline-flex;
   align-items: baseline;
   gap: 0.25rem;
   white-space: nowrap;
 }
-/* ── one type system inside the row ─────────────────────────────────────
-   The card brings its own: a 19px serif headline in accent red, an 11px
-   stats line whose figures are red too, a 10px faint locating pair, a 10px
-   citation. Four sizes and four colours in a 70px block that sits INSIDE a
-   table — and the table three pixels above it runs on two sizes and three
-   colours. The record adopts the list's system instead of importing the
-   card's: everything factual at the row's own size, numbers in ink, their
-   units and labels in soft, sentences (the note, the citation) at the notes
-   tier in faint. Nothing here is accent red: in the standalone card the red
-   marks the one headline figure, and in a row of facts it marks nothing. */
+.map-wrap .lookup-detail .inspect-sub.is-stats,
+.map-wrap .archive-key > .archive-inspect .inspect-sub.is-stats {
+  grid-column: 2;
+  gap: 0.875rem;
+}
+/* A sentence, not a fact in the row: its own line, across both columns. The
+   citation is the same kind of thing, and only the standalone card prints it
+   — inline, the row three pixels above already carries Mission·Run. */
+.map-wrap .lookup-detail .inspect-note,
+.map-wrap .archive-key > .archive-inspect .inspect-note,
+.map-wrap .archive-key > .archive-inspect .inspect-coords.is-runid {
+  grid-column: 1 / -1;
+  margin-top: 0.125rem;
+}
+/* The cell card's first column is "10.55°N 106.60°E · 13 km Cell" — most of
+   the panel's width on its own. Paired against the span beside it that column
+   would squeeze the other to a word per line, so the locating pair keeps its
+   own two rows and the grid starts doing its work at the figure. The
+   breakdowns are full-width blocks for the same reason: a bar chart measured
+   against half a panel is measuring the panel. */
+.map-wrap .archive-key > .archive-inspect.is-cell .inspect-coords,
+.map-wrap .archive-key > .archive-inspect.is-cell .inspect-coords.is-span,
+.map-wrap .archive-key > .archive-inspect .inspect-section-label,
+.map-wrap .archive-key > .archive-inspect .inspect-groups,
+.map-wrap .archive-key > .archive-inspect .inspect-years,
+.map-wrap .archive-key > .archive-inspect .inspect-year-ticks,
+.map-wrap .archive-key > .archive-inspect .inspect-year-labels {
+  grid-column: 1 / -1;
+}
+/* ── one type system, in the row and in the card ─────────────────────────
+   The card brought its own: figures in accent red, their words in ink, a 10px
+   faint locating pair, a 10px citation — four colours across a 70px block
+   that opens three pixels below a table running on two sizes and three
+   colours. Both read the list's system now: everything factual at the row's
+   own size, numbers in ink, their units and labels in soft, sentences (the
+   note, the citation) at the notes tier in faint. Nothing here is accent red
+   — the red marked the one headline figure in a card, and neither of these
+   reads as a card any more. It survives where it still means something: the
+   map's own hover tooltip, which shares the rule above and is left alone. */
 .map-wrap .lookup-detail .archive-inspect,
 .map-wrap .lookup-detail .inspect-coords,
 .map-wrap .lookup-detail .inspect-figure,
 .map-wrap .lookup-detail .inspect-figure-unit,
 .map-wrap .lookup-detail .inspect-sub.is-stats,
-.map-wrap .lookup-detail .inspect-sub.is-stats .stat-pair {
+.map-wrap .lookup-detail .inspect-sub.is-stats .stat-pair,
+.map-wrap .archive-key > .archive-inspect,
+.map-wrap .archive-key > .archive-inspect .inspect-coords,
+.map-wrap .archive-key > .archive-inspect .inspect-figure,
+.map-wrap .archive-key > .archive-inspect .inspect-figure-unit,
+.map-wrap .archive-key > .archive-inspect .inspect-sub.is-stats,
+.map-wrap .archive-key > .archive-inspect .inspect-sub.is-stats .stat-pair {
   font-size: 0.6875rem;
   letter-spacing: 0;
   color: var(--ink-soft);
 }
 .map-wrap .lookup-detail .inspect-figure strong,
-.map-wrap .lookup-detail .inspect-sub.is-stats strong {
+.map-wrap .lookup-detail .inspect-sub.is-stats strong,
+.map-wrap .archive-key > .archive-inspect .inspect-figure strong,
+.map-wrap .archive-key > .archive-inspect .inspect-sub.is-stats strong {
   font-family: var(--font-sans);
   font-size: 0.6875rem;
   font-weight: 600;
   color: var(--ink);
 }
-/* Only the note reaches this scope now: the citation does not render inline
-   at all (the row above it already prints Mission·Run under that heading), so
-   a rule for it here would be a rule for nothing. */
-.map-wrap .lookup-detail .inspect-note {
+.map-wrap .lookup-detail .inspect-note,
+.map-wrap .archive-key > .archive-inspect .inspect-note,
+.map-wrap .archive-key > .archive-inspect .inspect-coords.is-runid {
   font-size: 0.625rem;
   line-height: 1.5;
   color: var(--ink-faint);
-}
-.map-wrap .lookup-detail .inspect-sub.is-stats {
-  grid-column: 2;
-  gap: 0.875rem;
-}
-/* A sentence, not a fact in the row: its own line, across both columns. */
-.map-wrap .lookup-detail .inspect-note {
-  grid-column: 1 / -1;
-  margin-top: 0.125rem;
 }
 
 /* MapLibre's own controls are part of the surface too. */

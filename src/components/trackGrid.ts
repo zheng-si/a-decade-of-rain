@@ -13,6 +13,7 @@
 //
 // That is the whole difference between "this cell is where a run started" and
 // "this cell is what fell on this cell".
+import { dayToDate } from '../data/spray'
 import type { TrackDataset, TrackProps } from '../data/tracks'
 import { DOTS } from './volumeGrid'
 
@@ -53,6 +54,12 @@ interface Cell {
    *  2 days, so they mostly agree — where they do not, they disagree loudly. */
   days: Set<number>
   byGroup: number[]
+  /** The cell's gallons per year, 1961–1971. Carried for the same reason
+   *  `byGroup` is: the inspect card's By Year chart was drawn from the POINT
+   *  data while the total above it came from here, so a cell that lines only
+   *  crossed showed an empty chart under "27 Sprayings, Sep 1966 – Sep 1970".
+   *  A breakdown has to be a breakdown OF the number it sits beneath. */
+  byYear: number[]
   d0: number
   d1: number
   /** Sprayed track length in this cell, in km. The quantity a grid of lines
@@ -131,18 +138,20 @@ export function binTracks(
     if (!c) {
       c = {
         x, y, inSel: 0, out: 0, segs: 0, sprayings: 0,
-        days: new Set(), byGroup: [0, 0, 0, 0], d0: Infinity, d1: -Infinity, km: 0,
+        days: new Set(), byGroup: [0, 0, 0, 0], byYear: new Array(11).fill(0),
+        d0: Infinity, d1: -Infinity, km: 0,
       }
       cells.set(key, c)
     }
     return c
   }
 
-  const deposit = (c: Cell, p: TrackProps, gallons: number, km: number) => {
+  const deposit = (c: Cell, p: TrackProps, gallons: number, km: number, yi: number) => {
     if (!sel || sel.has(p.agent)) c.inSel += gallons
     else c.out += gallons
     c.km += km
     if (p.gi >= 0 && p.gi < 4) c.byGroup[p.gi] += gallons
+    if (yi >= 0 && yi < 11) c.byYear[yi] += gallons
     if (p.day < c.d0) c.d0 = p.day
     if (p.day > c.d1) c.d1 = p.day
   }
@@ -153,6 +162,10 @@ export function binTracks(
     const f = ordered[cursor]
     const p = f.properties
     if (p.day > day) break
+    // Once per RUN, not per sampling step: a Date per step is thousands of
+    // allocations inside the loop playback runs eleven times a second, and the
+    // year cannot change between two steps of one flight.
+    const yi = dayToDate(p.day).getUTCFullYear() - 1961
     const coords = f.geometry.coordinates
     // Segment length in DEGREES, which is what the sampling walks in — the
     // gallons split uses the km the ETL already measured, so the two units
@@ -164,7 +177,7 @@ export function binTracks(
     if (totalDeg <= 0) {
       const c = cellAt(coords[0][0], coords[0][1])
       c.segs++
-      deposit(c, p, p.gallons, 0)
+      deposit(c, p, p.gallons, 0, yi)
       continue
     }
     const touched = new Set<Cell>()
@@ -182,7 +195,7 @@ export function binTracks(
       for (let s = 0; s < n; s++) {
         const t = (s + 0.5) / n
         const c = cellAt(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t)
-        deposit(c, p, gStep, kmStep)
+        deposit(c, p, gStep, kmStep, yi)
         touched.add(c)
       }
     }
@@ -227,6 +240,19 @@ export function binTracks(
       b2: Math.round(cell.byGroup[2]),
       b3: Math.round(cell.byGroup[3]),
       km: Number(cell.km.toFixed(1)),
+      /** Eleven scalars rather than one array, for the reason b0..b3 are four:
+       *  a nested array does not survive a GeoJSON source's tile encoding. */
+      y0: Math.round(cell.byYear[0]),
+      y1: Math.round(cell.byYear[1]),
+      y2: Math.round(cell.byYear[2]),
+      y3: Math.round(cell.byYear[3]),
+      y4: Math.round(cell.byYear[4]),
+      y5: Math.round(cell.byYear[5]),
+      y6: Math.round(cell.byYear[6]),
+      y7: Math.round(cell.byYear[7]),
+      y8: Math.round(cell.byYear[8]),
+      y9: Math.round(cell.byYear[9]),
+      y10: Math.round(cell.byYear[10]),
       dom,
       d0: cell.d0,
       d1: cell.d1,
