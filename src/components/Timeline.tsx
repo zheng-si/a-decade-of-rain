@@ -305,20 +305,27 @@ export default function Timeline({
       </button>
       <header className="explorer-head">
         <p className="explorer-eyebrow">1961–1971</p>
-        {/* The campaign's own word, then who wrote the record down and what it
-            counts. "The Archive / The Decade of Defoliation, Replayable."
-            named a chapter of the Story. "The HERBS Record / Every Logged
-            Spray Run" named the file. Neither said Vietnam, the U.S., or
-            herbicide — the three facts without which the map below is
-            coloured lines over a country the reader has not been told the
-            name of.
+        {/* Two lines, two jobs. The title names the OBJECT — a reader who
+            knows nothing still knows they are looking at a map, of herbicide,
+            in Vietnam, before reading a second word. The subtitle narrates:
+            how long, who flew it, and what kind of record this is drawn from.
+            The counts and the citation stay below, in the dek.
 
-            Sentence case, not the title case the short version carried: that
-            was a name and this is a sentence, and "Every Spray Run the U.S.
-            Air Force Logged Over Vietnam" reads as a headline shouting. */}
-        <h1 className="explorer-title">The Defoliation Record</h1>
+            Every earlier pair had both lines describing the same thing at two
+            levels of detail. "The Archive / The Decade of Defoliation,
+            Replayable." named a chapter of the Story twice over; "The HERBS
+            Record / Every Logged Spray Run" named the file twice over; and
+            neither said Vietnam, the U.S., or herbicide — the three facts
+            without which the map below is coloured lines over a country the
+            reader has not been told the name of.
+
+            "herbicide reporting records" rather than HERBS: that is what the
+            acronym stands for, and spelling it out costs three words and
+            saves the reader a lookup. */}
+        <h1 className="explorer-title">The Herbicide Map of Vietnam</h1>
         <p className="explorer-subtitle">
-          Every spray run the U.S. Air Force logged over Vietnam, and how much fell
+          A decade of U.S. Air Force defoliation flights, drawn from its own herbicide reporting
+          records, run by run
         </p>
         {/* One citation line, then verbs. The old three-sentence paragraph
             answered "what is this" beautifully and was read by nobody — the
@@ -339,7 +346,7 @@ export default function Timeline({
           >
             complete record
           </a>{' '}
-          behind Stellman et&nbsp;al. (2003): 8,360 spray runs, 19.5M gallons, 1961–1971.
+          behind Stellman et&nbsp;al. (2003): 8,360 spray runs, 19.5M gallons.
         </p>
         <ul className="explorer-guide">
           {/* The verb is the point of each line — bold it and the three
