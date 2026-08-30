@@ -70,6 +70,18 @@ interface Props {
 
 const RADII = [1, 2, 5, 10]
 
+/** An agent colour at low alpha, for the open row's ground. Written from the
+ *  hex rather than color-mix so it resolves everywhere the map does, and kept
+ *  faint: the row is being MARKED, not highlighted — the colour has to say
+ *  "this one, and it is Orange" without competing with the bars that use the
+ *  same hue at full strength two blocks up. */
+function tint(hex: string | undefined, a: number): string | undefined {
+  if (!hex) return undefined
+  const h = hex.replace('#', '')
+  const n = parseInt(h.length === 3 ? h.replace(/(.)/g, '$1$1') : h, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`
+}
+
 /** The record's own span, and the axis of the card's By Year block. */
 const YEAR_FROM = 1961
 const YEAR_TO = 1971
@@ -131,7 +143,6 @@ export default function LocationLookup({
    *  Both live here rather than in CSS because both carry TEXT that has to be
    *  built from the data. */
   const [hoverYear, setHoverYear] = useState<number | null>(null)
-  const [noteOpen, setNoteOpen] = useState(false)
   /** The list scrolls the inline-open record into view — a map click can open
    *  a row the reader has never scrolled to. */
   const openRowRef = useRef<HTMLLIElement | null>(null)
@@ -452,30 +463,7 @@ export default function LocationLookup({
                             Runs
                           </button>
                         </div>
-                        {/* The method note behind an ⓘ. It is four lines of
-                            standing caveat that the reader needs ONCE — and
-                            it sat between the charts and the list, which is
-                            where their eye travels. Kept one press away, next
-                            to the switch whose unit it qualifies, rather than
-                            deleted: the fixed-wing scope and the
-                            whole-run-volume caveat are load-bearing. */}
-                        <button
-                          className={`lookup-note-btn${noteOpen ? ' is-active' : ''}`}
-                          aria-expanded={noteOpen}
-                          aria-label="About these figures"
-                          onClick={() => setNoteOpen((v) => !v)}
-                        >
-                          i
-                        </button>
                       </div>
-                      {noteOpen && (
-                        <p className="lookup-note" role="note">
-                          Fixed-wing (Ranch Hand) records only — no helicopter, ground or
-                          base-perimeter spraying.
-                          {unit === 'volume' &&
-                            ' Gallons are each run’s whole logged volume, booked at its first waypoint — not the share that fell inside this circle.'}
-                        </p>
-                      )}
                       <div className="inspect-groups">
                         {/* Skip only agents with NOTHING here. One whose runs
                             all carry zero logged gallons keeps its row in
@@ -499,7 +487,10 @@ export default function LocationLookup({
                         })}
                       </div>
 
-                      <p className="inspect-section-label">
+                      {/* No rule over this one: it heads the second half of a
+                          single answer, not a new section, and the divider
+                          made two charts read as two subjects. */}
+                      <p className="inspect-section-label is-plain">
                         By Year · {unit === 'volume' ? 'gallons' : 'runs'}
                       </p>
                       {/* The bars are aria-hidden and nothing else carried the
@@ -590,15 +581,13 @@ export default function LocationLookup({
                 })()
               )}
 
-              {/* The caveat moved into the ⓘ beside the unit switch (above).
-                  It stays in the empty state, where there is no chart to hang
-                  it off and the reader most needs to know what was searched. */}
-              {results.length === 0 && (
-                <p className="lookup-caveat">
-                  Fixed-wing (Ranch Hand) records only — no helicopter, ground or base-perimeter
-                  spraying.
-                </p>
-              )}
+              <p className="lookup-caveat">
+                Fixed-wing (Ranch Hand) records only — no helicopter, ground or base-perimeter
+                spraying.
+                {results.length > 0 &&
+                  unit === 'volume' &&
+                  ' Gallons are each run’s whole logged volume, booked at its first waypoint — not the share that fell inside this circle.'}
+              </p>
             </>
           )}
 
@@ -636,11 +625,13 @@ export default function LocationLookup({
                   <ol className="lookup-list">
                     {shown!.map((h) => {
                       const isOpen = detailKey === `${h.mission}|${h.run}`
+                      const hue = groups[h.gi]?.color
                       return (
                         <li key={h.key} ref={isOpen ? openRowRef : undefined}>
                           <button
                             className={`lookup-item${isOpen ? ' is-open' : ''}`}
                             aria-expanded={isOpen}
+                            style={isOpen ? { background: tint(hue, 0.16) } : undefined}
                             onClick={() => onOpen(h)}
                           >
                             <span className="lookup-item-id">
@@ -655,7 +646,14 @@ export default function LocationLookup({
                               replacing the panel: the reader keeps the list,
                               the neighbours and the place their eye was — the
                               card was a page-turn where a fold answers. */}
-                          {isOpen && detail != null && <div className="lookup-detail">{detail}</div>}
+                          {isOpen && detail != null && (
+                            <div
+                              className="lookup-detail"
+                              style={{ background: tint(hue, 0.08), borderColor: tint(hue, 0.3) }}
+                            >
+                              {detail}
+                            </div>
+                          )}
                         </li>
                       )
                     })}

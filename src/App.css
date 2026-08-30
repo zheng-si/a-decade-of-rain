@@ -1542,37 +1542,10 @@
   color: #f2efe7;
 }
 
-/* The method note's handle: a 10px letter in a circle, the quietest control
-   in the panel — it qualifies the figures, it does not compete with them. */
-.lookup-note-btn {
-  flex: none;
-  width: 1.125rem;
-  height: 1.125rem;
-  padding: 0;
-  border: 1px solid rgba(33, 53, 40, 0.22);
-  border-radius: 50%;
-  font: inherit;
-  font-size: 0.625rem;
-  font-style: italic;
-  font-family: var(--font-serif, Georgia, serif);
-  line-height: 1;
-  background: transparent;
-  color: var(--ink-soft);
-  cursor: pointer;
-}
-.lookup-note-btn:hover,
-.lookup-note-btn.is-active {
-  background: #213528;
-  border-color: #213528;
-  color: #f2efe7;
-}
-.lookup-note {
-  margin: 0 0 0.5rem;
-  padding: 0.5rem 0.625rem;
-  background: rgba(33, 53, 40, 0.05);
-  font-size: 0.6875rem;
-  line-height: 1.5;
-  color: var(--ink-faint, #4b5a50);
+/* Second half of one answer: label, no rule. */
+.map-wrap .inspect-section-label.is-plain {
+  padding-top: 0;
+  border-top: none;
 }
 
 /* ── the year chart, half again as tall and readable ─────────────────────
@@ -1663,21 +1636,23 @@
   opacity: 0.9;
 }
 
-/* A row whose record is open below it: held, not hovered. */
+/* A row whose record is open below it: held, not hovered — and wearing its
+   own agent's hue, which the inline style supplies. The forest wash said
+   "selected"; the agent's colour says which agent, and ties the row to the
+   bars and to the stroke on the map that carry the same hue. (No :hover
+   override needed here: the inline background beats a rule.) */
 .lookup-item.is-open {
-  background: rgba(33, 53, 40, 0.05);
   font-weight: 600;
 }
-/* The inline record: quiet inset panel under its row. The card's own top
-   rule and margin retire — the row above IS the divider. */
+/* The inline record: a quiet inset panel under its row, tinted a step lighter
+   than the row so the two read as one block with a head. */
 .lookup-detail {
-  padding: 0 0.5rem 0.25rem;
-  background: rgba(33, 53, 40, 0.03);
+  padding: 0.5rem 0.5rem 0.5625rem;
   border-top: 1px solid var(--rule, #ded8cc);
 }
 .lookup-detail .archive-inspect {
   margin-top: 0;
-  padding-top: 0.75rem;
+  padding-top: 0;
   border-top: none;
 }
 

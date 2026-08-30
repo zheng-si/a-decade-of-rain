@@ -789,42 +789,62 @@
 
 /* ── the inline record, laid out for the width it actually has ───────────
    Read down its own column the standalone card is right: one fact per line,
-   the figure large. Nested under its own list row it was that same portrait
-   stack with the right half of the panel empty — and the reader is comparing
-   it against the rows above and below, not studying it alone. So it turns
-   landscape: one wrapping line of facts in the row's own grammar, then the
-   citation under it. The kicker goes because the row above already names the
-   record, and the headline figure drops to the stats' size — inline, a 19px
-   serif number beside 11px labels reads as a poster in a table. */
+   the figure large. Nested under its list row that same portrait stack left
+   the right half of the panel empty — and a single wrapping line, which was
+   the first fix, broke wherever it happened to run out of room: "6K Gallons"
+   stranded beside the date, "1,207 Gal/km" beside the citation. Neither is a
+   layout, both were an absence of one.
+
+   A grid is: two columns, one row per KIND of fact — when and who, then how
+   much and how far, then the citation across the foot. The breaks are stated
+   instead of discovered, the second column carries the weight the empty half
+   used to, and every row of every open record lines up with the next. */
 .map-wrap .lookup-detail .archive-inspect {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  column-gap: 0.875rem;
+  row-gap: 0.25rem;
   align-items: baseline;
-  gap: 0.125rem 0.5625rem;
 }
 .map-wrap .lookup-detail .inspect-kicker {
   display: none;
 }
 .map-wrap .lookup-detail .inspect-coords,
 .map-wrap .lookup-detail .inspect-figure,
-.map-wrap .lookup-detail .inspect-sub.is-stats {
+.map-wrap .lookup-detail .inspect-sub.is-stats,
+.map-wrap .lookup-detail .inspect-cite,
+.map-wrap .lookup-detail .inspect-note {
   margin: 0;
 }
+.map-wrap .lookup-detail .inspect-coords {
+  grid-column: 1;
+}
+.map-wrap .lookup-detail .inspect-coords.is-span {
+  grid-column: 2;
+}
 .map-wrap .lookup-detail .inspect-figure {
+  grid-column: 1;
   display: inline-flex;
   align-items: baseline;
   gap: 0.25rem;
+  white-space: nowrap;
 }
+/* The headline number drops to the stats' size: inline, beside 11px labels,
+   a 19px serif figure reads as a poster in a table. */
 .map-wrap .lookup-detail .inspect-figure strong {
   font-family: var(--font-sans);
   font-size: 0.8125rem;
   font-weight: 500;
 }
-/* Citation and notes are sentences, not facts in the row: their own line. */
+.map-wrap .lookup-detail .inspect-sub.is-stats {
+  grid-column: 2;
+  gap: 0.875rem;
+}
+/* Sentences, not facts in a row: their own line, across both columns. */
 .map-wrap .lookup-detail .inspect-cite,
 .map-wrap .lookup-detail .inspect-note {
-  flex: 0 0 100%;
-  margin: 0.25rem 0 0;
+  grid-column: 1 / -1;
+  margin-top: 0.125rem;
 }
 
 /* MapLibre's own controls are part of the surface too. */
