@@ -2,7 +2,8 @@ import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { loadSpray, dayToDate, dateToDay, type SprayDataset } from '../data/spray'
-import { mapConfig } from '../config/mapConfig'
+import { mapConfig, Z_MID, Z_NEAR } from '../config/mapConfig'
+import { track } from '../lib/analytics'
 import Timeline, { buildVolume, type VolumeChart } from './Timeline'
 import ArchiveKey from './ArchiveKey'
 import { buildAgentChoices, type AgentChoice } from './agentChoices'
@@ -1120,6 +1121,9 @@ export default function MapView() {
             const isMark = pick.mark
             pinnedRunRef.current = pick.lit
             paintHover()
+            // Both doors into a run's record are the same event: the map's own
+            // stroke here, the list's row in openLookupHit.
+            track('archive_record', { via: 'track' })
             // A hit clicked ON THE MAP has to say what the same hit says when
             // it is clicked in the LIST. The feature under the pointer is one
             // leg; the hit is the whole run, and its gallons and kilometres
@@ -1179,6 +1183,7 @@ export default function MapView() {
           const f = feats[0]
           const p = f.properties as Record<string, number>
           const coords = (f.geometry as GeoJSON.Point).coordinates as [number, number]
+          track('archive_record', { via: 'dot' })
           if (p.gt != null) {
             const deg = cellDegAt(map.getZoom()) ?? 0.03
             if (dataRef.current) {
@@ -1215,6 +1220,16 @@ export default function MapView() {
               gallons: p.gallons,
             })
           }
+        })
+
+        // Depth actually reached, in the taxonomy's own bands — the mid grid,
+        // the hand-off to tracks, and close-up reading range. Session-deduped
+        // in track(), so re-fires cost nothing.
+        map.on('zoomend', () => {
+          const z = map.getZoom()
+          if (z >= Z_MID) track('archive_zoom', { band: 'mid-grid' })
+          if (z >= Z_NEAR) track('archive_zoom', { band: 'tracks' })
+          if (z >= 12) track('archive_zoom', { band: 'close' })
         })
 
         // The military regions are OFF on the Archive — borders and tags both.
@@ -1564,6 +1579,7 @@ export default function MapView() {
     const map = mapRef.current
     if (!map) return
     const next = !is3D
+    if (next) track('archive_3d')
     setIs3D(next)
     applyView(map, next, homeRef.current)
   }
@@ -2055,13 +2071,21 @@ export default function MapView() {
             setPlaying(false)
             setDay(d)
           }}
-          onPlay={() => setPlaying(true)}
+          onPlay={() => {
+            track('archive_play')
+            setPlaying(true)
+          }}
           onPause={() => setPlaying(false)}
           onReset={() => {
             setPlaying(false)
             setDay(bounds.min)
           }}
-          onSelectAgent={setAgentKey}
+          onSelectAgent={(key) => {
+            // URL restores call setAgentKey directly — only a reader's own
+            // click lands here, and "All" is the default, not an isolation.
+            if (key !== 'all') track('archive_agent', { agent: key })
+            setAgentKey(key)
+          }}
           lookupSlot={isPhone ? lookupPanel : null}
           keySlot={
             isPhone ? null : (
