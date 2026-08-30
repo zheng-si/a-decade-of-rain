@@ -283,14 +283,7 @@
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   /* Top stop equals the banner wash / rain (--accent #ff5449) so the rail
      reads as the same orange, then deepens to the crimson foot. */
-  /* Deepened (was #ff5449 -> #a52c1e). The old top stop was the brand red
-     itself, and on #ff5449 even PURE white measures 3.2:1 — no alpha of
-     white could make an 11px label readable there, and the resting labels
-     measured 1.83:1. The ramp now starts where the old one passed through
-     at 60% and deepens from there; the brand red still owns the hero and
-     the accents, and the rail reads as its shadowed edge. Every stop is
-     measured against the labels that sit on it (see the audit script). */
-  background: linear-gradient(180deg, #b73026 0%, #a52c1e 45%, #8f2415 100%);
+  background: linear-gradient(180deg, #ff5449 0%, #e0463a 40%, #c5372a 72%, #a52c1e 100%);
   /* Crisp divider between the rail and the year/volume ruler to its right:
      a white hairline (reads on the crimson) plus a soft shadow (reads on the
      pale ruler). */
@@ -393,13 +386,9 @@
 }
 
 /* Resting items recede to keep the focus on the active section; hover and the
-   active state restore full white. 0.85, not --on-photo-faint: the faint
-   token's 0.5 is the AA floor on a dark photograph, and this ground is a mid
-   red — composited over the TOP stop, 0.5-white measured 1.83:1. At 0.85 the
-   blend clears 4.5:1 on every stop, and the recede survives in the weight
-   contrast with the active item's 600. */
+   active state restore full white. */
 .story-rail-link:not(.is-on):not(.is-upcoming) {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--on-photo-faint);
 }
 
 .story-rail-link:hover:not(.is-upcoming) {
@@ -427,9 +416,7 @@
 }
 
 .story-rail-link.story-rail-out:not(.is-on) {
-  /* Same 0.85 as the resting sections above, same reason: soft's 0.72 was
-     tuned for photographs, not for this red. */
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--on-photo-soft);
 }
 
 /* Active marker: a 4px white bar on the rail's left edge — it never collides
