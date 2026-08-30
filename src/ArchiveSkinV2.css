@@ -139,8 +139,16 @@
        column's height was tried and reverted: two columns read as one height
        only while the list is open, so the right column grew and shrank by
        260px as the reader folded it — a column that changes height on a press
-       is worse than two columns that were never the same height. */
-    max-height: calc(100vh - 3rem);
+       is worse than two columns that were never the same height.
+
+       10rem, not 3rem: the last 7rem of the corner belong to the zoom pair
+       and the credit line. At 1280x720 with a long list the column drew over
+       the +/- buttons' centres — visible, and inert to the click (50.8%
+       covered, ~10px of edge left). The column yields; the buttons stay where
+       readers reach for them. (10 rather than 9 because the column's box runs
+       ~22px past its max-height's arithmetic — the 1.5rem top inset plus its
+       border — measured, not assumed.) */
+    max-height: calc(100vh - 10rem);
     overflow-y: auto;
   }
 

@@ -37,7 +37,11 @@ function preloadMaplibre(): Plugin {
           } else if (file.endsWith('.css')) {
             tags.push({
               tag: 'link',
-              attrs: { rel: 'preload', as: 'style', href: `/${file}` },
+              // crossorigin to MATCH the request Vite's stylesheet link makes:
+              // a preload whose credentials mode differs from the eventual
+              // fetch is discarded, and this file downloaded twice (~10 KB and
+              // 4-5 console warnings per load).
+              attrs: { rel: 'preload', as: 'style', crossorigin: true, href: `/${file}` },
               injectTo: 'head' as const,
             })
           }

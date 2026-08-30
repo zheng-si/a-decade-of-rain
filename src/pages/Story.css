@@ -2159,6 +2159,15 @@
 .wall-tile:hover .wall-cap {
   opacity: 1;
 }
+/* No hover, no reveal: on touch screens the captions and the photographers'
+   credits simply did not exist — six real captions ("Kan Lay holds her
+   son…") at opacity 0 with no gesture to summon them. Attribution is not a
+   hover reward; where hover is absent the caption stands. */
+@media (hover: none) {
+  .wall-cap {
+    opacity: 1;
+  }
+}
 .wall-cap em {
   display: block;
   margin-top: 0.125rem;

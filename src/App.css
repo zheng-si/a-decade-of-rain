@@ -293,6 +293,7 @@
 }
 
 .transport-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -305,6 +306,15 @@
   color: var(--ink);
   cursor: pointer;
   transition: background 0.15s, opacity 0.15s;
+}
+/* The touch target, grown past the visible button: 32px of circle carries
+   44px of tap vertically (WCAG's touch minimum) and 40 horizontally — the
+   sideways growth stops short of the neighbouring button's own halo. Pure
+   hit area; nothing painted. */
+.transport-btn::after {
+  content: '';
+  position: absolute;
+  inset: -0.4375rem -0.25rem;
 }
 
 .transport-btn svg {
@@ -820,18 +830,33 @@
     z-index: 1;
     display: flex;
     justify-content: center;
+    align-items: center;
     width: 100%;
-    padding: 0.5rem 0 0.375rem;
+    /* Tall enough to be a target: the old 18px total sat under WCAG 2.5.8's
+       24px floor for the one control that opens the whole panel. */
+    min-height: 1.75rem;
+    padding: 0.375rem 0;
     background: none;
     border: none;
     cursor: pointer;
   }
 
+  /* A chevron, not a grab pill. The 36x4 bar is the vocabulary of a sheet
+     you DRAG, and this one only listens for taps — the audit dragged it
+     300px in four ways and nothing moved. Say press, not pull: a chevron
+     pointing at what a press will do (up = more, down = less). */
   .sheet-grab {
-    width: 2.25rem;
-    height: 0.25rem;
-    border-radius: 999px;
-    background: var(--rule);
+    width: 0.625rem;
+    height: 0.625rem;
+    border-right: 2px solid var(--ink-faint);
+    border-bottom: 2px solid var(--ink-faint);
+    border-radius: 1px;
+    background: none;
+    transform: translateY(-0.125rem) rotate(45deg);
+    transition: transform 0.2s;
+  }
+  .sheet-toggle[aria-expanded='false'] .sheet-grab {
+    transform: translateY(0.125rem) rotate(-135deg);
   }
 
   /* Identity, compressed. The SIZES live in ArchiveSkinV2.css's phone block —
@@ -1663,6 +1688,14 @@
 }
 .map-pick-hint button:hover {
   background: rgba(255, 255, 255, 0.22);
+}
+/* The phone moved the credit to the top strip (ODbL), which is where this
+   hint also lives: measured 195x16px of the attribution text under the dark
+   pill. The hint steps below it — the strip's second row, not its rival. */
+@media (max-width: 640px) {
+  .map-pick-hint {
+    top: 3rem;
+  }
 }
 
 .lookup-center-pin {

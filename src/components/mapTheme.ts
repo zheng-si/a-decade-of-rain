@@ -13,6 +13,22 @@ export async function resolveMapStyle(): Promise<string | maplibregl.StyleSpecif
   const resp = await fetch(mapConfig.baseStyleUrl)
   const style = (await resp.json()) as maplibregl.StyleSpecification
   style.glyphs = mapConfig.glyphsUrl
+  // The FONTS have to move with the glyphs URL, and before the style is
+  // installed. applyMapTheme rewrites text-font per layer, but it runs after
+  // load — in the gap MapLibre requested the base style's own stacks (Noto
+  // Sans) from OUR /fonts directory, which only ships the label font. The SPA
+  // fallback answered those 404s with 200 text/html, MapLibre parsed
+  // index.html as PBF, and every Archive load carried 23 wasted requests and
+  // ~297 warnings — a wall the one real style error sat buried in.
+  const font = mapConfig.theme.label.font
+  if (font) {
+    for (const layer of style.layers ?? []) {
+      if (layer.type !== 'symbol') continue
+      const layout = layer.layout as Record<string, unknown> | undefined
+      if (!layout || layout['text-field'] == null) continue
+      layout['text-font'] = [...font]
+    }
+  }
   return style
 }
 

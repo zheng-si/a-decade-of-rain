@@ -161,6 +161,16 @@ export default function LocationLookup({
     if (!center) setQuery('')
   }, [center])
 
+  /* And the other half of the same rule: a centre that is no longer THE PLACE
+     stops wearing its name. Dragging the pin clears `place` but the field kept
+     saying "Bien Hoa Air Base" over a circle 25 km from it. Keyed on the
+     centre's coordinates, so it fires on the drag (centre moved, place gone)
+     and never while the reader is merely typing. */
+  useEffect(() => {
+    if (center && !place) setQuery('')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [center?.lng, center?.lat, place])
+
   return (
     <div className="lookup">
       <p className="explorer-section-label">Location Lookup</p>
@@ -388,6 +398,16 @@ export default function LocationLookup({
                     </div>
 
                     <p className="inspect-section-label">By Year</p>
+                    {/* The bars are aria-hidden and nothing else carried the
+                        numbers, so a screen reader heard the heading and then
+                        silence. One hidden sentence, zero years skipped that
+                        have runs. */}
+                    <p className="sr-live">
+                      {shape.byYear
+                        .map((v, i) => (v > 0 ? `${YEAR_FROM + i}: ${v}` : null))
+                        .filter(Boolean)
+                        .join(', ') || 'No runs in any year'}
+                    </p>
                     <div className="inspect-years" aria-hidden="true">
                       {shape.byYear.map((v, i) => {
                         const max = Math.max(1, ...shape.byYear)

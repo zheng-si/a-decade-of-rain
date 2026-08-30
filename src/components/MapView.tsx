@@ -51,7 +51,14 @@ import {
 } from './trackLayers'
 import { loadTracks, type TrackDataset } from '../data/tracks'
 import LocationLookup, { type LookupState } from './LocationLookup'
-import { queryLookup, circlePolygon, veilPolygon, type LookupHit, type GazPlace } from './lookup'
+import {
+  queryLookup,
+  circlePolygon,
+  veilPolygon,
+  loadGazetteer,
+  type LookupHit,
+  type GazPlace,
+} from './lookup'
 import { binTracks, resetTrackGrid } from './trackGrid'
 import { computeScale } from './mapScale'
 import ArchiveInspect, {
@@ -326,7 +333,7 @@ function aggregateCell(
 interface UrlState {
   day?: number
   agent?: string
-  cam?: { center: [number, number]; zoom: number }
+  cam?: { center: [number, number]; zoom: number; bearing: number; pitch: number }
   is3D?: boolean
   lookup?: { lng: number; lat: number; radiusKm: number; from: string; to: string }
 }
@@ -335,15 +342,34 @@ function readUrlState(): UrlState {
   const q = new URLSearchParams(window.location.search)
   const out: UrlState = {}
   const t = q.get('t')
-  if (t && /^\d{4}-\d{2}-\d{2}$/.test(t)) out.day = dateToDay(t)
+  // The shape test alone let "1969-99-99" through: dateToDay parses it to NaN,
+  // and NaN survives the clamp at the apply site (Math.min(NaN, x) is NaN), so
+  // the transport read INVALID DATE over a parked playhead. A date that does
+  // not exist is a date that was not given.
+  if (t && /^\d{4}-\d{2}-\d{2}$/.test(t)) {
+    const d = dateToDay(t)
+    if (Number.isFinite(d)) out.day = d
+  }
   const agent = q.get('agent')
   if (agent) out.agent = agent
+  // Three or five parts: lng,lat,zoom grew bearing,pitch so a rotated or
+  // tilted camera survives sharing. Old three-part links parse as before, and
+  // buildSearch omits the two when both are zero, so untouched cameras keep
+  // the short form.
   const cam = (q.get('cam') ?? '').split(',').map(Number)
-  if (cam.length === 3 && cam.every(Number.isFinite) && onEarth(cam[0], cam[1]))
-    out.cam = { center: [cam[0], cam[1]], zoom: cam[2] }
+  if ((cam.length === 3 || cam.length === 5) && cam.every(Number.isFinite) && onEarth(cam[0], cam[1]))
+    out.cam = {
+      center: [cam[0], cam[1]],
+      zoom: cam[2],
+      bearing: cam.length === 5 ? cam[3] : 0,
+      pitch: cam.length === 5 ? Math.min(Math.max(cam[4], 0), 85) : 0,
+    }
   if (q.get('view') === '3d') out.is3D = true
   // Location lookup, per the brief's own parameter names: lat, lng, r, from, to.
-  if (q.get('lat') != null && q.get('lng') != null) {
+  // Truthiness, not just presence: ?lat=&lng= gave Number('') = 0 twice, and
+  // the page opened a real lookup on 0°N 0°E — then wrote the zeros back into
+  // the URL for the next person to copy.
+  if (q.get('lat') && q.get('lng')) {
     const lat = Number(q.get('lat'))
     const lng = Number(q.get('lng'))
     if (Number.isFinite(lat) && Number.isFinite(lng) && onEarth(lng, lat)) {
@@ -394,7 +420,15 @@ function buildSearch(
       Math.abs(c.lng - h.center[0]) > 0.02 ||
       Math.abs(c.lat - h.center[1]) > 0.02 ||
       Math.abs(map.getZoom() - h.zoom) > 0.05
-    if (moved) q.set('cam', `${c.lng.toFixed(3)},${c.lat.toFixed(3)},${map.getZoom().toFixed(2)}`)
+    const bearing = map.getBearing()
+    const pitch = map.getPitch()
+    const turned = Math.abs(bearing) > 0.5 || pitch > 0.5
+    if (moved || turned)
+      q.set(
+        'cam',
+        `${c.lng.toFixed(3)},${c.lat.toFixed(3)},${map.getZoom().toFixed(2)}` +
+          (turned ? `,${bearing.toFixed(0)},${pitch.toFixed(0)}` : ''),
+      )
   }
   if (is3D) q.set('view', '3d')
   if (lookup.center) {
@@ -1197,7 +1231,13 @@ export default function MapView() {
 
         // Restore a deep-linked view, else start showing the full record.
         const urlState = readUrlState()
-        if (urlState.cam) map.jumpTo({ center: urlState.cam.center, zoom: urlState.cam.zoom })
+        if (urlState.cam)
+          map.jumpTo({
+            center: urlState.cam.center,
+            zoom: urlState.cam.zoom,
+            bearing: urlState.cam.bearing,
+            pitch: urlState.cam.pitch,
+          })
         if (urlState.agent && agentChoices.some((c) => c.key === urlState.agent))
           setAgentKey(urlState.agent)
         setDay(
@@ -1218,6 +1258,32 @@ export default function MapView() {
             from: lk.from,
             to: lk.to,
           }))
+          // The sender searched "Bien Hoa Air Base"; the URL carries only the
+          // rounded coordinates, so the recipient read "10.977°N 106.818°E" —
+          // right counts, no identity. The coordinates are looked back up in
+          // the gazetteer: lat/lng print at 4 decimals (≤55m of rounding) and
+          // no two entries sit that close, so an exact-ish match IS the place.
+          // Guarded against a centre that moved while the file loaded.
+          loadGazetteer()
+            .then((places) => {
+              const hit = places.find(
+                (pl) => Math.abs(pl.lat - lk.lat) < 5e-4 && Math.abs(pl.lng - lk.lng) < 5e-4,
+              )
+              if (!hit) return
+              setLookup((s) =>
+                s.center && Math.abs(s.center.lat - lk.lat) < 1e-9 && Math.abs(s.center.lng - lk.lng) < 1e-9
+                  ? {
+                      ...s,
+                      place: {
+                        name: hit.n,
+                        coarse: hit.t === 'city' || hit.t === 'town',
+                        low: hit.c === 'low',
+                      },
+                    }
+                  : s,
+              )
+            })
+            .catch(() => {})
         }
         setReady(true)
       }, failed('the record failed to load'))

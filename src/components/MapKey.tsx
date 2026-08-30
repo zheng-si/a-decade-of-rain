@@ -38,9 +38,14 @@ export default function MapKey({ map, ready, started, is3D, onToggle3D, tracks }
     <div className={`map-key${started ? ' is-visible' : ''}`}>
       <p className="map-key-view-label">Map View</p>
       <div className="map-key-view" role="group" aria-label="Map view">
+        {/* aria-pressed, matching the Archive's identical pair (ArchiveKey):
+            the selection lived only in a CSS class, so a screen reader heard
+            two unlabelled buttons and no way to tell which view the map was
+            in — the exact fault the Archive's copy fixed and this one kept. */}
         <button
           type="button"
           className={`map-key-view-btn${is3D ? '' : ' is-active'}`}
+          aria-pressed={!is3D}
           onClick={() => is3D && onToggle3D()}
         >
           Flat
@@ -48,6 +53,7 @@ export default function MapKey({ map, ready, started, is3D, onToggle3D, tracks }
         <button
           type="button"
           className={`map-key-view-btn${is3D ? ' is-active' : ''}`}
+          aria-pressed={is3D}
           onClick={() => !is3D && onToggle3D()}
         >
           3D
@@ -90,21 +96,24 @@ export default function MapKey({ map, ready, started, is3D, onToggle3D, tracks }
         </div>
       )}
 
-      <ul className="map-key-list" aria-hidden="true">
+      {/* The list itself is exposed now — it is the only place the marks are
+          named, and hiding it left zero AX nodes carrying the legend. Only
+          the swatches stay decorative. */}
+      <ul className="map-key-list">
         <li>
-          <span className="key-swatch key-mr" />
+          <span className="key-swatch key-mr" aria-hidden="true" />
           Military region
         </li>
         <li>
-          <span className="key-swatch key-border" />
+          <span className="key-swatch key-border" aria-hidden="true" />
           National border
         </li>
         <li>
-          <span className="key-swatch key-pilot" />
+          <span className="key-swatch key-pilot" aria-hidden="true" />
           Marked site
         </li>
         <li>
-          <span className="key-swatch key-area" />
+          <span className="key-swatch key-area" aria-hidden="true" />
           Highlighted area
         </li>
       </ul>

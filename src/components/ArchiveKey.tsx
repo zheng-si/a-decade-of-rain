@@ -125,10 +125,13 @@ export default function ArchiveKey({
           it has. The rows now NAME the marks and the note below explains the
           encoding once. Nothing was dropped: every claim that was in a label is
           still on screen, just not in the reader's way. */}
-      <ul className="map-key-list" aria-hidden="true">
+      {/* Exposed: this list and the note under it are the only place the
+          map's marks are NAMED, and aria-hidden left the AX tree with zero
+          nodes carrying the legend. The swatches alone stay decorative. */}
+      <ul className="map-key-list">
         {!onTracks && (
           <li>
-            <span className="key-swatch">
+            <span className="key-swatch" aria-hidden="true">
               <span className="key-dot" style={{ background: tint }} />
             </span>
             Sprayed Volume
@@ -136,7 +139,7 @@ export default function ArchiveKey({
         )}
         {onTracks && (
           <li>
-            <span className="key-swatch">
+            <span className="key-swatch" aria-hidden="true">
               {/* The swatch fades because the map's strokes do (TRACKS.taper).
                   A flat swatch over tapered strokes would be the same fault as
                   the ring and the military regions: a key describing a mark
@@ -154,7 +157,7 @@ export default function ArchiveKey({
             key, a reader took them for leftovers of the tier below. */}
         {onTracks && (
           <li>
-            <span className="key-swatch">
+            <span className="key-swatch" aria-hidden="true">
               <span className="key-dot" style={{ background: tint }} />
             </span>
             Logged at One Point
@@ -162,8 +165,21 @@ export default function ArchiveKey({
         )}
         {filtered && (
           <li>
-            <span className="key-swatch">
-              <span className="key-dot key-dot-dim" />
+            <span className="key-swatch" aria-hidden="true">
+              {/* A line above the hand-off, a dot below it — the same split
+                  the tiers themselves make. Measured with an agent isolated
+                  at track zoom: 1,834 de-emphasised runs drawn as grey LINES
+                  against 167 grey points, and the key showed a dot. The grey
+                  line fades like the coloured one, because the dim twin
+                  carries the same taper. */}
+              {onTracks ? (
+                <span
+                  className="key-line"
+                  style={{ background: 'linear-gradient(90deg, #c9cdc4, rgba(201, 205, 196, 0))' }}
+                />
+              ) : (
+                <span className="key-dot key-dot-dim" />
+              )}
             </span>
             Other Agents
           </li>
@@ -175,7 +191,7 @@ export default function ArchiveKey({
             this file has now corrected four separate times. */}
         {((onTracks && TRACKS.nil.shown) || !tracks) && (
           <li>
-            <span className="key-swatch">
+            <span className="key-swatch" aria-hidden="true">
               {onTracks ? (
                 <span className="key-line-dash" style={{ borderColor: tint }} />
               ) : (
@@ -189,7 +205,7 @@ export default function ArchiveKey({
             SHOW_MILITARY_REGIONS in MapView). A legend that names something
             the map cannot show is worse than a shorter legend. */}
         <li>
-          <span className="key-swatch key-border" />
+          <span className="key-swatch key-border" aria-hidden="true" />
           National Border
         </li>
       </ul>
@@ -198,7 +214,7 @@ export default function ArchiveKey({
           each run's FIRST WAYPOINT ON FILE (leg 1A, the row the gallons are
           booked against), not a verified heading: HERBS records no bearing, so
           "direction of flight" would be a claim the record does not make. */}
-      <p className="map-key-note" aria-hidden="true">
+      <p className="map-key-note">
         {onTracks
           ? 'Stroke width is gallons per kilometre. Each run fades away from its first waypoint on file.'
           : 'Dot area is the gallons that fell in the cell, counted along every run that crossed it.'}
