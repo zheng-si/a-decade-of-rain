@@ -63,6 +63,20 @@ export type Inspect = CellInspect | RunInspect
 // ones the card beside them shows.
 export { fmtGallons }
 
+/** An agent colour at low alpha, for a record's ground. Written from the hex
+ *  rather than color-mix so it resolves everywhere the map does, and kept
+ *  faint: the record is being MARKED, not highlighted — the colour has to say
+ *  "this one, and it is Orange" without competing with the bars and strokes
+ *  that use the same hue at full strength. Lives here because both homes of
+ *  the record need it: the list tints the open row, and the card the map opens
+ *  is that row, standing on its own. */
+export function tint(hex: string | undefined, a: number): string | undefined {
+  if (!hex) return undefined
+  const h = hex.replace('#', '')
+  const n = parseInt(h.length === 3 ? h.replace(/(.)/g, '$1$1') : h, 16)
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`
+}
+
 const fmtCoords = ([lng, lat]: [number, number]) =>
   `${Math.abs(lat).toFixed(2)}°${lat >= 0 ? 'N' : 'S'} ${Math.abs(lng).toFixed(2)}°${lng >= 0 ? 'E' : 'W'}`
 
@@ -99,12 +113,25 @@ export default function ArchiveInspect({
   compact = false,
   onClose,
 }: Props) {
+  // The record's own agent hue, for the ground it stands on. Only the run card
+  // takes it, and only standing alone: a cell holds three or four agents at
+  // once, so one of their colours behind it would be a claim about the cell
+  // that is not true; inline, the wrapper the list draws is already tinted.
+  const hue =
+    !compact && data.kind === 'run' && data.groupIndex >= 0
+      ? groups[data.groupIndex]?.color
+      : undefined
+
   return (
     // The kind rides on the element because the two cards lay out differently
     // in the same two-column grid: a run's first column is a date, a cell's is
     // a coordinate pair plus its cell size — three times as wide, and it takes
     // the whole row rather than squeezing the column beside it to nothing.
-    <aside className={`archive-inspect is-${data.kind}`} aria-label="Inspect">
+    <aside
+      className={`archive-inspect is-${data.kind}${hue ? ' is-tinted' : ''}`}
+      style={hue ? { background: tint(hue, 0.08), borderColor: tint(hue, 0.3) } : undefined}
+      aria-label="Inspect"
+    >
       {showClose && (
         <button className="inspect-close" onClick={onClose} aria-label="Close">
           ×
@@ -211,7 +238,13 @@ export default function ArchiveInspect({
         </>
       ) : (
         <>
-          <p className="inspect-kicker">Single Spray Run</p>
+          {/* The head band, at the row's own strength. In the list a record is
+              a tinted ROW with a lighter panel folded out beneath it; lifted
+              onto the map's own card that pairing is the title over the
+              facts, so it keeps both tiers rather than flattening to one. */}
+          <p className="inspect-kicker" style={hue ? { background: tint(hue, 0.16) } : undefined}>
+            Single Spray Run
+          </p>
           {/* The same four blocks the cell card sets, in the same order:
               title · locating pair · headline figure · stats. It had been
               title · one line · figure · agent · stats, which put the agent

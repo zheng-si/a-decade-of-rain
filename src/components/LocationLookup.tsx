@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { dayToDate } from '../data/spray'
 import type { ReactNode } from 'react'
 import { loadGazetteer, searchGazetteer, type GazPlace, type LookupHit } from './lookup'
-import { fmtGallons } from './ArchiveInspect'
+import { fmtGallons, tint } from './ArchiveInspect'
 import type { GroupInfo } from './ArchiveInspect'
 
 // ── location lookup: the place column's query and its answer ──────────────
@@ -67,18 +67,6 @@ interface Props {
 }
 
 const RADII = [1, 2, 5, 10]
-
-/** An agent colour at low alpha, for the open row's ground. Written from the
- *  hex rather than color-mix so it resolves everywhere the map does, and kept
- *  faint: the row is being MARKED, not highlighted — the colour has to say
- *  "this one, and it is Orange" without competing with the bars that use the
- *  same hue at full strength two blocks up. */
-function tint(hex: string | undefined, a: number): string | undefined {
-  if (!hex) return undefined
-  const h = hex.replace('#', '')
-  const n = parseInt(h.length === 3 ? h.replace(/(.)/g, '$1$1') : h, 16)
-  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`
-}
 
 /** The record's own span, and the axis of the card's By Year block. */
 const YEAR_FROM = 1961

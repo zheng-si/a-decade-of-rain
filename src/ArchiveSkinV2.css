@@ -896,6 +896,38 @@
 .map-wrap .archive-key > .archive-inspect .inspect-year-labels {
   grid-column: 1 / -1;
 }
+/* ── the record's own colour, wherever it opens ──────────────────────────
+   In the list a record is a tinted ROW with a lighter panel folded out
+   beneath it, both in the agent's hue: the reader learns the colour from the
+   bars and the strokes, and it then says "this one, and it is Orange" every
+   time the record comes back. Clicked off the map the same record arrived on
+   the panel's own paper, which made the two read as different objects again
+   — the layout had been reconciled and the ground had not.
+
+   So the card takes the pairing whole: the title at the ROW's strength, the
+   facts under it at the PANEL's, and the hue itself from the feature (inline
+   style — it is data, not a theme). The band bleeds to the card's edges by
+   the card's own padding, or it reads as a chip sitting on the record rather
+   than as its head.
+
+   Only the run card. A cell holds three or four agents at once and one of
+   their colours behind it would be a claim the cell does not support. */
+.map-wrap .archive-key > .archive-inspect.is-tinted {
+  margin-top: 0.875rem;
+  padding: 0 0.625rem 0.625rem;
+  border: 1px solid;
+}
+.map-wrap .archive-key > .archive-inspect.is-tinted .inspect-kicker {
+  margin: 0 -0.625rem;
+  padding: 0.4375rem 0.625rem;
+}
+/* The × hung 6px outside the card's own edge, which was right while the card
+   had no edge. */
+.map-wrap .archive-key > .archive-inspect.is-tinted .inspect-close {
+  top: 0.1875rem;
+  right: 0.0625rem;
+}
+
 /* ── one type system, in the row and in the card ─────────────────────────
    The card brought its own: figures in accent red, their words in ink, a 10px
    faint locating pair, a 10px citation — four colours across a 70px block
