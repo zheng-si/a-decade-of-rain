@@ -1035,3 +1035,19 @@
   border-radius: 0;
   box-shadow: var(--v2-shadow);
 }
+
+/* ── the key, when the colour is carrying the agent ──────────────────────
+   With nothing isolated every run and every dot takes its own agent's hue, so
+   a single swatch would name one agent rather than the encoding. Three dots at
+   the sizes the map draws, in one swatch's width. */
+.map-wrap .key-dot-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5px;
+  width: 100%;
+}
+.map-wrap .key-dot.is-small {
+  width: 4px;
+  height: 4px;
+}

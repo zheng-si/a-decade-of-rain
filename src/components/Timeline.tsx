@@ -159,7 +159,10 @@ export default function Timeline({
     if (inspectOpen) setExpanded(false)
   }, [inspectOpen])
 
-  const groups = agentChoices.filter((c) => c.indices && c.color)
+  // Memoised because the bar memo below depends on it: rebuilt every render,
+  // the array would be a new reference sixty times a second and the memo that
+  // exists to survive playback would never hold.
+  const groups = useMemo(() => agentChoices.filter((c) => c.indices && c.color), [agentChoices])
   const selGi = groups.findIndex((g) => g.key === activeAgentKey)
   const tint = selGi >= 0 ? groups[selGi].color! : 'var(--accent)'
   // Stat figures take the selected agent's colour (default red via CSS).
@@ -191,10 +194,38 @@ export default function Timeline({
       const total = m.reduce((a, b) => a + b, 0)
       if (!total) return null
       const played = i < playedThrough
-      // The chart mirrors the map: one hue for the whole field; with a
-      // selection, the selected agent's share sits tinted on the baseline and
-      // the rest stacks grey above it.
-      const sel = selGi >= 0 ? m[selGi] : total
+      // The chart mirrors the map, which is the whole point of it being here:
+      // with nothing isolated the map now draws every run in its own agent's
+      // colour, so a month stacks the same four colours in the same order. A
+      // single red column would have said "this much fell", which the height
+      // already says, while the map beside it was saying what fell.
+      if (selGi < 0) {
+        let acc = 0
+        return (
+          <g key={i} className={played ? undefined : 'is-future'}>
+            {m.map((v, gi) => {
+              if (!v) return null
+              const h = (v / volume.max) * 100
+              const y = 100 - acc - h
+              acc += h
+              return (
+                <rect
+                  key={gi}
+                  x={i + 0.12}
+                  y={y}
+                  width={0.76}
+                  height={h}
+                  fill={groups[gi]?.color ?? tint}
+                  opacity={0.85}
+                />
+              )
+            })}
+          </g>
+        )
+      }
+      // With a selection the question is "this agent against the rest", so the
+      // share sits tinted on the baseline and the rest stacks grey above it.
+      const sel = m[selGi]
       const other = total - sel
       const hSel = (sel / volume.max) * 100
       const hOther = (other / volume.max) * 100
@@ -209,7 +240,7 @@ export default function Timeline({
         </g>
       )
     })
-  }, [volume, playedThrough, selGi, tint])
+  }, [volume, playedThrough, selGi, tint, groups])
 
   // The ruler does not depend on the playhead at all — it was only ever rebuilt
   // because it sits in a component the playhead re-renders.

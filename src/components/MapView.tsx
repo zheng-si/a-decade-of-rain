@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { loadSpray, dayToDate, dateToDay, type SprayDataset } from '../data/spray'
@@ -639,6 +639,14 @@ export default function MapView() {
   const [loadError, setLoadError] = useState(false)
   const [bounds, setBounds] = useState({ min: 0, max: 0 })
   const [choices, setChoices] = useState<AgentChoice[]>([])
+  /** The agent groups' colours, indexed by the `gi` stamped on every track and
+   *  every binned cell. One array, handed to the three places that draw the
+   *  record — the strokes, the dots and the chart — so the three cannot drift
+   *  into disagreeing about what a colour means. */
+  const groupHues = useMemo(
+    () => choices.filter((c) => c.indices && c.color).map((c) => c.color!),
+    [choices],
+  )
   const [day, setDay] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [agentKey, setAgentKey] = useState('all')
@@ -1385,7 +1393,7 @@ export default function MapView() {
           if (gridTierKeyRef.current[layer] === key) return
           gridTierKeyRef.current[layer] = key
           const src = map.getSource(source) as maplibregl.GeoJSONSource | undefined
-          src?.setData(binTracks(tracksRef.current!, day, activeIndices, cellDeg, c))
+          src?.setData(binTracks(tracksRef.current!, day, activeIndices, cellDeg, c, groupHues))
         }
         binTier(VOL_COARSE_LAYER, VOL_COARSE_SOURCE, deg.coarse)
         binTier(VOL_FINE_LAYER, VOL_FINE_SOURCE, deg.fine)
@@ -1424,7 +1432,7 @@ export default function MapView() {
           if (!map.getLayer(layer)) { filled = false; continue }
           const src = map.getSource(source) as maplibregl.GeoJSONSource | undefined
           if (!src) { filled = false; continue }
-          src.setData(binTracks(t, day, activeIndices, cellDeg, tint))
+          src.setData(binTracks(t, day, activeIndices, cellDeg, tint, groupHues))
           gridTierKeyRef.current[layer] = key
         }
         // Both tiers current: coming back down from the track band needs no
@@ -1460,6 +1468,7 @@ export default function MapView() {
         activeIndices,
         choices.find((c) => c.key === agentKey)?.color ?? DOTS.tint,
         DOTS.dim,
+        groupHues,
       )
     }
     if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
@@ -2114,6 +2123,7 @@ export default function MapView() {
                 onToggle3D={toggleView}
                 tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
                 filtered={agentKey !== 'all'}
+                hues={groupHues}
                 tracks={TRACKS}
               />
             )

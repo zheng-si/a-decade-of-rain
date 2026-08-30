@@ -29,6 +29,11 @@ interface Props {
   tint: string
   /** Whether an agent is isolated (shows the grey-context legend row). */
   filtered: boolean
+  /** The agent groups' colours. With nothing isolated the map draws every run
+   *  and every dot in its own agent's colour, so the key has to show four —
+   *  a red swatch over a four-colour map is the same fault as a dot over a
+   *  map of lines. */
+  hues?: string[]
   /** SPIKE A — the map is drawing tracks, not dots, so the key must describe
    *  lines. A key that shows a dot over a map of lines is not a smaller
    *  problem than a key with the wrong words on it. */
@@ -42,6 +47,7 @@ export default function ArchiveKey({
   onToggle3D,
   tint,
   filtered,
+  hues,
   tracks = false,
 }: Props) {
   /** Whether the TRACK layer is drawing right now.
@@ -62,6 +68,9 @@ export default function ArchiveKey({
    *  from the layer — whatever moved it moved this.
    */
   const [onTracks, setOnTracks] = useState(false)
+  /** The colour is carrying the agent only while nothing is isolated: with a
+   *  chip on, it means "the one you picked" and the chip already says so. */
+  const byAgent = !filtered && (hues?.length ?? 0) > 0
 
   useEffect(() => {
     if (!ready || !map) return
@@ -132,7 +141,18 @@ export default function ArchiveKey({
         {!onTracks && (
           <li>
             <span className="key-swatch" aria-hidden="true">
-              <span className="key-dot" style={{ background: tint }} />
+              {byAgent ? (
+                // Three of the four, at the sizes the map actually draws: a
+                // single dot in one colour would name one agent rather than
+                // the encoding.
+                <span className="key-dot-row">
+                  {hues!.slice(0, 3).map((h) => (
+                    <span key={h} className="key-dot is-small" style={{ background: h }} />
+                  ))}
+                </span>
+              ) : (
+                <span className="key-dot" style={{ background: tint }} />
+              )}
             </span>
             Sprayed Volume
           </li>
@@ -146,7 +166,18 @@ export default function ArchiveKey({
                   that is not on the map. */}
               <span
                 className="key-line"
-                style={{ background: `linear-gradient(90deg, ${tint}, ${tint}00)` }}
+                style={{
+                  background: byAgent
+                    ? // Four strokes' worth of the map in one 24px bar, each
+                      // fading as its own does.
+                      hues!
+                        .map(
+                          (h, i) =>
+                            `linear-gradient(90deg, ${h}, ${h}00) ${(i * 100) / hues!.length}% / ${100 / hues!.length}% 100% no-repeat`,
+                        )
+                        .join(', ')
+                    : `linear-gradient(90deg, ${tint}, ${tint}00)`,
+                }}
               />
             </span>
             Spray Run
@@ -158,7 +189,18 @@ export default function ArchiveKey({
         {onTracks && (
           <li>
             <span className="key-swatch" aria-hidden="true">
-              <span className="key-dot" style={{ background: tint }} />
+              {/* These are drawn by the mark layer, which reads the feature's
+                  own colour like the strokes do — so the swatch has to carry
+                  the same four. */}
+              {byAgent ? (
+                <span className="key-dot-row">
+                  {hues!.slice(0, 3).map((h) => (
+                    <span key={h} className="key-dot is-small" style={{ background: h }} />
+                  ))}
+                </span>
+              ) : (
+                <span className="key-dot" style={{ background: tint }} />
+              )}
             </span>
             Logged at One Point
           </li>
@@ -218,6 +260,12 @@ export default function ArchiveKey({
         {onTracks
           ? 'Stroke width is gallons per kilometre. Each run fades away from its first waypoint on file.'
           : 'Dot area is the gallons that fell in the cell, counted along every run that crossed it.'}
+        {/* Only while the colour is carrying it. With an agent isolated the
+            colour means "the one you picked", which the chip already says. */}
+        {byAgent &&
+          (onTracks
+            ? ' Colour is the agent that flew it.'
+            : ' Colour is the agent that sprayed the most in that cell.')}
       </p>
     </div>
   )
