@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties , type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { AgentChoice } from './agentChoices'
 import { dayToDate, dateToDay, fmtGallons, type SprayDataset } from '../data/spray'
@@ -56,9 +56,6 @@ interface TimelineProps {
   agentChoices: AgentChoice[]
   activeAgentKey: string
   volume: VolumeChart | null
-  /** SPIKE A — the map is drawing tracks. The dek describes the encoding, so
-   *  it cannot stay the same sentence when the encoding changes. */
-  tracks?: boolean
   /** The 3D state and its toggle, mirrored from the key panel. On a phone the
    *  key panel is hidden, and with it the only way into the terrain view —
    *  so the transport row carries a small 3D chip there (CSS keeps it off
@@ -69,6 +66,9 @@ interface TimelineProps {
    *  one auto-drops the panel to its peek; the handle still expands it, and
    *  an expanded panel under an open card reads as two stacked cards. */
   inspectOpen?: boolean
+  /** The Location Lookup section, composed by MapView (which owns the query
+   *  state and the map). Rendered between the agents block and the legend. */
+  lookupSlot?: ReactNode
   onScrub: (day: number) => void
   onPlay: () => void
   onPause: () => void
@@ -101,10 +101,10 @@ export default function Timeline({
   agentChoices,
   activeAgentKey,
   volume,
-  tracks = false,
   is3D = false,
   onToggle3D,
   inspectOpen = false,
+  lookupSlot,
   onScrub,
   onPlay,
   onPause,
@@ -270,6 +270,11 @@ export default function Timeline({
         <p className="explorer-eyebrow">1961–1971</p>
         <h1 className="explorer-title">The Archive</h1>
         <p className="explorer-subtitle">The Decade of Defoliation, Replayable.</p>
+        {/* One citation line, then verbs. The old three-sentence paragraph
+            answered "what is this" beautifully and was read by nobody — the
+            reader wants to know what their hands can do. Each bullet is one
+            action; the mechanics (how the dots are counted, how volume is
+            spread) live in Methods, not here. */}
         <p className="explorer-dek">
           The complete{' '}
           <a
@@ -279,25 +284,13 @@ export default function Timeline({
           >
             HERBS record
           </a>{' '}
-          behind Stellman et&nbsp;al. (2003): 8,360 Operation Ranch Hand spray runs carrying a
-          recorded volume, logged as 24,604 track points.{' '}
-          {tracks ? (
-            <>
-              Zoomed out, each dot is a grid cell&apos;s total, counted along every run that
-              crossed it. Zoom past a spray run&apos;s own scale and the dots give way to the
-              lines themselves, drawn at the gallons laid down per kilometre — so where the
-              aircraft turned and came back, the ink stacks.
-            </>
-          ) : (
-            <>
-              HERBS records each run as a line and books its whole volume against the line&apos;s
-              first point, so a filled dot&apos;s area is the gallons for an entire run and the
-              rings mark the rest of its track.
-            </>
-          )}{' '}
-          Press play to watch the decade fall month by month, isolate an agent to grey out the
-          rest, or tilt the terrain into 3D. Every view is shareable straight from its URL.
+          behind Stellman et&nbsp;al. (2003): 8,360 spray runs, 19.5M gallons, 1961–1971.
         </p>
+        <ul className="explorer-guide">
+          <li>Press play to watch the decade fall month by month.</li>
+          <li>Each dot is a grid cell&apos;s gallons. Click it for the record.</li>
+          <li>Zoom in until the dots give way to the flight tracks themselves.</li>
+        </ul>
       </header>
 
       <div className="explorer-transport">
@@ -426,6 +419,8 @@ export default function Timeline({
       </div>
 
       <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
+
+      {lookupSlot}
 
       {/* The phone's whole legend. The key panel — dot scale, compass, view
           toggle — is hidden below 640px, which also took away any hint that

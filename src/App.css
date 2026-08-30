@@ -215,6 +215,31 @@
   text-decoration-color: var(--accent-deep);
 }
 
+/* Usage, not exposition: one action per line. The en-dash marker is the same
+   mark the rest of the site uses for asides, set in the faint tier so the
+   verbs carry the line. */
+.explorer-guide {
+  margin: 0 0 1.25rem;
+  padding: 0;
+  list-style: none;
+}
+.explorer-guide li {
+  position: relative;
+  padding-left: 0.875rem;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.explorer-guide li + li {
+  margin-top: 0.25rem;
+}
+.explorer-guide li::before {
+  content: '\2013';
+  position: absolute;
+  left: 0;
+  color: var(--ink-faint);
+}
+
 /* Cumulative counters: red figures over quiet labels, pairs separated by
    space alone — the figure's colour marks each pair's start (news-graphics
    convention; no interpuncts between styled stat pairs). */
@@ -723,6 +748,10 @@
      already gone on phones, and the agent note follows it — two fixed lines
      of primer against the map's own screen-space is the wrong trade on 640. */
   .explorer-dek {
+    display: none;
+  }
+
+  .explorer-guide {
     display: none;
   }
 
@@ -1245,4 +1274,248 @@
   text-align: center;
   text-wrap: balance;
   color: var(--ink-soft);
+}
+
+/* ── location lookup (Archive panel section) ─────────────────────────────
+   One system with the other switches: 6% forest track, no hairline, no
+   shadow; the selected fill is the only shine. The list rows borrow the
+   facts-row rhythm — hairline rules, small figures, distance right-aligned. */
+.lookup {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--rule, #ded8cc);
+}
+.lookup-controls {
+  display: flex;
+  gap: 0.375rem;
+  margin-top: 0.375rem;
+}
+.lookup-pick,
+.lookup-clear {
+  border: none;
+  border-radius: 0;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: rgba(33, 53, 40, 0.06);
+  color: inherit;
+  cursor: pointer;
+}
+.lookup-pick:hover,
+.lookup-clear:hover {
+  background: rgba(33, 53, 40, 0.05);
+}
+.lookup-pick.is-armed {
+  background: #213528;
+  color: #f2efe7;
+}
+.lookup-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+.lookup-row-label {
+  flex: 0 0 3.25rem;
+  font-size: 0.6875rem;
+  color: var(--ink-faint, #6f6a5e);
+}
+.lookup-radii {
+  display: flex;
+  gap: 0;
+  background: rgba(33, 53, 40, 0.06);
+}
+.lookup-chip {
+  position: relative;
+  border: none;
+  border-radius: 0;
+  padding: 0.375rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.lookup-chip:hover:not(.is-active) {
+  background: rgba(33, 53, 40, 0.05);
+}
+.lookup-chip.is-active {
+  background: #213528;
+  color: #f2efe7;
+}
+.lookup-dates {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.lookup-dates input {
+  border: none;
+  border-radius: 0;
+  padding: 0.25rem 0.375rem;
+  font: inherit;
+  font-size: 0.75rem;
+  background: rgba(33, 53, 40, 0.06);
+  color: inherit;
+}
+.lookup-dates-sep {
+  color: var(--ink-faint, #6f6a5e);
+}
+.lookup-caveat {
+  margin: 0.625rem 0 0;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--ink-faint, #6f6a5e);
+}
+.lookup-summary {
+  margin: 0.375rem 0 0;
+  font-size: 0.75rem;
+}
+.lookup-summary strong {
+  font-variant-numeric: tabular-nums;
+}
+.lookup-ms {
+  color: var(--ink-faint, #6f6a5e);
+}
+.lookup-empty {
+  margin: 0.5rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--ink-faint, #6f6a5e);
+}
+.lookup-list {
+  margin: 0.375rem 0 0;
+  padding: 0;
+  list-style: none;
+  max-height: 13.5rem;
+  overflow-y: auto;
+}
+.lookup-item {
+  display: grid;
+  grid-template-columns: minmax(5.75rem, auto) 5.75rem 1fr auto;
+  gap: 0.625rem;
+  align-items: baseline;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  border-top: 1px solid var(--rule, #ded8cc);
+  padding: 0.3125rem 0.125rem;
+  font-size: 0.75rem;
+  text-align: left;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.lookup-item:hover {
+  background: rgba(33, 53, 40, 0.05);
+}
+.lookup-item-id {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.lookup-item-date,
+.lookup-item-agent {
+  color: var(--ink-faint, #6f6a5e);
+}
+.lookup-item-dist {
+  justify-self: end;
+  font-variant-numeric: tabular-nums;
+}
+.lookup-truncated {
+  margin: 0.375rem 0 0;
+  font-size: 0.6875rem;
+  color: var(--ink-faint, #6f6a5e);
+}
+.inspect-coords.is-runid {
+  margin-top: 0.5rem;
+}
+.lookup-center-pin {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #213528;
+  border: 2px solid #f7f3ec;
+  box-shadow: 0 0 0 1px rgba(33, 53, 40, 0.45);
+  cursor: grab;
+}
+
+@media (max-width: 640px) {
+  /* The peek sheet shows the identity row and the transport, nothing else. */
+  .explorer-panel.is-peek .lookup,
+  .explorer-panel.is-collapsing .lookup,
+  .explorer-panel.is-opening .lookup {
+    display: none;
+  }
+}
+
+/* ── the place search ────────────────────────────────────────────────────
+   Input on the same 6% track as the other lookup controls; the dropdown is
+   the panel's one floating surface, so it takes the hairline + whisper the
+   elevation system reserves for cards. */
+.lookup-search {
+  position: relative;
+  margin-top: 0.375rem;
+}
+.lookup-search input {
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  padding: 0.4375rem 0.625rem;
+  font: inherit;
+  font-size: 0.75rem;
+  background: rgba(33, 53, 40, 0.06);
+  color: inherit;
+}
+.lookup-search input::placeholder {
+  color: var(--ink-faint, #6f6a5e);
+}
+.lookup-search-drop {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 4;
+  margin: 0.25rem 0 0;
+  padding: 0.25rem 0;
+  list-style: none;
+  max-height: 15rem;
+  overflow-y: auto;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgba(33, 53, 40, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.lookup-search-item {
+  display: block;
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  padding: 0.375rem 0.625rem;
+  text-align: left;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.lookup-search-item.is-hi {
+  background: rgba(33, 53, 40, 0.05);
+}
+.lookup-place-name {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.lookup-place-meta {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--ink-faint, #6f6a5e);
+}
+.lookup-search-none {
+  margin: 0.375rem 0 0;
+  font-size: 0.6875rem;
+  color: var(--ink-faint, #6f6a5e);
+}
+.lookup-place-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.6875rem;
+  line-height: 1.5;
+  color: var(--accent-deep, #b0472f);
 }

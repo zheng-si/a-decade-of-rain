@@ -47,6 +47,13 @@ export interface RunInspect {
    *  line would claim the run happened at a point. */
   km?: number
   gpk?: number
+  /** HERBS run identity, when the feature carries it — the citation that lets
+   *  a reader find this row in the source record. */
+  mission?: number
+  run?: number
+  /** Aircraft count (FWAC, read as its last two digits — hea-v's own
+   *  reading). 0/absent = not recorded. */
+  fwac?: number
 }
 
 export type Inspect = CellInspect | RunInspect
@@ -247,6 +254,17 @@ export default function ArchiveInspect({ data, groups, onClose }: Props) {
             <p className="inspect-note">
               A leg the record carries no volume against — the aircraft flew it, but the gallons
               were booked to another leg of the same run.
+            </p>
+          )}
+          {/* The citation. A lookup result has to be checkable against the
+              source, and Mission + Run is exactly the key HERBS files the row
+              under — so the card prints it rather than keeping it internal. */}
+          {data.mission != null && data.mission > 0 && (
+            <p className="inspect-coords is-runid">
+              HERBS Mission {data.mission} · Run {data.run}
+              {data.fwac != null && data.fwac > 0 && (
+                <> · {data.fwac} aircraft</>
+              )}
             </p>
           )}
         </>
