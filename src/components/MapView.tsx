@@ -1205,7 +1205,25 @@ export default function MapView() {
                       gallons: p.gt,
                       crossings: p.nt,
                       days: p.dt,
+                      // The span, from the same walk. aggregateCell reads run
+                      // STARTS, so a cell that lines only crossed matched no
+                      // point at all and its first/last stayed at ±Infinity —
+                      // the card printed "Invalid Date – Invalid Date" under
+                      // a headline of 7K gallons it had taken from the feature
+                      // beside these. binTracks already measured d0/d1 on the
+                      // walk and emits them; the card just was not reading
+                      // them.
+                      firstDay: p.d0,
+                      lastDay: p.d1,
                       byGroup: [p.b0, p.b1, p.b2, p.b3],
+                      // Same denominator for the second breakdown as for the
+                      // first. Drawn from the points, By Year was empty under
+                      // most of these headlines — the runs whose gallons the
+                      // cell holds mostly START somewhere else.
+                      byYear: [
+                        p.y0, p.y1, p.y2, p.y3, p.y4, p.y5,
+                        p.y6, p.y7, p.y8, p.y9, p.y10,
+                      ],
                       ...(p.ld != null ? { load: p.ld } : {}),
                     }
                   : cell,
