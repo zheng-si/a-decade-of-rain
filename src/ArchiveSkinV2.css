@@ -812,7 +812,6 @@
 .map-wrap .lookup-detail .inspect-coords,
 .map-wrap .lookup-detail .inspect-figure,
 .map-wrap .lookup-detail .inspect-sub.is-stats,
-.map-wrap .lookup-detail .inspect-cite,
 .map-wrap .lookup-detail .inspect-note {
   margin: 0;
 }
@@ -829,19 +828,50 @@
   gap: 0.25rem;
   white-space: nowrap;
 }
-/* The headline number drops to the stats' size: inline, beside 11px labels,
-   a 19px serif figure reads as a poster in a table. */
-.map-wrap .lookup-detail .inspect-figure strong {
+/* ── one type system inside the row ─────────────────────────────────────
+   The card brings its own: a 19px serif headline in accent red, an 11px
+   stats line whose figures are red too, a 10px faint locating pair, a 10px
+   citation. Four sizes and four colours in a 70px block that sits INSIDE a
+   table — and the table three pixels above it runs on two sizes and three
+   colours. The record adopts the list's system instead of importing the
+   card's: everything factual at the row's own size, numbers in ink, their
+   units and labels in soft, sentences (the note, the citation) at the notes
+   tier in faint. Nothing here is accent red: in the standalone card the red
+   marks the one headline figure, and in a row of facts it marks nothing. */
+.map-wrap .lookup-detail .archive-inspect,
+.map-wrap .lookup-detail .inspect-coords,
+.map-wrap .lookup-detail .inspect-figure,
+.map-wrap .lookup-detail .inspect-figure-unit,
+.map-wrap .lookup-detail .inspect-sub.is-stats,
+.map-wrap .lookup-detail .inspect-sub.is-stats .stat-pair {
+  font-size: 0.6875rem;
+  letter-spacing: 0;
+  color: var(--ink-soft);
+}
+.map-wrap .lookup-detail .inspect-figure strong,
+.map-wrap .lookup-detail .inspect-sub.is-stats strong {
   font-family: var(--font-sans);
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+/* The citation is `.inspect-coords.is-runid` — the same class as the date,
+   so the notes tier and the row span below have to name the modifier. Rules
+   written for a class this card has never had landed nowhere: the citation
+   kept the locating pair's size and colour, which is how it came to read as
+   a fact rather than a footnote. */
+.map-wrap .lookup-detail .inspect-coords.is-runid,
+.map-wrap .lookup-detail .inspect-note {
+  font-size: 0.625rem;
+  line-height: 1.5;
+  color: var(--ink-faint);
 }
 .map-wrap .lookup-detail .inspect-sub.is-stats {
   grid-column: 2;
   gap: 0.875rem;
 }
 /* Sentences, not facts in a row: their own line, across both columns. */
-.map-wrap .lookup-detail .inspect-cite,
+.map-wrap .lookup-detail .inspect-coords.is-runid,
 .map-wrap .lookup-detail .inspect-note {
   grid-column: 1 / -1;
   margin-top: 0.125rem;

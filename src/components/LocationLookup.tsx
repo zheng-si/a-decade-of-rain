@@ -418,7 +418,7 @@ export default function LocationLookup({
               <p className="lookup-summary">
                 <strong>{results.length}</strong>
                 {results.length === 1 ? ' run' : ' runs'} within {radiusKm} km of{' '}
-                {place ? place.name : fmtCenter(center)}
+                <span className="lookup-where">{place ? place.name : fmtCenter(center)}</span>
                 {queryMs != null && <span className="lookup-ms"> · {queryMs.toFixed(0)} ms</span>}
               </p>
 

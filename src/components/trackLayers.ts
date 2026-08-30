@@ -961,6 +961,26 @@ export function setTrackAgents(
  *  fades. Two ramp regenerations per play-through instead of eleven a second. */
 let taperLive = true
 
+/** Whether the highlight takes the LIT FEATURE'S own colour instead of the
+ *  selection's tint.
+ *
+ *  The rule this file already states — "the highlight never changes a run's
+ *  hue, only its weight" — held while the record drew every run in one tint.
+ *  Inside a lookup circle it does not: the hits are drawn per agent, so a blue
+ *  run lit in the brand red came out as a red stroke under a blue one, and the
+ *  blue's own taper faded along it — a run that went from blue at the head to
+ *  red at the tail, which is not a colour either encoding claims. Same rule,
+ *  applied to what is actually on screen: the highlight reads `c` off the
+ *  feature, exactly as the lookup's own layers do. */
+let hiByFeature = false
+
+/** Flipped by the lookup as its circle opens and closes. */
+export function setHighlightByFeature(map: maplibregl.Map, on: boolean) {
+  if (hiByFeature === on) return
+  hiByFeature = on
+  applyTrackColour(map)
+}
+
 /** Suspend or restore the taper. One reload of the source when it flips, which
  *  is a price paid twice per play-through rather than 300 times. */
 export function setTrackTaper(map: maplibregl.Map, on: boolean) {
@@ -1013,7 +1033,10 @@ function applyTrackColour(map: maplibregl.Map) {
   // hue — only its weight. Picking out a greyed-out run in the SELECTION's tint
   // would say it belonged to the isolated agent, which is the one thing the
   // grey exists to deny.
-  if (has(TRACK_HI_LAYER)) map.setPaintProperty(TRACK_HI_LAYER, 'line-color', colour)
+  const hiColour = (hiByFeature ? ['get', 'c'] : colour) as never
+  if (has(TRACK_HI_LAYER)) map.setPaintProperty(TRACK_HI_LAYER, 'line-color', hiColour)
+  if (has(TRACK_HI_MARK_LAYER))
+    map.setPaintProperty(TRACK_HI_MARK_LAYER, 'circle-stroke-color', hiColour)
   for (const id of [TRACK_MARK_LAYER, TRACK_END_LAYER]) {
     if (!off(map, id)) map.setPaintProperty(id, 'circle-color', colour)
   }

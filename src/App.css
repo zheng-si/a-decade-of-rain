@@ -1664,15 +1664,28 @@
 }
 /* The answer is a different KIND of thing from the controls above it, and
    five pixels said they were the same block. */
+/* The answer sentence, on three tiers and not five: the COUNT and the PLACE
+   are what the reader came for and take ink; the words joining them are
+   content, so they take soft; and the query time is a note about the method,
+   so it drops to the notes tier and the notes size. It had the count bold at
+   content colour, the coordinates at the same weight as "within", and a 12px
+   diagnostic riding at full strength beside them. */
 .lookup-summary {
   margin: 0.875rem 0 0;
   font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
 }
-.lookup-summary strong {
+.lookup-summary strong,
+.lookup-summary .lookup-where {
+  font-weight: 600;
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 .lookup-ms {
-  color: var(--ink-faint, #6f6a5e);
+  font-size: 0.625rem;
+  color: var(--ink-faint, #4b5a50);
+  white-space: nowrap;
 }
 .lookup-empty {
   margin: 0.5rem 0 0;

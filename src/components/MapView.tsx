@@ -38,6 +38,7 @@ import {
   TRACK_END_LAYER,
   TRACK_NIL_LAYER,
   setTrackHover,
+  setHighlightByFeature,
   setTrackTaper,
   taperGradient,
   hitWidthRamp,
@@ -1627,6 +1628,10 @@ export default function MapView() {
     const map = mapRef.current
     if (!ready || !map) return
     const c = lookup.center
+    // The highlight follows the hits' own colours while the circle is up: in
+    // there a run is drawn per agent, and lighting a blue one in the brand red
+    // produced a stroke that ran red at one end and blue at the other.
+    setHighlightByFeature(map, c != null)
     if (!c) {
       restoreRecordTiers(map, hiddenTiersRef.current, tracksRef.current != null)
       for (const id of [
