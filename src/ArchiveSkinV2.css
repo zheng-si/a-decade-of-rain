@@ -266,7 +266,10 @@
 .map-wrap .explorer-title {
   text-transform: none;
   margin: 0 0 0.375rem;
-  font-size: 1.25rem;
+  /* A step down from 1.25. The identity block sits above every control on the
+     surface, and at 17px it was the largest thing on a panel whose job is to
+     be operated rather than read. */
+  font-size: 1.125rem;
   font-weight: 600;
   /* Geist sets loose at display sizes next to the 11px it runs at everywhere
      else in this panel; a hair negative brings the title back to the density
@@ -280,12 +283,17 @@
    separates the identity block from the controls. */
 /* Up a step. It is the line that says what the Archive IS, and at 14 it was
    reading as caption under a 20px title. */
+/* The title's own ink, one step down in size and set in title case: the two
+   lines are one identity, and a softer colour made the second read as a
+   caption on the first rather than as the other half of the name. Separation
+   now comes from size and weight alone, which is what the rest of the panel
+   uses. */
 .map-wrap .explorer-subtitle {
   margin: 0 0 0.625rem;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.4;
-  color: var(--ink-soft);
+  color: var(--ink);
 }
 
 /* Regular 12px. Light was too thin to hold at 12 against a Medium title and

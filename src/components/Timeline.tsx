@@ -311,7 +311,7 @@ export default function Timeline({
             something up, and it should say so before the reader has to find
             the search box to learn it. */}
         <h1 className="explorer-title">The HERBS Record</h1>
-        <p className="explorer-subtitle">Every logged spray run, searchable by place.</p>
+        <p className="explorer-subtitle">Every Logged Spray Run, Searchable by Place.</p>
         {/* One citation line, then verbs. The old three-sentence paragraph
             answered "what is this" beautifully and was read by nobody — the
             reader wants to know what their hands can do. Each bullet is one
