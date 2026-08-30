@@ -306,10 +306,23 @@ export default function Timeline({
       <header className="explorer-head">
         <p className="explorer-eyebrow">1961–1971</p>
         {/* Two lines, two jobs. The title names the OBJECT — a reader who
-            knows nothing still knows they are looking at a map, of herbicide,
-            in Vietnam, before reading a second word. The subtitle narrates:
-            how long, who flew it, and what kind of record this is drawn from.
-            The counts and the citation stay below, in the dek.
+            knows nothing still knows they are looking at herbicide, in
+            Vietnam, before reading a second word. The subtitle narrates: how
+            long, who flew it, and what kind of record this is drawn from. The
+            counts and the citation stay below, in the dek.
+
+            ATLAS, NOT MAP. There are dozens of static Agent Orange maps
+            online and their titles are figure captions — "Aerial herbicide
+            spray missions in southern Viet Nam, 1965 to 1971", "Defoliation
+            Missions in South Vietnam, 1965–1971" — one image, one caption.
+            This is not one of those: it has a place search, a record for
+            every run, and a decade you can play. That is the genre EJAtlas
+            and the Atlas of Economic Complexity are in, and "atlas" is the
+            word that genre uses — a collection bound for consultation rather
+            than a single view. "Map" filed us under the captions and
+            undersold the search box. "Archive" carries the records but drops
+            the map, which is the main interface here; the subtitle's
+            "herbicide reporting records" carries that half instead.
 
             Every earlier pair had both lines describing the same thing at two
             levels of detail. "The Archive / The Decade of Defoliation,
@@ -322,7 +335,7 @@ export default function Timeline({
             "herbicide reporting records" rather than HERBS: that is what the
             acronym stands for, and spelling it out costs three words and
             saves the reader a lookup. */}
-        <h1 className="explorer-title">The Herbicide Map of Vietnam</h1>
+        <h1 className="explorer-title">The Herbicide Atlas of Vietnam</h1>
         <p className="explorer-subtitle">
           A decade of U.S. Air Force defoliation flights, drawn from its own herbicide reporting
           records, run by run
