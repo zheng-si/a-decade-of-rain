@@ -87,6 +87,16 @@ const MAX_DEPTH = 2 // root -> subcat -> pages; deeper starts pulling in noise
 // Vietnam box, generous: the record's own bbox plus margin.
 const BOX = { w: 102, e: 110.8, s: 8, n: 18 }
 
+// Rows excluded by hand, each with the reason a rule could not carry:
+//   · 'Sơn Hải, Bắc Ninh' — the article is a northern commune (Bắc Giang,
+//     21°N) whose own coordinate tag points to 11.42°N on the south coast:
+//     a Wikipedia data error, visible in the title/coordinate contradiction.
+//     No automatic rule survives the 2025 province mergers (titles carry new
+//     province names, provinces.geojson the old), so it is named here.
+//   · 'Thổ Châu islands' — duplicate article of 'Thổ Châu Island' at the
+//     identical coordinate; one entry per place.
+const EXCLUDE = new Set(['Sơn Hải, Bắc Ninh', 'Thổ Châu islands'])
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
 async function api(params) {
@@ -320,6 +330,7 @@ async function main() {
   // 5. rows
   const rows = []
   for (const [title, c] of kept) {
+    if (EXCLUDE.has(title)) continue
     const origin = [...(origins.get(title) ?? [])][0] ?? 'usaf'
     // 'Đồng Nai' sits in Category:Cities in Vietnam, but it is the PROVINCE
     // article — the cities that share their province's name get a '(city)'
