@@ -236,6 +236,19 @@ function restoreRecordTiers(
   saved.clear()
 }
 
+/** requestIdleCallback with a setTimeout stand-in (Safari). The timeout cap
+ *  matters: an idle callback on a busy map can starve, and a pre-bin that
+ *  arrives after the reader has already crossed the hand-off did nothing. */
+type IdleHandle = { ric: number } | { t: number }
+const scheduleIdle = (fn: () => void): IdleHandle =>
+  typeof window.requestIdleCallback === 'function'
+    ? { ric: window.requestIdleCallback(fn, { timeout: 1500 }) }
+    : { t: window.setTimeout(fn, 300) }
+const cancelIdle = (h: IdleHandle) => {
+  if ('ric' in h) window.cancelIdleCallback(h.ric)
+  else window.clearTimeout(h.t)
+}
+
 const LOOKUP_EPOCH_MS = Date.UTC(1961, 0, 1)
 /** 'YYYY-MM' → first/last day number of that month (day 1 = 1961-01-01). */
 const monthToFirstDay = (m: string) => {
@@ -711,6 +724,8 @@ export default function MapView() {
    *  without recording it would be the real bug: the reader would zoom out onto
    *  a grid still showing the agent they had deselected. */
   const gridsStaleRef = useRef(false)
+  /** The pending idle pre-bin, so a newer state can cancel an older one. */
+  const prebinRef = useRef<IdleHandle | null>(null)
   /** The throttle key each grid TIER was last binned for, or '' if it was
    *  skipped because it was off screen. Per tier rather than one flag, because
    *  only one of the two is ever visible and binning the other is pure waste. */
@@ -1279,6 +1294,44 @@ export default function MapView() {
       gridsStaleRef.current = false
     } else {
       gridsStaleRef.current = true
+    }
+
+    // ── pre-bin the tiers the reader is ABOUT to see ──────────────────────
+    // "Bin only the tier on screen" bought the playhead its frame budget and
+    // sold the hand-off: one zoom click across the coarse-to-fine boundary
+    // left the map with no spray record at all for up to ~1.7s — the old tier
+    // past its maxzoom, the new one waiting for zoomend, a bin, and a worker
+    // parse. So the hidden grid tiers are filled IN THE IDLE TIME after the
+    // visible one settles, and marked with the same key the arrival check
+    // compares against — by the time the camera crosses, the data is already
+    // parsed in the source and the hand-off costs nothing. Playback keeps the
+    // old economy: the gate below skips the work the optimization existed to
+    // avoid, and the zoomend watcher still covers whatever idle never filled.
+    if (TRACKS && tracksRef.current) {
+      if (prebinRef.current != null) cancelIdle(prebinRef.current)
+      prebinRef.current = scheduleIdle(() => {
+        prebinRef.current = null
+        const t = tracksRef.current
+        if (!t || playingRef.current) return
+        if (appliedKeyRef.current !== key) return
+        const tint = choices.find((x) => x.key === agentKey)?.color ?? DOTS.tint
+        const deg = gridDegrees()
+        let filled = true
+        for (const [layer, source, cellDeg] of [
+          [VOL_FINE_LAYER, VOL_FINE_SOURCE, deg.fine],
+          [VOL_COARSE_LAYER, VOL_COARSE_SOURCE, deg.coarse],
+        ] as const) {
+          if (gridTierKeyRef.current[layer] === key) continue
+          if (!map.getLayer(layer)) { filled = false; continue }
+          const src = map.getSource(source) as maplibregl.GeoJSONSource | undefined
+          if (!src) { filled = false; continue }
+          src.setData(binTracks(t, day, activeIndices, cellDeg, tint))
+          gridTierKeyRef.current[layer] = key
+        }
+        // Both tiers current: coming back down from the track band needs no
+        // catch-up re-bin either.
+        if (filled) gridsStaleRef.current = false
+      })
     }
 
     // The track LAYERS need no re-bin — the playhead is a filter and the

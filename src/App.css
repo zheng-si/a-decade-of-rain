@@ -978,6 +978,19 @@
     right: 0;
     bottom: auto;
   }
+
+  /* And the scale joins it: the phone's bottom edge belongs to the control
+     sheet, and left at `bottom: 2.625rem` the bar painted INSIDE the sheet —
+     in the expanded state it landed on the LOCATION LOOKUP label row beside
+     the km radius chips, where "50 km" read as a fifth radius option. The
+     credit holds the top-right, so the scale takes the top-left: the map's
+     two instruments share the one strip the sheet never reaches. */
+  .map-wrap .map-scale {
+    top: 0.75rem;
+    left: 0.625rem;
+    right: auto;
+    bottom: auto;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1371,6 +1384,17 @@
    One system with the other switches: 6% forest track, no hairline, no
    shadow; the selected fill is the only shine. The list rows borrow the
    facts-row rhythm — hairline rules, small figures, distance right-aligned. */
+/* Present to assistive tech, absent from the layout — the house has had no
+   need for this class until the lookup's live region. */
+.sr-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .lookup {
   margin-top: 0.75rem;
   padding-top: 0.75rem;

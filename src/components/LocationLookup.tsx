@@ -164,6 +164,15 @@ export default function LocationLookup({
   return (
     <div className="lookup">
       <p className="explorer-section-label">Location Lookup</p>
+      {/* The answer replaces most of the panel, and nothing announced that.
+          A persistent polite region (conditional rendering would unmount it
+          between announcements) that repeats the summary sentence, off
+          screen. */}
+      <div className="sr-live" aria-live="polite">
+        {center && results != null
+          ? `${results.length} ${results.length === 1 ? 'run' : 'runs'} within ${radiusKm} km`
+          : ''}
+      </div>
 
       {/* ── one row, one act ──────────────────────────────────────────────
           Typing a name and pointing at the map are two ways of saying where,
@@ -186,6 +195,17 @@ export default function LocationLookup({
           // actually holds.
           placeholder="Search an air base, camp or town…"
           aria-label="Search air bases, camps and towns"
+          // The full ARIA 1.2 combobox contract, not just a listbox floating
+          // in space: without these four the popup, the arrow-key highlight
+          // and the open/closed state all existed only visually — a screen
+          // reader heard a plain text field and nothing else.
+          role="combobox"
+          aria-expanded={open && matches.length > 0}
+          aria-controls="lookup-search-listbox"
+          aria-autocomplete="list"
+          aria-activedescendant={
+            open && matches.length > 0 ? `lookup-search-opt-${hi}` : undefined
+          }
           onFocus={() => {
             ensureGaz()
             setOpen(true)
@@ -253,11 +273,12 @@ export default function LocationLookup({
           </button>
         )}
         {open && matches.length > 0 && (
-          <ul className="lookup-search-drop" role="listbox">
+          <ul className="lookup-search-drop" id="lookup-search-listbox" role="listbox">
             {matches.map((pl, i) => (
               <li key={pl.n}>
                 <button
                   className={`lookup-search-item${i === hi ? ' is-hi' : ''}`}
+                  id={`lookup-search-opt-${i}`}
                   role="option"
                   aria-selected={i === hi}
                   // mousedown, not click: the input's blur closes the list
