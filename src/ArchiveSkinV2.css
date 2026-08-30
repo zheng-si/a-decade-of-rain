@@ -997,6 +997,12 @@
 .map-wrap .archive-key > .archive-inspect .inspect-sub.is-stats .stat-pair {
   font-size: 0.6875rem;
   letter-spacing: 0;
+  /* One weight for everything that is not a figure. "Gallons", "km" and
+     "Gal/km" were 500 while the date and the agent beside them were 400 —
+     same size, same colour, one step apart, which is too small to read as a
+     distinction and too much to be nothing. Two rules for the whole card now:
+     the figures are 600 in ink, and everything around them is 400 in soft. */
+  font-weight: 400;
   color: var(--ink-soft);
 }
 .map-wrap .lookup-detail .inspect-figure strong,
