@@ -18,13 +18,29 @@ source_url, confidence, notes
 
 ## Sources
 
-1. **Wikipedia (CC BY-SA 4.0)** — harvest date **2026-08-27**, via the
-   MediaWiki API. The brief names three list pages; those titles do not exist
-   on Wikipedia. What it maintains instead are categories, verified by reading
-   the category tags off Bien Hoa Air Base and Khe Sanh Combat Base:
+1. **Wikipedia (CC BY-SA 4.0)** — harvest date **2026-08-30** (installations
+   first harvested 2026-08-27), via the MediaWiki API. The brief names three
+   list pages; those titles do not exist on Wikipedia. What it maintains
+   instead are categories, verified by reading the category tags off Bien Hoa
+   Air Base and Khe Sanh Combat Base:
    - `Category:Installations of the United States Army in South Vietnam`
    - `Category:Military installations of the United States Marine Corps in South Vietnam`
    - `Category:Installations of the United States Air Force in South Vietnam`
+
+   **Settlements** (added 2026-08-30 — the search field promises "an air
+   base, camp or town", and until this the table kept a third of that
+   promise): three more roots, each at the walk depth its shape needs —
+   - `Category:Cities in Vietnam` (depth 0: direct pages are the
+     municipalities; its subcats are whole city trees and are not walked)
+   - `Category:Provincial capitals in Vietnam` (depth 0: 57 direct pages)
+   - `Category:Populated places in Vietnam by province` (depth 1: the
+     province subcats hold the notable towns as direct pages; the commune
+     tiers below are not walked)
+
+   A settlement titled exactly like its modern province is the PROVINCE
+   article and is skipped ('Đồng Nai') — except the six municipalities,
+   which are province-level because they are the city (the rule's first run
+   deleted Da Nang and Cần Thơ).
 
    Coordinates come from each article's own coordinate tag, with a fallback
    to the article's Wikidata item (P625) where the page has no local tag

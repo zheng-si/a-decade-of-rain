@@ -42,7 +42,10 @@ const [header, ...rows] = parseCsv(text.trim())
 const col = Object.fromEntries(header.map((h, i) => [h, i]))
 
 const places = rows.map((r) => ({
-  n: r[col.name_canonical],
+  // Wikipedia's disambiguation suffix is article plumbing, not the place's
+  // name: 'Tây Ninh (city)' is called Tây Ninh. The CSV keeps the canonical
+  // title for provenance; the search box gets the name people say.
+  n: r[col.name_canonical].replace(/ \((city|town)\)$/, ''),
   v: (r[col.name_variants] || '').split('|').filter(Boolean),
   t: r[col.type],
   lat: Number(r[col.lat]),
