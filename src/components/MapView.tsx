@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react'
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { loadSpray, dayToDate, dateToDay, type SprayDataset } from '../data/spray'
@@ -34,6 +34,7 @@ import {
 import {
   addTrackLayers,
   TRACK_LAYER,
+  TRACK_HUE_LAYERS,
   TRACK_MARK_LAYER,
   TRACK_DIM_LAYER,
   TRACK_END_LAYER,
@@ -201,6 +202,11 @@ const GRID_TIERS = [VOL_COARSE_LAYER, VOL_FINE_LAYER, VOL_RAW_LAYER]
 const RECORD_TIERS = [
   ...GRID_TIERS,
   TRACK_LAYER,
+  // EVERY track layer, the four per-agent twins included. Left out, a lookup
+  // hid the single-tint layer that is empty while they are carrying the
+  // record, and the whole country stayed on screen behind a circle whose
+  // answer was "42 runs within 2 km".
+  ...TRACK_HUE_LAYERS,
   TRACK_DIM_LAYER,
   TRACK_NIL_LAYER,
   TRACK_MARK_LAYER,
@@ -639,6 +645,14 @@ export default function MapView() {
   const [loadError, setLoadError] = useState(false)
   const [bounds, setBounds] = useState({ min: 0, max: 0 })
   const [choices, setChoices] = useState<AgentChoice[]>([])
+  /** The agent groups' colours, indexed by the `gi` stamped on every track and
+   *  every binned cell. One array, handed to the three places that draw the
+   *  record — the strokes, the dots and the chart — so the three cannot drift
+   *  into disagreeing about what a colour means. */
+  const groupHues = useMemo(
+    () => choices.filter((c) => c.indices && c.color).map((c) => c.color!),
+    [choices],
+  )
   const [day, setDay] = useState(0)
   const [playing, setPlaying] = useState(false)
   const [agentKey, setAgentKey] = useState('all')
@@ -977,8 +991,11 @@ export default function MapView() {
         // them "Logged at One Point", and until this they were the only mark on
         // the map that answered nothing when you pointed at or clicked them.
         const trackLayers = () =>
-          [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER].filter((id) =>
-            map.getLayer(id),
+          // The hue twins are where the strokes actually ARE with nothing
+          // isolated, so a click that only queried the single-tint layer found
+          // nothing under a map full of lines.
+          [TRACK_LAYER, ...TRACK_HUE_LAYERS, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER].filter(
+            (id) => map.getLayer(id),
           )
         // While a lookup is up the record's tiers are hidden and the hits are
         // drawn on the lookup's own two layers — so those are where a pointer
@@ -1385,7 +1402,7 @@ export default function MapView() {
           if (gridTierKeyRef.current[layer] === key) return
           gridTierKeyRef.current[layer] = key
           const src = map.getSource(source) as maplibregl.GeoJSONSource | undefined
-          src?.setData(binTracks(tracksRef.current!, day, activeIndices, cellDeg, c))
+          src?.setData(binTracks(tracksRef.current!, day, activeIndices, cellDeg, c, groupHues))
         }
         binTier(VOL_COARSE_LAYER, VOL_COARSE_SOURCE, deg.coarse)
         binTier(VOL_FINE_LAYER, VOL_FINE_SOURCE, deg.fine)
@@ -1424,7 +1441,7 @@ export default function MapView() {
           if (!map.getLayer(layer)) { filled = false; continue }
           const src = map.getSource(source) as maplibregl.GeoJSONSource | undefined
           if (!src) { filled = false; continue }
-          src.setData(binTracks(t, day, activeIndices, cellDeg, tint))
+          src.setData(binTracks(t, day, activeIndices, cellDeg, tint, groupHues))
           gridTierKeyRef.current[layer] = key
         }
         // Both tiers current: coming back down from the track band needs no
@@ -1460,6 +1477,7 @@ export default function MapView() {
         activeIndices,
         choices.find((c) => c.key === agentKey)?.color ?? DOTS.tint,
         DOTS.dim,
+        groupHues,
       )
     }
     if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
@@ -2114,6 +2132,7 @@ export default function MapView() {
                 onToggle3D={toggleView}
                 tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
                 filtered={agentKey !== 'all'}
+                hues={groupHues}
                 tracks={TRACKS}
               />
             )

@@ -256,7 +256,21 @@ export const TRACKS: TrackStyle = {
  *  the caller having to hand it the colours again. Module state rather than a
  *  parameter because the console changes the taper and the agent chips change
  *  the selection, and either one has to be able to redraw the other's work. */
-let paintState = { tint: '#ff5449', dim: '#c9cdc4', indices: null as number[] | null }
+let paintState = {
+  tint: '#ff5449',
+  dim: '#c9cdc4',
+  indices: null as number[] | null,
+  /** The agent groups' own colours, indexed by `gi`. Needed as a LIST rather
+   *  than read per feature because the taper is a `line-gradient`, and a
+   *  gradient reads `line-progress` only — it cannot see which agent a stroke
+   *  belongs to. One layer per colour is the only way to have both. */
+  palette: [] as string[],
+}
+
+/** One sprayed-track layer per agent group, for the state where every run
+ *  keeps its own colour. They stand empty whenever an agent is isolated: there
+ *  the question is "this agent against the rest", and two colours answer it. */
+export const TRACK_HUE_LAYERS = ['spray-track-h0', 'spray-track-h1', 'spray-track-h2', 'spray-track-h3']
 
 /** #rrggbb → rgba(), for the gradient stops. MapLibre needs a colour string
  *  with the alpha baked in; line-opacity multiplies on top of it. */
@@ -597,7 +611,7 @@ export function applyTracks(map: maplibregl.Map) {
   // console could open a blank band between the two encodings and nothing said
   // so. minzoom is a layer property like any other; it belongs in the same
   // apply as the paint.
-  for (const id of [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER, TRACK_END_LAYER, TRACK_DRAW_LAYER, TRACK_HI_LAYER, TRACK_HI_MARK_LAYER]) {
+  for (const id of [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER, TRACK_END_LAYER, TRACK_DRAW_LAYER, TRACK_HI_LAYER, TRACK_HI_MARK_LAYER, ...TRACK_HUE_LAYERS]) {
     if (map.getLayer(id)) map.setLayerZoomRange(id, trackStart, 24)
   }
   // The highlight is the stroke's own ramp plus a constant, so a console change
@@ -736,6 +750,29 @@ export function addTrackLayers(
     },
     labelId,
   )
+
+  // The four hue twins, above the single-tint layer so that when they carry
+  // the record they draw over it rather than under. Empty until applyTrackColour
+  // decides the state is "all agents".
+  for (let gi = 0; gi < TRACK_HUE_LAYERS.length; gi++) {
+    map.addLayer(
+      {
+        id: TRACK_HUE_LAYERS[gi],
+        type: 'line',
+        source: TRACK_SOURCE,
+        minzoom: Z_NEAR,
+        filter: all(NEVER),
+        layout: { 'line-cap': TRACKS.cap, 'line-join': 'round' },
+        paint: {
+          'line-color': tint,
+          'line-width': widthRamp(),
+          'line-opacity': dayGate(TRACKS.opacity),
+          'line-blur': TRACKS.blur,
+        },
+      },
+      labelId,
+    )
+  }
 
   map.addLayer(
     {
@@ -906,10 +943,12 @@ export function setTrackTime(map: maplibregl.Map, day: number) {
   applyDayGate(map)
 }
 
-/** Isolate an agent: the selection takes the agent's hue, the rest go grey, and
- *  with nothing isolated the whole record is one colour. Same rule as
- *  updateVolume, deliberately — two encodings of one record that disagree
- *  about what a colour means are worse than either alone.
+/** Isolate an agent: the selection takes the agent's hue and the rest go grey.
+ *  With nothing isolated every run keeps its OWN agent's colour — the brand
+ *  red said "sprayed", which the map already says by there being a line there
+ *  at all, and spent the one channel that could have said WHAT was sprayed.
+ *  Same rule as updateVolume, deliberately — two encodings of one record that
+ *  disagree about what a colour means are worse than either alone.
  *
  *  A paint expression rather than a stamped property, because unlike the grid
  *  tiers there is nothing here to re-bin. */
@@ -918,6 +957,7 @@ export function setTrackAgents(
   indices: number[] | null,
   tint: string,
   dim: string,
+  palette?: string[],
 ) {
   // MapView calls this on every playhead step, not only when the reader picks
   // an agent — so with the day out of the filters this was still rewriting two
@@ -928,13 +968,14 @@ export function setTrackAgents(
   const same =
     p.tint === tint &&
     p.dim === dim &&
+    p.palette.join('|') === (palette ?? p.palette).join('|') &&
     (p.indices === indices ||
       (p.indices != null &&
         indices != null &&
         p.indices.length === indices.length &&
         p.indices.every((v, i) => v === indices[i])))
   if (same) return
-  paintState = { tint, dim, indices }
+  paintState = { tint, dim, indices, palette: palette ?? p.palette }
   applyTrackColour(map)
 }
 
@@ -990,11 +1031,29 @@ export function setTrackTaper(map: maplibregl.Map, on: boolean) {
 }
 
 function applyTrackColour(map: maplibregl.Map) {
-  const { tint, dim, indices } = paintState
+  const { tint, dim, indices, palette } = paintState
   const inSel = ['in', ['get', 'agent'], ['literal', indices ?? []]]
 
   const has = (id: string) => map.getLayer(id) != null
-  if (TRACKS.taper > 0 && taperLive) {
+  // With nothing isolated the colour comes off the FEATURE — `c` is stamped at
+  // load, so every layer that can read a property just reads it.
+  const byFeature = indices == null && palette.length > 0
+  const tapering = TRACKS.taper > 0 && taperLive
+
+  // The four hue twins carry the record only in that state, and only while
+  // there is a taper to make one layer per colour necessary.
+  for (let gi = 0; gi < TRACK_HUE_LAYERS.length; gi++) {
+    const id = TRACK_HUE_LAYERS[gi]
+    if (!has(id)) continue
+    if (byFeature && tapering && palette[gi]) {
+      map.setFilter(id, all(HAS_VOLUME, ['==', ['get', 'gi'], gi]))
+      map.setPaintProperty(id, 'line-gradient', gradient(palette[gi]) as never)
+    } else {
+      map.setFilter(id, all(NEVER))
+    }
+  }
+
+  if (tapering) {
     // Split by filter. `line-color` is deliberately left alone: MapLibre gives
     // line-gradient precedence over it, checked on the canvas — the layer still
     // reports line-color '#ff5449' while painting the gradient. Clearing it
@@ -1003,7 +1062,13 @@ function applyTrackColour(map: maplibregl.Map) {
     // install would paint the record in black rather than fall back to the
     // tint. (An earlier comment here claimed the opposite. It was wrong.)
     if (has(TRACK_LAYER)) {
-      map.setFilter(TRACK_LAYER, indices ? all(HAS_VOLUME, inSel) : all(HAS_VOLUME))
+      // Stands down when the four hue layers are carrying it: one stroke drawn
+      // twice is one stroke at twice the opacity, and the taper would read as
+      // a heavier line rather than a fading one.
+      map.setFilter(
+        TRACK_LAYER,
+        byFeature ? all(NEVER) : indices ? all(HAS_VOLUME, inSel) : all(HAS_VOLUME),
+      )
       map.setPaintProperty(TRACK_LAYER, 'line-gradient', gradient(tint) as never)
     }
     if (has(TRACK_DIM_LAYER)) {
@@ -1011,9 +1076,9 @@ function applyTrackColour(map: maplibregl.Map) {
       map.setPaintProperty(TRACK_DIM_LAYER, 'line-gradient', gradient(dim) as never)
     }
   } else {
-    const colour = indices
-      ? (['case', inSel, tint, dim] as never)
-      : (tint as never)
+    const colour = (
+      byFeature ? ['get', 'c'] : indices ? ['case', inSel, tint, dim] : tint
+    ) as never
     if (has(TRACK_LAYER)) {
       map.setPaintProperty(TRACK_LAYER, 'line-gradient', undefined as never)
       map.setFilter(TRACK_LAYER, all(HAS_VOLUME))
@@ -1025,9 +1090,11 @@ function applyTrackColour(map: maplibregl.Map) {
       map.setFilter(TRACK_DIM_LAYER, all(NEVER))
     }
   }
-  const colour = indices
-    ? (['case', inSel, tint, dim] as never)
-    : (tint as never)
+  // Dashes, marks and endpoints are not gradients, so they take the feature's
+  // own colour directly and need no twins.
+  const colour = (
+    byFeature ? ['get', 'c'] : indices ? ['case', inSel, tint, dim] : tint
+  ) as never
   if (!off(map, TRACK_NIL_LAYER)) map.setPaintProperty(TRACK_NIL_LAYER, 'line-color', colour)
   // The same `case` the nil layer takes, so the highlight never changes a run's
   // hue — only its weight. Picking out a greyed-out run in the SELECTION's tint

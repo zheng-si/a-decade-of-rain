@@ -121,6 +121,12 @@ export function binTracks(
   indices: number[] | null,
   cellDeg: number,
   tint: string,
+  /** The agent groups' colours, indexed by `gi`. With nothing isolated a dot
+   *  takes the colour of the agent that put the MOST gallons in its cell —
+   *  `dom`, which the accumulator below has always computed for the hover
+   *  readout and never spent on the mark itself. One flat red for the whole
+   *  country said "sprayed", which is what a dot being there already says. */
+  palette?: string[],
 ): GeoJSON.FeatureCollection {
   const sel = indices ? new Set(indices) : null
   const step = cellDeg * STEP_FRACTION
@@ -268,7 +274,16 @@ export function binTracks(
       features.push({
         type: 'Feature',
         geometry: { type: 'Point', coordinates: coordsOut },
-        properties: { g: Math.round(cell.inSel), c: tint, s: 1, ...shared },
+        properties: {
+          g: Math.round(cell.inSel),
+          // Only with nothing isolated. Isolating an agent makes the question
+          // "this one against the rest", and a dominant-agent colour would
+          // answer a question nobody asked while the grey answered the one
+          // they did.
+          c: !sel && palette?.[dom] ? palette[dom] : tint,
+          s: 1,
+          ...shared,
+        },
       })
   }
   return { type: 'FeatureCollection', features }
