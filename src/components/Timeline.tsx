@@ -305,13 +305,21 @@ export default function Timeline({
       </button>
       <header className="explorer-head">
         <p className="explorer-eyebrow">1961–1971</p>
-        {/* The source's own name, and what you can do with it. "The Archive /
-            The Decade of Defoliation, Replayable." named a chapter of the
-            Story and promised a replay; this is a place you come to LOOK
-            something up, and it should say so before the reader has to find
-            the search box to learn it. */}
-        <h1 className="explorer-title">The HERBS Record</h1>
-        <p className="explorer-subtitle">Every Logged Spray Run, Searchable by Place</p>
+        {/* The campaign's own word, then who wrote the record down and what it
+            counts. "The Archive / The Decade of Defoliation, Replayable."
+            named a chapter of the Story. "The HERBS Record / Every Logged
+            Spray Run" named the file. Neither said Vietnam, the U.S., or
+            herbicide — the three facts without which the map below is
+            coloured lines over a country the reader has not been told the
+            name of.
+
+            Sentence case, not the title case the short version carried: that
+            was a name and this is a sentence, and "Every Spray Run the U.S.
+            Air Force Logged Over Vietnam" reads as a headline shouting. */}
+        <h1 className="explorer-title">The Defoliation Record</h1>
+        <p className="explorer-subtitle">
+          Every spray run the U.S. Air Force logged over Vietnam, and how much fell
+        </p>
         {/* One citation line, then verbs. The old three-sentence paragraph
             answered "what is this" beautifully and was read by nobody — the
             reader wants to know what their hands can do. Each bullet is one

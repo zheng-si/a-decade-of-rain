@@ -266,10 +266,10 @@
 .map-wrap .explorer-title {
   text-transform: none;
   margin: 0 0 0.375rem;
-  /* A step down from 1.25. The identity block sits above every control on the
-     surface, and at 17px it was the largest thing on a panel whose job is to
-     be operated rather than read. */
-  font-size: 1.125rem;
+  /* Two steps down from 1.25 now. The identity block sits above every control
+     on the surface, and at 17px it was the largest thing on a panel whose job
+     is to be operated rather than read. */
+  font-size: 1rem;
   font-weight: 600;
   /* Geist sets loose at display sizes next to the 11px it runs at everywhere
      else in this panel; a hair negative brings the title back to the density
@@ -291,7 +291,7 @@
 .map-wrap .explorer-subtitle {
   /* 1.25rem, the head's one block gap — see the note on .explorer-dek. */
   margin: 0 0 1.25rem;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   font-weight: 400;
   line-height: 1.4;
   color: var(--ink);
@@ -318,7 +318,11 @@
 .map-wrap .explorer-dek {
   margin-bottom: 1.25rem;
   font-weight: 400;
-  font-size: 0.6875rem;
+  /* The guide's own size. The citation and the three actions are the same
+     KIND of thing — prose under the name, read once — and setting the
+     citation a step smaller made it look like a footnote to the actions
+     rather than the line that says where all of this comes from. */
+  font-size: 0.75rem;
   line-height: 1.5;
 }
 
