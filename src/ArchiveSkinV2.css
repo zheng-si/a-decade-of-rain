@@ -831,6 +831,23 @@
 .map-wrap .archive-key > .archive-inspect > * {
   line-height: 1.45;
 }
+/* Every child EXCEPT the close button. It is a 16px glyph in a box sized by
+   its own line-height, and the blanket above grew that box from 24px to 30px
+   — enough to carry the × four and a half pixels below the title it sits
+   beside, on a card where nothing else had moved. */
+.map-wrap .archive-key > .archive-inspect > .inspect-close {
+  line-height: 1;
+}
+/* The cell card has the same × over the same kind of title, and it had never
+   been aligned to it either — 5px high before this pass, 7px low after the
+   line-height above. It carries no padding of its own, so a 24px control
+   centred on a 12px line has to overhang; it does so into the card's own
+   0.875rem top margin, and the button has no ground of its own to show for
+   it. Horizontally it already lands: the glyph's right edge sits on the
+   card's, where the title's left edge sits on the other. */
+.map-wrap .archive-key > .archive-inspect:not(.is-tinted) .inspect-close {
+  top: -0.375rem;
+}
 /* The list row above already names the record it opened; a card standing on
    its own has nothing else to say what it is, so it keeps its title — across
    both columns, a head to the grid rather than a cell in it. */
@@ -872,14 +889,22 @@
   grid-column: 2;
   gap: 0.875rem;
 }
-/* A sentence, not a fact in the row: its own line, across both columns. The
-   citation is the same kind of thing, and only the standalone card prints it
-   — inline, the row three pixels above already carries Mission·Run. */
+/* A sentence, not a fact in the row: its own line, across both columns, and
+   a step clear of the facts because it argues rather than states. */
 .map-wrap .lookup-detail .inspect-note,
-.map-wrap .archive-key > .archive-inspect .inspect-note,
-.map-wrap .archive-key > .archive-inspect .inspect-coords.is-runid {
+.map-wrap .archive-key > .archive-inspect .inspect-note {
   grid-column: 1 / -1;
   margin-top: 0.125rem;
+}
+/* The citation spans both columns too, but it is a ROW — the record's last
+   fact, not a paragraph after them. It had carried the note's extra 1.7px on
+   top of the grid's own 4.25px, so the one gap in the card that was not the
+   row rhythm sat directly above the smallest, faintest line in it. Only the
+   standalone card prints it: inline, the row above already carries
+   Mission·Run. */
+.map-wrap .archive-key > .archive-inspect .inspect-coords.is-runid {
+  grid-column: 1 / -1;
+  margin-top: 0;
 }
 /* The cell card's first column is "10.55°N 106.60°E · 13 km Cell" — most of
    the panel's width on its own. Paired against the span beside it that column
@@ -912,20 +937,30 @@
 
    Only the run card. A cell holds three or four agents at once and one of
    their colours behind it would be a claim the cell does not support. */
+/* The foot is the head, stated as one number. The band opened 5.9px above its
+   title and the card closed 9.3px below its citation — the head was measured
+   from the band's padding and the foot from the card's, and the two had never
+   been asked to agree. They are the same 0.4375rem now, so the card cannot
+   drift out of balance the next time either one is touched. */
 .map-wrap .archive-key > .archive-inspect.is-tinted {
   margin-top: 0.875rem;
-  padding: 0 0.625rem 0.625rem;
+  padding: 0 0.625rem 0.4375rem;
   border: 1px solid;
 }
 .map-wrap .archive-key > .archive-inspect.is-tinted .inspect-kicker {
   margin: 0 -0.625rem;
   padding: 0.4375rem 0.625rem;
 }
-/* The × hung 6px outside the card's own edge, which was right while the card
-   had no edge. */
+/* Centred on the title, and inset from the right edge by what the title is
+   inset from the left. It hung 6px OUTSIDE the card, which was right while
+   the card had no edge; brought inside, it then sat 2.6px nearer its own edge
+   than the title sits to the opposite one, which reads as a lean. */
 .map-wrap .archive-key > .archive-inspect.is-tinted .inspect-close {
-  top: 0.1875rem;
-  right: 0.0625rem;
+  /* 0.0625rem, not 0: the box centres on the band at 0, but the glyph does
+     not centre in the box — the font's ascent and descent are not symmetric
+     about the × and left it 0.85px high. */
+  top: 0.0625rem;
+  right: 0.25rem;
 }
 
 /* ── one type system, in the row and in the card ─────────────────────────
@@ -964,10 +999,17 @@
   color: var(--ink);
 }
 .map-wrap .lookup-detail .inspect-note,
-.map-wrap .archive-key > .archive-inspect .inspect-note,
-.map-wrap .archive-key > .archive-inspect .inspect-coords.is-runid {
+.map-wrap .archive-key > .archive-inspect .inspect-note {
   font-size: 0.625rem;
   line-height: 1.5;
+  color: var(--ink-faint);
+}
+/* The notes tier's size and colour, but the card's own leading: 1.5 is for a
+   sentence that wraps, and this is one line that never does. The 0.425px it
+   was adding under the last line of the card was the last thing keeping the
+   foot from matching the head. */
+.map-wrap .archive-key > .archive-inspect .inspect-coords.is-runid {
+  font-size: 0.625rem;
   color: var(--ink-faint);
 }
 
