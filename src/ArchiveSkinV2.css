@@ -61,14 +61,31 @@
      are the same kind of thing — the selected state of a control — so they get
      the same fill. They had drifted to two different darks. */
   --v2-fill: var(--forest);
-  /* Panel glass. The Figma has the left panel at 0.65 and the key at 0.62 —
+  /* Panel ground. The Figma has the left panel at 0.65 and the key at 0.62 —
      close enough that the difference reads as drift, so both take one value.
-     0.90, not the Figma's 0.65: at 0.65 the spray field showing through was
-     competing with the panel's own chart, and the two reddest things on screen
-     were reading as one. The blur goes up with the alpha rather than down —
-     at 8px the little that still came through arrived as recognisable DOTS,
-     which is exactly the thing that competed; at 20 it arrives as tone. */
-  --v2-panel: rgba(255, 255, 255, 0.9);
+     It went to 0.90 first, because at 0.65 the spray field showing through was
+     competing with the panel's own chart and the two reddest things on screen
+     read as one; the blur went UP with the alpha, so that what still came
+     through arrived as tone rather than as recognisable dots.
+
+     Opaque now, and the reason is not contrast. Measured over the record at
+     0.90 / 0.95 / 1.0, the ratio against ink moves 17.65 → 17.65 → 17.80 and
+     against the faint tier 7.24 → 7.24 → 7.30: every tier was already past
+     AAA at 0.90 and the extra alpha buys 0.15 of a ratio point. What it buys
+     is UNIFORMITY. The share of the panel's ground holding one single value
+     goes 25.5% → 34.5% → 90.6%. At 0.90 the ground is a mottled field of
+     near-whites, because the tone coming through varies across the panel, and
+     11px text on a mottled ground is what reads as "not quite sharp" — which
+     is a real complaint that contrast arithmetic cannot see.
+
+     The blur goes with it, and it has to be turned OFF rather than merely
+     left unset: App.css sets its own blur(18px) saturate(1.35) on these
+     surfaces, so dropping the skin's 20px only handed the job back to the
+     18px underneath. Nothing shows through an opaque surface, so either one
+     was buying zero pixels at full cost on the one path that cannot afford
+     it: a backdrop-filter over a moving WebGL canvas, during playback. The
+     token stays defined for whoever takes the panel back to glass. */
+  --v2-panel: #fff;
   --v2-blur: blur(20px);
 
   /* Redefining --font-sans is not enough on its own. `body` declares
@@ -106,8 +123,8 @@
      edge of any kind, which is why the panel's top corner dissolved into a
      pale patch of basemap. The line is the new part; the float is unchanged. */
   box-shadow: var(--v2-stroke), var(--v2-shadow);
-  -webkit-backdrop-filter: var(--v2-blur);
-  backdrop-filter: var(--v2-blur);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 /* ── the place column (desktop) ────────────────────────────────────────────
@@ -270,7 +287,10 @@
      on the surface, and at 17px it was the largest thing on a panel whose job
      is to be operated rather than read. */
   font-size: 1rem;
-  font-weight: 600;
+  /* 500, not 600. Geist's semibold at 13.6px over a subtitle at 400 was doing
+     the work of a much larger type contrast than the one step of size between
+     them; medium says "this is the name" without saying it twice. */
+  font-weight: 500;
   /* Geist sets loose at display sizes next to the 11px it runs at everywhere
      else in this panel; a hair negative brings the title back to the density
      of what it heads. */
