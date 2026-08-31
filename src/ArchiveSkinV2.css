@@ -291,14 +291,15 @@
   /* Bound to the eyebrow above it at 5, released to the subtitle below it at
      7.65 — see the grouping note on .explorer-dek. */
   margin: 0 0 0.5625rem;
-  /* Back up to 16. It had been walked down to 13.6 while this block was still
-     a chapter head under the Story's masthead; standing on its own, a title
-     one step off its own subtitle was not naming anything. The concern that
-     put it at 13.6 — that the largest thing on a panel meant to be OPERATED
-     should not be prose — is answered by weight instead: 500 at 16 is quieter
-     than 600 at 13.6 was. Set width is 227 in a 275 column, so it holds one
-     line at every width the desktop panel takes. */
-  font-size: 1.1875rem;
+  /* Back up from 13.6, where it had been walked while this block was still a
+     chapter head under the Story's masthead; standing on its own, a title one
+     step off its own subtitle was not naming anything. The concern that put it
+     at 13.6 — that the largest thing on a panel meant to be OPERATED should
+     not be prose — is answered by weight instead: 500 here is quieter than the
+     600 at 13.6 was. 15.3, a step back off 16 with the head seen whole: 16 was
+     right against the old four-block head and a touch loud against the two
+     clusters it has now. One line in the 275 column either way. */
+  font-size: 1.125rem;
   /* 500, not 600. Geist's semibold at 13.6px over a subtitle at 400 was doing
      the work of a much larger type contrast than the one step of size between
      them; medium says "this is the name" without saying it twice. */
@@ -1118,6 +1119,18 @@
    and the note down with it. */
 .map-wrap .map-key-list li.is-placeholder {
   visibility: hidden;
+}
+
+/* THE HEAD PAYS FOR ITS OWN BOTTOM NOW.
+   It never did: the gap under "Read the Story" was the legend block's
+   `margin-top: 0.875rem`, borrowed from the block that used to sit between the
+   head and the transport. Moving the key to the bar took that margin with it
+   and left the transport's rule flush against the link's line box — measured
+   at 0 above the rule against 13.6 below it. A rule with space on one side is
+   not a divider, it is an underline on whatever sits above it.
+   1rem, which is exactly what the transport pays below the same rule. */
+.map-wrap .explorer-head {
+  padding-bottom: 1rem;
 }
 
 /* ── EXPERIMENT (try/map-key-bar): the key as a bar ─────────────────────── */
