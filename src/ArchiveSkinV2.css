@@ -1119,3 +1119,162 @@
 .map-wrap .map-key-list li.is-placeholder {
   visibility: hidden;
 }
+
+/* ── EXPERIMENT (try/map-key-bar): the key as a bar ─────────────────────── */
+/* The key's length is a function of the zoom — four rows over the grid, five
+   over the tracks, plus a note that wraps to two lines in one state and one in
+   the other. Stacked in the left column that made everything under it (the
+   chart, the chips, the closing note) step up and down as the reader zoomed:
+   motion in a part of the panel nobody was looking at, caused by something
+   they did somewhere else.
+
+   Laid along the bottom of the map the same rows cost WIDTH. A legend that
+   grows sideways under the map moves nothing else on the screen, and the map
+   is where the reader's eye already is when they need it. */
+.map-wrap .map-key-bar {
+  /* Undoing the column block it inherits from `.archive-key-legend`, which it
+     wears for that class's swatch rules. The `padding` shorthand below covers
+     that class's own padding-top/bottom. */
+  margin: 0;
+  border-top: none;
+  position: absolute;
+  /* Continuing the panel's own column, not starting a second one. The
+     bottom-right belongs to MapLibre's scale and attribution — the map's own
+     furniture, which cannot move. 23.25rem is the panel width stated above;
+     1.5rem is its left inset, and the third is the gutter between them. */
+  left: calc(1.5rem + 23.25rem + 1.5rem);
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  width: fit-content;
+  max-width: calc(100% - 26.25rem - 1.5rem);
+  padding: 0.4375rem 0.75rem;
+  background: var(--v2-panel);
+  box-shadow: var(--v2-stroke), var(--v2-shadow);
+  font-family: var(--font-sans);
+}
+
+.map-wrap .map-key-bar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+/* The two halves of the bar are two different KINDS of thing — one sets the
+   map's view, one explains its marks — so a seam, the same hairline the chip
+   rows draw between their chips. */
+.map-wrap .map-key-bar-group + .map-key-bar-group {
+  position: relative;
+  padding-left: 0.875rem;
+}
+
+.map-wrap .map-key-bar-group + .map-key-bar-group::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 1.125rem;
+  background: rgba(33, 53, 40, 0.14);
+}
+
+/* The label's bottom margin is a column measurement; on a row it is a shove. */
+.map-wrap .map-key-bar .map-key-view-label {
+  margin: 0;
+  flex: none;
+}
+
+.map-wrap .map-key-bar .map-key-view {
+  margin: 0;
+  flex: none;
+}
+
+.map-wrap .map-key-bar .map-key-view-btn {
+  flex: none;
+  padding: 0.3125rem 0.875rem;
+}
+
+/* The list turns on its side. `nowrap` on purpose: wrapping would give the bar
+   a second line, which is the height change this whole experiment exists to
+   remove — so when the rows outgrow the space the bar scrolls instead. */
+.map-wrap .map-key-list.is-inline {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.map-wrap .map-key-list.is-inline::-webkit-scrollbar {
+  display: none;
+}
+
+.map-wrap .map-key-list.is-inline li {
+  flex: none;
+  gap: 0.4375rem;
+  white-space: nowrap;
+}
+
+/* The note is the one thing that cannot come along: two lines of prose would
+   set the bar's height by its longest sentence and put the height problem back
+   one axis over. It becomes the one thing in the key a reader asks for. */
+.map-wrap .map-key-info {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+
+.map-wrap .map-key-info button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.9375rem;
+  height: 0.9375rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(33, 53, 40, 0.08);
+  font-family: var(--font-serif);
+  font-size: 0.5625rem;
+  font-style: italic;
+  line-height: 1;
+  color: var(--ink-faint);
+  cursor: help;
+}
+
+.map-wrap .map-key-info button:hover,
+.map-wrap .map-key-info button:focus-visible {
+  background: var(--v2-fill);
+  color: var(--forest-text);
+}
+
+.map-wrap .map-key-info-pop {
+  position: absolute;
+  bottom: calc(100% + 0.625rem);
+  right: -0.5rem;
+  z-index: 4;
+  width: 17rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--v2-panel);
+  box-shadow: var(--v2-stroke), var(--v2-shadow);
+  font-size: 0.625rem;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s;
+}
+
+.map-wrap .map-key-info:hover .map-key-info-pop,
+.map-wrap .map-key-info button:focus-visible + .map-key-info-pop {
+  opacity: 1;
+  visibility: visible;
+}
