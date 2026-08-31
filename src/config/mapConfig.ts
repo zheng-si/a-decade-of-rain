@@ -268,7 +268,7 @@ export const mapConfig: MapConfig = {
   // it flattened the warm/cool difference the water depends on. Water now
   // carries its own blue instead, so land does not have to compensate.
   theme: {
-    land: '#f4f2f1',
+    land: '#f7f7f7',
     /* Water/vegetation at half strength (mixed 50% toward the land tone) so
        the basemap sits further behind the data. */
     water: '#e9ece7',
@@ -290,15 +290,34 @@ export const mapConfig: MapConfig = {
 
   // One colour per agent group. Orange/White/Blue are the three big ones; the
   // rest (Purple, Pink, etc.) fold into "Other".
-  // Agent names mapped to saturated, readable colours: Orange = orange,
-  // White = light grey, Blue = light blue, Other = violet.
+  //
+  // Picked in the console (`?tune`) against the land above, which moved with
+  // them: the ground and the marks on it are one decision, so they were tuned
+  // in one sitting rather than one after the other.
+  //
+  // The set is more VIVID than the one it replaces, and the gain is in how the
+  // four separate FROM EACH OTHER. Measured as dE00, the closest pair goes
+  // 13.2 to 14.8, and every pair improves; White, which had the least room,
+  // gains most against the grey the de-emphasised runs take (17.8 -> 19.8).
+  //
+  // Contrast against the land, composited at the 0.9 the dots draw at, comes
+  // out flatter across the four than it was: 2.30 / 2.34 / 2.57 / 2.40 against
+  // 2.26 / 2.14 / 2.15 / 3.07. Three of the four gain a little; Other gives up
+  // the margin it alone used to have. None of them clears the 3:1 WCAG asks of
+  // a non-text graphical object -- which was already true of three of the four
+  // and is a property of drawing small marks on a near-white ground, not of
+  // this palette. An earlier attempt to fix it by dropping every colour's L*
+  // was reverted: holding chroma while darkening walks orange toward brown and
+  // blue toward indigo, and the result read as dirty. The levers that would
+  // buy contrast without touching these hues are a light casing around the
+  // marks, a quieter basemap under them, or bigger marks.
   agents: [
-    { key: 'O', label: 'Orange', codes: ['O'], color: '#ef7d1a' },
+    { key: 'O', label: 'Orange', codes: ['O'], color: '#ff7700' },
     // Slate-blue silver: blue-leaning so an isolated White stays clearly
-    // apart from the neutral context grey (DIM in volumeGrid.ts) on the map.
-    { key: 'W', label: 'White', codes: ['W'], color: '#93a1b3' },
-    { key: 'B', label: 'Blue', codes: ['B'], color: '#5aa6e0' },
-    { key: 'other', label: 'Other', codes: ['P', 'U', 'K', 'D', 'T'], color: '#9a6cc4' },
+    // apart from the neutral context grey (dim in volumeGrid.ts) on the map.
+    { key: 'W', label: 'White', codes: ['W'], color: '#8c9cb1' },
+    { key: 'B', label: 'Blue', codes: ['B'], color: '#2b99ee' },
+    { key: 'other', label: 'Other', codes: ['P', 'U', 'K', 'D', 'T'], color: '#b781ea' },
   ],
 
   heatmap: {

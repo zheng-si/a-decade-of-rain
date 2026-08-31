@@ -259,7 +259,12 @@
      read as part of it. At 600 in accent red above a 500 title, the date was
      competing with the name it dates. */
   font-weight: 500;
-  font-size: 0.75rem;
+  /* The subtitle's size. The three lines of the name are one identity now —
+     one step between them, and the year is a fact ABOUT the thing being named,
+     so it is set at the size of the line that says what the thing is rather
+     than a step below it. Caps, 500 and the accent still keep it from
+     competing with the title. */
+  font-size: 0.8125rem;
   letter-spacing: var(--track-caps);
   line-height: 1.2;
 }

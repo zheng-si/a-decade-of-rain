@@ -21,6 +21,7 @@
 // ─────────────────────────────────────────────────────────────────────────
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type maplibregl from 'maplibre-gl'
+import { TUNER_STORE_KEY } from './mapTunerAgents'
 import { mapConfig, Z_FAR, Z_MID, Z_NEAR } from '../config/mapConfig'
 import {
   WATER_FILL,
@@ -71,7 +72,16 @@ import {
 } from './mapTaxonomy'
 import './MapTuner.css'
 
-const STORE_KEY = 'adr-map-tuner'
+const STORE_KEY = TUNER_STORE_KEY
+
+/** The shipped agent palette, snapshotted at module load.
+ *
+ *  It has to be a snapshot: MapView writes the stored tune over
+ *  `mapConfig.agents` at load, so by the time this panel mounts the live
+ *  object may already be the tuned palette. Reading DEFAULTS off it then would
+ *  make "Reset" mean "back to whatever I last tried", and the copy block would
+ *  print nothing because every value would equal its own default. */
+const AGENT_BASE = mapConfig.agents.map((g) => ({ key: g.key, label: g.label, color: g.color }))
 
 /** Bump when the set of layers the SHIPPED map hides changes. Stored tunes
  *  with an older number re-seed their `hidden` list on the next load. */
@@ -134,6 +144,16 @@ interface Tune {
   veg: string
   vegOn: boolean
   font: string
+  /** The four agent colours, by `mapConfig.agents[].key`.
+   *
+   *  Unlike everything else here these are not a paint property the panel can
+   *  push at the map: they are baked into each track feature and each binned
+   *  cell, because a per-feature colour is what lets one layer draw four
+   *  agents. Editing one writes it into `mapConfig` and asks for a regrid,
+   *  which repaints the dots and the four tapered stroke tiers; the endpoint
+   *  beads and the no-volume dashes carry the value baked at parse time and
+   *  come along on the next reload. See mapTunerAgents.ts. */
+  agents: Record<string, string>
   // ── zoom ──
   zMid: number
   zNear: number
@@ -229,6 +249,9 @@ const DEFAULTS: Tune = {
   // — the same class of lie the layer-visibility seeding just fixed.
   vegOn: false,
   font: 'Roboto Condensed',
+  // Read off mapConfig rather than retyped, so "Reset" is the shipped palette
+  // and cannot drift from it by one edit.
+  agents: Object.fromEntries(AGENT_BASE.map((g) => [g.key, g.color])),
   zMid: Z_MID,
   zNear: Z_NEAR,
   maxZoom: mapConfig.view.maxZoom,
@@ -292,6 +315,90 @@ function contrast(a: string, b: string): number {
 
 /** Blue-minus-red: how much cooler the water is than the land. Hue difference,
  *  not lightness — this is what makes the sea read as sea. */
+/** CIEDE2000 between two hexes.
+ *
+ *  Contrast ratio answers "does this mark separate from the ground"; it says
+ *  nothing about whether two MARKS separate from each other, because it is a
+ *  luminance ratio and two colours of equal luminance score 1.00 however far
+ *  apart they look. Both questions matter here — the four agents have to clear
+ *  the basemap AND clear each other — so the panel reports both. Rule of
+ *  thumb: dE 10 tells apart at a glance, under 5 is trouble at dot size. */
+function de00(h1: string, h2: string): number {
+  const lab = (hex: string): [number, number, number] => {
+    const c = hexToRgb(hex) ?? [0, 0, 0]
+    const [r, g, b] = c.map((v) => {
+      const s = v / 255
+      return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4)
+    })
+    const f = (t: number) => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116)
+    const x = f((0.4124 * r + 0.3576 * g + 0.1805 * b) / 0.95047)
+    const y = f(0.2126 * r + 0.7152 * g + 0.0722 * b)
+    const z = f((0.0193 * r + 0.1192 * g + 0.9505 * b) / 1.08883)
+    return [116 * y - 16, 500 * (x - y), 200 * (y - z)]
+  }
+  const [L1, a1, b1] = lab(h1)
+  const [L2, a2, b2] = lab(h2)
+  const rad = Math.PI / 180
+  const deg = 180 / Math.PI
+  const Cb = (Math.hypot(a1, b1) + Math.hypot(a2, b2)) / 2
+  const G = 0.5 * (1 - Math.sqrt(Math.pow(Cb, 7) / (Math.pow(Cb, 7) + Math.pow(25, 7))))
+  const ap1 = (1 + G) * a1
+  const ap2 = (1 + G) * a2
+  const Cp1 = Math.hypot(ap1, b1)
+  const Cp2 = Math.hypot(ap2, b2)
+  const hp = (b: number, a: number) => (b === 0 && a === 0 ? 0 : (Math.atan2(b, a) * deg + 360) % 360)
+  const hp1 = hp(b1, ap1)
+  const hp2 = hp(b2, ap2)
+  const dLp = L2 - L1
+  const dCp = Cp2 - Cp1
+  let dhp = 0
+  if (Cp1 * Cp2 !== 0) {
+    dhp = hp2 - hp1
+    if (dhp > 180) dhp -= 360
+    else if (dhp < -180) dhp += 360
+  }
+  const dHp = 2 * Math.sqrt(Cp1 * Cp2) * Math.sin((dhp / 2) * rad)
+  const Lbp = (L1 + L2) / 2
+  const Cbp = (Cp1 + Cp2) / 2
+  let hbp = (hp1 + hp2) / 2
+  if (Cp1 * Cp2 !== 0 && Math.abs(hp1 - hp2) > 180) {
+    hbp = (hp1 + hp2 + (hp1 + hp2 < 360 ? 360 : -360)) / 2
+  }
+  const T =
+    1 -
+    0.17 * Math.cos((hbp - 30) * rad) +
+    0.24 * Math.cos(2 * hbp * rad) +
+    0.32 * Math.cos((3 * hbp + 6) * rad) -
+    0.2 * Math.cos((4 * hbp - 63) * rad)
+  const Sl = 1 + (0.015 * Math.pow(Lbp - 50, 2)) / Math.sqrt(20 + Math.pow(Lbp - 50, 2))
+  const Sc = 1 + 0.045 * Cbp
+  const Sh = 1 + 0.015 * Cbp * T
+  const Rt =
+    -Math.sin(2 * 30 * Math.exp(-Math.pow((hbp - 275) / 25, 2)) * rad) *
+    2 *
+    Math.sqrt(Math.pow(Cbp, 7) / (Math.pow(Cbp, 7) + Math.pow(25, 7)))
+  return Math.sqrt(
+    Math.pow(dLp / Sl, 2) +
+      Math.pow(dCp / Sc, 2) +
+      Math.pow(dHp / Sh, 2) +
+      Rt * (dCp / Sc) * (dHp / Sh),
+  )
+}
+
+/** A mark drawn at partial alpha does not have its own contrast — it has the
+ *  contrast of what it composites to. The dots ship at DOTS.opacity, so a
+ *  swatch read at full strength flatters itself by about 0.2 of a ratio
+ *  point. */
+function over(fg: string, bg: string, a: number): string {
+  const f = hexToRgb(fg)
+  const b = hexToRgb(bg)
+  if (!f || !b) return fg
+  return (
+    '#' +
+    f.map((v, i) => Math.round(v * a + b[i] * (1 - a)).toString(16).padStart(2, '0')).join('')
+  )
+}
+
 function coolness(a: string, b: string): number {
   const x = hexToRgb(a)
   const y = hexToRgb(b)
@@ -308,6 +415,7 @@ function readStore(): Tune {
     // `dots` is two levels deep, so a plain spread of a tune stored before a
     // sub-field existed would hand the panel `undefined` for it and every
     // slider would read NaN. Merged per ramp, same as the tiers below.
+    t.agents = { ...DEFAULTS.agents, ...((parsed.agents as Record<string, string>) ?? {}) }
     t.dots = { ...DEFAULTS.dots, ...(parsed.dots ?? {}) }
     for (const k of ['coarse', 'fine', 'raw'] as const) {
       t.dots[k] = { ...DEFAULTS.dots[k], ...(parsed.dots?.[k] ?? {}) }
@@ -375,13 +483,22 @@ function readStore(): Tune {
  *  exists to keep this module out of the entry chunk, not to replace it. If
  *  the rule ever changes, change it in both — they are four lines apart in
  *  behaviour and one grep apart in the tree. */
-function tunerEnabled(): boolean {
+/** Latched at import, for the reason spelled out on MapView's copy: the
+ *  Archive rewrites its own query string, so reading `?tune` at mount time is
+ *  reading it after the app may already have removed it. MapView's gate is the
+ *  one that decides whether this module is even fetched; this is the second
+ *  half of the same latch, and it has to agree with it. */
+const TUNE_GATE: boolean = (() => {
   if (import.meta.env.DEV) return true
   try {
     return new URLSearchParams(window.location.search).has('tune')
   } catch {
     return false
   }
+})()
+
+function tunerEnabled(): boolean {
+  return TUNE_GATE
 }
 
 /** Our own annotation layers. They ARE in the visibility list — the military
@@ -442,10 +559,15 @@ export default function MapTuner({
   const [baselineHidden, setBaselineHidden] = useState<string[]>([])
   // Text fields hold whatever is being typed, including half-finished hexes;
   // only a valid value is pushed to the map.
-  const [draft, setDraft] = useState<Record<ColorKey, string>>({
+  /** What is in the hex FIELDS, which is not what is on the map: a half-typed
+   *  "#3d" is a legal thing to have in a text input and an illegal thing to
+   *  hand MapLibre. Agent colours are keyed `agent:<key>` so the four share
+   *  this one draft rather than growing a second copy of the same idea. */
+  const [draft, setDraft] = useState<Record<string, string>>({
     land: tune.land,
     water: tune.water,
     veg: tune.veg,
+    ...Object.fromEntries(AGENT_BASE.map((g) => ['agent:' + g.key, tune.agents[g.key]])),
   })
   const mapRef = useRef(map)
   mapRef.current = map
@@ -723,6 +845,19 @@ export default function MapTuner({
     if (hexToRgb(value)) setTune((t) => ({ ...t, [key]: value.startsWith('#') ? value : '#' + value }))
   }
 
+  /** An agent colour is not a paint property — see the note on Tune.agents.
+   *  Writing it into `mapConfig` and asking for a regrid is what repaints the
+   *  dots and the four tapered stroke tiers. */
+  const setAgent = (key: string, value: string) => {
+    setDraft((d) => ({ ...d, ['agent:' + key]: value }))
+    if (!hexToRgb(value)) return
+    const hex = value.startsWith('#') ? value : '#' + value
+    const g = mapConfig.agents.find((a) => a.key === key)
+    if (g) g.color = hex
+    setTune((t) => ({ ...t, agents: { ...t.agents, [key]: hex } }))
+    onRegridRef.current?.()
+  }
+
   const setNum = (
     key:
       | 'zMid'
@@ -832,7 +967,19 @@ export default function MapTuner({
 
   const reset = () => {
     setTune(DEFAULTS)
-    setDraft({ land: DEFAULTS.land, water: DEFAULTS.water, veg: DEFAULTS.veg })
+    setDraft({
+      land: DEFAULTS.land,
+      water: DEFAULTS.water,
+      veg: DEFAULTS.veg,
+      ...Object.fromEntries(AGENT_BASE.map((g) => ['agent:' + g.key, g.color])),
+    })
+    // The live palette is a mutable object the panel has been writing into, so
+    // "Reset" has to walk it back too, or the map keeps the last tune while
+    // every readout in here claims the shipped one.
+    for (const g of mapConfig.agents) {
+      g.color = AGENT_BASE.find((b) => b.key === g.key)?.color ?? g.color
+    }
+    onRegridRef.current?.()
   }
 
   /** Leaf paths where a tuned block no longer matches what the map ships.
@@ -913,6 +1060,18 @@ export default function MapTuner({
     if (tune.maxZoom !== DEFAULTS.maxZoom) cfg.push(`view.maxZoom: ${tune.maxZoom},`)
     if (tune.minZoomMargin !== DEFAULTS.minZoomMargin)
       cfg.push(`view.minZoomMargin: ${tune.minZoomMargin},`)
+    // Printed as the whole `agents` row, not as a bare hex: the array is what
+    // gets pasted over, and a line reading `#3186be` on its own tells whoever
+    // receives it nothing about which of the four it replaces.
+    for (const g of AGENT_BASE) {
+      if (tune.agents[g.key] !== g.color) {
+        const a = mapConfig.agents.find((x) => x.key === g.key)
+        cfg.push(
+          `agents[${g.key}] '${g.color}' -> color: '${tune.agents[g.key]}',` +
+            `  // ${a ? `codes ${a.codes.join('/')}, ` : ''}${g.label}`,
+        )
+      }
+    }
     push('src/config/mapConfig.ts', cfg)
 
     const vol: string[] = []
@@ -1197,11 +1356,75 @@ export default function MapTuner({
                 {coolness(tune.water, tune.land)} cooler
               </dd>
             </div>
-            <div>
-              <dt>Land vs Orange</dt>
-              <dd>{contrast(tune.land, mapConfig.agents[0].color).toFixed(2)}:1</dd>
-            </div>
           </dl>
+
+          <h3 className="tuner-sub">The four agents</h3>
+          <p className="tuner-note">
+            Measured against the land and water you have set above, so the record and the ground
+            are tuned against each other rather than one after the other. Two different questions:{' '}
+            <strong>contrast</strong> asks whether a mark separates from the GROUND (WCAG asks 3:1
+            of a non-text graphical object), and <strong>dE</strong> asks whether two MARKS separate
+            from EACH OTHER — a luminance ratio cannot answer that, since two colours of equal
+            luminance score 1.00 however far apart they look. The contrast columns are composited
+            at <code>{DOTS.opacity}</code>, the alpha the dots actually draw at, because a swatch
+            read at full strength flatters itself by about 0.2 of a point. <code>grey dE</code> is
+            against the tone the de-emphasised runs take, which is what an isolated agent has to
+            stay clear of.
+          </p>
+          {AGENT_BASE.map((g) => {
+            const hex = tune.agents[g.key]
+            const onLand = over(hex, tune.land, DOTS.opacity)
+            const onWater = over(hex, tune.water, DOTS.opacity)
+            const cl = contrast(onLand, tune.land)
+            const cw = contrast(onWater, tune.water)
+            return (
+              <label className="tuner-row is-agent" key={g.key}>
+                <span className="tuner-label">{g.label}</span>
+                <input
+                  className="tuner-swatch"
+                  type="color"
+                  value={hex}
+                  onChange={(e) => setAgent(g.key, e.target.value)}
+                />
+                <input
+                  className="tuner-hex"
+                  type="text"
+                  value={draft['agent:' + g.key] ?? hex}
+                  onChange={(e) => setAgent(g.key, e.target.value)}
+                  spellCheck={false}
+                />
+                <em>
+                  land {cl.toFixed(2)}
+                  {cl < 3 ? '⚠' : ''} · water {cw.toFixed(2)}
+                  {cw < 3 ? '⚠' : ''} · grey dE {de00(hex, tune.dots.dim).toFixed(0)}
+                </em>
+              </label>
+            )
+          })}
+          <dl className="tuner-read">
+            {AGENT_BASE.flatMap((a, i) =>
+              AGENT_BASE.slice(i + 1).map((b) => {
+                const d = de00(tune.agents[a.key], tune.agents[b.key])
+                return (
+                  <div key={a.key + b.key}>
+                    <dt>
+                      {a.label} / {b.label}
+                    </dt>
+                    <dd>
+                      dE {d.toFixed(1)}
+                      {d < 10 ? ' ⚠ too close at dot size' : ''}
+                    </dd>
+                  </div>
+                )
+              }),
+            )}
+          </dl>
+          <p className="tuner-note">
+            The endpoint beads and the no-volume dashes keep the colour they were parsed with and
+            catch up on the next reload — the panel restores from storage before the record is
+            read, so a reload with <code>?tune</code> paints the whole map in what is set here. The
+            dots and the four tapered stroke tiers repaint as you drag.
+          </p>
         </>
       )}
 

@@ -227,14 +227,13 @@ export const DOTS: DotStyle = {
   // dimming to a pure neutral #bdbdbd, so isolating an agent greyed the
   // timeline one colour and the map another.
   //
-  // It is also the better grey on its own terms, measured. Against the land
-  // (#f4f2f1) it is quieter -- 1.45:1 against 1.68:1 -- which is what a dim
-  // colour is for. And against the White agent's slate silver (#93a1b3) it
-  // separates BETTER: 1.63:1 against 1.40:1. That second number is the one
-  // that matters, because mapConfig's own comment says the White agent was
-  // pushed blue-leaning specifically so an isolated White would not be
-  // confused with the context grey. This grey does that job with less strain
-  // on the agent colour.
+  // It is also the better grey on its own terms, measured. Against the land it
+  // is quieter -- 1.45:1 against 1.68:1 -- which is what a dim colour is for.
+  // And it separates better from the White agent, which is the number that
+  // matters: mapConfig's comment says White was pushed blue-leaning
+  // specifically so an isolated White would not be confused with this grey.
+  // White is #8c9cb1 now, a step further from this tone than the #93a1b3 that
+  // measurement was taken on (dE00 17.8 -> 19.8), so the margin has widened.
   dim: '#c9cdc4',
 }
 
