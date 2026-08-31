@@ -231,26 +231,32 @@
   }
 
   .map-wrap .explorer-title {
-    margin-bottom: 0.375rem;
+    margin-bottom: 0.5rem;
     font-size: 1.0625rem;
   }
 
+  /* The cluster boundary has to survive the compression, or the phone head
+     goes back to four evenly spaced blocks while the desktop reads as two. */
   .map-wrap .explorer-subtitle {
-    margin-bottom: 0.625rem;
+    margin-bottom: 1rem;
     font-size: 0.8125rem;
   }
 }
 
 /* ── the identity block ────────────────────────────────────────────────── */
-/* The span, in the panel's own caps tier — the same 10-ish px, 600, 0.06em
-   the section labels and the list head are set in. It had been 16px Courier,
+/* The span, in the panel's own caps tier — the same 10-ish px, 0.06em the
+   section labels and the list head are set in. It had been 16px Courier,
    sized to sit beside a title in the same face; against a Geist title it was
    a second heading rather than the label above one. */
 .map-wrap .explorer-eyebrow {
   margin: 0 0 0.375rem;
   font-family: var(--font-sans);
   text-transform: uppercase;
-  font-weight: 600;
+  /* 500, not the 600 the section labels take. Those labels head controls and
+     have to hold their own against them; this one hangs off the title and is
+     read as part of it. At 600 in accent red above a 500 title, the date was
+     competing with the name it dates. */
+  font-weight: 500;
   font-size: 0.75rem;
   letter-spacing: var(--track-caps);
   line-height: 1.2;
@@ -282,11 +288,17 @@
 
 .map-wrap .explorer-title {
   text-transform: none;
-  margin: 0 0 0.375rem;
-  /* Two steps down from 1.25 now. The identity block sits above every control
-     on the surface, and at 17px it was the largest thing on a panel whose job
-     is to be operated rather than read. */
-  font-size: 1rem;
+  /* Bound to the eyebrow above it at 5, released to the subtitle below it at
+     7.65 — see the grouping note on .explorer-dek. */
+  margin: 0 0 0.5625rem;
+  /* Back up to 16. It had been walked down to 13.6 while this block was still
+     a chapter head under the Story's masthead; standing on its own, a title
+     one step off its own subtitle was not naming anything. The concern that
+     put it at 13.6 — that the largest thing on a panel meant to be OPERATED
+     should not be prose — is answered by weight instead: 500 at 16 is quieter
+     than 600 at 13.6 was. Set width is 227 in a 275 column, so it holds one
+     line at every width the desktop panel takes. */
+  font-size: 1.1875rem;
   /* 500, not 600. Geist's semibold at 13.6px over a subtitle at 400 was doing
      the work of a much larger type contrast than the one step of size between
      them; medium says "this is the name" without saying it twice. */
@@ -324,19 +336,19 @@
    instead of 24 above and 16 below. */
 /* Down a step, and tighter. The citation is provenance, not prose: it earns
    its place by being checkable, not by being read at body size. */
-/* ONE BLOCK GAP FOR THE WHOLE HEAD, and this is where it is stated.
-   The head is four things — the name (year, title, subtitle), the citation,
-   the three actions, and the way back to the Story — and the three boundaries
-   between them were 8.5px, 11.9px and 17px. Three different numbers for three
-   boundaries of the same KIND, which is what made the block feel arbitrary
-   however carefully each number had been chosen on its own. They are all
-   1.25rem now, the value the last of them already had, so nothing that was
-   already reading as separate reads as less so.
-   (The earlier note here argued the subtitle and the dek were one thought and
-   should sit closer. They are not: the subtitle names the thing and the dek
-   cites it, and the reader is not confused about which is which.) */
+/* TWO CLUSTERS, NOT FOUR BLOCKS, and this is where it is stated.
+   The head holds four things — the name (year, title, subtitle), the citation,
+   the three actions, and the way back to the Story — and they were all 1.25rem
+   apart, one gap repeated three times. Even spacing said the four were peers.
+   They are not: the first three lines NAME the thing, and the citation and the
+   actions are both notes on how to use what has been named. So the head reads
+   as two clusters now — 0.5625rem inside a cluster, 1.25rem between them, and
+   1.25rem again before the way out.
+   (An earlier note here argued for the single gap on the grounds that the four
+   boundaries were the same KIND. They are the same kind; they are not the same
+   depth, and that is what the one number could not say.) */
 .map-wrap .explorer-dek {
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.5625rem;
   font-weight: 400;
   /* The guide's own size. The citation and the three actions are the same
      KIND of thing — prose under the name, read once — and setting the
