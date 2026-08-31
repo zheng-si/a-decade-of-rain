@@ -2123,13 +2123,13 @@ export default function MapView() {
             setAgentKey(key)
           }}
           lookupSlot={isPhone ? lookupPanel : null}
-          /* EXPERIMENT (try/map-key-bar): the key has left the column. It is
-             rendered as a bar over the map, below — see the note there. */
+          /* The key has left the column. It is rendered as a bar over the
+             map, below — see the note there. */
           keySlot={null}
         />
       )}
-      {/* EXPERIMENT (try/map-key-bar) — the key, laid along the bottom of the
-          map instead of stacked in the left panel.
+      {/* The key, laid along the bottom of the map instead of stacked in the
+          left panel.
           The key's LENGTH is a function of the zoom: four rows over the grid,
           five over the tracks, and a note that wraps to two lines in one state
           and one in the other. In the column that made the chart, the chips

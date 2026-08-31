@@ -1146,7 +1146,7 @@
   padding-bottom: 1rem;
 }
 
-/* ── EXPERIMENT (try/map-key-bar): the key as a bar ─────────────────────── */
+/* ── the key as a bar ──────────────────────────────────────────────────── */
 /* The key's length is a function of the zoom — four rows over the grid, five
    over the tracks, plus a note that wraps to two lines in one state and one in
    the other. Stacked in the left column that made everything under it (the

@@ -38,7 +38,7 @@ interface Props {
    *  lines. A key that shows a dot over a map of lines is not a smaller
    *  problem than a key with the wrong words on it. */
   tracks?: boolean
-  /** EXPERIMENT — where the key is standing.
+  /** Where the key is standing.
    *
    *  'panel' is the shipped home: a stacked block in the left column. Its
    *  fault is that the key's LENGTH is a function of the zoom — four rows over
