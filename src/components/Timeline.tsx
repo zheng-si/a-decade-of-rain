@@ -332,14 +332,27 @@ export default function Timeline({
             without which the map below is coloured lines over a country the
             reader has not been told the name of.
 
-            "herbicide reporting records" rather than HERBS: that is what the
-            acronym stands for, and spelling it out costs three words and
-            saves the reader a lookup. */}
+            THE SUBTITLE IS DOWN TO ONE LINE, and two clauses went with the
+            second one.
+
+            "drawn from its own herbicide reporting records" was here to carry
+            the RECORDS half that "Atlas" drops — the argument three paragraphs
+            up. That half is not lost, it has moved one line down: the dek
+            immediately below opens "The complete record behind Stellman et al.
+            (2003)", which says the same thing and cites it. Saying it twice in
+            four lines was the actual cost.
+
+            "run by run" went with it. It described the GRAIN of the record,
+            which the three action lines under the dek demonstrate rather than
+            assert — "Each dot is a grid cell's gallons. Click it for the
+            record."
+
+            What is left is the four facts a reader arriving cold cannot do
+            without and cannot get from the title: who sprayed, that it was
+            flown, what it was for, and where. 53 characters, one line in the
+            275 column. */}
         <h1 className="explorer-title">The Herbicide Atlas of Vietnam</h1>
-        <p className="explorer-subtitle">
-          A decade of U.S. Air Force defoliation flights, drawn from its own herbicide reporting
-          records, run by run
-        </p>
+        <p className="explorer-subtitle">U.S. Air Force defoliation flights over South Vietnam</p>
         {/* One citation line, then verbs. The old three-sentence paragraph
             answered "what is this" beautifully and was read by nobody — the
             reader wants to know what their hands can do. Each bullet is one

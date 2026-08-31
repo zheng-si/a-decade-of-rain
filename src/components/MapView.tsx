@@ -2123,20 +2123,34 @@ export default function MapView() {
             setAgentKey(key)
           }}
           lookupSlot={isPhone ? lookupPanel : null}
-          keySlot={
-            isPhone ? null : (
-              <ArchiveKey
-                map={mapRef.current}
-                ready={ready}
-                is3D={is3D}
-                onToggle3D={toggleView}
-                tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
-                filtered={agentKey !== 'all'}
-                hues={groupHues}
-                tracks={TRACKS}
-              />
-            )
-          }
+          /* The key has left the column. It is rendered as a bar over the
+             map, below — see the note there. */
+          keySlot={null}
+        />
+      )}
+      {/* The key, laid along the bottom of the map instead of stacked in the
+          left panel.
+          The key's LENGTH is a function of the zoom: four rows over the grid,
+          five over the tracks, and a note that wraps to two lines in one state
+          and one in the other. In the column that made the chart, the chips
+          and the note below it step up and down as the reader zoomed — motion
+          in a part of the panel nobody was looking at, caused by something
+          they did somewhere else. On the bar the same rows cost WIDTH, and
+          nothing else on the screen moves.
+          Bottom-LEFT, continuing the panel's own column rather than starting a
+          second one: the bottom-right belongs to MapLibre's scale and
+          attribution, which are the map's own furniture and cannot move. */}
+      {ready && !isPhone && (
+        <ArchiveKey
+          map={mapRef.current}
+          ready={ready}
+          is3D={is3D}
+          onToggle3D={toggleView}
+          tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
+          filtered={agentKey !== 'all'}
+          hues={groupHues}
+          tracks={TRACKS}
+          layout="bar"
         />
       )}
     </div>

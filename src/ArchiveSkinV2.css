@@ -249,7 +249,9 @@
    sized to sit beside a title in the same face; against a Geist title it was
    a second heading rather than the label above one. */
 .map-wrap .explorer-eyebrow {
-  margin: 0 0 0.375rem;
+  /* 4.25, the same step the title pays below it — see the note on the title's
+     own margin. */
+  margin: 0 0 0.3125rem;
   font-family: var(--font-sans);
   text-transform: uppercase;
   /* 500, not the 600 the section labels take. Those labels head controls and
@@ -288,17 +290,22 @@
 
 .map-wrap .explorer-title {
   text-transform: none;
-  /* Bound to the eyebrow above it at 5, released to the subtitle below it at
-     7.65 — see the grouping note on .explorer-dek. */
-  margin: 0 0 0.5625rem;
-  /* Back up to 16. It had been walked down to 13.6 while this block was still
-     a chapter head under the Story's masthead; standing on its own, a title
-     one step off its own subtitle was not naming anything. The concern that
-     put it at 13.6 — that the largest thing on a panel meant to be OPERATED
-     should not be prose — is answered by weight instead: 500 at 16 is quieter
-     than 600 at 13.6 was. Set width is 227 in a 275 column, so it holds one
-     line at every width the desktop panel takes. */
-  font-size: 1.1875rem;
+  /* ONE STEP THROUGHOUT THE NAME. The eyebrow bound to the title at 5 and the
+     title released the subtitle at 7.65, which set the three lines at two
+     different depths and made the subtitle read as the start of the next
+     thing. It is not: the year, the name and the line that says what the name
+     means are one identity, and the 1.25rem below them is what separates that
+     identity from everything else. Both steps are 4.25 now. */
+  margin: 0 0 0.3125rem;
+  /* Back up from 13.6, where it had been walked while this block was still a
+     chapter head under the Story's masthead; standing on its own, a title one
+     step off its own subtitle was not naming anything. The concern that put it
+     at 13.6 — that the largest thing on a panel meant to be OPERATED should
+     not be prose — is answered by weight instead: 500 here is quieter than the
+     600 at 13.6 was. 15.3, a step back off 16 with the head seen whole: 16 was
+     right against the old four-block head and a touch loud against the two
+     clusters it has now. One line in the 275 column either way. */
+  font-size: 1.125rem;
   /* 500, not 600. Geist's semibold at 13.6px over a subtitle at 400 was doing
      the work of a much larger type contrast than the one step of size between
      them; medium says "this is the name" without saying it twice. */
@@ -324,7 +331,14 @@
   /* 1.25rem, the head's one block gap — see the note on .explorer-dek. */
   margin: 0 0 1.25rem;
   font-size: 0.8125rem;
-  font-weight: 400;
+  /* 500, with the title. The earlier note here said separation comes from size
+     and weight — that was written while the subtitle was one step of size off
+     the title and needed the second signal. At 15.3 over 11.05 size carries it
+     alone, and Regular under Medium was quietly filing this line with the
+     citation below it rather than with the name above it. Both at 500, the
+     three lines read as one identity and the tier below starts at the
+     citation, which is where the reader is actually crossing a boundary. */
+  font-weight: 500;
   line-height: 1.4;
   color: var(--ink);
 }
@@ -1118,4 +1132,195 @@
    and the note down with it. */
 .map-wrap .map-key-list li.is-placeholder {
   visibility: hidden;
+}
+
+/* THE HEAD PAYS FOR ITS OWN BOTTOM NOW.
+   It never did: the gap under "Read the Story" was the legend block's
+   `margin-top: 0.875rem`, borrowed from the block that used to sit between the
+   head and the transport. Moving the key to the bar took that margin with it
+   and left the transport's rule flush against the link's line box — measured
+   at 0 above the rule against 13.6 below it. A rule with space on one side is
+   not a divider, it is an underline on whatever sits above it.
+   1rem, which is exactly what the transport pays below the same rule. */
+.map-wrap .explorer-head {
+  padding-bottom: 1rem;
+}
+
+/* ── the key as a bar ──────────────────────────────────────────────────── */
+/* The key's length is a function of the zoom — four rows over the grid, five
+   over the tracks, plus a note that wraps to two lines in one state and one in
+   the other. Stacked in the left column that made everything under it (the
+   chart, the chips, the closing note) step up and down as the reader zoomed:
+   motion in a part of the panel nobody was looking at, caused by something
+   they did somewhere else.
+
+   Laid along the bottom of the map the same rows cost WIDTH. A legend that
+   grows sideways under the map moves nothing else on the screen, and the map
+   is where the reader's eye already is when they need it. */
+.map-wrap .map-key-bar {
+  /* Undoing the column block it inherits from `.archive-key-legend`, which it
+     wears for that class's swatch rules. The `padding` shorthand below covers
+     that class's own padding-top/bottom. */
+  margin: 0;
+  border-top: none;
+  position: absolute;
+  /* Centred on the map, not tucked under the panel. The bar names what the
+     whole map is drawing, so it belongs to the map's own axis rather than to
+     the column of controls at one edge of it.
+     The two things it must not reach are both at the edges — the panel at the
+     left, MapLibre's scale and attribution at the right — and the max-width
+     below is what keeps a centred bar clear of them: 26.25rem is the panel's
+     inset plus its width plus a gutter, doubled so the clearance is symmetric
+     and the bar stays centred while it grows. */
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 1.5rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  width: fit-content;
+  max-width: calc(100% - 52.5rem);
+  padding: 0.4375rem 0.75rem;
+  background: var(--v2-panel);
+  box-shadow: var(--v2-stroke), var(--v2-shadow);
+  font-family: var(--font-sans);
+}
+
+/* Centring costs twice the clearance it needs: the bar has to keep its whole
+   width clear of the panel on BOTH sides to stay on the map's axis. The widest
+   state the key reaches is 631 (track zoom, an agent isolated), which needs
+   1345 of viewport before the panel starts eating it. Under that the bar stops
+   centring and takes the room that is actually there, to the right of the
+   panel — a legend pushed off centre reads better than one with a row scrolled
+   out of sight. */
+@media (max-width: 1360px) {
+  .map-wrap .map-key-bar {
+    left: calc(1.5rem + 23.25rem + 1.5rem);
+    transform: none;
+    max-width: calc(100% - 26.25rem - 1.5rem);
+  }
+}
+
+.map-wrap .map-key-bar-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+/* The two halves of the bar are two different KINDS of thing — one sets the
+   map's view, one explains its marks — so a seam, the same hairline the chip
+   rows draw between their chips. */
+.map-wrap .map-key-bar-group + .map-key-bar-group {
+  position: relative;
+  padding-left: 0.875rem;
+}
+
+.map-wrap .map-key-bar-group + .map-key-bar-group::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 1.125rem;
+  background: rgba(33, 53, 40, 0.14);
+}
+
+/* The label's bottom margin is a column measurement; on a row it is a shove. */
+.map-wrap .map-key-bar .map-key-view-label {
+  margin: 0;
+  flex: none;
+}
+
+.map-wrap .map-key-bar .map-key-view {
+  margin: 0;
+  flex: none;
+}
+
+.map-wrap .map-key-bar .map-key-view-btn {
+  flex: none;
+  padding: 0.3125rem 0.875rem;
+}
+
+/* The list turns on its side. `nowrap` on purpose: wrapping would give the bar
+   a second line, which is the height change this whole experiment exists to
+   remove — so when the rows outgrow the space the bar scrolls instead. */
+.map-wrap .map-key-list.is-inline {
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.map-wrap .map-key-list.is-inline::-webkit-scrollbar {
+  display: none;
+}
+
+.map-wrap .map-key-list.is-inline li {
+  flex: none;
+  gap: 0.4375rem;
+  white-space: nowrap;
+}
+
+/* The note is the one thing that cannot come along: two lines of prose would
+   set the bar's height by its longest sentence and put the height problem back
+   one axis over. It becomes the one thing in the key a reader asks for. */
+.map-wrap .map-key-info {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+
+/* No pill behind it. The Material glyph is already a ring, and a disc under a
+   ring is two circles saying one thing — on a bar whose own swatches are 4px
+   dots it was also the heaviest mark in the row. */
+.map-wrap .map-key-info button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  cursor: help;
+}
+
+.map-wrap .map-key-info svg {
+  display: block;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.map-wrap .map-key-info button:hover,
+.map-wrap .map-key-info button:focus-visible {
+  color: var(--ink);
+}
+
+.map-wrap .map-key-info-pop {
+  position: absolute;
+  bottom: calc(100% + 0.625rem);
+  right: -0.5rem;
+  z-index: 4;
+  width: 17rem;
+  padding: 0.5rem 0.625rem;
+  background: var(--v2-panel);
+  box-shadow: var(--v2-stroke), var(--v2-shadow);
+  font-size: 0.625rem;
+  line-height: 1.5;
+  color: var(--ink-faint);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s;
+}
+
+.map-wrap .map-key-info:hover .map-key-info-pop,
+.map-wrap .map-key-info button:focus-visible + .map-key-info-pop {
+  opacity: 1;
+  visibility: visible;
 }

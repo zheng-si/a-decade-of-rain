@@ -38,6 +38,20 @@ interface Props {
    *  lines. A key that shows a dot over a map of lines is not a smaller
    *  problem than a key with the wrong words on it. */
   tracks?: boolean
+  /** Where the key is standing.
+   *
+   *  'panel' is the shipped home: a stacked block in the left column. Its
+   *  fault is that the key's LENGTH is a function of the zoom — four rows over
+   *  the grid, five over the tracks, and a note that runs to two lines in one
+   *  state and one in the other. Everything below it in that column (the
+   *  chart, the agent chips, the note) steps up and down as the reader zooms,
+   *  which is motion the reader did not ask for in a part of the panel they
+   *  were not looking at.
+   *
+   *  'bar' lays the same rows out along the bottom of the map. The row count
+   *  still changes; it just changes the bar's WIDTH, and a legend that grows
+   *  sideways under the map does not move anything else on the screen. */
+  layout?: 'panel' | 'bar'
 }
 
 export default function ArchiveKey({
@@ -49,6 +63,7 @@ export default function ArchiveKey({
   filtered,
   hues,
   tracks = false,
+  layout = 'panel',
 }: Props) {
   /** Whether the TRACK layer is drawing right now.
    *
@@ -145,8 +160,9 @@ export default function ArchiveKey({
     </li>
   )
 
-  return (
-    <div className="archive-key-legend">
+  // The three pieces, built once and placed by whichever layout is asking.
+  const viewSwitch = (
+    <>
       <p className="map-key-view-label">Map View</p>
       <div className="map-key-view" role="group" aria-label="Map view">
         {/* aria-pressed, not the class alone: `is-active` is a paint
@@ -172,17 +188,21 @@ export default function ArchiveKey({
           3D
         </button>
       </div>
-      {/* SHORT ROWS, ONE FOOTNOTE.
+    </>
+  )
+
+  /* SHORT ROWS, ONE FOOTNOTE.
           Every row used to carry its own justification — "Single Run · gal/km,
           from its first waypoint" is three facts in a label — and a key read
           top-to-bottom like prose stops being scannable, which is the one job
           it has. The rows now NAME the marks and the note below explains the
           encoding once. Nothing was dropped: every claim that was in a label is
-          still on screen, just not in the reader's way. */}
-      {/* Exposed: this list and the note under it are the only place the
-          map's marks are NAMED, and aria-hidden left the AX tree with zero
-          nodes carrying the legend. The swatches alone stay decorative. */}
-      <ul className="map-key-list">
+     still on screen, just not in the reader's way. */
+  /* Exposed: this list and the note under it are the only place the map's
+     marks are NAMED, and aria-hidden left the AX tree with zero nodes
+     carrying the legend. The swatches alone stay decorative. */
+  const list = (
+    <ul className={layout === 'bar' ? 'map-key-list is-inline' : 'map-key-list'}>
         {!onTracks && (
           <li>
             <span className="key-swatch" aria-hidden="true">
@@ -279,25 +299,75 @@ export default function ArchiveKey({
             appearing on the chip press grew the panel by a row and stepped the
             chart, the chips and the note down with it — and reserving the space
             IN PLACE left a hole in the middle of the legend that read as a
-            missing item. At the foot it reads as the padding it is. */}
-        {!filtered && placeholder}
+            missing item. At the foot it reads as the padding it is.
+            The bar has no height to hold open — a row arriving there costs
+            width, which is the whole point of the bar — so it does not
+            reserve one. */}
+        {!filtered && layout === 'panel' && placeholder}
       </ul>
-      {/* The encoding, once. Width is gallons per KM, not gallons — the only
-          quantity comparable between a 2 km run and a 40 km one. The fade names
-          each run's FIRST WAYPOINT ON FILE (leg 1A, the row the gallons are
-          booked against), not a verified heading: HERBS records no bearing, so
-          "direction of flight" would be a claim the record does not make. */}
-      <p className="map-key-note">
-        {onTracks
-          ? 'Stroke width is gallons per kilometre. Each run fades away from its first waypoint on file.'
-          : 'Dot area is the gallons that fell in the cell, counted along every run that crossed it.'}
-        {/* Only while the colour is carrying it. With an agent isolated the
-            colour means "the one you picked", which the chip already says. */}
-        {byAgent &&
-          (onTracks
-            ? ' Colour is the agent that flew it.'
-            : ' Colour is the agent that sprayed the most in that cell.')}
-      </p>
+  )
+  /* The encoding, once. Width is gallons per KM, not gallons — the only
+     quantity comparable between a 2 km run and a 40 km one. The fade names
+     each run's FIRST WAYPOINT ON FILE (leg 1A, the row the gallons are booked
+     against), not a verified heading: HERBS records no bearing, so "direction
+     of flight" would be a claim the record does not make.
+     The second sentence only while the colour is carrying the agent: with a
+     chip on, colour means "the one you picked", which the chip already says. */
+  const note =
+    (onTracks
+      ? 'Stroke width is gallons per kilometre. Each run fades away from its first waypoint on file.'
+      : 'Dot area is the gallons that fell in the cell, counted along every run that crossed it.') +
+    (byAgent
+      ? onTracks
+        ? ' Colour is the agent that flew it.'
+        : ' Colour is the agent that sprayed the most in that cell.'
+      : '')
+
+  // ── the bar ────────────────────────────────────────────────────────────
+  // Same rows, laid along the bottom of the map. The note cannot come with
+  // them: two lines of prose would set the bar's height by its longest
+  // sentence and put the height problem back, one axis over. It becomes the
+  // one thing in the key a reader has to ask for.
+  if (layout === 'bar') {
+    /* `archive-key-legend` comes along because every swatch in this key — the
+       dot, the tapered line, the dash, the ring, the border rule — is drawn by
+       a rule scoped to that class. Dropping it left the rows labelled and
+       blank. The bar's own rules undo the block layout it also carries. */
+    return (
+      <div className="archive-key-legend map-key-bar" role="group" aria-label="Map key">
+        <div className="map-key-bar-group">{viewSwitch}</div>
+        <div className="map-key-bar-group is-legend">
+          <p className="map-key-view-label">Map Key</p>
+          {list}
+          <span className="map-key-info">
+            <button
+              type="button"
+              aria-label="How the marks are drawn"
+              aria-describedby="map-key-note-pop"
+            >
+              {/* Material Symbols "info", 300 weight, optical size 24 — the
+                  outlined ring rather than a filled disc, which would have
+                  been the heaviest mark on a bar whose own swatches are 4px
+                  dots. Material's own viewBox: the origin sits on the
+                  baseline, so the artwork runs from y −960 to 0. */}
+              <svg viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true">
+                <path d="M450-290h60v-230h-60v230Zm52.92-307.75q9.39-9.29 9.39-23.02t-9.29-23.02q-9.29-9.28-23.02-9.28t-23.02 9.28q-9.29 9.29-9.29 23.02t9.39 23.02q9.38 9.29 22.92 9.29 13.54 0 22.92-9.29ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
+              </svg>
+            </button>
+            <span id="map-key-note-pop" role="tooltip" className="map-key-info-pop">
+              {note}
+            </span>
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="archive-key-legend">
+      {viewSwitch}
+      {list}
+      <p className="map-key-note">{note}</p>
     </div>
   )
 }
