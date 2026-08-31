@@ -7,6 +7,7 @@ import { track } from '../lib/analytics'
 import Timeline, { buildVolume, type VolumeChart } from './Timeline'
 import ArchiveKey from './ArchiveKey'
 import { buildAgentChoices, type AgentChoice } from './agentChoices'
+import { applyTunedAgents } from './mapTunerAgents'
 import {
   resolveMapStyle,
   applyMapTheme,
@@ -86,13 +87,26 @@ import { applyLabelCuration } from './labelLayers'
  *  is what makes the split real. */
 const MapTuner = lazy(() => import('./MapTuner'))
 
-function tunerEnabled(): boolean {
+/** LATCHED AT IMPORT, not read per render.
+ *
+ *  This used to evaluate `location.search` inside the render that mounts the
+ *  panel — and the Archive mirrors its own state into the query string with
+ *  `replaceState`, which rewrites `?tune` away well before `ready` flips true.
+ *  Whether the console appeared was therefore a race between the first paint
+ *  and the first camera write: it worked from a cold load often enough to look
+ *  fine and vanished the moment anything moved the map first. Reading it once,
+ *  at import, is reading it before the app has had a chance to lie about it. */
+const TUNE_GATE: boolean = (() => {
   if (import.meta.env.DEV) return true
   try {
     return new URLSearchParams(window.location.search).has('tune')
   } catch {
     return false
   }
+})()
+
+function tunerEnabled(): boolean {
+  return TUNE_GATE
 }
 
 /** The Archive draws no military regions. Named rather than deleted so the
@@ -417,6 +431,12 @@ function buildSearch(
   lookup: LookupState,
 ): string {
   const q = new URLSearchParams()
+  // The console's own flag rides along. It is not view state, but this
+  // function is the sole author of the query string, so anything it does not
+  // re-emit is deleted -- and the agent colours are applied at LOAD, which
+  // means the one thing the console cannot do without is a reload that keeps
+  // its gate. Costs a reader nothing: nobody without `?tune` ever sets it.
+  if (tunerEnabled()) q.set('tune', '')
   if (Math.round(day) < dayMax) q.set('t', dayToDate(day).toISOString().slice(0, 10))
   if (agentKey !== 'all') q.set('agent', agentKey)
   if (map) {
@@ -932,6 +952,15 @@ export default function MapView() {
           setHillshade(map, true, RELIEF_FLAT)
         }
 
+        // The console's agent colours, if it has any stored, written over
+        // mapConfig BEFORE anything reads it. Every consumer below — the
+        // choices, the per-event colour stamp, the track features' baked `c` —
+        // takes its palette from that object once, here, at load. Same gate as
+        // the panel itself, so a reader on the live site never enters this.
+        if (tunerEnabled()) {
+          const tuned = applyTunedAgents()
+          if (tuned.length) console.info('[tuner] agent colours from store:', tuned.join(', '))
+        }
         const agentChoices = buildAgentChoices(spray.agents)
         // M2: gridded proportional symbols replace the heatmap — one
         // representational language (the dot) at every zoom, only the
@@ -1528,6 +1557,22 @@ export default function MapView() {
     // and it is the one that changed the thing the cache is keyed on.
     resetTrackGrid()
     gridTierKeyRef.current = {}
+    // The console can also change the AGENT colours, and those live in
+    // `choices` — which `groupHues` derives, which the dots and the four
+    // tapered stroke layers paint from. Re-reading mapConfig here is what
+    // makes a swatch drag show up without a reload. Guarded on a real
+    // difference so an ordinary regrid (a cell-size change) does not churn
+    // every consumer of `choices` for nothing.
+    setChoices((cs) => {
+      let moved = false
+      const next = cs.map((c) => {
+        const g = mapConfig.agents.find((a) => a.key === c.key)
+        if (!g || !c.color || c.color === g.color) return c
+        moved = true
+        return { ...c, color: g.color }
+      })
+      return moved ? next : cs
+    })
     // Clearing the key is what actually re-bins — the day effect runs next and
     // picks whichever binning the current reading calls for. This direct call
     // is the point-bin path only, and under TRACKS it is the same discarded

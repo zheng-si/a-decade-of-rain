@@ -685,3 +685,32 @@
   font-size: 0.63rem;
   color: #3c3f38;
 }
+
+/* ── the four agents ──────────────────────────────────────────────────── */
+/* A heading INSIDE a tab, which the panel had not needed until the palette tab
+   grew a second subject: the ground and the marks on it are tuned against each
+   other, so they belong on one tab, but they are still two things. */
+.tuner-sub {
+  margin: 0.75rem 0 0;
+  color: #3f423c;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* Four columns, not the base row's three: these rows carry a live readout as
+   well as a swatch and a field, and the numbers are the reason the row exists.
+   Read at the alpha the dots draw at, so they are the contrast the map has
+   rather than the contrast the swatch claims. */
+.tuner-row.is-agent {
+  grid-template-columns: 4rem 1.75rem 4.75rem 1fr;
+}
+
+.tuner-row.is-agent em {
+  font-style: normal;
+  font-size: 0.6rem;
+  line-height: 1.3;
+  color: #8a8d85;
+  font-variant-numeric: tabular-nums;
+}
