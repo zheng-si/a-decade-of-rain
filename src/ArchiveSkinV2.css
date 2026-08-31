@@ -249,7 +249,9 @@
    sized to sit beside a title in the same face; against a Geist title it was
    a second heading rather than the label above one. */
 .map-wrap .explorer-eyebrow {
-  margin: 0 0 0.375rem;
+  /* 4.25, the same step the title pays below it — see the note on the title's
+     own margin. */
+  margin: 0 0 0.3125rem;
   font-family: var(--font-sans);
   text-transform: uppercase;
   /* 500, not the 600 the section labels take. Those labels head controls and
@@ -288,9 +290,13 @@
 
 .map-wrap .explorer-title {
   text-transform: none;
-  /* Bound to the eyebrow above it at 5, released to the subtitle below it at
-     7.65 — see the grouping note on .explorer-dek. */
-  margin: 0 0 0.5625rem;
+  /* ONE STEP THROUGHOUT THE NAME. The eyebrow bound to the title at 5 and the
+     title released the subtitle at 7.65, which set the three lines at two
+     different depths and made the subtitle read as the start of the next
+     thing. It is not: the year, the name and the line that says what the name
+     means are one identity, and the 1.25rem below them is what separates that
+     identity from everything else. Both steps are 4.25 now. */
+  margin: 0 0 0.3125rem;
   /* Back up from 13.6, where it had been walked while this block was still a
      chapter head under the Story's masthead; standing on its own, a title one
      step off its own subtitle was not naming anything. The concern that put it
@@ -325,7 +331,14 @@
   /* 1.25rem, the head's one block gap — see the note on .explorer-dek. */
   margin: 0 0 1.25rem;
   font-size: 0.8125rem;
-  font-weight: 400;
+  /* 500, with the title. The earlier note here said separation comes from size
+     and weight — that was written while the subtitle was one step of size off
+     the title and needed the second signal. At 15.3 over 11.05 size carries it
+     alone, and Regular under Medium was quietly filing this line with the
+     citation below it rather than with the name above it. Both at 500, the
+     three lines read as one identity and the tier below starts at the
+     citation, which is where the reader is actually crossing a boundary. */
+  font-weight: 500;
   line-height: 1.4;
   color: var(--ink);
 }
