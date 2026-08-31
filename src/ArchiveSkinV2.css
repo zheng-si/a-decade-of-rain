@@ -1138,23 +1138,42 @@
   margin: 0;
   border-top: none;
   position: absolute;
-  /* Continuing the panel's own column, not starting a second one. The
-     bottom-right belongs to MapLibre's scale and attribution — the map's own
-     furniture, which cannot move. 23.25rem is the panel width stated above;
-     1.5rem is its left inset, and the third is the gutter between them. */
-  left: calc(1.5rem + 23.25rem + 1.5rem);
+  /* Centred on the map, not tucked under the panel. The bar names what the
+     whole map is drawing, so it belongs to the map's own axis rather than to
+     the column of controls at one edge of it.
+     The two things it must not reach are both at the edges — the panel at the
+     left, MapLibre's scale and attribution at the right — and the max-width
+     below is what keeps a centred bar clear of them: 26.25rem is the panel's
+     inset plus its width plus a gutter, doubled so the clearance is symmetric
+     and the bar stays centred while it grows. */
+  left: 50%;
+  transform: translateX(-50%);
   bottom: 1.5rem;
-  right: 1.5rem;
   z-index: 2;
   display: flex;
   align-items: center;
   gap: 0.875rem;
   width: fit-content;
-  max-width: calc(100% - 26.25rem - 1.5rem);
+  max-width: calc(100% - 52.5rem);
   padding: 0.4375rem 0.75rem;
   background: var(--v2-panel);
   box-shadow: var(--v2-stroke), var(--v2-shadow);
   font-family: var(--font-sans);
+}
+
+/* Centring costs twice the clearance it needs: the bar has to keep its whole
+   width clear of the panel on BOTH sides to stay on the map's axis. The widest
+   state the key reaches is 631 (track zoom, an agent isolated), which needs
+   1345 of viewport before the panel starts eating it. Under that the bar stops
+   centring and takes the room that is actually there, to the right of the
+   panel — a legend pushed off centre reads better than one with a row scrolled
+   out of sight. */
+@media (max-width: 1360px) {
+  .map-wrap .map-key-bar {
+    left: calc(1.5rem + 23.25rem + 1.5rem);
+    transform: none;
+    max-width: calc(100% - 26.25rem - 1.5rem);
+  }
 }
 
 .map-wrap .map-key-bar-group {
@@ -1232,28 +1251,29 @@
   align-items: center;
 }
 
+/* No pill behind it. The Material glyph is already a ring, and a disc under a
+   ring is two circles saying one thing — on a bar whose own swatches are 4px
+   dots it was also the heaviest mark in the row. */
 .map-wrap .map-key-info button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 0.9375rem;
-  height: 0.9375rem;
   padding: 0;
   border: none;
-  border-radius: 50%;
-  background: rgba(33, 53, 40, 0.08);
-  font-family: var(--font-serif);
-  font-size: 0.5625rem;
-  font-style: italic;
-  line-height: 1;
+  background: none;
   color: var(--ink-faint);
   cursor: help;
 }
 
+.map-wrap .map-key-info svg {
+  display: block;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
 .map-wrap .map-key-info button:hover,
 .map-wrap .map-key-info button:focus-visible {
-  background: var(--v2-fill);
-  color: var(--forest-text);
+  color: var(--ink);
 }
 
 .map-wrap .map-key-info-pop {
