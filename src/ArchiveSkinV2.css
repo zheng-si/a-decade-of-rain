@@ -28,11 +28,40 @@
   --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: var(--font-sans);
 
-  /* Two shadows, two jobs. The panel's is wide and almost absent — it
-     separates glass from map. A control sitting ON that glass has the harder
-     problem: white on white, with no border left to help, so it needs a tight
-     close one to stop dissolving into the surface it floats on. */
-  --v2-shadow: 0 8px 28px rgba(40, 38, 30, 0.02);
+  /* Two shadows, two jobs. The panel's separates glass from map. A control
+     sitting ON that glass has the harder problem: white on white, with no
+     border left to help, so it needs a tight close one to stop dissolving
+     into the surface it floats on.
+
+     EXPERIMENT. This was one stop — `0 8px 28px rgba(40,38,30,0.02)` — and 2%
+     spread over a 28px blur is, at the panel's own edge, about half a percent
+     of a value: the surfaces read as white rectangles pasted onto the map
+     rather than as things floating above it. Three stops now, which is what
+     actually produces depth: a 2px contact shadow that grounds the edge, a
+     mid stop for the body, and the wide ambient one this used to be, alone.
+     Each is still light — 5, 5, 6 percent — and they only add up where they
+     overlap, right under the surface. Measured at 1px below the edge that
+     comes to roughly 6% over the #f7f7f7 land, so the corner arrives as a
+     soft grey rather than as a line. */
+  --v2-shadow:
+    0 1px 2px rgba(40, 38, 30, 0.05),
+    0 5px 12px rgba(40, 38, 30, 0.05),
+    0 16px 36px rgba(40, 38, 30, 0.06);
+
+  /* EXPERIMENT. Literal pixels, not rem, and deliberately: every other size in
+     this file is rem-based because the root font-size is the density dial
+     (13.6px between 641 and 1600 wide, 16px above). A corner radius is not a
+     measure of content — it is a fixed optical property of the surface — and
+     0.5rem would land at 6.8px on a 14" laptop, which is not the 8 that was
+     asked for. Point this at 0.5rem if the corners should track the dial. */
+  --v2-radius: 8px;
+
+  /* Half, for small surfaces, because a radius reads as a PROPORTION of the
+     box it rounds. 8px is 2.5% of the 316px panel and reads as a softened
+     corner; the same 8px is 28% of the 29px zoom stack and reads as a pill —
+     two different shape languages from one number. Halving it keeps the small
+     control in the same family as the panel instead of louder than it. */
+  --v2-radius-sm: 4px;
 
   /* ── the elevation recipe, shared verbatim with the Story ───────────────
      Same two parts, same values, same reasoning — the long version lives on
@@ -116,13 +145,18 @@
 .map-wrap .archive-key {
   background: var(--v2-panel);
   border: none;
-  border-radius: 0;
+  border-radius: var(--v2-radius);
   /* The stroke, plus their own wide float rather than the whisper. These are
      the two biggest surfaces on the Archive and they hang over a moving map,
      so they need more separation than a card on paper does -- but they had NO
      edge of any kind, which is why the panel's top corner dissolved into a
      pale patch of basemap. The line is the new part; the float is unchanged. */
   box-shadow: var(--v2-stroke), var(--v2-shadow);
+  /* NOT `overflow: hidden` to make the children respect the radius, tempting
+     as it is: the Location Lookup's results drop is absolutely positioned
+     inside the key panel and hangs below its row, so clipping the panel would
+     clip the drop. Both panels pad their content away from all four corners,
+     so nothing full-bleed reaches one — checked at 2x on the corners of both. */
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
@@ -214,11 +248,11 @@
   .map-wrap .explorer-panel {
     left: 0;
     width: 100%;
-    border-radius: 0.5rem 0.5rem 0 0;
+    border-radius: var(--v2-radius) var(--v2-radius) 0 0;
   }
 
   .map-wrap.inspect-open .archive-key {
-    border-radius: 0.5rem 0.5rem 0 0;
+    border-radius: var(--v2-radius) var(--v2-radius) 0 0;
   }
 
   /* The identity block, compressed — stated at the skin's own two-class
@@ -1098,11 +1132,25 @@
   color: var(--ink-faint);
 }
 
-/* MapLibre's own controls are part of the surface too. */
-.map-wrap .maplibregl-ctrl-group,
+/* MapLibre's own controls are part of the surface too — which is why they get
+   the same three-stop float and the same corner. The stroke is new here: this
+   was the one floating surface with no edge at all, so at the map's pale
+   corners the zoom stack had nothing holding its outline.
+
+   The radius goes on the GROUP, with the buttons clipped to it, because the
+   group is one object — a stack of buttons that shares a surface. Rounding
+   each button instead would draw a corner at every seam. This is the one
+   place clipping is safe: nothing inside a zoom control overflows it. The
+   buttons drop their own shadow, which was stacking one float per button. */
+.map-wrap .maplibregl-ctrl-group {
+  border-radius: var(--v2-radius-sm);
+  overflow: hidden;
+  box-shadow: var(--v2-stroke), var(--v2-shadow);
+}
+
 .map-wrap .maplibregl-ctrl-group button {
   border-radius: 0;
-  box-shadow: var(--v2-shadow);
+  box-shadow: none;
 }
 
 /* ── the key, when the colour is carrying the agent ──────────────────────
@@ -1188,6 +1236,7 @@
   max-width: calc(100% - 52.5rem);
   padding: 0.4375rem 0.75rem;
   background: var(--v2-panel);
+  border-radius: var(--v2-radius);
   box-shadow: var(--v2-stroke), var(--v2-shadow);
   font-family: var(--font-sans);
 }
@@ -1334,6 +1383,7 @@
   white-space: normal;
   padding: 0.5rem 0.625rem;
   background: var(--v2-panel);
+  border-radius: var(--v2-radius);
   box-shadow: var(--v2-stroke), var(--v2-shadow);
   font-size: 0.625rem;
   line-height: 1.5;
