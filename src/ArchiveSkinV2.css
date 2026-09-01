@@ -5,7 +5,7 @@
    all of them subtractive:
 
      1. ONE typeface. Geist everywhere; the serif/sans pairing is gone.
-     2. ONE corner radius, small. Was "no corner radii at all"; a 4px corner
+     2. ONE corner radius, small. Was "no corner radii at all"; a 2px corner
         went back on in Sep 2026, on the surfaces and the controls but never
         on a data mark. See --v2-radius.
      3. NO strokes, almost. Panel borders go; the two hairline RULES that
@@ -53,18 +53,27 @@
      Literal pixels, not rem, and deliberately: every other size in this file
      is rem-based because the root font-size is the density dial (13.6px
      between 641 and 1600 wide, 16px above). A corner radius is not a measure
-     of content — it is a fixed optical property of the surface — and 0.25rem
-     would land at 3.4px on a 14" laptop rather than 4. Point this at 0.25rem
+     of content — it is a fixed optical property of the surface — and 0.125rem
+     would land at 1.7px on a 14" laptop rather than 2. Point this at 0.125rem
      if the corners should track the dial instead.
 
-     4, from the IHG app: its small chips read ~4pt and its cards and buttons
-     ~8pt on a 430pt-wide phone. One value rather than that pair, because the
-     pair only pays off where the boxes differ by an order of magnitude. A
-     radius reads as a PROPORTION of the box it rounds, and this screen's run
-     from the 316px panel to the 29px zoom stack is 1.3% to 14% at 4px —
-     everything still reads as a softened edge. At 8 the same run was 2.5% to
-     28%, a softened corner and a pill from one number, which is what forced
-     two tokens the first time round.
+     8, then 4, then 2. The IHG app that started this reads ~4pt on its small
+     chips and ~8pt on its cards, but that is a 430pt-wide phone where a card
+     is 100pt across; the same numbers on a 1600px desktop landed heavier than
+     the reference felt, which is what each step down was chasing.
+
+     One value, not a scale, and the case for that gets stronger as the number
+     shrinks. A radius reads as a PROPORTION of the box it rounds, so the
+     spread across this screen — the 316px panel at one end, the 29px zoom
+     stack at the other — is what decides whether one token can cover both.
+     At 8px it ran 2.5% to 28%: a softened corner and a pill from one number,
+     which is what forced a second token the first time round. At 4px, 1.3% to
+     14%. Here, 0.6% to 6.9%, and everything on the screen reads the same way.
+
+     2px is also the floor. Below it a corner stops being a corner: at 1px it
+     is one anti-aliased pixel a side, indistinguishable from the stroke
+     already drawn there, and the honest way to go softer than this is to go
+     square.
 
      THREE rules for where it goes, and the third is the one that matters:
 
@@ -75,9 +84,9 @@
           corner at every internal seam.
        3. Data marks NEVER take it. The agent bars encode gallons as length,
           and a radius shortens the flat part of a bar by its own size at each
-          end — on the shortest bars that is most of the mark. A corner that
-          softens a button is a corner that lies about a number. */
-  --v2-radius: 4px;
+          end. A corner that softens a button is a corner that lies about a
+          number, and that stays true at 2px on the shortest bars. */
+  --v2-radius: 2px;
 
   /* ── the elevation recipe, shared verbatim with the Story ───────────────
      Same two parts, same values, same reasoning — the long version lives on
@@ -936,9 +945,9 @@
 
 /* Rule 3 of the radius, and the one exception on this screen. These bars are
    gallons drawn as length, and a radius eats its own size off the flat part of
-   the mark at each end — 8 of the 4px bar's pixels, which on the shortest
-   agent is most of what there is to read. Everything else here rounds; a
-   measurement does not. */
+   the mark at each end — 4 of the 4px bar's pixels even at the 2px this file
+   now uses, and the shortest agent is not much wider than that. Everything
+   else here rounds; a measurement does not. */
 .map-wrap .inspect-bar-track,
 .map-wrap .inspect-bar {
   border-radius: 0;
