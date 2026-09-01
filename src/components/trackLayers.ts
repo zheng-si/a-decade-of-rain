@@ -272,6 +272,23 @@ let paintState = {
  *  the question is "this agent against the rest", and two colours answer it. */
 export const TRACK_HUE_LAYERS = ['spray-track-h0', 'spray-track-h1', 'spray-track-h2', 'spray-track-h3']
 
+/** The drawing layer's own twins, one per agent.
+ *
+ *  Same constraint that forced TRACK_HUE_LAYERS to exist, one layer further
+ *  in: the wipe is a `line-gradient`, a gradient reads `line-progress` and
+ *  cannot see which agent a stroke belongs to, so a single drawing layer can
+ *  only be ONE colour. That colour was `paintState.tint` — which, with nothing
+ *  isolated, is the brand red this map stopped using when the colour channel
+ *  was given to the agent. Every run therefore wiped in red before settling
+ *  into its own hue, and late in a play-through, with steps arriving on top of
+ *  a dense field, the red is most of what is on screen. */
+export const TRACK_DRAW_HUE_LAYERS = [
+  'spray-track-draw-h0',
+  'spray-track-draw-h1',
+  'spray-track-draw-h2',
+  'spray-track-draw-h3',
+]
+
 /** #rrggbb → rgba(), for the gradient stops. MapLibre needs a colour string
  *  with the alpha baked in; line-opacity multiplies on top of it. */
 function rgba(hex: string, a: number): string {
@@ -361,6 +378,14 @@ function wipe(colour: string, q: number): maplibregl.ExpressionSpecification {
  *  worker, a re-parse, a tile rebuild, all to arrive at the same nothing. */
 let drawEmpty = true
 
+/** Which agent groups the arriving step actually contains.
+ *
+ *  setDrawProgress runs every animation frame, so writing all four twins'
+ *  gradients per frame would quadruple the one write the single layer used to
+ *  cost. A step usually holds one or two agents, so only those are written and
+ *  the common case is no dearer than before. */
+let drawGis: number[] = []
+
 export function setTrackDraw(map: maplibregl.Map, data: GeoJSON.FeatureCollection) {
   const empty = data.features.length === 0
   if (empty && drawEmpty) return
@@ -368,19 +393,55 @@ export function setTrackDraw(map: maplibregl.Map, data: GeoJSON.FeatureCollectio
   if (!src) return
   src.setData(data)
   drawEmpty = empty
+  const seen = new Set<number>()
+  for (const f of data.features) {
+    const gi = (f.properties as { gi?: number } | null)?.gi
+    if (typeof gi === 'number') seen.add(gi)
+  }
+  drawGis = [...seen]
 }
 
 /** Advance the drawing front. Called every frame — on the SMALL source. */
 export function setDrawProgress(map: maplibregl.Map, q: number) {
+  // With nothing isolated the twins carry it, each in its own agent's colour.
+  if (drawHueLive) {
+    for (const gi of drawGis) {
+      const id = TRACK_DRAW_HUE_LAYERS[gi]
+      const c = paintState.palette[gi]
+      if (c && map.getLayer(id)) map.setPaintProperty(id, 'line-gradient', wipe(c, q) as never)
+    }
+    return
+  }
   if (!map.getLayer(TRACK_DRAW_LAYER)) return
+  // An agent IS isolated, so the tint is that agent's own colour and one layer
+  // is the right answer.
   map.setPaintProperty(TRACK_DRAW_LAYER, 'line-gradient', wipe(paintState.tint, q) as never)
 }
 
 /** Show or hide the drawing layer without touching the record's own source. */
-export function setDrawVisible(map: maplibregl.Map, on: boolean) {
-  if (map.getLayer(TRACK_DRAW_LAYER)) {
-    map.setLayoutProperty(TRACK_DRAW_LAYER, 'visibility', on && TRACKS.draw.shown ? 'visible' : 'none')
+/** Whether the drawing twins are the ones carrying the arriving step, and
+ *  whether MapView wants the drawing layer on at all. Two facts set from two
+ *  places — the colour pass and the playback loop — that together decide one
+ *  visibility, so they are applied through one function. */
+let drawHueLive = false
+let drawShown = false
+
+function applyDrawVisibility(map: maplibregl.Map) {
+  const show = drawShown && TRACKS.draw.shown
+  for (let gi = 0; gi < TRACK_DRAW_HUE_LAYERS.length; gi++) {
+    const id = TRACK_DRAW_HUE_LAYERS[gi]
+    if (map.getLayer(id)) {
+      map.setLayoutProperty(id, 'visibility', show && drawHueLive ? 'visible' : 'none')
+    }
   }
+  if (map.getLayer(TRACK_DRAW_LAYER)) {
+    map.setLayoutProperty(TRACK_DRAW_LAYER, 'visibility', show && !drawHueLive ? 'visible' : 'none')
+  }
+}
+
+export function setDrawVisible(map: maplibregl.Map, on: boolean) {
+  drawShown = on
+  applyDrawVisibility(map)
 }
 
 // ── the playhead is PAINT, not a filter ───────────────────────────────────
@@ -611,7 +672,7 @@ export function applyTracks(map: maplibregl.Map) {
   // console could open a blank band between the two encodings and nothing said
   // so. minzoom is a layer property like any other; it belongs in the same
   // apply as the paint.
-  for (const id of [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER, TRACK_END_LAYER, TRACK_DRAW_LAYER, TRACK_HI_LAYER, TRACK_HI_MARK_LAYER, ...TRACK_HUE_LAYERS]) {
+  for (const id of [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER, TRACK_END_LAYER, TRACK_DRAW_LAYER, TRACK_HI_LAYER, TRACK_HI_MARK_LAYER, ...TRACK_HUE_LAYERS, ...TRACK_DRAW_HUE_LAYERS]) {
     if (map.getLayer(id)) map.setLayerZoomRange(id, trackStart, 24)
   }
   // The highlight is the stroke's own ramp plus a constant, so a console change
@@ -622,13 +683,16 @@ export function applyTracks(map: maplibregl.Map) {
     map.setLayoutProperty(TRACK_HI_LAYER, 'line-cap', TRACKS.cap)
   }
   // The drawing layer shares the stroke's geometry rules, so it shares their
-  // ramp — a run must not change width the moment it stops arriving.
-  if (map.getLayer(TRACK_DRAW_LAYER)) {
-    map.setPaintProperty(TRACK_DRAW_LAYER, 'line-width', widthRamp() as never)
-    map.setPaintProperty(TRACK_DRAW_LAYER, 'line-opacity', TRACKS.opacity)
-    map.setPaintProperty(TRACK_DRAW_LAYER, 'line-blur', TRACKS.blur)
-    map.setLayoutProperty(TRACK_DRAW_LAYER, 'line-cap', TRACKS.cap)
-    if (!TRACKS.draw.shown) map.setLayoutProperty(TRACK_DRAW_LAYER, 'visibility', 'none')
+  // ramp — a run must not change width the moment it stops arriving. Its four
+  // agent twins share them too, or a console change would move one and not the
+  // others.
+  for (const id of [TRACK_DRAW_LAYER, ...TRACK_DRAW_HUE_LAYERS]) {
+    if (!map.getLayer(id)) continue
+    map.setPaintProperty(id, 'line-width', widthRamp() as never)
+    map.setPaintProperty(id, 'line-opacity', TRACKS.opacity)
+    map.setPaintProperty(id, 'line-blur', TRACKS.blur)
+    map.setLayoutProperty(id, 'line-cap', TRACKS.cap)
+    if (!TRACKS.draw.shown) map.setLayoutProperty(id, 'visibility', 'none')
   }
   for (const id of [TRACK_LAYER, TRACK_DIM_LAYER]) {
     if (!map.getLayer(id)) continue
@@ -813,6 +877,27 @@ export function addTrackLayers(
     },
     labelId,
   )
+  // One per agent, on the same small source. Empty until applyTrackColour
+  // decides the state is "all agents"; see TRACK_DRAW_HUE_LAYERS.
+  for (let gi = 0; gi < TRACK_DRAW_HUE_LAYERS.length; gi++) {
+    map.addLayer(
+      {
+        id: TRACK_DRAW_HUE_LAYERS[gi],
+        type: 'line',
+        source: TRACK_DRAW_SOURCE,
+        minzoom: Z_NEAR,
+        filter: all(NEVER),
+        layout: { 'line-cap': TRACKS.cap, 'line-join': 'round', visibility: 'none' },
+        paint: {
+          'line-width': widthRamp(),
+          'line-opacity': TRACKS.opacity,
+          'line-blur': TRACKS.blur,
+          'line-gradient': wipe(tint, 0),
+        },
+      },
+      labelId,
+    )
+  }
 
   // Endpoint caps last, so they sit on top of the stroke they belong to.
   map.addLayer(
@@ -925,11 +1010,28 @@ function applyDayGate(map: maplibregl.Map) {
   const set = (id: string, prop: string, o: number) => {
     if (!off(map, id)) map.setPaintProperty(id, prop, dayGate(o) as never)
   }
-  set(TRACK_LAYER, 'line-opacity', TRACKS.opacity)
+  // Zero while the twins carry it, for the same reason the gradient write is
+  // skipped: the filter that hides this layer is slower than any paint, so it
+  // must not be able to draw anything in the gap.
+  set(TRACK_LAYER, 'line-opacity', hueLive ? 0 : TRACKS.opacity)
   set(TRACK_DIM_LAYER, 'line-opacity', TRACKS.opacity)
   set(TRACK_NIL_LAYER, 'line-opacity', TRACKS.nil.opacity)
   set(TRACK_MARK_LAYER, 'circle-opacity', TRACKS.opacity)
   set(TRACK_END_LAYER, 'circle-opacity', beadOpacity())
+  // AND THE FOUR HUE TWINS, which is the bug this line fixes.
+  //
+  // They are built with `dayGate(...)` baked in, so they looked gated and were
+  // not: the gate closes over `lastDay`, and nothing ever wrote it again. The
+  // playhead therefore had no effect on the layers that carry the record in
+  // the state the reader spends most of their time in — settled, all agents,
+  // at track zoom. Reset left the whole decade on screen, and pressing play
+  // appeared to fix it only because playback suspends the taper, which hands
+  // the record to TRACK_LAYER, which was gated all along.
+  //
+  // Only while they are the ones drawing: a paint write to a NEVER-filtered
+  // layer still marks the source for reload, which is the cost `off()` guards
+  // everywhere else in this function.
+  if (hueLive) for (const id of TRACK_HUE_LAYERS) set(id, 'line-opacity', TRACKS.opacity)
 }
 
 export function setTrackTime(map: maplibregl.Map, day: number) {
@@ -1015,6 +1117,10 @@ let taperLive = true
  *  feature, exactly as the lookup's own layers do. */
 let hiByFeature = false
 
+/** Whether the four hue twins are the layers currently carrying the record.
+ *  Owned by applyTrackColour, read by applyDayGate — see the note there. */
+let hueLive = false
+
 /** Flipped by the lookup as its circle opens and closes. */
 export function setHighlightByFeature(map: maplibregl.Map, on: boolean) {
   if (hiByFeature === on) return
@@ -1042,12 +1148,39 @@ function applyTrackColour(map: maplibregl.Map) {
 
   // The four hue twins carry the record only in that state, and only while
   // there is a taper to make one layer per colour necessary.
+  // The drawing twins follow `byFeature` alone: the wipe is a gradient in every
+  // state, so the "one layer can only be one colour" problem does not wait for
+  // the settled taper the way the record's own twins do.
+  drawHueLive = byFeature
+  for (let gi = 0; gi < TRACK_DRAW_HUE_LAYERS.length; gi++) {
+    const id = TRACK_DRAW_HUE_LAYERS[gi]
+    if (!has(id)) continue
+    const on = drawHueLive && !!palette[gi]
+    map.setFilter(id, on ? ['==', ['get', 'gi'], gi] : all(NEVER))
+    // Seeded with its own colour rather than left on the tint it was created
+    // with. setDrawProgress writes only the agents present in the arriving
+    // step, so a twin that has not had a step yet would otherwise be holding
+    // the brand red this change exists to get rid of.
+    if (on) map.setPaintProperty(id, 'line-gradient', wipe(palette[gi], 0) as never)
+  }
+  applyDrawVisibility(map)
+
+  hueLive = byFeature && tapering
+  // Before the twins are touched, so the flat layer is already at zero when
+  // their filters land.
+  if (!off(map, TRACK_LAYER)) {
+    map.setPaintProperty(TRACK_LAYER, 'line-opacity', dayGate(hueLive ? 0 : TRACKS.opacity) as never)
+  }
   for (let gi = 0; gi < TRACK_HUE_LAYERS.length; gi++) {
     const id = TRACK_HUE_LAYERS[gi]
     if (!has(id)) continue
-    if (byFeature && tapering && palette[gi]) {
+    if (hueLive && palette[gi]) {
       map.setFilter(id, all(HAS_VOLUME, ['==', ['get', 'gi'], gi]))
       map.setPaintProperty(id, 'line-gradient', gradient(palette[gi]) as never)
+      // The playhead as it stands right now. Turning a layer on is the other
+      // moment its gate can be stale, and applyDayGate skips these while they
+      // are off.
+      map.setPaintProperty(id, 'line-opacity', dayGate(TRACKS.opacity) as never)
     } else {
       map.setFilter(id, all(NEVER))
     }
@@ -1069,7 +1202,18 @@ function applyTrackColour(map: maplibregl.Map) {
         TRACK_LAYER,
         byFeature ? all(NEVER) : indices ? all(HAS_VOLUME, inSel) : all(HAS_VOLUME),
       )
-      map.setPaintProperty(TRACK_LAYER, 'line-gradient', gradient(tint) as never)
+      // NOT while it is standing down, and this is the red flash at the end of
+      // a play-through.
+      //
+      // A filter change goes through the worker — the source is marked for
+      // reload and every tile re-parsed — while a paint change lands on the
+      // next frame. So writing the tint's gradient here repainted the whole
+      // record in the brand red IMMEDIATELY and the `NEVER` that was supposed
+      // to hide it arrived several frames later, with the hue twins' own
+      // filters arriving on the same delay: red first, agents after. Nothing
+      // in the code said "red" at that moment; the two writes just travel at
+      // different speeds.
+      if (!byFeature) map.setPaintProperty(TRACK_LAYER, 'line-gradient', gradient(tint) as never)
     }
     if (has(TRACK_DIM_LAYER)) {
       map.setFilter(TRACK_DIM_LAYER, indices ? all(HAS_VOLUME, ['!', inSel]) : all(NEVER))

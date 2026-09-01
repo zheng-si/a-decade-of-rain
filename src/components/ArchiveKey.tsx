@@ -191,6 +191,62 @@ export default function ArchiveKey({
     </>
   )
 
+  /* The encoding, once. Width is gallons per KM, not gallons — the only
+     quantity comparable between a 2 km run and a 40 km one. The fade names
+     each run's FIRST WAYPOINT ON FILE (leg 1A, the row the gallons are booked
+     against), not a verified heading: HERBS records no bearing, so "direction
+     of flight" would be a claim the record does not make.
+     The second sentence only while the colour is carrying the agent: with a
+     chip on, colour means "the one you picked", which the chip already says. */
+  const note =
+    (onTracks
+      ? 'Stroke width is gallons per kilometre. Each run fades away from its first waypoint on file.'
+      : 'Dot area is the gallons that fell in the cell, counted along every run that crossed it.') +
+    (byAgent
+      ? onTracks
+        ? ' Colour is the agent that flew it.'
+        : ' Colour is the agent that sprayed the most in that cell.'
+      : '')
+
+  /* ON THE ROW IT EXPLAINS, not at the end of the bar.
+     The note opens by describing this one mark — how wide a stroke is, how big
+     a dot is — so the marker for it belongs against that row rather than after
+     the last one, where it read as a footnote to the whole key and sat closest
+     to "National Border", which it says nothing about. */
+  /* The PANEL cannot live in the row with its button.
+     The inline list is `overflow-x: auto` so the bar can never break into two
+     lines, and an overflow container clips its descendants — the panel opened
+     inside it and was cut to the height of a legend row. So the button stays
+     on the row it explains and the panel hangs off the group, which has no
+     overflow to escape; `:has()` keeps the two connected without a wrapper
+     that would put the clip back. */
+  const infoPanel =
+    layout === 'bar' ? (
+      <span id="map-key-note-pop" role="tooltip" className="map-key-info-pop">
+        {note}
+      </span>
+    ) : null
+
+  const infoMark = (
+    <span className="map-key-info">
+      <button
+        type="button"
+        aria-label="How the marks are drawn"
+        aria-describedby="map-key-note-pop"
+      >
+        {/* Material Symbols "info", 300 weight, optical size 24 — the outlined
+            ring rather than a filled disc, which would have been the heaviest
+            mark on a bar whose own swatches are 4px dots. Material's own
+            viewBox: the origin sits on the baseline, so the artwork runs from
+            y −960 to 0. */}
+        <svg viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true">
+          <path d="M450-290h60v-230h-60v230Zm52.92-307.75q9.39-9.29 9.39-23.02t-9.29-23.02q-9.29-9.28-23.02-9.28t-23.02 9.28q-9.29 9.29-9.29 23.02t9.39 23.02q9.38 9.29 22.92 9.29 13.54 0 22.92-9.29ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
+        </svg>
+      </button>
+    </span>
+  )
+  const onRow = layout === 'bar' ? infoMark : null
+
   /* SHORT ROWS, ONE FOOTNOTE.
           Every row used to carry its own justification — "Single Run · gal/km,
           from its first waypoint" is three facts in a label — and a key read
@@ -220,6 +276,7 @@ export default function ArchiveKey({
               )}
             </span>
             Sprayed Volume
+            {onRow}
           </li>
         )}
         {onTracks && (
@@ -245,6 +302,7 @@ export default function ArchiveKey({
               />
             </span>
             Spray Run
+            {onRow}
           </li>
         )}
         {/* 2,829 of the 11,273 runs are logged against ONE grid reference, so
@@ -306,23 +364,6 @@ export default function ArchiveKey({
         {!filtered && layout === 'panel' && placeholder}
       </ul>
   )
-  /* The encoding, once. Width is gallons per KM, not gallons — the only
-     quantity comparable between a 2 km run and a 40 km one. The fade names
-     each run's FIRST WAYPOINT ON FILE (leg 1A, the row the gallons are booked
-     against), not a verified heading: HERBS records no bearing, so "direction
-     of flight" would be a claim the record does not make.
-     The second sentence only while the colour is carrying the agent: with a
-     chip on, colour means "the one you picked", which the chip already says. */
-  const note =
-    (onTracks
-      ? 'Stroke width is gallons per kilometre. Each run fades away from its first waypoint on file.'
-      : 'Dot area is the gallons that fell in the cell, counted along every run that crossed it.') +
-    (byAgent
-      ? onTracks
-        ? ' Colour is the agent that flew it.'
-        : ' Colour is the agent that sprayed the most in that cell.'
-      : '')
-
   // ── the bar ────────────────────────────────────────────────────────────
   // Same rows, laid along the bottom of the map. The note cannot come with
   // them: two lines of prose would set the bar's height by its longest
@@ -339,25 +380,7 @@ export default function ArchiveKey({
         <div className="map-key-bar-group is-legend">
           <p className="map-key-view-label">Map Key</p>
           {list}
-          <span className="map-key-info">
-            <button
-              type="button"
-              aria-label="How the marks are drawn"
-              aria-describedby="map-key-note-pop"
-            >
-              {/* Material Symbols "info", 300 weight, optical size 24 — the
-                  outlined ring rather than a filled disc, which would have
-                  been the heaviest mark on a bar whose own swatches are 4px
-                  dots. Material's own viewBox: the origin sits on the
-                  baseline, so the artwork runs from y −960 to 0. */}
-              <svg viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true">
-                <path d="M450-290h60v-230h-60v230Zm52.92-307.75q9.39-9.29 9.39-23.02t-9.29-23.02q-9.29-9.28-23.02-9.28t-23.02 9.28q-9.29 9.29-9.29 23.02t9.39 23.02q9.38 9.29 22.92 9.29 13.54 0 22.92-9.29ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
-              </svg>
-            </button>
-            <span id="map-key-note-pop" role="tooltip" className="map-key-info-pop">
-              {note}
-            </span>
-          </span>
+          {infoPanel}
         </div>
       </div>
     )
