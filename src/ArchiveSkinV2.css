@@ -763,7 +763,15 @@
 .map-wrap .lookup-unit,
 .map-wrap .lookup-fold,
 .map-wrap .lookup-search-drop,
-.map-wrap .lookup-search-none {
+.map-wrap .lookup-search-none,
+/* The pick hint is the odd one out and was missed the first time round: it is
+   the only floating surface on this screen carrying the dark ground rather
+   than the white one, so it sits in none of the groups above. Its Clear button
+   has its own translucent fill, which makes it a control ON the surface rather
+   than a segment of a group, so it takes the corner itself rather than being
+   clipped to the hint's. */
+.map-wrap .map-pick-hint,
+.map-wrap .map-pick-hint button {
   border-radius: var(--v2-radius);
 }
 

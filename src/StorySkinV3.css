@@ -37,6 +37,9 @@
    WHAT IS DELIBERATELY LEFT ALONE, so the next reader does not "fix" it:
      · 9 border-radius: 50% — dots, the compass dial, colour swatches. Round
        is the meaning there, which is the one exception §5 names.
+     · The bars, tracks, ramps and bands listed under rule 3 in §5. They are
+       square because they are measurements, not because the skin has not
+       reached them yet.
      · .act2-chip::after — those `border` declarations are CSS triangles, the
        speech-bubble tails on the map pins. Not strokes.
      · .map-key-compass-dial / -scale-bar borders — the instrument IS its line.
@@ -115,6 +118,19 @@
      One recipe, so "how does a white thing sit on this page" has one answer. */
   --v3-lift: var(--v3-stroke), var(--v3-whisper);
 
+  /* ── the corner, shared verbatim with the Archive ────────────────────────
+     Same value, same three rules for where it goes, same reasoning — the long
+     version lives on --v2-radius in ArchiveSkinV2.css and is not repeated
+     here, for the same reason --v3-stroke does not repeat itself: the point of
+     the two being identical is that there is ONE decision about what shape
+     this project's chrome is, not two that happen to agree.
+
+     The short version, because the split below is unreadable without it:
+     surfaces and controls take the corner, a segmented control takes it on the
+     group with its segments clipped to it, and a data mark never takes it at
+     all. */
+  --v3-radius: 2px;
+
 
   font-family: var(--font-sans);
 }
@@ -141,16 +157,15 @@
    commit — the diacritics resolve in Playfair at every heading tier. */
 
 /* ── shape · §5 ───────────────────────────────────────────────────────────
-   Every pill and every rounded rectangle to 0. The 50% circles are absent
-   from this list on purpose (see the header). */
+   Every pill and every rounded rectangle came to 0 here. Sep 2026: the same
+   2px corner the Archive took goes back on, and this section becomes the three
+   groups --v3-radius names rather than one list. The 50% circles are absent
+   from all three on purpose (see the header).
+
+   RULE 1 — surfaces and controls take the corner. Cards, panels, chips,
+   buttons, tabs, the map key, the labels the map hangs off its pins. */
 .story .story-hook-cta,
-.story .map-key-view,
-.story .map-key-view-btn,
-.story .rainbow-mode,
-.story .rainbow-mode-btn,
 .story .rainbow-chip,
-.story .eco-sort,
-.story .eco-sort-btn,
 .story .wall-consent-btn,
 .story .method-tab,
 .story .close-top,
@@ -159,27 +174,58 @@
 .story .story-card,
 .story .story-stat,
 .story .map-key,
-.story .map-key-heat-bar,
-.story .key-area,
 .story .rainbow-card,
-.story .eco-scale-bar,
 .story .eco-type,
 .story .eco-est,
-.story .eco-bar-track,
 .story .act2-chip,
-.story .act2-volbar,
-.story .act2-volbar i,
 .story .act2-card,
 .story .alt-family,
 .story .alt-reveal-btn,
 .story .alt-verdict-chip,
 .story .method-panel,
-.story .tl-band,
 .story .tl-card,
-.story .timeline-scan-line,
-.story .close-action,
-.story .maplibregl-ctrl-group,
+.story .close-action {
+  border-radius: var(--v3-radius);
+}
+
+/* RULE 2 — a segmented control takes it on the GROUP, with its segments
+   clipped to it. Rounding each segment would draw a corner at every internal
+   seam; and the clip is not optional, because the skin takes all three of
+   these to `padding: 0` further down, so the selected segment is full-bleed
+   and would otherwise paint its own square corner back over the track's. */
+.story .map-key-view,
+.story .rainbow-mode,
+.story .eco-sort,
+.story .maplibregl-ctrl-group {
+  border-radius: var(--v3-radius);
+  overflow: hidden;
+}
+
+.story .map-key-view-btn,
+.story .rainbow-mode-btn,
+.story .eco-sort-btn,
 .story .maplibregl-ctrl-group button {
+  border-radius: 0;
+}
+
+/* RULE 3 — a data mark never takes it, and this is the group that matters.
+   Each of these draws a quantity as length: the gallons bars and their tracks,
+   the heat ramp the map's colour is read against, the segmented scale bar
+   whose own outline IS its extent, the timeline's duration bands, the scan
+   line. A radius eats its own size off the flat part of a mark at each end —
+   4px of a 2px-rounded bar — and the shortest bars here are not much wider
+   than that. A corner that softens a button is a corner that lies about a
+   number. `.key-area` is in this group for a duller reason: it is a
+   zero-height box drawn entirely by its own 3px top border, so a radius has
+   nothing to round. */
+.story .map-key-heat-bar,
+.story .key-area,
+.story .eco-scale-bar,
+.story .eco-bar-track,
+.story .act2-volbar,
+.story .act2-volbar i,
+.story .tl-band,
+.story .timeline-scan-line {
   border-radius: 0;
 }
 
