@@ -353,45 +353,44 @@ export default function Timeline({
             275 column. */}
         <h1 className="explorer-title">The Herbicide Atlas of Vietnam</h1>
         <p className="explorer-subtitle">U.S. Air Force defoliation flights over South Vietnam</p>
-        {/* A label, not a rule. The block needs to say it is instructions
-            rather than more prose — the citation above it is a sentence in the
-            same size and colour — and a heading does that where a hairline
-            only says "something changed". */}
-        <p className="explorer-section-label explorer-guide-label">How to read this</p>
-        <ul className="explorer-guide">
-          {/* The verb starts every line. It was the bolded word before, which
-              got the emphasis right and the position wrong: a reader scanning
-              four lines for what they can DO reads the first word of each, and
-              on one of the four the first word was `Each`. Now the four first
-              words are Press, Click, Zoom, Search, and the list can be read
-              without reading the sentences at all. */}
-          <li>
-            <strong>Press play</strong> to watch the decade fall month by month.
-          </li>
-          <li>
-            {/* `Each is a grid cell's gallons` was cut, not lost: the key bar
-                says what a dot IS, in more detail than this line could, and
-                its info mark says it again. This list says what a reader can
-                DO. Keeping the definition here made the guide answer a
-                question the key had already answered better. */}
-            <strong>Click</strong> any dot for the record behind it.
-          </li>
-          <li>
-            {/* `until` stays and `themselves` goes. The handoff from dots to
-                tracks happens at a zoom the reader cannot guess, so the word
-                that says KEEP GOING is the one word here doing real work. */}
-            <strong>Zoom in</strong> until the dots give way to flight tracks.
-          </li>
-          <li>
-            <strong>Search</strong> a base or town for every run that crossed it.
-          </li>
-        </ul>
-        {/* With the guide, not at the foot of the panel: it is the fourth
-            thing the reader can do, and the three above it are verbs too. */}
-        <p className="explorer-links">
-          <Link to="/">Read the Story</Link>
-        </p>
       </header>
+
+      {/* THE ANSWER, at display size.
+
+          These three were a two-line readout beside the play button, set at
+          the size of a caption. They are the only numbers on this panel that
+          MOVE — filter to one agent and the pair halves, scrub and it falls to
+          a month's worth — and a figure that answers the reader's question
+          should not be smaller than the label of the control that changed it.
+
+          Date joins them because it is the third axis of the same answer: how
+          many runs, how much volume, and WHEN. It sat beside the SPRAYING
+          VOLUME heading, which made it read as part of a title rather than as
+          one of the figures. */}
+      {volume && (
+        <div className="explorer-stats">
+          <div className="explorer-stat">
+            <span className="explorer-stat-k">Spray Runs</span>
+            <strong className="explorer-stat-v" style={statStyle}>
+              {missionCount.toLocaleString()}
+            </strong>
+          </div>
+          <div className="explorer-stat">
+            <span className="explorer-stat-k">Gallons</span>
+            <strong className="explorer-stat-v" style={statStyle}>
+              {fmtGallons(gallons)}
+            </strong>
+          </div>
+          <div className="explorer-stat">
+            <span className="explorer-stat-k">Date</span>
+            {/* `Dec 1971`, the same label the rest of the panel and the map
+                key use. The design had `1971. 12`, which reads as a sort key
+                rather than a date and would have been the only place on this
+                screen writing a month as a number. */}
+            <strong className="explorer-stat-v">{dateLabel}</strong>
+          </div>
+        </div>
+      )}
 
       {/* The key reads before the controls, not after them: it says what the
           marks on the map ARE, and the transport and the filter below it are
@@ -433,37 +432,6 @@ export default function Timeline({
             >
               3D
             </button>
-          )}
-        </div>
-        {/* The buttons sit beside a two-line readout: what is being counted
-            and when, then the counts themselves. Heading and date share a
-            line because together they name one thing — this month's volume. */}
-        <div className="transport-readout">
-          <p className="transport-head">
-            {volume && <span className="explorer-section-label">Spraying Volume</span>}
-            <span className="explorer-date">{dateLabel}</span>
-          </p>
-          {/* Two counts, not three. "Track Points" was the waypoint count, and
-              it earned its place when the near tier drew a dot per waypoint —
-              the reader could see the marks it was counting. Now that tier
-              draws lines, so it counted something the map no longer shows, and
-              it was the widest pair on the row. Runs and gallons are the two
-              quantities every other surface here reports.
-
-              With it gone the pair fits the readout column again (175px of
-              250), which is why it sits back under the heading instead of
-              spanning the panel: the counts are what SPRAYING VOLUME · DEC 1971
-              resolves to, and a full-width row put a rule's worth of distance
-              between the label and its own figures. */}
-          {volume && (
-            <span className="explorer-statline">
-              <span className="stat-pair">
-                <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Spray Runs
-              </span>
-              <span className="stat-pair">
-                <strong style={statStyle}>{fmtGallons(gallons)}</strong> Gallons
-              </span>
-            </span>
           )}
         </div>
       </div>
@@ -550,6 +518,45 @@ export default function Timeline({
         </a>{' '}
         behind Stellman et&nbsp;al. (2003).
       </p>
+
+        {/* A label, not a rule. The block needs to say it is instructions
+            rather than more prose — the citation above it is a sentence in the
+            same size and colour — and a heading does that where a hairline
+            only says "something changed". */}
+        <p className="explorer-section-label explorer-guide-label">How to read this</p>
+        <ul className="explorer-guide">
+          {/* The verb starts every line. It was the bolded word before, which
+              got the emphasis right and the position wrong: a reader scanning
+              four lines for what they can DO reads the first word of each, and
+              on one of the four the first word was `Each`. Now the four first
+              words are Press, Click, Zoom, Search, and the list can be read
+              without reading the sentences at all. */}
+          <li>
+            <strong>Press play</strong> to watch the decade fall month by month.
+          </li>
+          <li>
+            {/* `Each is a grid cell's gallons` was cut, not lost: the key bar
+                says what a dot IS, in more detail than this line could, and
+                its info mark says it again. This list says what a reader can
+                DO. Keeping the definition here made the guide answer a
+                question the key had already answered better. */}
+            <strong>Click</strong> any dot for the record behind it.
+          </li>
+          <li>
+            {/* `until` stays and `themselves` goes. The handoff from dots to
+                tracks happens at a zoom the reader cannot guess, so the word
+                that says KEEP GOING is the one word here doing real work. */}
+            <strong>Zoom in</strong> until the dots give way to flight tracks.
+          </li>
+          <li>
+            <strong>Search</strong> a base or town for every run that crossed it.
+          </li>
+        </ul>
+        {/* With the guide, not at the foot of the panel: it is the fourth
+            thing the reader can do, and the three above it are verbs too. */}
+        <p className="explorer-links">
+          <Link to="/">Read the Story</Link>
+        </p>
 
       {lookupSlot}
 

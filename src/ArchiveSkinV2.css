@@ -659,6 +659,97 @@
   line-height: var(--v2-lead-ui);
 }
 
+/* ── the scrubber says it is a scrubber ────────────────────────────────────
+   The chart has been draggable all along — an `<input type=range>` is laid
+   over it — but nothing said so: the input is `opacity: 0` and the playhead is
+   a 1px hairline with no grip. That is the whole reason a sentence explaining
+   it ever seemed necessary. A control that looks like a control needs no
+   sentence.
+
+   So the playhead gets a head: a small square cap at the top of the line, in
+   the same ink, which is the least furniture that reads as "hold this". It
+   stays `pointer-events: none` — the invisible input underneath is what the
+   pointer actually talks to, and giving the cap its own hit target would put a
+   second, differently-shaped one on top of it. */
+.map-wrap .explorer-playhead::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  transform: translate(-50%, -50%);
+  background: var(--ink);
+  border-radius: var(--v2-radius);
+}
+
+/* And the cursor already said `ew-resize` on the input; the chart says it too,
+   so the hint arrives on the way to the control rather than only on top of
+   it. */
+.map-wrap .explorer-chart {
+  cursor: ew-resize;
+}
+
+/* ── the answer, at display size ───────────────────────────────────────────
+   Three figures under a rule, directly below the name. They were a caption
+   beside the play button; they are the only numbers on this panel that move,
+   and they are what the reader came for.
+
+   Equal thirds rather than content width, so the columns hold still while the
+   figures change under them: `8,360` becomes `40` mid-play and `19.5M` becomes
+   `45K`, and a row sized to its content would reflow on every frame of the
+   play-through. */
+.map-wrap .explorer-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin: 0 0 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+}
+
+.map-wrap .explorer-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.map-wrap .explorer-stat-k {
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: var(--v2-lead-ui);
+  color: var(--ink-soft);
+}
+
+.map-wrap .explorer-stat-v {
+  font-size: 1.375rem;
+  font-weight: 400;
+  line-height: var(--v2-lead-display);
+  /* Lining, tabular. These change while you watch them, and proportional
+     digits make the whole row shuffle sideways every time a 1 replaces a 4. */
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-deep);
+  white-space: nowrap;
+}
+
+/* The transport keeps only its buttons now, so the row no longer needs the
+   seam that separated the identity from the controls — the stats row above it
+   carries that rule instead. */
+.map-wrap .explorer-transport {
+  border-top: none;
+  padding-top: 0;
+}
+
+/* ── the foot ──────────────────────────────────────────────────────────────
+   Citation, then the guide, then the way out. The panel now runs answer first
+   and explanation last: what the record says right now at the top, what it is
+   and how to work it at the bottom. */
+.map-wrap .explorer-dek {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+}
+
 /* ── the guide ─────────────────────────────────────────────────────────────
    Variant C from the four that were built and photographed, minus its rule.
 
