@@ -5,9 +5,9 @@
    all of them subtractive:
 
      1. ONE typeface. Geist everywhere; the serif/sans pairing is gone.
-     2. NO corner radii. Panels, buttons, chips and the view switch are
-        rectangles. Round stays only where roundness is meaning — the agent
-        dots, the compass dial, the map's own circles.
+     2. ONE corner radius, small. Was "no corner radii at all"; a 2px corner
+        went back on in Sep 2026, on the surfaces and the controls but never
+        on a data mark. See --v2-radius.
      3. NO strokes, almost. Panel borders go; the two hairline RULES that
         separate blocks stay, because they divide rather than outline.
      4. Shadows drop from 0.10 alpha to 0.02 — present as depth, absent as
@@ -28,11 +28,65 @@
   --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: var(--font-sans);
 
-  /* Two shadows, two jobs. The panel's is wide and almost absent — it
-     separates glass from map. A control sitting ON that glass has the harder
-     problem: white on white, with no border left to help, so it needs a tight
-     close one to stop dissolving into the surface it floats on. */
-  --v2-shadow: 0 8px 28px rgba(40, 38, 30, 0.02);
+  /* Two shadows, two jobs. The panel's separates glass from map. A control
+     sitting ON that glass has the harder problem: white on white, with no
+     border left to help, so it needs a tight close one to stop dissolving
+     into the surface it floats on.
+
+     EXPERIMENT. This was one stop — `0 8px 28px rgba(40,38,30,0.02)` — and 2%
+     spread over a 28px blur is, at the panel's own edge, about half a percent
+     of a value: the surfaces read as white rectangles pasted onto the map
+     rather than as things floating above it. Three stops now, which is what
+     actually produces depth: a 2px contact shadow that grounds the edge, a
+     mid stop for the body, and the wide ambient one this used to be, alone.
+     Each is still light — 5, 5, 6 percent — and they only add up where they
+     overlap, right under the surface. Measured at 1px below the edge that
+     comes to roughly 6% over the #f7f7f7 land, so the corner arrives as a
+     soft grey rather than as a line. */
+  --v2-shadow:
+    0 1px 2px rgba(40, 38, 30, 0.05),
+    0 5px 12px rgba(40, 38, 30, 0.05),
+    0 16px 36px rgba(40, 38, 30, 0.06);
+
+  /* ONE radius, for every surface and every control on this screen.
+
+     Literal pixels, not rem, and deliberately: every other size in this file
+     is rem-based because the root font-size is the density dial (13.6px
+     between 641 and 1600 wide, 16px above). A corner radius is not a measure
+     of content — it is a fixed optical property of the surface — and 0.125rem
+     would land at 1.7px on a 14" laptop rather than 2. Point this at 0.125rem
+     if the corners should track the dial instead.
+
+     8, then 4, then 2. The IHG app that started this reads ~4pt on its small
+     chips and ~8pt on its cards, but that is a 430pt-wide phone where a card
+     is 100pt across; the same numbers on a 1600px desktop landed heavier than
+     the reference felt, which is what each step down was chasing.
+
+     One value, not a scale, and the case for that gets stronger as the number
+     shrinks. A radius reads as a PROPORTION of the box it rounds, so the
+     spread across this screen — the 316px panel at one end, the 29px zoom
+     stack at the other — is what decides whether one token can cover both.
+     At 8px it ran 2.5% to 28%: a softened corner and a pill from one number,
+     which is what forced a second token the first time round. At 4px, 1.3% to
+     14%. Here, 0.6% to 6.9%, and everything on the screen reads the same way.
+
+     2px is also the floor. Below it a corner stops being a corner: at 1px it
+     is one anti-aliased pixel a side, indistinguishable from the stroke
+     already drawn there, and the honest way to go softer than this is to go
+     square.
+
+     THREE rules for where it goes, and the third is the one that matters:
+
+       1. Floating surfaces take it — panels, the key bar, the popover, the
+          lookup's drop, the map popup.
+       2. Controls take it on the GROUP, with the children clipped to it. A
+          segmented control is one object; rounding each segment draws a
+          corner at every internal seam.
+       3. Data marks NEVER take it. The agent bars encode gallons as length,
+          and a radius shortens the flat part of a bar by its own size at each
+          end. A corner that softens a button is a corner that lies about a
+          number, and that stays true at 2px on the shortest bars. */
+  --v2-radius: 2px;
 
   /* ── the elevation recipe, shared verbatim with the Story ───────────────
      Same two parts, same values, same reasoning — the long version lives on
@@ -110,13 +164,17 @@
    headroom and the nowrap below. */
 .map-wrap .explorer-panel {
   width: min(23.25rem, calc(100vw - 3rem));
+  /* The other half of the even inset — see the key column's padding for why
+     the 1.375rem bottom went. Stated here rather than in App.css so the whole
+     spike stays one file. */
+  padding: 1.5rem;
 }
 
 .map-wrap .explorer-panel,
 .map-wrap .archive-key {
   background: var(--v2-panel);
   border: none;
-  border-radius: 0;
+  border-radius: var(--v2-radius);
   /* The stroke, plus their own wide float rather than the whisper. These are
      the two biggest surfaces on the Archive and they hang over a moving map,
      so they need more separation than a card on paper does -- but they had NO
@@ -146,8 +204,18 @@
        equal: at 1rem against the left column's 1.5 the content box was 14px
        wider, and with a table and two bar blocks filling it, that column read
        as the wider one — which it was, where it counts. Same box, same inset,
-       and the two columns' first lines now sit on one baseline. */
-    padding: 1.5rem 1.5rem 1.375rem;
+       and the two columns' first lines now sit on one baseline.
+
+       Even on all four sides now. It was 1.5/1.5/1.375, and 2px of that was
+       optical: the left panel ends in a paragraph, and a line of text carries
+       descender slack under its last baseline, so a slightly shorter bottom
+       inset reads as equal. This panel does not end in a paragraph — it ends
+       in the RADIUS chips, a control with a hard bottom edge and no slack at
+       all — so the same 2px read as the box being short, not balanced. One
+       number is the honest answer when the two panels can end in different
+       kinds of thing. The left panel takes it too, below, so the pair stays a
+       pair. */
+    padding: 1.5rem;
     /* It holds a list, so it needs a floor. Scrolls inside rather than running
        off the screen — the same treatment the control sheet has on a phone,
        for the same reason.
@@ -164,8 +232,66 @@
        covered, ~10px of edge left). The column yields; the buttons stay where
        readers reach for them. (10 rather than 9 because the column's box runs
        ~22px past its max-height's arithmetic — the 1.5rem top inset plus its
-       border — measured, not assumed.) */
+       border — measured, not assumed.)
+
+       The floor is here; the SCROLLING is not, and moving it off this box is
+       the fix for a bug that had nothing to do with height. `overflow-y: auto`
+       makes this element a clipping box, and the Location Lookup's results
+       drop is absolutely positioned and hangs BELOW the panel's own bottom —
+       so the panel was cutting its own search results off. Measured on the
+       column at this camera: the query `an` returns 8 places and 7 of them
+       were invisible, and the no-match note lost its last line the same way.
+
+       So the column becomes a flex column that is merely capped, and the
+       scrolling moves down to the child that actually grows. Nothing here
+       clips, and the drop is free to hang past the bottom edge where it
+       always meant to. */
     max-height: calc(100vh - 10rem);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Both children then have to absorb the cap themselves, and `min-height: 0`
+     is the part that is easy to leave out and fatal without: a flex child's
+     default `min-height: auto` refuses to shrink below its content, so the
+     child would paint straight past the column's floor and over the map —
+     which is the failure the floor was written to prevent, arriving through a
+     different door.
+
+     The lookup passes the shrink down to its own record list, which is the
+     only part of it that grows without limit and which already scrolls. That
+     keeps the search row, the summary and the year chart at full size, and
+     spends every pixel the column gives up on the list. */
+  .map-wrap .archive-key > .lookup {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .map-wrap .archive-key > .lookup > .lookup-list {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  /* THE COST of the flex column above, and it has to be paid explicitly:
+     adjacent siblings' margins do not collapse inside a flex container. Every
+     other gap down this panel survived the switch because each of those pairs
+     has a zero on one side — checked, all thirteen of them. This is the one
+     pair with a margin on both: the section label pays 8 below, the search row
+     paid 6 above, and in block layout those collapsed to the larger, 8. In the
+     column they ADD, and the gap under LOCATION LOOKUP went to 14 — the label
+     drifting away from the field it names, which is what it looked like.
+
+     Zeroed rather than the label's 8 rebalanced, because 8 is the number the
+     panel already repeats: label to field, field to RADIUS, RADIUS to the hint
+     under it. The 6 never rendered as anything before this and does not start
+     now. */
+  .map-wrap .archive-key > .lookup > .lookup-search {
+    margin-top: 0;
+  }
+
+  .map-wrap .archive-key > .archive-inspect {
+    min-height: 0;
     overflow-y: auto;
   }
 
@@ -214,11 +340,11 @@
   .map-wrap .explorer-panel {
     left: 0;
     width: 100%;
-    border-radius: 0.5rem 0.5rem 0 0;
+    border-radius: var(--v2-radius) var(--v2-radius) 0 0;
   }
 
   .map-wrap.inspect-open .archive-key {
-    border-radius: 0.5rem 0.5rem 0 0;
+    border-radius: var(--v2-radius) var(--v2-radius) 0 0;
   }
 
   /* The identity block, compressed — stated at the skin's own two-class
@@ -416,9 +542,13 @@
 }
 
 /* The two buttons butt together into one 60×30 block rather than floating as
-   separate circles — squares with a gap would read as two unrelated things. */
+   separate circles — squares with a gap would read as two unrelated things.
+   Rule 2 of the radius: the corner goes on the block, and the buttons are
+   clipped to it, so the seam down the middle stays a straight line. */
 .map-wrap .transport-buttons {
   gap: 0;
+  border-radius: var(--v2-radius);
+  overflow: hidden;
   box-shadow: var(--v2-lift);
 }
 
@@ -552,7 +682,11 @@
   margin-top: 0;
   padding: 0;
   background: none;
-  border-radius: 0;
+  /* Rule 2 again: five chips reading as one switch, so the corner belongs to
+     the row. `overflow: hidden` is what keeps the opaque dark chip at either
+     end from painting its own square corner back over the row's. */
+  border-radius: var(--v2-radius);
+  overflow: hidden;
   /* THE bug this pass was really about. This said "Hairline first, then the
      control shadow" and shipped only a hairline -- and an INSET one, on a row
      with zero padding whose children are full-bleed. An inset shadow paints on
@@ -647,8 +781,117 @@
   font-weight: 600;
 }
 
+/* ── the lookup's own controls ─────────────────────────────────────────────
+   These are styled in App.css, which is loaded with and without this skin, so
+   the corner is applied here rather than there — same reason everything else
+   in this file is: the whole spike stays one file plus one import.
+
+   Every one of them is a grey 6% track carrying transparent children, which
+   is what makes rule 2 cheap here: the track holds the corner and the
+   segments inside it need no radius at all. */
+/* One inset for both segmented controls. The agent chips and the radius chips
+   are the same control — 28px tall, 12px/500 type, the same 14px divider at
+   the same 14% forest, the same 2px corner on the group — and they had drifted
+   to different horizontal paddings, 12 against 10. The radius chips are
+   `flex: 1` so they stretch past their own padding anyway and this changes
+   nothing about how they look today; it changes what happens when the panel
+   narrows or a label grows, which is when a 2px difference stops being
+   invisible and starts being the reason one row wraps before the other. */
+.map-wrap .lookup-chip {
+  padding: 0.375rem 0.75rem;
+  /* And one COLOUR for both, which is the part that was actually visible.
+     `.lookup-chip` takes `color: inherit`, and nothing between it and the
+     panel sets a colour, so it was landing on the UA default: pure #000, a
+     value that appears nowhere in this palette — the darkest ink here is
+     #101a14. Against the agent chips' --ink-soft next to it, the radius row
+     read as heavier and colder without anything naming a difference. */
+  color: var(--ink-soft);
+}
+
+/* The selected chip, likewise. It was #f2efe7, the paper tone, against the
+   agent chip's flat white on the same forest fill — near enough to look like
+   drift rather than a decision, which is what it was. */
+.map-wrap .lookup-chip.is-active {
+  color: #fff;
+}
+
+/* ── RADIUS, stacked ───────────────────────────────────────────────────────
+   The label leaves the row and sits above it, and the chips take the whole
+   content width in four equal parts. Two things fall out of that, and they are
+   the reasons for it.
+
+   ALIGNMENT. Every other content edge in this panel lands on the 1.5rem inset
+   — the section label, both ends of the search row, the chip group's right
+   end. The chip group's LEFT end was the one exception, floating at 86px
+   because the label ahead of it happened to be that wide. It reads as an
+   indent nothing asked for. Full width puts it back on the inset with
+   everything else.
+
+   And it makes this control and the agent switch the same control. They were
+   already identical in every measure that is not layout — 28px tall, 12px/500
+   type, the same divider, the same corner, and now the same two text colours —
+   but one wore its label beside it and the other above, which is enough to
+   read as two different things. Now there is one pattern: a caps label, half
+   a rem of air, a full-width segmented row.
+
+   It costs 21px of panel height, which is the honest price of the line the
+   label now occupies. */
+.map-wrap .lookup-row {
+  display: block;
+}
+
+.map-wrap .lookup-row-label {
+  display: block;
+  /* The basis that sized it as a flex item is inert in block flow, but it is
+     removed rather than left to be puzzled over later. 0.5rem is the drop
+     SPRAYING AGENTS gives its own label, and the point here is to match it. */
+  flex: none;
+  margin-bottom: 0.5rem;
+}
+
+.map-wrap .lookup-radii {
+  width: 100%;
+}
+
+.map-wrap .lookup-search,
+.map-wrap .lookup-radii,
+.map-wrap .lookup-unit,
+.map-wrap .lookup-fold,
+.map-wrap .lookup-search-drop,
+.map-wrap .lookup-search-none,
+/* The pick hint is the odd one out and was missed the first time round: it is
+   the only floating surface on this screen carrying the dark ground rather
+   than the white one, so it sits in none of the groups above. Its Clear button
+   has its own translucent fill, which makes it a control ON the surface rather
+   than a segment of a group, so it takes the corner itself rather than being
+   clipped to the hint's. */
+.map-wrap .map-pick-hint,
+.map-wrap .map-pick-hint button {
+  border-radius: var(--v2-radius);
+}
+
+/* Clipped, because their selected segment is the opaque dark fill and it sits
+   at one end or the other — without this it paints its own square corner back
+   over the track's rounded one. */
+.map-wrap .lookup-radii,
+.map-wrap .lookup-unit {
+  overflow: hidden;
+}
+
+/* NOT clipped, and this one is load-bearing: `.lookup-search` is the
+   positioning parent of the results drop, which hangs below the row on
+   purpose. Clipping here would put back the bug this branch just fixed one
+   level up. It costs nothing — every child of the search row is transparent,
+   so none of them can square the corner off. */
+
 /* ── the key ───────────────────────────────────────────────────────────── */
-.map-wrap .archive-key-legend .map-key-view,
+/* The same group-and-clip as the agent row and the transport pair: two
+   segments sharing one track, so one corner around the pair. */
+.map-wrap .archive-key-legend .map-key-view {
+  border-radius: var(--v2-radius);
+  overflow: hidden;
+}
+
 .map-wrap .archive-key-legend .map-key-view-btn {
   border-radius: 0;
 }
@@ -691,7 +934,7 @@
 
 .map-wrap .adr-popup .maplibregl-popup-content {
   padding: 0.375rem 0.5625rem 0.4375rem;
-  border-radius: 0;
+  border-radius: var(--v2-radius);
   box-shadow: var(--v2-shadow-control);
 }
 
@@ -803,7 +1046,11 @@
   border-top: none;
 }
 
-/* The per-agent bars kept their 2px radius through the no-radii pass. */
+/* Rule 3 of the radius, and the one exception on this screen. These bars are
+   gallons drawn as length, and a radius eats its own size off the flat part of
+   the mark at each end — 4 of the 4px bar's pixels even at the 2px this file
+   now uses, and the shortest agent is not much wider than that. Everything
+   else here rounds; a measurement does not. */
 .map-wrap .inspect-bar-track,
 .map-wrap .inspect-bar {
   border-radius: 0;
@@ -1098,11 +1345,22 @@
   color: var(--ink-faint);
 }
 
-/* MapLibre's own controls are part of the surface too. */
-.map-wrap .maplibregl-ctrl-group,
+/* MapLibre's own controls are part of the surface too — which is why they get
+   the same three-stop float. The stroke is new here: this was the one
+   floating surface with no edge at all, so at the map's pale corners the zoom
+   stack had nothing holding its outline.
+
+   The buttons drop their own shadow, which was stacking one float per button
+   in a stack that is really one object. */
+.map-wrap .maplibregl-ctrl-group {
+  border-radius: var(--v2-radius);
+  overflow: hidden;
+  box-shadow: var(--v2-stroke), var(--v2-shadow);
+}
+
 .map-wrap .maplibregl-ctrl-group button {
   border-radius: 0;
-  box-shadow: var(--v2-shadow);
+  box-shadow: none;
 }
 
 /* ── the key, when the colour is carrying the agent ──────────────────────
@@ -1188,6 +1446,7 @@
   max-width: calc(100% - 52.5rem);
   padding: 0.4375rem 0.75rem;
   background: var(--v2-panel);
+  border-radius: var(--v2-radius);
   box-shadow: var(--v2-stroke), var(--v2-shadow);
   font-family: var(--font-sans);
 }
@@ -1334,6 +1593,7 @@
   white-space: normal;
   padding: 0.5rem 0.625rem;
   background: var(--v2-panel);
+  border-radius: var(--v2-radius);
   box-shadow: var(--v2-stroke), var(--v2-shadow);
   font-size: 0.625rem;
   line-height: 1.5;
