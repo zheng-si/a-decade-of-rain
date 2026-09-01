@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import type { FeatureCollection } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -48,6 +48,28 @@ import './Story.css'
 import '../StorySkinV3.css'
 // Geist @font-face declarations (shared with the Archive spike).
 import '../fontsGeist.css'
+
+/** The type dial for the nineteen places Courier handed back to Geist, lazy so
+ *  a reader never downloads it, and gated the same way the Archive's console
+ *  is. The gate is written out here rather than imported from the panel for
+ *  the same reason MapView writes out its own: importing the helper would be a
+ *  static import of the module the lazy() is splitting out, and the chunk
+ *  comes straight back into the entry. Four lines of duplication is what makes
+ *  the split real. */
+const StoryTypeTuner = lazy(() => import('../components/StoryTypeTuner'))
+
+/** Latched at import. The Story does not rewrite its own query string the way
+ *  the Archive does, so this is less load-bearing here than there — but it is
+ *  read once for the same reason: whether a dev tool appears should not depend
+ *  on when a render happened to run. */
+const TYPE_TUNE_GATE: boolean = (() => {
+  if (import.meta.env.DEV) return true
+  try {
+    return new URLSearchParams(window.location.search).has('tune')
+  } catch {
+    return false
+  }
+})()
 
 const SPRAY_SOURCE = 'spray'
 const LANDMARK_SOURCE = 'landmark-boundary'
@@ -1104,6 +1126,11 @@ export default function Story() {
         <TimelineSection />
         <CloseSection />
       </div>
+      {TYPE_TUNE_GATE && (
+        <Suspense fallback={null}>
+          <StoryTypeTuner />
+        </Suspense>
+      )}
     </div>
   )
 }

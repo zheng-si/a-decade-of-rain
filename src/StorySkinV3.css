@@ -259,7 +259,9 @@
         the single densest thing the page asked anyone to read.
      3. The agent cards' names and figures. `All four agents`, `Agent Orange`,
         `12.1M` — a legend for a chart.
-     4. The vegetation map's proportion — the `24%` on its own caption.
+     4. The vegetation map's proportion — the `24%` on its own caption — and
+        the photo wall's figures with it: `3.1M ha`, `36%` and the lines that
+        label them are the same kind of reading.
      5. Cleaning It Up: its own title stays, the hotspot names and the closing
         line under them do not.
      6. `Containment only`, `Hybrid`, `Treatment only` — the three strategy
@@ -278,6 +280,10 @@
 .story .rainbow-card-name,
 .story .rainbow-stat strong,
 .story .eco-headline strong,
+.story .wall-value,
+.story .wall-label,
+.story .wall-stat-v,
+.story .wall-stat-l,
 .story .alt-family h3,
 .story .act2-card-name,
 .story .act2-closing,

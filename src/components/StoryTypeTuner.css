@@ -1,0 +1,199 @@
+/* The Story's type dial. Deliberately NOT in the page's own visual language:
+   it is a tool sitting on top of the work, and it should never be mistaken for
+   part of it in a screenshot. Hence the mono type, the flat dark ground and
+   the corner it plants itself in. */
+
+.stt {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  width: 20rem;
+  max-height: calc(100vh - 2rem);
+  background: #101a14;
+  color: #e8ece7;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  box-shadow: 0 10px 40px rgba(16, 26, 20, 0.4);
+}
+
+.stt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid rgba(232, 236, 231, 0.14);
+}
+
+.stt-head strong {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.stt-head button {
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 0.25rem;
+}
+
+.stt-note {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  color: #9aa79d;
+  font-size: 10px;
+  line-height: 1.5;
+  border-bottom: 1px solid rgba(232, 236, 231, 0.09);
+}
+
+/* The list is the only thing that scrolls, so the head and the copy block stay
+   reachable however far down the nineteen you are. */
+.stt-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stt-list li {
+  padding: 0.4375rem 0.75rem;
+  border-bottom: 1px solid rgba(232, 236, 231, 0.07);
+}
+
+.stt-list li.is-moved {
+  /* A touched row has to be findable at a glance — this panel's whole output
+     is "which of the nineteen did I actually move". */
+  background: rgba(255, 119, 0, 0.14);
+  box-shadow: inset 2px 0 0 #ff7700;
+}
+
+.stt-row-name {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.stt-label {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #e8ece7;
+}
+
+.stt-where {
+  flex: none;
+  color: #7f8d83;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stt-row-dial {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.stt-row-dial button {
+  width: 1.375rem;
+  height: 1.375rem;
+  border: 1px solid rgba(232, 236, 231, 0.22);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.stt-row-dial button:hover:not(:disabled) {
+  background: rgba(232, 236, 231, 0.12);
+}
+
+.stt-row-dial button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.stt-val {
+  min-width: 3.25rem;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.stt-undo {
+  margin-left: auto;
+}
+
+.stt-sel {
+  display: block;
+  margin-top: 0.1875rem;
+  color: #6f7d73;
+  font-size: 9.5px;
+}
+
+.stt-foot {
+  display: flex;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid rgba(232, 236, 231, 0.14);
+}
+
+.stt-foot button {
+  flex: 1;
+  padding: 0.375rem;
+  border: 1px solid rgba(232, 236, 231, 0.22);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.stt-foot button.is-primary {
+  background: #ff7700;
+  border-color: #ff7700;
+  color: #101a14;
+  font-weight: 600;
+}
+
+/* The output is the deliverable — it is what gets pasted back — so it is
+   always visible rather than hidden behind the copy button, and selectable by
+   hand for when the clipboard API is not available over plain http. */
+.stt-out {
+  margin: 0;
+  padding: 0.5rem 0.75rem 0.625rem;
+  max-height: 9rem;
+  overflow: auto;
+  border-top: 1px solid rgba(232, 236, 231, 0.09);
+  color: #b9c4bc;
+  font-size: 10px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  user-select: text;
+}
+
+.stt-reopen {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  padding: 0.375rem 0.625rem;
+  border: none;
+  background: #101a14;
+  color: #e8ece7;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(16, 26, 20, 0.3);
+}
