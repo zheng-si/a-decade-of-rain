@@ -42,31 +42,15 @@
      Each is still light — 5, 5, 6 percent — and they only add up where they
      overlap, right under the surface. Measured at 1px below the edge that
      comes to roughly 6% over the #f7f7f7 land, so the corner arrives as a
-     soft grey rather than as a line. */
+     soft grey rather than as a line.
+
+     The corners stay square. 8px and 4px were both tried on every surface
+     here and both dropped: rule 2 at the top of this file is the one that
+     holds, and depth turns out to be the shadow's job alone. */
   --v2-shadow:
     0 1px 2px rgba(40, 38, 30, 0.05),
     0 5px 12px rgba(40, 38, 30, 0.05),
     0 16px 36px rgba(40, 38, 30, 0.06);
-
-  /* EXPERIMENT. Literal pixels, not rem, and deliberately: every other size in
-     this file is rem-based because the root font-size is the density dial
-     (13.6px between 641 and 1600 wide, 16px above). A corner radius is not a
-     measure of content — it is a fixed optical property of the surface — and
-     0.25rem would land at 3.4px on a 14" laptop rather than the 4 asked for.
-     Point this at 0.25rem if the corners should track the dial instead.
-
-     8px first, and 4 reads better here: the file's own stated intent is
-     rectangles, so the corner is meant to soften an edge rather than to be a
-     shape of its own, and at this size it stops competing with the map's
-     circles for the eye.
-
-     ONE value, where 8 needed two. A radius reads as a PROPORTION of the box
-     it rounds, and 8px was 2.5% of the 316px panel but 28% of the 29px zoom
-     stack — a softened corner and a pill from the same number, so the small
-     surfaces needed a half-size token to stay in the family. At 4px the
-     spread is 1.3% to 14%: the zoom stack reads as softened too, and the
-     second token has nothing left to do. */
-  --v2-radius: 4px;
 
   /* ── the elevation recipe, shared verbatim with the Story ───────────────
      Same two parts, same values, same reasoning — the long version lives on
@@ -150,18 +134,13 @@
 .map-wrap .archive-key {
   background: var(--v2-panel);
   border: none;
-  border-radius: var(--v2-radius);
+  border-radius: 0;
   /* The stroke, plus their own wide float rather than the whisper. These are
      the two biggest surfaces on the Archive and they hang over a moving map,
      so they need more separation than a card on paper does -- but they had NO
      edge of any kind, which is why the panel's top corner dissolved into a
      pale patch of basemap. The line is the new part; the float is unchanged. */
   box-shadow: var(--v2-stroke), var(--v2-shadow);
-  /* NOT `overflow: hidden` to make the children respect the radius, tempting
-     as it is: the Location Lookup's results drop is absolutely positioned
-     inside the key panel and hangs below its row, so clipping the panel would
-     clip the drop. Both panels pad their content away from all four corners,
-     so nothing full-bleed reaches one — checked at 2x on the corners of both. */
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
@@ -203,8 +182,49 @@
        covered, ~10px of edge left). The column yields; the buttons stay where
        readers reach for them. (10 rather than 9 because the column's box runs
        ~22px past its max-height's arithmetic — the 1.5rem top inset plus its
-       border — measured, not assumed.) */
+       border — measured, not assumed.)
+
+       The floor is here; the SCROLLING is not, and moving it off this box is
+       the fix for a bug that had nothing to do with height. `overflow-y: auto`
+       makes this element a clipping box, and the Location Lookup's results
+       drop is absolutely positioned and hangs BELOW the panel's own bottom —
+       so the panel was cutting its own search results off. Measured on the
+       column at this camera: the query `an` returns 8 places and 7 of them
+       were invisible, and the no-match note lost its last line the same way.
+
+       So the column becomes a flex column that is merely capped, and the
+       scrolling moves down to the child that actually grows. Nothing here
+       clips, and the drop is free to hang past the bottom edge where it
+       always meant to. */
     max-height: calc(100vh - 10rem);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Both children then have to absorb the cap themselves, and `min-height: 0`
+     is the part that is easy to leave out and fatal without: a flex child's
+     default `min-height: auto` refuses to shrink below its content, so the
+     child would paint straight past the column's floor and over the map —
+     which is the failure the floor was written to prevent, arriving through a
+     different door.
+
+     The lookup passes the shrink down to its own record list, which is the
+     only part of it that grows without limit and which already scrolls. That
+     keeps the search row, the summary and the year chart at full size, and
+     spends every pixel the column gives up on the list. */
+  .map-wrap .archive-key > .lookup {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .map-wrap .archive-key > .lookup > .lookup-list {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+
+  .map-wrap .archive-key > .archive-inspect {
+    min-height: 0;
     overflow-y: auto;
   }
 
@@ -253,11 +273,11 @@
   .map-wrap .explorer-panel {
     left: 0;
     width: 100%;
-    border-radius: var(--v2-radius) var(--v2-radius) 0 0;
+    border-radius: 0.5rem 0.5rem 0 0;
   }
 
   .map-wrap.inspect-open .archive-key {
-    border-radius: var(--v2-radius) var(--v2-radius) 0 0;
+    border-radius: 0.5rem 0.5rem 0 0;
   }
 
   /* The identity block, compressed — stated at the skin's own two-class
@@ -1138,18 +1158,14 @@
 }
 
 /* MapLibre's own controls are part of the surface too — which is why they get
-   the same three-stop float and the same corner. The stroke is new here: this
-   was the one floating surface with no edge at all, so at the map's pale
-   corners the zoom stack had nothing holding its outline.
+   the same three-stop float. The stroke is new here: this was the one
+   floating surface with no edge at all, so at the map's pale corners the zoom
+   stack had nothing holding its outline.
 
-   The radius goes on the GROUP, with the buttons clipped to it, because the
-   group is one object — a stack of buttons that shares a surface. Rounding
-   each button instead would draw a corner at every seam. This is the one
-   place clipping is safe: nothing inside a zoom control overflows it. The
-   buttons drop their own shadow, which was stacking one float per button. */
+   The buttons drop their own shadow, which was stacking one float per button
+   in a stack that is really one object. */
 .map-wrap .maplibregl-ctrl-group {
-  border-radius: var(--v2-radius);
-  overflow: hidden;
+  border-radius: 0;
   box-shadow: var(--v2-stroke), var(--v2-shadow);
 }
 
@@ -1241,7 +1257,6 @@
   max-width: calc(100% - 52.5rem);
   padding: 0.4375rem 0.75rem;
   background: var(--v2-panel);
-  border-radius: var(--v2-radius);
   box-shadow: var(--v2-stroke), var(--v2-shadow);
   font-family: var(--font-sans);
 }
@@ -1388,7 +1403,6 @@
   white-space: normal;
   padding: 0.5rem 0.625rem;
   background: var(--v2-panel);
-  border-radius: var(--v2-radius);
   box-shadow: var(--v2-stroke), var(--v2-shadow);
   font-size: 0.625rem;
   line-height: 1.5;
