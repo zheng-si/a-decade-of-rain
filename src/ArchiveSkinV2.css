@@ -5,9 +5,9 @@
    all of them subtractive:
 
      1. ONE typeface. Geist everywhere; the serif/sans pairing is gone.
-     2. NO corner radii. Panels, buttons, chips and the view switch are
-        rectangles. Round stays only where roundness is meaning — the agent
-        dots, the compass dial, the map's own circles.
+     2. ONE corner radius, small. Was "no corner radii at all"; a 4px corner
+        went back on in Sep 2026, on the surfaces and the controls but never
+        on a data mark. See --v2-radius.
      3. NO strokes, almost. Panel borders go; the two hairline RULES that
         separate blocks stay, because they divide rather than outline.
      4. Shadows drop from 0.10 alpha to 0.02 — present as depth, absent as
@@ -42,15 +42,42 @@
      Each is still light — 5, 5, 6 percent — and they only add up where they
      overlap, right under the surface. Measured at 1px below the edge that
      comes to roughly 6% over the #f7f7f7 land, so the corner arrives as a
-     soft grey rather than as a line.
-
-     The corners stay square. 8px and 4px were both tried on every surface
-     here and both dropped: rule 2 at the top of this file is the one that
-     holds, and depth turns out to be the shadow's job alone. */
+     soft grey rather than as a line. */
   --v2-shadow:
     0 1px 2px rgba(40, 38, 30, 0.05),
     0 5px 12px rgba(40, 38, 30, 0.05),
     0 16px 36px rgba(40, 38, 30, 0.06);
+
+  /* ONE radius, for every surface and every control on this screen.
+
+     Literal pixels, not rem, and deliberately: every other size in this file
+     is rem-based because the root font-size is the density dial (13.6px
+     between 641 and 1600 wide, 16px above). A corner radius is not a measure
+     of content — it is a fixed optical property of the surface — and 0.25rem
+     would land at 3.4px on a 14" laptop rather than 4. Point this at 0.25rem
+     if the corners should track the dial instead.
+
+     4, from the IHG app: its small chips read ~4pt and its cards and buttons
+     ~8pt on a 430pt-wide phone. One value rather than that pair, because the
+     pair only pays off where the boxes differ by an order of magnitude. A
+     radius reads as a PROPORTION of the box it rounds, and this screen's run
+     from the 316px panel to the 29px zoom stack is 1.3% to 14% at 4px —
+     everything still reads as a softened edge. At 8 the same run was 2.5% to
+     28%, a softened corner and a pill from one number, which is what forced
+     two tokens the first time round.
+
+     THREE rules for where it goes, and the third is the one that matters:
+
+       1. Floating surfaces take it — panels, the key bar, the popover, the
+          lookup's drop, the map popup.
+       2. Controls take it on the GROUP, with the children clipped to it. A
+          segmented control is one object; rounding each segment draws a
+          corner at every internal seam.
+       3. Data marks NEVER take it. The agent bars encode gallons as length,
+          and a radius shortens the flat part of a bar by its own size at each
+          end — on the shortest bars that is most of the mark. A corner that
+          softens a button is a corner that lies about a number. */
+  --v2-radius: 4px;
 
   /* ── the elevation recipe, shared verbatim with the Story ───────────────
      Same two parts, same values, same reasoning — the long version lives on
@@ -134,7 +161,7 @@
 .map-wrap .archive-key {
   background: var(--v2-panel);
   border: none;
-  border-radius: 0;
+  border-radius: var(--v2-radius);
   /* The stroke, plus their own wide float rather than the whisper. These are
      the two biggest surfaces on the Archive and they hang over a moving map,
      so they need more separation than a card on paper does -- but they had NO
@@ -273,11 +300,11 @@
   .map-wrap .explorer-panel {
     left: 0;
     width: 100%;
-    border-radius: 0.5rem 0.5rem 0 0;
+    border-radius: var(--v2-radius) var(--v2-radius) 0 0;
   }
 
   .map-wrap.inspect-open .archive-key {
-    border-radius: 0.5rem 0.5rem 0 0;
+    border-radius: var(--v2-radius) var(--v2-radius) 0 0;
   }
 
   /* The identity block, compressed — stated at the skin's own two-class
@@ -475,9 +502,13 @@
 }
 
 /* The two buttons butt together into one 60×30 block rather than floating as
-   separate circles — squares with a gap would read as two unrelated things. */
+   separate circles — squares with a gap would read as two unrelated things.
+   Rule 2 of the radius: the corner goes on the block, and the buttons are
+   clipped to it, so the seam down the middle stays a straight line. */
 .map-wrap .transport-buttons {
   gap: 0;
+  border-radius: var(--v2-radius);
+  overflow: hidden;
   box-shadow: var(--v2-lift);
 }
 
@@ -611,7 +642,11 @@
   margin-top: 0;
   padding: 0;
   background: none;
-  border-radius: 0;
+  /* Rule 2 again: five chips reading as one switch, so the corner belongs to
+     the row. `overflow: hidden` is what keeps the opaque dark chip at either
+     end from painting its own square corner back over the row's. */
+  border-radius: var(--v2-radius);
+  overflow: hidden;
   /* THE bug this pass was really about. This said "Hairline first, then the
      control shadow" and shipped only a hairline -- and an INSET one, on a row
      with zero padding whose children are full-bleed. An inset shadow paints on
@@ -706,8 +741,45 @@
   font-weight: 600;
 }
 
+/* ── the lookup's own controls ─────────────────────────────────────────────
+   These are styled in App.css, which is loaded with and without this skin, so
+   the corner is applied here rather than there — same reason everything else
+   in this file is: the whole spike stays one file plus one import.
+
+   Every one of them is a grey 6% track carrying transparent children, which
+   is what makes rule 2 cheap here: the track holds the corner and the
+   segments inside it need no radius at all. */
+.map-wrap .lookup-search,
+.map-wrap .lookup-radii,
+.map-wrap .lookup-unit,
+.map-wrap .lookup-fold,
+.map-wrap .lookup-search-drop,
+.map-wrap .lookup-search-none {
+  border-radius: var(--v2-radius);
+}
+
+/* Clipped, because their selected segment is the opaque dark fill and it sits
+   at one end or the other — without this it paints its own square corner back
+   over the track's rounded one. */
+.map-wrap .lookup-radii,
+.map-wrap .lookup-unit {
+  overflow: hidden;
+}
+
+/* NOT clipped, and this one is load-bearing: `.lookup-search` is the
+   positioning parent of the results drop, which hangs below the row on
+   purpose. Clipping here would put back the bug this branch just fixed one
+   level up. It costs nothing — every child of the search row is transparent,
+   so none of them can square the corner off. */
+
 /* ── the key ───────────────────────────────────────────────────────────── */
-.map-wrap .archive-key-legend .map-key-view,
+/* The same group-and-clip as the agent row and the transport pair: two
+   segments sharing one track, so one corner around the pair. */
+.map-wrap .archive-key-legend .map-key-view {
+  border-radius: var(--v2-radius);
+  overflow: hidden;
+}
+
 .map-wrap .archive-key-legend .map-key-view-btn {
   border-radius: 0;
 }
@@ -750,7 +822,7 @@
 
 .map-wrap .adr-popup .maplibregl-popup-content {
   padding: 0.375rem 0.5625rem 0.4375rem;
-  border-radius: 0;
+  border-radius: var(--v2-radius);
   box-shadow: var(--v2-shadow-control);
 }
 
@@ -862,7 +934,11 @@
   border-top: none;
 }
 
-/* The per-agent bars kept their 2px radius through the no-radii pass. */
+/* Rule 3 of the radius, and the one exception on this screen. These bars are
+   gallons drawn as length, and a radius eats its own size off the flat part of
+   the mark at each end — 8 of the 4px bar's pixels, which on the shortest
+   agent is most of what there is to read. Everything else here rounds; a
+   measurement does not. */
 .map-wrap .inspect-bar-track,
 .map-wrap .inspect-bar {
   border-radius: 0;
@@ -1165,7 +1241,8 @@
    The buttons drop their own shadow, which was stacking one float per button
    in a stack that is really one object. */
 .map-wrap .maplibregl-ctrl-group {
-  border-radius: 0;
+  border-radius: var(--v2-radius);
+  overflow: hidden;
   box-shadow: var(--v2-stroke), var(--v2-shadow);
 }
 
@@ -1257,6 +1334,7 @@
   max-width: calc(100% - 52.5rem);
   padding: 0.4375rem 0.75rem;
   background: var(--v2-panel);
+  border-radius: var(--v2-radius);
   box-shadow: var(--v2-stroke), var(--v2-shadow);
   font-family: var(--font-sans);
 }
@@ -1403,6 +1481,7 @@
   white-space: normal;
   padding: 0.5rem 0.625rem;
   background: var(--v2-panel);
+  border-radius: var(--v2-radius);
   box-shadow: var(--v2-stroke), var(--v2-shadow);
   font-size: 0.625rem;
   line-height: 1.5;
