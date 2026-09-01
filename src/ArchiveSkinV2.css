@@ -799,6 +799,20 @@
    invisible and starts being the reason one row wraps before the other. */
 .map-wrap .lookup-chip {
   padding: 0.375rem 0.75rem;
+  /* And one COLOUR for both, which is the part that was actually visible.
+     `.lookup-chip` takes `color: inherit`, and nothing between it and the
+     panel sets a colour, so it was landing on the UA default: pure #000, a
+     value that appears nowhere in this palette — the darkest ink here is
+     #101a14. Against the agent chips' --ink-soft next to it, the radius row
+     read as heavier and colder without anything naming a difference. */
+  color: var(--ink-soft);
+}
+
+/* The selected chip, likewise. It was #f2efe7, the paper tone, against the
+   agent chip's flat white on the same forest fill — near enough to look like
+   drift rather than a decision, which is what it was. */
+.map-wrap .lookup-chip.is-active {
+  color: #fff;
 }
 
 .map-wrap .lookup-search,
