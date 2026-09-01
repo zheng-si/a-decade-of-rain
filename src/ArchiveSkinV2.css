@@ -823,19 +823,20 @@
    a bare 1px hairline. That is the whole reason a sentence explaining it ever
    seemed necessary; a control that looks like a control needs no sentence.
 
-   So the playhead gets a grip: a 2×4 cap at the top of the line, in forest
+   So the playhead gets a grip: a 4×8 cap at the top of the line, in forest
    rather than the line's own ink, because the point of it is to read as a
    PART — something you take hold of — and not as a thicker end to the same
-   hairline. Small on purpose. It sits over a chart of 120 bars and it is
-   competing with none of them; it only has to be the one thing on that line
-   that is wider than a hair. */
+   hairline. Four wide is the number that matters: at two it was a thicker
+   hairline, at four it is a block, and eight tall is what keeps it reading as
+   a vertical grip rather than a square dot. Still small — it sits over a chart
+   of 120 bars and competes with none of them. */
 .map-wrap .explorer-playhead::before {
   content: '';
   position: absolute;
   top: 0;
   left: 50%;
-  width: 2px;
-  height: 4px;
+  width: 4px;
+  height: 8px;
   transform: translateX(-50%);
   background: var(--forest);
 }
@@ -1635,16 +1636,21 @@
   visibility: hidden;
 }
 
-/* THE HEAD PAYS FOR ITS OWN BOTTOM NOW.
-   It never did: the gap under "Read the Story" was the legend block's
-   `margin-top: 0.875rem`, borrowed from the block that used to sit between the
-   head and the transport. Moving the key to the bar took that margin with it
-   and left the transport's rule flush against the link's line box — measured
-   at 0 above the rule against 13.6 below it. A rule with space on one side is
-   not a divider, it is an underline on whatever sits above it.
-   1rem, which is exactly what the transport pays below the same rule. */
+/* And the head stops paying for its own bottom.
+
+   The 1rem here was the top half of a rule: the head used to end at `Read the
+   Story` with the transport's hairline directly under it, and without this
+   padding that rule sat flush against the link's line box — 0 above it against
+   13.6 below. A rule with space on one side is not a divider, it is an
+   underline on whatever sits above it.
+
+   Both halves of that argument are gone. The instructions have moved to the
+   foot, so the head ends at the subtitle; the rule has moved with them, so
+   there is nothing here to balance. What was left was 13.6 of padding stacked
+   under the transport's own 20.4 — a 34px gap between the subtitle and
+   SPRAYING VOLUME where every other block break on this panel is 20. */
 .map-wrap .explorer-head {
-  padding-bottom: 1rem;
+  padding-bottom: 0;
 }
 
 /* ── the key as a bar ──────────────────────────────────────────────────── */
