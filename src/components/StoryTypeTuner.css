@@ -98,42 +98,91 @@
   letter-spacing: 0.06em;
 }
 
-.stt-row-dial {
+/* Four dials to a row, so each one is a labelled line rather than a cluster of
+   nameless buttons. The key column is fixed width so the controls line up down
+   the whole list and the eye can run one property at a time. */
+.stt-dial {
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  margin-top: 0.25rem;
+  margin-top: 0.1875rem;
 }
 
-.stt-row-dial button {
-  width: 1.375rem;
-  height: 1.375rem;
+.stt-dial-k {
+  flex: none;
+  width: 2.375rem;
+  color: #7f8d83;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.stt-dial button {
+  min-width: 1.25rem;
+  height: 1.25rem;
+  padding: 0 0.25rem;
   border: 1px solid rgba(232, 236, 231, 0.22);
   background: transparent;
   color: inherit;
   font: inherit;
-  font-size: 12px;
+  font-size: 10px;
   line-height: 1;
   cursor: pointer;
 }
 
-.stt-row-dial button:hover:not(:disabled) {
+.stt-dial button:hover:not(:disabled) {
   background: rgba(232, 236, 231, 0.12);
 }
 
-.stt-row-dial button:disabled {
+.stt-dial button:disabled {
   opacity: 0.3;
   cursor: default;
 }
 
+/* One track, segments butted together — the same shape the page's own
+   segmented controls use, so what this panel is asking is legible at a glance:
+   pick one of these. */
+.stt-seg {
+  display: flex;
+  gap: 0;
+}
+
+.stt-seg button + button {
+  border-left: none;
+}
+
+.stt-seg button.is-on {
+  background: #ff7700;
+  border-color: #ff7700;
+  color: #101a14;
+  font-weight: 600;
+}
+
 .stt-val {
-  min-width: 3.25rem;
+  min-width: 3.5rem;
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
 
+/* A value the reader has actually set, as against one merely measured. Without
+   this the panel cannot answer its own central question — which of these did I
+   change — for the two dials that show a number rather than a state. */
+.stt-val.is-set {
+  color: #ff9d3d;
+  font-weight: 600;
+}
+
 .stt-undo {
-  margin-left: auto;
+  flex: none;
+  width: 1.125rem;
+  height: 1.125rem;
+  border: 1px solid rgba(232, 236, 231, 0.22);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 10px;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .stt-sel {
