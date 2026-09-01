@@ -513,8 +513,13 @@
    now comes from size and weight alone, which is what the rest of the panel
    uses. */
 .map-wrap .explorer-subtitle {
-  /* 1.25rem, the head's one block gap — see the note on .explorer-dek. */
-  margin: 0 0 1.25rem;
+  /* 0.5rem. The head's one block gap used to sit HERE, which put the citation
+     on the far side of it — reading as the start of the next thing when it is
+     the last line of this one: it says whose record this is and how complete.
+     The gap moves down one element, onto the citation, so the four lines above
+     it read as the identity and the break lands where the reader actually
+     crosses into instructions. */
+  margin: 0 0 0.5rem;
   font-size: 0.8125rem;
   /* 500, with the title. The earlier note here said separation comes from size
      and weight — that was written while the subtitle was one step of size off
@@ -551,7 +556,10 @@
    boundaries were the same KIND. They are the same kind; they are not the same
    depth, and that is what the one number could not say.) */
 .map-wrap .explorer-dek {
-  margin-bottom: 0.5625rem;
+  /* And the head's block gap arrives here, below the citation and above the
+     instructions — the one place on this panel where the reader stops being
+     told what they are looking at and starts being told what to do with it. */
+  margin-bottom: 1.25rem;
   font-weight: 400;
   /* The guide's own size. The citation and the three actions are the same
      KIND of thing — prose under the name, read once — and setting the
@@ -641,6 +649,53 @@
   font-weight: 500;
   font-size: 1rem;
   line-height: var(--v2-lead-ui);
+}
+
+/* ── the guide ─────────────────────────────────────────────────────────────
+   Variant C from the four that were built and photographed, minus its rule.
+
+   NO MARKERS. The tick before each line was doing the job the verb already
+   does, and doing it in a second visual language: a list marker says "these
+   are items", the bolded first word says "these are actions", and the second
+   is the true one. With the verb first on all four lines they align on their
+   own and the marker has nothing left to contribute.
+
+   NO RULE either, which is the one change from the variant as shown. A
+   hairline above this block says "something changed here" without saying
+   what; the label says what. Two devices for one boundary is one too many,
+   and this file's whole argument is that a rule earns its place by dividing
+   things a label cannot. */
+.map-wrap .explorer-guide {
+  margin: 0 0 1.25rem;
+}
+
+.map-wrap .explorer-guide-label {
+  /* Tighter under itself than the section labels elsewhere, because what it
+     heads is four short lines rather than a control: 0.5rem reads as "this
+     label belongs to that block", more starts to read as a section. */
+  margin: 0 0 0.5rem;
+}
+
+.map-wrap .explorer-guide li {
+  padding-left: 0;
+}
+
+.map-wrap .explorer-guide li::before {
+  /* The tick, retired. Left as a display:none rather than deleted in App.css
+     so the unskinned build keeps its markers. */
+  display: none;
+}
+
+.map-wrap .explorer-guide li + li {
+  /* Two steps up from the 0.25rem the marked list used, and the second step is
+     the one that matters. Without a marker holding the left edge the gap is
+     the ONLY thing saying where one item ends, and two of the four wrap to a
+     second line — so the gap has to beat the leading inside an item to read as
+     a break at all. Measured, as a ratio of that leading: 1.34 at 0.375rem,
+     1.47 at 0.5, 1.61 at 0.625. 1.47 is where it stops reading as loose
+     leading and starts reading as a boundary; the extra step past it buys
+     nothing but height. Five pixels. */
+  margin-top: 0.5rem;
 }
 
 /* ── section labels ────────────────────────────────────────────────────── */

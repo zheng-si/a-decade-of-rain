@@ -374,18 +374,30 @@ export default function Timeline({
           </a>{' '}
           behind Stellman et&nbsp;al. (2003): 8,360 spray runs, 19.5M gallons.
         </p>
+        {/* A label, not a rule. The block needs to say it is instructions
+            rather than more prose — the citation above it is a sentence in the
+            same size and colour — and a heading does that where a hairline
+            only says "something changed". */}
+        <p className="explorer-section-label explorer-guide-label">How to read this</p>
         <ul className="explorer-guide">
-          {/* The verb is the point of each line — bold it and the three
-              bullets can be read as three actions at a glance, without
-              reading the sentences at all. */}
+          {/* The verb starts every line. It was the bolded word before, which
+              got the emphasis right and the position wrong: a reader scanning
+              four lines for what they can DO reads the first word of each, and
+              on one of the four the first word was `Each`. Now the four first
+              words are Press, Click, Zoom, Search, and the list can be read
+              without reading the sentences at all. */}
           <li>
             <strong>Press play</strong> to watch the decade fall month by month.
           </li>
           <li>
-            Each dot is a grid cell&apos;s gallons. <strong>Click</strong> it for the record.
+            <strong>Click</strong> any dot for the record behind it. Each is a grid
+            cell&apos;s gallons.
           </li>
           <li>
             <strong>Zoom in</strong> until the dots give way to the flight tracks themselves.
+          </li>
+          <li>
+            <strong>Search</strong> a base or town for every run that crossed it.
           </li>
         </ul>
         {/* With the guide, not at the foot of the panel: it is the fourth
