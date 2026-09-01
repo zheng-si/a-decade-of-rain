@@ -2012,6 +2012,14 @@
    divider to nothing, so the reader could no longer see what they had typed
    at the exact moment the field was telling them it did not match. It hangs
    under the row like the dropdown it replaces. */
+/* AND ON A GROUND, like the dropdown it replaces.
+   Taking it out of the row's flow was only half the job: it hung under the row
+   as bare text with no fill behind it, so it read straight through onto the
+   RADIUS label and the chips underneath — two messages occupying the same
+   pixels, which is worse than the layout fault it was fixing. It is the same
+   kind of thing as the results list and takes the same paper, padding and
+   shadow, so the field's two answers — some matches, no matches — are one
+   surface that changes contents. */
 .lookup-search-none {
   position: absolute;
   top: 100%;
@@ -2019,6 +2027,11 @@
   right: 0;
   z-index: 4;
   margin: 0.25rem 0 0;
+  padding: 0.4375rem 0.625rem;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgba(33, 53, 40, 0.08),
+    0 1px 2px rgba(0, 0, 0, 0.08);
   font-size: 0.6875rem;
   line-height: 1.45;
   color: var(--ink-faint, #6f6a5e);

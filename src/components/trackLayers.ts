@@ -1010,7 +1010,10 @@ function applyDayGate(map: maplibregl.Map) {
   const set = (id: string, prop: string, o: number) => {
     if (!off(map, id)) map.setPaintProperty(id, prop, dayGate(o) as never)
   }
-  set(TRACK_LAYER, 'line-opacity', TRACKS.opacity)
+  // Zero while the twins carry it, for the same reason the gradient write is
+  // skipped: the filter that hides this layer is slower than any paint, so it
+  // must not be able to draw anything in the gap.
+  set(TRACK_LAYER, 'line-opacity', hueLive ? 0 : TRACKS.opacity)
   set(TRACK_DIM_LAYER, 'line-opacity', TRACKS.opacity)
   set(TRACK_NIL_LAYER, 'line-opacity', TRACKS.nil.opacity)
   set(TRACK_MARK_LAYER, 'circle-opacity', TRACKS.opacity)
@@ -1163,6 +1166,11 @@ function applyTrackColour(map: maplibregl.Map) {
   applyDrawVisibility(map)
 
   hueLive = byFeature && tapering
+  // Before the twins are touched, so the flat layer is already at zero when
+  // their filters land.
+  if (!off(map, TRACK_LAYER)) {
+    map.setPaintProperty(TRACK_LAYER, 'line-opacity', dayGate(hueLive ? 0 : TRACKS.opacity) as never)
+  }
   for (let gi = 0; gi < TRACK_HUE_LAYERS.length; gi++) {
     const id = TRACK_HUE_LAYERS[gi]
     if (!has(id)) continue
@@ -1194,7 +1202,18 @@ function applyTrackColour(map: maplibregl.Map) {
         TRACK_LAYER,
         byFeature ? all(NEVER) : indices ? all(HAS_VOLUME, inSel) : all(HAS_VOLUME),
       )
-      map.setPaintProperty(TRACK_LAYER, 'line-gradient', gradient(tint) as never)
+      // NOT while it is standing down, and this is the red flash at the end of
+      // a play-through.
+      //
+      // A filter change goes through the worker — the source is marked for
+      // reload and every tile re-parsed — while a paint change lands on the
+      // next frame. So writing the tint's gradient here repainted the whole
+      // record in the brand red IMMEDIATELY and the `NEVER` that was supposed
+      // to hide it arrived several frames later, with the hue twins' own
+      // filters arriving on the same delay: red first, agents after. Nothing
+      // in the code said "red" at that moment; the two writes just travel at
+      // different speeds.
+      if (!byFeature) map.setPaintProperty(TRACK_LAYER, 'line-gradient', gradient(tint) as never)
     }
     if (has(TRACK_DIM_LAYER)) {
       map.setFilter(TRACK_DIM_LAYER, indices ? all(HAS_VOLUME, ['!', inSel]) : all(NEVER))

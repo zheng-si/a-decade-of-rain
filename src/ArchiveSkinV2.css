@@ -1286,10 +1286,12 @@
   flex: none;
   display: flex;
   align-items: center;
-  /* Inside the row now, so it needs the space the bar's own gap used to give
-     it — and slightly less than a full gap, because it belongs to the label it
-     follows rather than standing between two rows. */
-  margin-left: 0.25rem;
+  /* Pulled back against the label. The row's own 0.4375rem gap already sits
+     between them, and adding to it put the marker 11px out — reading as the
+     next item in the key rather than as a mark on the one before it. Negative,
+     so the net is about 3px: close enough to belong to the words, far enough
+     not to touch them. */
+  margin-left: -0.25rem;
 }
 
 /* No pill behind it. The Material glyph is already a ring, and a disc under a
