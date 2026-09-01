@@ -353,27 +353,6 @@ export default function Timeline({
             275 column. */}
         <h1 className="explorer-title">The Herbicide Atlas of Vietnam</h1>
         <p className="explorer-subtitle">U.S. Air Force defoliation flights over South Vietnam</p>
-        {/* One citation line, then verbs. The old three-sentence paragraph
-            answered "what is this" beautifully and was read by nobody — the
-            reader wants to know what their hands can do. Each bullet is one
-            action; the mechanics (how the dots are counted, how volume is
-            spread) live in Methods, not here. */}
-        <p className="explorer-dek">
-          {/* "HERBS" moved up into the title, so the link drops it: the head
-              read "The HERBS Record" and then, two lines down and underlined,
-              "the complete HERBS record". Same link, same target, same claims
-              — the title now says whose record it is and this says how
-              complete it is and who assembled it. */}
-          The{' '}
-          <a
-            href="https://github.com/andrewstellman/hea-v"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            complete record
-          </a>{' '}
-          behind Stellman et&nbsp;al. (2003): 8,360 spray runs, 19.5M gallons.
-        </p>
         {/* A label, not a rule. The block needs to say it is instructions
             rather than more prose — the citation above it is a sentence in the
             same size and colour — and a heading does that where a hairline
@@ -545,6 +524,32 @@ export default function Timeline({
       </div>
 
       <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
+
+      {/* Provenance, at the foot, where provenance goes.
+
+          It used to sit between the identity and the instructions, which put
+          the least urgent of the three questions a first-time reader has —
+          what is this, where is it from, what can I do — in second place. And
+          it carried the two totals, which was the real fault: the same two
+          numbers are shown live in the transport a couple of hundred pixels
+          below, so on load they read as a duplicate, and the moment anything
+          is filtered or played they disagree with no way to tell which is
+          which. Measured: isolate Orange and the live pair reads 4,676 and
+          12.1M against this line's 8,360 and 19.5M; mid-play, 40 and 45K.
+
+          The numbers go with the move. What is left is what only this line can
+          say: whose record it is and how complete. */}
+      <p className="explorer-dek">
+        The{' '}
+        <a
+          href="https://github.com/andrewstellman/hea-v"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          complete record
+        </a>{' '}
+        behind Stellman et&nbsp;al. (2003).
+      </p>
 
       {lookupSlot}
 

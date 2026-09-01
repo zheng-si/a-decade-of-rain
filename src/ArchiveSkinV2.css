@@ -513,13 +513,13 @@
    now comes from size and weight alone, which is what the rest of the panel
    uses. */
 .map-wrap .explorer-subtitle {
-  /* 0.5rem. The head's one block gap used to sit HERE, which put the citation
-     on the far side of it — reading as the start of the next thing when it is
-     the last line of this one: it says whose record this is and how complete.
-     The gap moves down one element, onto the citation, so the four lines above
-     it read as the identity and the break lands where the reader actually
-     crosses into instructions. */
-  margin: 0 0 0.5rem;
+  /* 1.25rem, and it is back here because the citation is no longer between
+     the identity and the instructions — it has gone to the foot, where
+     provenance goes. So this is once again the panel's one head break: above
+     it, what this is; below it, what to do with it. The `Read the Story` link
+     pays the same 1.25rem at the far end of the instructions, so the block is
+     bracketed by one measure rather than two that happen to look similar. */
+  margin: 0 0 1.25rem;
   font-size: 0.8125rem;
   /* 500, with the title. The earlier note here said separation comes from size
      and weight — that was written while the subtitle was one step of size off
@@ -556,17 +556,25 @@
    boundaries were the same KIND. They are the same kind; they are not the same
    depth, and that is what the one number could not say.) */
 .map-wrap .explorer-dek {
-  /* And the head's block gap arrives here, below the citation and above the
-     instructions — the one place on this panel where the reader stops being
-     told what they are looking at and starts being told what to do with it. */
-  margin-bottom: 1.25rem;
-  font-weight: 400;
-  /* The guide's own size. The citation and the three actions are the same
-     KIND of thing — prose under the name, read once — and setting the
-     citation a step smaller made it look like a footnote to the actions
-     rather than the line that says where all of this comes from. */
+  /* At the foot now, under the agent note, and both of its old reasons went
+     with the move.
+
+     The size was set to the guide's, because the citation and the actions were
+     neighbours and the same KIND of thing — prose under the name, read once.
+     They are not neighbours any more. Its neighbour is the agent note at
+     0.8125rem, and one step under that is what says "this is the last and
+     least urgent line on the panel" without shrinking a line that carries a
+     link into something nobody will aim at. Two steps down was tried and is
+     too small for that.
+
+     The colour follows the same move: --ink-faint is the notes tier, which is
+     where a provenance line belongs once it is no longer standing in for the
+     panel's headline figures. */
+  margin: 0.75rem 0 0;
   font-size: 0.75rem;
+  font-weight: 400;
   line-height: var(--v2-lead-body);
+  color: var(--ink-faint);
 }
 
 /* ── transport ─────────────────────────────────────────────────────────── */
@@ -897,6 +905,11 @@
 }
 
 .map-wrap .explorer-links {
+  /* The SAME 1.25rem the subtitle pays above the instructions. Si's call and
+     the right one: this link and that gap are the two ends of one block, so
+     they should be one measure. It was 1rem, which is close enough to look
+     like a mistake and far enough to be one. */
+  margin-top: 1.25rem;
   font-size: 0.75rem;
   font-weight: 600;
 }
