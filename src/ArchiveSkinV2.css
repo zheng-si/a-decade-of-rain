@@ -513,13 +513,12 @@
    now comes from size and weight alone, which is what the rest of the panel
    uses. */
 .map-wrap .explorer-subtitle {
-  /* 1.25rem, and it is back here because the citation is no longer between
-     the identity and the instructions — it has gone to the foot, where
-     provenance goes. So this is once again the panel's one head break: above
-     it, what this is; below it, what to do with it. The `Read the Story` link
-     pays the same 1.25rem at the far end of the instructions, so the block is
-     bracketed by one measure rather than two that happen to look similar. */
-  margin: 0 0 1.25rem;
+  /* Nothing. The head break is real — above it what this is, below it what to
+     do with it — but the block below the head is now the transport rather than
+     the instructions, and the transport pays that gap itself. Carrying
+     1.25rem here as well stacked the two into a 37px void that read as a
+     missing element rather than as a break. */
+  margin: 0;
   font-size: 0.8125rem;
   /* 500, with the title. The earlier note here said separation comes from size
      and weight — that was written while the subtitle was one step of size off
@@ -570,7 +569,7 @@
      The colour follows the same move: --ink-faint is the notes tier, which is
      where a provenance line belongs once it is no longer standing in for the
      panel's headline figures. */
-  margin: 0.75rem 0 0;
+  margin: 0.875rem 0 0;
   font-size: 0.75rem;
   font-weight: 400;
   line-height: var(--v2-lead-body);
@@ -578,12 +577,24 @@
 }
 
 /* ── transport ─────────────────────────────────────────────────────────── */
-/* A rule, not an outline: this line divides the identity block from the
-   controls, so it survives the no-strokes pass. */
+/* No rule here any more, and the panel is down to one.
+
+   It divided the identity block from the controls, which was a real boundary
+   while the instructions sat inside that identity block and made it four
+   elements deep. The instructions have gone to the foot; what is left above
+   this row is three lines of name, and three lines of name against a row of
+   controls do not need a hairline to be told apart. The rule moves to the one
+   boundary a label cannot mark on its own — the end of the controls — where it
+   now sits on the guide's heading.
+
+   The 20px it pays instead is the panel's block measure, and it is paid once:
+   the subtitle used to carry its own 1.25rem on top of this padding, and the
+   two stacked into a gap that read as a missing element. */
 .map-wrap .explorer-transport {
   align-items: center;
   gap: 0.875rem;
-  padding-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: none;
 }
 
 /* Two lines beside the buttons: what is counted and when, then the counts. */
@@ -674,14 +685,28 @@
    and this file's whole argument is that a rule earns its place by dividing
    things a label cannot. */
 .map-wrap .explorer-guide {
-  margin: 0 0 1.25rem;
+  /* Nothing under it. The citation below carries its own 0.875rem, and pays
+     the same again to the link under that — the foot's three blocks on one
+     measure, because they are peers. */
+  margin: 0;
 }
 
-.map-wrap .explorer-guide-label {
+/* Both classes, deliberately. `.map-wrap .explorer-section-label` sits further
+   down this file at the same specificity, so a single-class selector here lost
+   the margin race silently: the old `0 0 0.5rem` was rendering as the section
+   label's `1rem 0 0.5rem`, and only looked right because the bottom halves
+   agreed. */
+.map-wrap .explorer-section-label.explorer-guide-label {
   /* Tighter under itself than the section labels elsewhere, because what it
      heads is four short lines rather than a control: 0.5rem reads as "this
-     label belongs to that block", more starts to read as a section. */
-  margin: 0 0 0.5rem;
+     label belongs to that block", more starts to read as a section.
+
+     And the panel's one rule sits on this label, evenly: 20 of air, the
+     hairline, 20 again. Above it the end of the controls, below it the three
+     things that are read rather than operated. */
+  margin: 1.5rem 0 0.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
 }
 
 .map-wrap .explorer-guide li {
@@ -783,9 +808,41 @@
 
 /* The counts moved up into the transport last round, and they had been the
    only thing holding the chart off the row above it — the tallest bars were
-   landing straight against the Gallons figure. The chart owns that gap now. */
+   landing straight against the Gallons figure. The chart owns that gap now,
+   and at 20 rather than 12: the bars are the tallest thing on the panel and
+   the Gallons figure is directly above them, so this pair needs the same air
+   the panel gives its other block breaks rather than the tighter measure that
+   belongs inside a block. */
 .map-wrap .explorer-chart {
-  margin-top: 0.875rem;
+  margin-top: 1.5rem;
+}
+
+/* ── the scrubber says it is a scrubber ────────────────────────────────────
+   The chart has been draggable all along — an `<input type=range>` is laid
+   over it — but nothing said so: the input is `opacity: 0` and the playhead is
+   a bare 1px hairline. That is the whole reason a sentence explaining it ever
+   seemed necessary; a control that looks like a control needs no sentence.
+
+   So the playhead gets a grip: a 2×4 cap at the top of the line, in forest
+   rather than the line's own ink, because the point of it is to read as a
+   PART — something you take hold of — and not as a thicker end to the same
+   hairline. Small on purpose. It sits over a chart of 120 bars and it is
+   competing with none of them; it only has to be the one thing on that line
+   that is wider than a hair. */
+.map-wrap .explorer-playhead::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 4px;
+  transform: translateX(-50%);
+  background: var(--forest);
+}
+
+/* And the cursor says the same thing on the way in. */
+.map-wrap .explorer-chart {
+  cursor: ew-resize;
 }
 
 .map-wrap .explorer-axis {
@@ -905,11 +962,13 @@
 }
 
 .map-wrap .explorer-links {
-  /* The SAME 1.25rem the subtitle pays above the instructions. Si's call and
-     the right one: this link and that gap are the two ends of one block, so
-     they should be one measure. It was 1rem, which is close enough to look
-     like a mistake and far enough to be one. */
-  margin-top: 1.25rem;
+  /* The same 0.875rem the citation pays above itself. The 1.25rem here used to
+     match the gap the subtitle paid above the instructions — the two ends of
+     one block, one measure — but that block has moved to the foot and the
+     subtitle no longer pays anything. What brackets it now is the rule above
+     and the panel's own padding below, and inside those the three blocks are
+     peers on one measure. */
+  margin-top: 0.875rem;
   font-size: 0.75rem;
   font-weight: 600;
 }

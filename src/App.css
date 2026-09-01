@@ -412,7 +412,13 @@
   cursor: ew-resize;
 }
 
-.explorer-chart:focus-within {
+/* Keyboard only. `:focus-within` put a 2px red box around the chart on every
+   CLICK — and clicking the chart is the ordinary way to scrub it, so the ring
+   fired on the gesture it was never meant to mark and then sat there until the
+   reader clicked something else. `:focus-visible` is the browser's own answer
+   to exactly this question; it reaches the wrapper through `:has()` because
+   the thing that takes focus is the invisible range input inside. */
+.explorer-chart:has(.explorer-slider:focus-visible) {
   outline: 2px solid var(--accent);
   outline-offset: 0.1875rem;
   border-radius: 0.125rem;
