@@ -88,6 +88,50 @@
           number, and that stays true at 2px on the shortest bars. */
   --v2-radius: 2px;
 
+  /* A second step, for the big surfaces only. 2px is this screen's corner and
+     stays that on everything a hand touches — chips, switches, the zoom stack,
+     the key bar, the popovers. The two PANELS are a different size of object,
+     and the same proportion argument that keeps the small controls at 2 puts
+     these at 4: a corner reads relative to the box it rounds, and 4px on a
+     372px panel is 1.1% where 2px on the 29px zoom stack is 6.9%. One step up
+     on the largest things is what keeps them reading as the same family
+     rather than as the small ones scaled up. */
+  --v2-radius-lg: 4px;
+
+  /* ── leading ──────────────────────────────────────────────────────────
+     EXPERIMENT. The complaint is that this screen reads dense next to a
+     marketing page, and the audit says the reason is not what it looks like.
+     Of the 41 text styles on the Archive, TWENTY were on `line-height:
+     normal` — the record rows, the group labels, every chip, the axis years.
+     That is not a tight setting, it is the absence of a setting: the browser
+     picks roughly 1.2 for Geist, and the vertical rhythm of the densest part
+     of this panel was never a decision anyone made.
+
+     So the first move is to have a scale at all, and the second is to raise
+     it. Three steps, one job each:
+
+       display — the title only. It was 1.2, which at 18px is 21.6px of
+       leading on a heading that wraps to two lines. Display type takes the
+       tightest setting on a page, but 1.2 belongs to 40px, not to 18.
+
+       ui — anything that occupies one line and is a control or a datum: the
+       chips, the caps labels, the table rows, the readouts. It does not need
+       prose leading and would spend a lot of panel on it, but it does need a
+       number rather than whatever the browser happens to pick.
+
+       body — running prose that wraps. This is where a reader actually feels
+       the difference, and 1.55 is the step that separates a UI from a page
+       you read.
+
+     NOT letter-spacing. The audit found body tracking at `normal` everywhere,
+     which is correct; the only tracked things are the caps labels (0.4–0.78px,
+     right for caps) and the title's own hair of negative (right for display).
+     There is no tracking problem here. The density is leading and the gaps
+     between blocks, not the space between letters. */
+  --v2-lead-display: 1.3;
+  --v2-lead-ui: 1.35;
+  --v2-lead-body: 1.55;
+
   /* ── the elevation recipe, shared verbatim with the Story ───────────────
      Same two parts, same values, same reasoning — the long version lives on
      --v3-stroke in StorySkinV3.css and is not repeated here, because the
@@ -174,7 +218,7 @@
 .map-wrap .archive-key {
   background: var(--v2-panel);
   border: none;
-  border-radius: var(--v2-radius);
+  border-radius: var(--v2-radius-lg);
   /* The stroke, plus their own wide float rather than the whisper. These are
      the two biggest surfaces on the Archive and they hang over a moving map,
      so they need more separation than a card on paper does -- but they had NO
@@ -383,8 +427,13 @@
   /* 500, not the 600 the section labels take. Those labels head controls and
      have to hold their own against them; this one hangs off the title and is
      read as part of it. At 600 in accent red above a 500 title, the date was
-     competing with the name it dates. */
-  font-weight: 500;
+     competing with the name it dates.
+
+     Regular now, with the title and the subtitle under it. Three 500s stacked
+     in one block was the block asserting itself three times over; at 400 the
+     hierarchy is carried by size, colour and case, which is where it belongs,
+     and the head reads quieter without losing a step of it. */
+  font-weight: 400;
   /* The subtitle's size. The three lines of the name are one identity now —
      one step between them, and the year is a fact ABOUT the thing being named,
      so it is set at the size of the line that says what the thing is rather
@@ -392,7 +441,7 @@
      competing with the title. */
   font-size: 0.8125rem;
   letter-spacing: var(--track-caps);
-  line-height: 1.2;
+  line-height: var(--v2-lead-ui);
 }
 
 /* THE EXCEPTION IS OVER, and the reason it existed is worth keeping next to
@@ -439,13 +488,18 @@
   font-size: 1.125rem;
   /* 500, not 600. Geist's semibold at 13.6px over a subtitle at 400 was doing
      the work of a much larger type contrast than the one step of size between
-     them; medium says "this is the name" without saying it twice. */
-  font-weight: 500;
+     them; medium says "this is the name" without saying it twice.
+
+     400 now, with the eyebrow and the subtitle. The same argument one step
+     further down: at 18px against 13px of subtitle, size is already carrying
+     the contrast, and Regular stops the head asserting itself three lines
+     running. */
+  font-weight: 400;
   /* Geist sets loose at display sizes next to the 11px it runs at everywhere
      else in this panel; a hair negative brings the title back to the density
      of what it heads. */
   letter-spacing: -0.01em;
-  line-height: 1.2;
+  line-height: var(--v2-lead-display);
 }
 
 /* 12, not 16. The subtitle and the paragraph under it are one thought — the
@@ -468,9 +522,13 @@
      alone, and Regular under Medium was quietly filing this line with the
      citation below it rather than with the name above it. Both at 500, the
      three lines read as one identity and the tier below starts at the
-     citation, which is where the reader is actually crossing a boundary. */
-  font-weight: 500;
-  line-height: 1.4;
+     citation, which is where the reader is actually crossing a boundary.
+
+     Both at 400 now, and the argument survives the change: what made these
+     one identity was matching each other, not the particular weight they
+     matched at. */
+  font-weight: 400;
+  line-height: var(--v2-lead-body);
   color: var(--ink);
 }
 
@@ -500,7 +558,7 @@
      citation a step smaller made it look like a footnote to the actions
      rather than the line that says where all of this comes from. */
   font-size: 0.75rem;
-  line-height: 1.5;
+  line-height: var(--v2-lead-body);
 }
 
 /* ── transport ─────────────────────────────────────────────────────────── */
@@ -535,7 +593,7 @@
   margin: 0;
   font-size: 0.625rem;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: var(--v2-lead-ui);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink);
@@ -582,7 +640,7 @@
 .map-wrap .explorer-date {
   font-weight: 500;
   font-size: 1rem;
-  line-height: 1.2;
+  line-height: var(--v2-lead-ui);
 }
 
 /* ── section labels ────────────────────────────────────────────────────── */
@@ -600,7 +658,7 @@
   display: block;
   font-size: 0.625rem;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: var(--v2-lead-ui);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink);
@@ -781,6 +839,52 @@
   font-weight: 600;
 }
 
+/* ── the twenty that had none ──────────────────────────────────────────────
+   Every one of these was on `line-height: normal`, which is the browser's
+   guess and not a decision. They are all single-line — a chip, a caps label, a
+   cell in the record table, a readout — so they take the ui step rather than
+   the body one: enough that the rhythm is stated, not so much that 200 rows of
+   table grow a screenful of air.
+
+   The record rows are the ones this is really for. At `normal` they were the
+   densest thing on the Archive by some way, and they are also the thing a
+   reader scans longest. */
+.map-wrap .agent-chip,
+.map-wrap .transport-btn,
+.map-wrap .lookup-chip,
+.map-wrap .lookup-search-word,
+.map-wrap .lookup-fold,
+.map-wrap .lookup-fold-mark,
+.map-wrap .map-key-view-btn,
+.map-wrap .map-pick-hint,
+.map-wrap .map-pick-hint button,
+.map-wrap .lookup-row-label,
+.map-wrap .map-key-view-label,
+.map-wrap .lookup-year-readout,
+.map-wrap .lookup-truncated,
+.map-wrap .lookup-item-id,
+.map-wrap .lookup-item-date,
+.map-wrap .lookup-item-agent,
+.map-wrap .lookup-item-dist,
+.map-wrap .inspect-group-label,
+.map-wrap .inspect-group-value,
+.map-wrap .axis-year,
+.map-wrap .lookup-unit button {
+  line-height: var(--v2-lead-ui);
+}
+
+/* ── the last vendor stroke ────────────────────────────────────────────────
+   MapLibre draws a 1px #dddddd divider between the + and the − and it had
+   never been restyled — the one stroke left on this screen that the skin's
+   own rule 3 says should not be here, and in a grey that appears nowhere in
+   this palette. The stack is one object with one fill; the seam between its
+   halves is the only thing that says there are two buttons, so it becomes the
+   same 14% forest every other divider on the Archive uses rather than
+   disappearing entirely. */
+.map-wrap .maplibregl-ctrl-group button + button {
+  border-top-color: rgba(33, 53, 40, 0.14);
+}
+
 /* ── the lookup's own controls ─────────────────────────────────────────────
    These are styled in App.css, which is loaded with and without this skin, so
    the corner is applied here rather than there — same reason everything else
@@ -929,7 +1033,7 @@
 .map-wrap .adr-popup strong,
 .map-wrap .adr-popup.adr-hover strong {
   font-size: 0.6875rem;
-  line-height: 1.5;
+  line-height: var(--v2-lead-body);
 }
 
 .map-wrap .adr-popup .maplibregl-popup-content {
@@ -1033,7 +1137,7 @@
   border-top: 1px solid var(--rule);
   font-size: 0.625rem;
   font-weight: 600;
-  line-height: 1.2;
+  line-height: var(--v2-lead-ui);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--ink);
@@ -1132,7 +1236,7 @@
      12, so the block sat unevenly no matter what the gaps did. */
   row-gap: 0.3125rem;
   align-items: baseline;
-  line-height: 1.45;
+  line-height: var(--v2-lead-body);
 }
 /* margin: 0 stated HERE, at three classes: `.map-wrap .archive-key
    .archive-inspect` sets the card's 0.875rem top margin and outranked the
@@ -1145,7 +1249,7 @@
 }
 .map-wrap .lookup-detail .archive-inspect > *,
 .map-wrap .archive-key > .archive-inspect > * {
-  line-height: 1.45;
+  line-height: var(--v2-lead-body);
 }
 /* Every child EXCEPT the close button. It is a 16px glyph in a box sized by
    its own line-height, and the blanket above grew that box from 24px to 30px
@@ -1333,7 +1437,7 @@
 .map-wrap .lookup-detail .inspect-note,
 .map-wrap .archive-key > .archive-inspect .inspect-note {
   font-size: 0.625rem;
-  line-height: 1.5;
+  line-height: var(--v2-lead-body);
   color: var(--ink-faint);
 }
 /* The notes tier's size and colour, but the card's own leading: 1.5 is for a
@@ -1596,7 +1700,7 @@
   border-radius: var(--v2-radius);
   box-shadow: var(--v2-stroke), var(--v2-shadow);
   font-size: 0.625rem;
-  line-height: 1.5;
+  line-height: var(--v2-lead-body);
   color: var(--ink-faint);
   opacity: 0;
   visibility: hidden;

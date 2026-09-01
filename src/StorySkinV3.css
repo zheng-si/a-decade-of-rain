@@ -131,6 +131,14 @@
      all. */
   --v3-radius: 2px;
 
+  /* A second step, for the big surfaces only — shared with the Archive's
+     --v2-radius-lg for the same reason the corner itself is shared. 2px stays
+     the corner on everything a hand touches; the large cards and panels take
+     4, because a corner reads relative to the box it rounds and one step up on
+     the biggest things is what keeps them in the same family as the small ones
+     rather than looking like the small ones scaled. */
+  --v3-radius-lg: 4px;
+
 
   font-family: var(--font-sans);
 }
@@ -164,6 +172,18 @@
 
    RULE 1 — surfaces and controls take the corner. Cards, panels, chips,
    buttons, tabs, the map key, the labels the map hangs off its pins. */
+/* The big cards and panels take the larger step. Everything else on the page
+   — chips, buttons, tabs, labels, and the map key, which at 163x198 is a
+   legend rather than a card — stays at 2. */
+.story .story-card,
+.story .rainbow-card,
+.story .act2-card,
+.story .method-panel,
+.story .alt-family,
+.story .tl-card {
+  border-radius: var(--v3-radius-lg);
+}
+
 .story .story-hook-cta,
 .story .rainbow-chip,
 .story .wall-consent-btn,
@@ -171,19 +191,13 @@
 .story .close-top,
 .story .map-dot-label,
 .story .timeline-scan-vol,
-.story .story-card,
 .story .story-stat,
 .story .map-key,
-.story .rainbow-card,
 .story .eco-type,
 .story .eco-est,
 .story .act2-chip,
-.story .act2-card,
-.story .alt-family,
 .story .alt-reveal-btn,
 .story .alt-verdict-chip,
-.story .method-panel,
-.story .tl-card,
 .story .close-action {
   border-radius: var(--v3-radius);
 }
@@ -229,15 +243,204 @@
   border-radius: 0;
 }
 
+/* ── the sans tier reclaims nine places · §2 ──────────────────────────────
+   Courier Prime is the display face here, and it had spread past display into
+   things that are read rather than looked at. Each of these was checked on the
+   live page before it moved; what STAYS in Courier is the hook, the section
+   titles, the closing statement, the act cards' year and name, and the
+   scrubber's figure — the places where the face is the voice of the piece.
+
+   What moves back to Geist, and why each:
+
+     1. The rail. Act numbers and the running title are navigation, not
+        narration; a reader uses them to know where they are.
+     2. Inside the act card, everything under the year and the name — the deck
+        and the period quote are prose, and prose in a monospace at 14px is
+        the single densest thing the page asked anyone to read.
+     3. The agent cards' names and figures. `All four agents`, `Agent Orange`,
+        `12.1M` — a legend for a chart.
+     4. The vegetation map's proportion — the `24%` on its own caption — and
+        the photo wall's figures with it: `3.1M ha`, `36%` and the lines that
+        label them are the same kind of reading.
+     5. Cleaning It Up: its own title stays, the hotspot names and the closing
+        line under them do not.
+     6. `Containment only`, `Hybrid`, `Treatment only` — the three strategy
+        headings, which read as labels on a comparison, not as titles.
+     7. `Passive Landfill` and the other method side-labels, likewise.
+     8. The remediation timeline's years. Same argument as the rail — a date
+        on an axis is a coordinate.
+     9. `USAID Vietnam` and the other closing actions. Organisation names.
+
+   Stated here rather than in Story.css, which is loaded with and without this
+   skin, so the whole spike stays one file plus one import. */
+.story .story-rail-act,
+.story .story-rail-mark span,
+.story .story-dek,
+.story .story-quote p,
+.story .rainbow-card-name,
+.story .rainbow-stat strong,
+.story .eco-headline strong,
+.story .wall-value,
+.story .wall-label,
+.story .wall-stat-v,
+.story .wall-stat-l,
+.story .alt-family h3,
+.story .act2-card-name,
+.story .act2-closing,
+.story .method-side,
+.story .method-copy h3,
+.story .method-rest-copy h3,
+.story .tl-card-year,
+.story .close-action-name {
+  font-family: var(--font-sans);
+}
+
+/* ── and the sizes that go with the face · §2 ──────────────────────────────
+   Dialled in place, one row at a time, at 1728 wide where 1rem = 16px. The
+   values are written as rem because everything in this project is: the root
+   font-size is the density dial, so a px value would freeze the screen they
+   were chosen on.
+
+   The pattern is worth stating, because it is the same argument nineteen
+   times and it explains why a font-family swap could never have been the
+   whole change.
+
+   SIZE CAME DOWN, in seventeen of nineteen. Courier Prime is declared with
+   size-adjust 88% to bring its 0.60em advance into line, and Geist has a
+   larger x-height on top of that — so at the same nominal size Geist simply
+   sets bigger. The one that went UP is the vegetation map's 24%, which is a
+   display figure rather than something read, and the one that did not move at
+   all is a caption whose only problem was its case.
+
+   WEIGHT WENT UP A STEP in eleven. Courier's Regular carries more colour on
+   the page than Geist's does — a monospace has no thin joins to lose — so
+   400 that read as solid in the old face reads as light in the new one.
+
+   THE CAPS CAME OFF in eleven, and stayed on in exactly two: the rail's act
+   number and running title. That is the honest split. Courier can hold a long
+   all-caps line because every letter is the same width, so nothing clumps;
+   Geist at 400 caps turns names like `Passive Landfill` and `USAID Vietnam`
+   into shouting. What survives is the navigation, where caps are a signal that
+   this is furniture and not prose — and both of those took +0.05em of tracking
+   with them, which is the thing caps always need and the reason they worked
+   in Courier without it. `.method-side` makes the same trade in reverse: it
+   gave up its caps and its 0.02em together.
+
+   Stated here rather than in Story.css for the same reason the family swap is:
+   one file plus one import, and the whole spike reverts by deleting them. */
+
+.story .story-rail-act,
+.story .story-rail-mark span {
+  /* The two that keep their caps, and so keep needing the tracking that makes
+     caps readable. Small, tracked and set in the sans is what furniture looks
+     like; it is now clearly not part of the narration it sits beside. */
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.story .story-dek,
+.story .story-quote p {
+  /* The act card's prose, both of it. One step down and nothing else — these
+     were already Regular and already sentence case; they were only ever too
+     big for a proportional face. */
+  font-size: 0.9375rem;
+}
+
+.story .rainbow-card-name {
+  font-size: 1.0625rem;
+  font-weight: 500;
+  /* Title case rather than none: `All four agents` and `Agent Orange` are
+     names, and this is the one place on the page where the middle setting is
+     the right one. */
+  text-transform: capitalize;
+}
+
+.story .rainbow-stat strong {
+  /* 28 to 17 is the second biggest drop here. It was sized as a display figure
+     when the face was making it look like one; in Geist at 28 it was louder
+     than the card's own name. */
+  font-size: 1.0625rem;
+  font-weight: 500;
+}
+
+.story .eco-headline strong {
+  /* The only one that went UP. It is the figure the whole vegetation map
+     exists to deliver, and at 44 in Geist it had stopped being the largest
+     thing in its own figure. */
+  font-size: 3rem;
+}
+
+.story .wall-value {
+  /* The biggest move on the page: 72 to 48. Nothing else here was carrying
+     that much of Courier's width. */
+  font-size: 3rem;
+  text-transform: none;
+}
+
+.story .wall-label {
+  font-size: 0.9375rem;
+  text-transform: none;
+}
+
+.story .wall-stat-v {
+  font-size: 1.5rem;
+  text-transform: none;
+}
+
+.story .wall-stat-l {
+  /* The one row whose size was already right. Its only fault was the caps. */
+  text-transform: none;
+}
+
+.story .alt-family h3,
+.story .act2-card-name,
+.story .close-action-name {
+  /* Three names of things — a strategy, a hotspot, an organisation — and they
+     take the same setting because they are the same kind of label. */
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.story .act2-closing {
+  font-size: 0.9375rem;
+}
+
+.story .method-side {
+  /* Caps and tracking came off together, which is the whole rule in one line:
+     the 0.02em existed to keep the caps apart, so with the caps gone it is not
+     a smaller amount of tracking that is wanted, it is none. */
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.story .method-copy h3,
+.story .method-rest-copy h3 {
+  font-size: 1.0625rem;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.story .tl-card-year {
+  /* 19 to 13, the largest proportional drop. A year on a timeline card is a
+     coordinate, and it had been set at the size of a heading. */
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-transform: none;
+}
+
 /* ── strokes · §3 ─────────────────────────────────────────────────────────
    Outlines go. A rule divides; a border encloses; only the second is being
    removed here. */
 .story .story-hook-cta,
 .story .story-card,
 .story .story-stat,
-.story .map-key,
 .story .rainbow-chip,
 .story .rainbow-card,
+.story .map-key,
 .story .eco-est,
 .story .method-tab,
 .story .method-panel,
