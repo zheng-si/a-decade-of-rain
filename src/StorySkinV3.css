@@ -295,6 +295,143 @@
   font-family: var(--font-sans);
 }
 
+/* ── and the sizes that go with the face · §2 ──────────────────────────────
+   Dialled in place, one row at a time, at 1728 wide where 1rem = 16px. The
+   values are written as rem because everything in this project is: the root
+   font-size is the density dial, so a px value would freeze the screen they
+   were chosen on.
+
+   The pattern is worth stating, because it is the same argument nineteen
+   times and it explains why a font-family swap could never have been the
+   whole change.
+
+   SIZE CAME DOWN, in seventeen of nineteen. Courier Prime is declared with
+   size-adjust 88% to bring its 0.60em advance into line, and Geist has a
+   larger x-height on top of that — so at the same nominal size Geist simply
+   sets bigger. The one that went UP is the vegetation map's 24%, which is a
+   display figure rather than something read, and the one that did not move at
+   all is a caption whose only problem was its case.
+
+   WEIGHT WENT UP A STEP in eleven. Courier's Regular carries more colour on
+   the page than Geist's does — a monospace has no thin joins to lose — so
+   400 that read as solid in the old face reads as light in the new one.
+
+   THE CAPS CAME OFF in eleven, and stayed on in exactly two: the rail's act
+   number and running title. That is the honest split. Courier can hold a long
+   all-caps line because every letter is the same width, so nothing clumps;
+   Geist at 400 caps turns names like `Passive Landfill` and `USAID Vietnam`
+   into shouting. What survives is the navigation, where caps are a signal that
+   this is furniture and not prose — and both of those took +0.05em of tracking
+   with them, which is the thing caps always need and the reason they worked
+   in Courier without it. `.method-side` makes the same trade in reverse: it
+   gave up its caps and its 0.02em together.
+
+   Stated here rather than in Story.css for the same reason the family swap is:
+   one file plus one import, and the whole spike reverts by deleting them. */
+
+.story .story-rail-act,
+.story .story-rail-mark span {
+  /* The two that keep their caps, and so keep needing the tracking that makes
+     caps readable. Small, tracked and set in the sans is what furniture looks
+     like; it is now clearly not part of the narration it sits beside. */
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+.story .story-dek,
+.story .story-quote p {
+  /* The act card's prose, both of it. One step down and nothing else — these
+     were already Regular and already sentence case; they were only ever too
+     big for a proportional face. */
+  font-size: 0.9375rem;
+}
+
+.story .rainbow-card-name {
+  font-size: 1.0625rem;
+  font-weight: 500;
+  /* Title case rather than none: `All four agents` and `Agent Orange` are
+     names, and this is the one place on the page where the middle setting is
+     the right one. */
+  text-transform: capitalize;
+}
+
+.story .rainbow-stat strong {
+  /* 28 to 17 is the second biggest drop here. It was sized as a display figure
+     when the face was making it look like one; in Geist at 28 it was louder
+     than the card's own name. */
+  font-size: 1.0625rem;
+  font-weight: 500;
+}
+
+.story .eco-headline strong {
+  /* The only one that went UP. It is the figure the whole vegetation map
+     exists to deliver, and at 44 in Geist it had stopped being the largest
+     thing in its own figure. */
+  font-size: 3rem;
+}
+
+.story .wall-value {
+  /* The biggest move on the page: 72 to 48. Nothing else here was carrying
+     that much of Courier's width. */
+  font-size: 3rem;
+  text-transform: none;
+}
+
+.story .wall-label {
+  font-size: 0.9375rem;
+  text-transform: none;
+}
+
+.story .wall-stat-v {
+  font-size: 1.5rem;
+  text-transform: none;
+}
+
+.story .wall-stat-l {
+  /* The one row whose size was already right. Its only fault was the caps. */
+  text-transform: none;
+}
+
+.story .alt-family h3,
+.story .act2-card-name,
+.story .close-action-name {
+  /* Three names of things — a strategy, a hotspot, an organisation — and they
+     take the same setting because they are the same kind of label. */
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.story .act2-closing {
+  font-size: 0.9375rem;
+}
+
+.story .method-side {
+  /* Caps and tracking came off together, which is the whole rule in one line:
+     the 0.02em existed to keep the caps apart, so with the caps gone it is not
+     a smaller amount of tracking that is wanted, it is none. */
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.story .method-copy h3,
+.story .method-rest-copy h3 {
+  font-size: 1.0625rem;
+  font-weight: 500;
+  text-transform: none;
+}
+
+.story .tl-card-year {
+  /* 19 to 13, the largest proportional drop. A year on a timeline card is a
+     coordinate, and it had been set at the size of a heading. */
+  font-size: 0.8125rem;
+  font-weight: 500;
+  text-transform: none;
+}
+
 /* ── strokes · §3 ─────────────────────────────────────────────────────────
    Outlines go. A rule divides; a border encloses; only the second is being
    removed here. */
