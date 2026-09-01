@@ -252,32 +252,41 @@
   background: var(--ink-faint);
 }
 
-/* Cumulative counters: red figures over quiet labels, pairs separated by
-   space alone — the figure's colour marks each pair's start (news-graphics
-   convention; no interpuncts between styled stat pairs). */
-.explorer-statline {
-  display: flex;
-  gap: 0.75rem;
-  margin: 0.875rem 0 0.75rem;
-  line-height: 1.3;
+/* Cumulative counters: label over figure, three equal columns filling the
+   transport row beside the buttons. One grammar on every surface (this row,
+   the inspect counts, the hover tooltip): figures carry accent red, labels
+   stay quiet above them. */
+.explorer-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.625rem;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.explorer-statline .stat-pair {
+.explorer-stat {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.explorer-stat-k {
   font-size: 0.6875rem;
   font-weight: 400;
+  line-height: 1.3;
   color: var(--ink-soft);
 }
 
-/* One grammar on every surface (panel statline, inspect counts, hover
-   tooltip): figures carry accent red at medium weight, labels stay
-   regular in ink-soft. */
-.explorer-statline strong {
-  font-size: 0.6875rem;
+.explorer-stat-v {
+  font-size: 1rem;
   font-weight: 500;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
   color: var(--accent-deep);
+  white-space: nowrap;
 }
 
-/* ── transport (play / pause / reset) + readout ───────────────────────── */
+/* ── transport (play / pause / reset) + the counts ────────────────────── */
 .explorer-transport {
   display: flex;
   align-items: center;
@@ -356,17 +365,6 @@
 
 .transport-btn.is-ghost:hover:not(:disabled) {
   background: #fff;
-}
-
-/* The playhead date, in the display serif beside the transport. */
-.explorer-date {
-  margin: 0;
-  font-family: var(--font-serif);
-  text-transform: uppercase;
-  font-weight: 400;
-  font-size: 1.1875rem;
-  line-height: 1.2;
-  color: var(--ink);
 }
 
 
@@ -902,9 +900,10 @@
     letter-spacing: 0.02em;
   }
 
-  /* Peek: one line of identity, the transport, nothing else. The section
-     label inside .transport-head must survive, so the hide targets the
-     panel's DIRECT child label (the agents heading) only. */
+  /* Peek: one line of identity, the transport (buttons and the three live
+     counts), nothing else. The hide targets the panel's DIRECT child labels —
+     the agents heading and the guide's — and leaves anything nested inside a
+     block that survives. */
   .explorer-panel.is-peek .explorer-head {
     display: flex;
     align-items: baseline;

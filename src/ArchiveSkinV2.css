@@ -391,6 +391,7 @@
     border-radius: var(--v2-radius) var(--v2-radius) 0 0;
   }
 
+
   /* The identity block, compressed — stated at the skin's own two-class
      specificity because the 1.5rem pair above would beat App.css's one-class
      phone sizes (the same fight as the width). On a phone every rem the
@@ -513,13 +514,15 @@
    now comes from size and weight alone, which is what the rest of the panel
    uses. */
 .map-wrap .explorer-subtitle {
-  /* 1.25rem, and it is back here because the citation is no longer between
-     the identity and the instructions — it has gone to the foot, where
-     provenance goes. So this is once again the panel's one head break: above
-     it, what this is; below it, what to do with it. The `Read the Story` link
-     pays the same 1.25rem at the far end of the instructions, so the block is
-     bracketed by one measure rather than two that happen to look similar. */
-  margin: 0 0 1.25rem;
+  /* Nothing. The head break is real — above it what this is, below it what to
+     do with it — but it is paid ONCE now, by the transport's 1.5rem
+     padding-top, and the block below the head is the transport rather than a
+     paragraph. Carrying 1.25rem here as well stacked the two into a 37px void
+     under the subtitle, which read as a missing element rather than a break.
+     (It sat here through three different neighbours — the citation, then the
+     stats row — and each of those brought its own top gap; this is the first
+     time the neighbour's gap is the whole of the measure.) */
+  margin: 0;
   font-size: 0.8125rem;
   /* 500, with the title. The earlier note here said separation comes from size
      and weight — that was written while the subtitle was one step of size off
@@ -586,35 +589,6 @@
   padding-top: 1rem;
 }
 
-/* Two lines beside the buttons: what is counted and when, then the counts. */
-.map-wrap .transport-readout {
-  display: flex;
-  flex-direction: column;
-  gap: 0.3125rem;
-  min-width: 0;
-}
-
-/* Heading and date are one compound label, so they share a size and a case
-   rather than the date keeping its own 16px display tier — at that size it
-   competed with the panel title two blocks up. */
-.map-wrap .transport-head {
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-  margin: 0;
-}
-
-.map-wrap .transport-head .explorer-section-label,
-.map-wrap .transport-head .explorer-date {
-  margin: 0;
-  font-size: 0.625rem;
-  font-weight: 600;
-  line-height: var(--v2-lead-ui);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink);
-}
-
 /* The two buttons butt together into one 60×30 block rather than floating as
    separate circles — squares with a gap would read as two unrelated things.
    Rule 2 of the radius: the corner goes on the block, and the buttons are
@@ -653,12 +627,6 @@
   background: rgba(33, 53, 40, 0.11);
 }
 
-.map-wrap .explorer-date {
-  font-weight: 500;
-  font-size: 1rem;
-  line-height: var(--v2-lead-ui);
-}
-
 /* ── the scrubber says it is a scrubber ────────────────────────────────────
    The chart has been draggable all along — an `<input type=range>` is laid
    over it — but nothing said so: the input is `opacity: 0` and the playhead is
@@ -690,41 +658,68 @@
   cursor: ew-resize;
 }
 
-/* ── the answer, at display size ───────────────────────────────────────────
-   Three figures under a rule, directly below the name. They were a caption
-   beside the play button; they are the only numbers on this panel that move,
-   and they are what the reader came for.
+/* ── the answer, on the transport row ──────────────────────────────────────
+   Three figures filling the width the two buttons leave. They were a caption
+   under a SPRAYING VOLUME heading, then a display-size row of their own under
+   a rule; this is the third position and the first one that puts the moving
+   figures on the same line as the control that moves them.
+
+   The 20px channel between the buttons and the first column is what keeps the
+   two halves legible as two things without a rule between them — at the
+   0.875rem the row used to run, `Spray Runs` sat close enough to reset to read
+   as its label.
 
    Equal thirds rather than content width, so the columns hold still while the
    figures change under them: `8,360` becomes `40` mid-play and `19.5M` becomes
    `45K`, and a row sized to its content would reflow on every frame of the
    play-through. */
+.map-wrap .explorer-transport {
+  /* No rule above the controls. It was the identity/controls seam, and the
+     identity block no longer ends here — the head is three lines and then this
+     row, with the gap doing the dividing. The one rule left on the panel is
+     the one above the foot, which divides two things a label cannot. */
+  border-top: none;
+  padding-top: 1.5rem;
+  gap: 1.5rem;
+}
+
 .map-wrap .explorer-stats {
+  flex: 1 1 auto;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
-  margin: 0 0 1.25rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--rule);
+  gap: 0.625rem;
+  margin: 0;
+  padding-top: 0;
+  border-top: none;
+  min-width: 0;
 }
 
 .map-wrap .explorer-stat {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  /* No gap. Label and figure are one unit, and the leading of the two lines is
+     already the whole separation they need — a gap here made three columns of
+     two unrelated lines. */
+  gap: 0;
   min-width: 0;
 }
 
 .map-wrap .explorer-stat-k {
-  font-size: 0.75rem;
-  font-weight: 400;
+  font-size: 0.6875rem;
+  font-weight: 500;
   line-height: var(--v2-lead-ui);
-  color: var(--ink-soft);
+  /* Full ink, not the soft step. The figure under it carries the colour, so
+     the label is the only thing on this row saying WHICH figure — a greyed
+     label under a red number reads as a caption on it rather than its name. */
+  color: var(--ink);
 }
 
 .map-wrap .explorer-stat-v {
-  font-size: 1.375rem;
-  font-weight: 400;
+  /* 14px in the design, which lands between two steps of this file's 1px
+     scale; the larger one, because this is the emphasis half of the pair and
+     the gap to the 0.6875rem label is what makes it read that way. */
+  font-size: 1.0625rem;
+  font-weight: 500;
   line-height: var(--v2-lead-display);
   /* Lining, tabular. These change while you watch them, and proportional
      digits make the whole row shuffle sideways every time a 1 replaces a 4. */
@@ -733,21 +728,41 @@
   white-space: nowrap;
 }
 
-/* The transport keeps only its buttons now, so the row no longer needs the
-   seam that separated the identity from the controls — the stats row above it
-   carries that rule instead. */
-.map-wrap .explorer-transport {
-  border-top: none;
-  padding-top: 0;
+/* The phone's root is 16 rather than the desktop's 13.6, and everything in
+   this row scales with it except the proportions: `May 1968` is 1.6× the width
+   of `19.5M` however small the figures get, so equal thirds hand the widest
+   column the least headroom. Measured at 360: a 64px column against a 76px
+   date, hanging 12px into a 24px gutter. One size step down and a tighter
+   column gap put it back inside its own column, and the row keeps its equal
+   thirds — the figures change 120 times during a play-through, and columns
+   sized to their content would shuffle sideways on every one of them.
+
+   Stated here rather than in the phone block at the top of this file: these
+   two properties are set unconditionally further down it, and a media query
+   adds no specificity, so an override up there loses to the rule it means to
+   override. */
+@media (max-width: 640px) {
+  .map-wrap .explorer-stats {
+    gap: 0.5rem;
+  }
+
+  .map-wrap .explorer-stat-v {
+    font-size: 0.9375rem;
+  }
 }
 
 /* ── the foot ──────────────────────────────────────────────────────────────
-   Citation, then the guide, then the way out. The panel now runs answer first
-   and explanation last: what the record says right now at the top, what it is
-   and how to work it at the bottom. */
+   The guide, then the citation, then the way out. The panel runs answer first
+   and explanation last: what the record says right now at the top, what you
+   can do with it and where it came from at the bottom.
+
+   The citation used to open this block. It is a footnote — whose record and
+   how complete — and a footnote read before the instructions put the least
+   urgent of a first-time reader's three questions in second place. */
 .map-wrap .explorer-dek {
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--rule);
+  margin-top: 0.875rem;
+  padding-top: 0;
+  border-top: none;
 }
 
 /* ── the guide ─────────────────────────────────────────────────────────────
@@ -765,14 +780,28 @@
    and this file's whole argument is that a rule earns its place by dividing
    things a label cannot. */
 .map-wrap .explorer-guide {
-  margin: 0 0 1.25rem;
+  /* Nothing under it. The citation below carries its own 0.875rem, which is
+     the same measure the citation pays to the link under it — the foot's three
+     blocks on one gap. */
+  margin: 0;
 }
 
-.map-wrap .explorer-guide-label {
+/* Both classes, deliberately. `.map-wrap .explorer-section-label` sits further
+   down this file at the same specificity, so a single-class selector here lost
+   the margin race silently — the old `margin: 0 0 0.5rem` was rendering as the
+   section label's `1rem 0 0.5rem` and only looked right because the bottom
+   halves agreed. */
+.map-wrap .explorer-section-label.explorer-guide-label {
   /* Tighter under itself than the section labels elsewhere, because what it
-     heads is four short lines rather than a control: 0.5rem reads as "this
-     label belongs to that block", more starts to read as a section. */
-  margin: 0 0 0.5rem;
+     heads is four short lines rather than a control: a hair of space reads as
+     "this label belongs to that block", more starts to read as a section.
+
+     And the rule sits on this label, evenly: 1.5rem of air, the hairline,
+     1.5rem again. Above it is the end of the controls, below it the two things
+     that are read rather than operated. */
+  margin: 1.5rem 0 0.3125rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--rule);
 }
 
 .map-wrap .explorer-guide li {
@@ -825,56 +854,9 @@
   color: var(--ink);
 }
 
-/* ── stat line ─────────────────────────────────────────────────────────── */
-/* Its 14px top margin was the gap to the transport; the section label owns
-   that job now, so the statline sits tight under its own heading. */
-/* Initial caps, matching the inspect card on the right. The two panels count
-   the same three things and had been shouting on one side and speaking on the
-   other. */
-/* Same block as the inspect card's figures, so the same grammar: 11/600/accent
-   for the figures, 11/500/ink for the words attached to them. The two had
-   drifted to 400/ink-soft on the words here and 500/ink there — one idea
-   rendered two ways on two halves of the same screen.
-
-   11 on the container, not the 10 that used to sit here: App.css sizes
-   .stat-pair and strong directly at 11, so the container's value only ever
-   applied to whitespace between the pairs. It rendered at 11 and declared 10,
-   which is the kind of gap that makes the next person mistrust the file. */
-/* Back inside the readout column under the heading. Three pairs measured
-   288px against that column's 250px and the Gallons pair was clipped; two
-   measure 175px and fit with room to spare. The readout's own 5px column gap
-   is the spacing, so no margin here. */
-.map-wrap .explorer-statline {
-  margin: 0;
-  gap: 0.625rem;
-  font-size: 0.6875rem;
-  text-transform: none;
-  letter-spacing: 0;
-}
-
-.map-wrap .explorer-statline .stat-pair {
-  font-weight: 500;
-  color: var(--ink);
-}
-
-/* At 360 the readout has 238px beside the buttons, and three pairs need ~228 —
-   close enough that without this each pair broke between its figure and its
-   word and the row became a 3×2 grid. The pairs are atoms; they wrap as
-   wholes or not at all. */
-.map-wrap .explorer-statline .stat-pair {
-  white-space: nowrap;
-}
-
-.map-wrap .explorer-statline strong {
-  /* The Figma leaves these on Public Sans SemiBold — the one place the old
-     pairing survives. Treated as a leftover, not an exception. */
-  font-family: inherit;
-  font-weight: 600;
-}
-
-/* The counts moved up into the transport last round, and they had been the
-   only thing holding the chart off the row above it — the tallest bars were
-   landing straight against the Gallons figure. The chart owns that gap now. */
+/* The chart sits under the transport row, and the row's figures are the
+   tallest thing above it — the bars used to land straight against the Gallons
+   figure, so the gap lives here rather than on the counts. */
 .map-wrap .explorer-chart {
   margin-top: 0.875rem;
 }
@@ -996,11 +978,11 @@
 }
 
 .map-wrap .explorer-links {
-  /* The SAME 1.25rem the subtitle pays above the instructions. Si's call and
-     the right one: this link and that gap are the two ends of one block, so
-     they should be one measure. It was 1rem, which is close enough to look
-     like a mistake and far enough to be one. */
-  margin-top: 1.25rem;
+  /* The same 0.875rem the citation pays above itself. The foot is three
+     blocks — guide, citation, way out — and they are peers, so one measure
+     between them. (It was 1.25rem, matching a gap above the guide that the
+     rule has since replaced.) */
+  margin-top: 0.875rem;
   font-size: 0.75rem;
   font-weight: 600;
 }

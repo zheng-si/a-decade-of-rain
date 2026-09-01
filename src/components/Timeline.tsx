@@ -355,43 +355,6 @@ export default function Timeline({
         <p className="explorer-subtitle">U.S. Air Force defoliation flights over South Vietnam</p>
       </header>
 
-      {/* THE ANSWER, at display size.
-
-          These three were a two-line readout beside the play button, set at
-          the size of a caption. They are the only numbers on this panel that
-          MOVE — filter to one agent and the pair halves, scrub and it falls to
-          a month's worth — and a figure that answers the reader's question
-          should not be smaller than the label of the control that changed it.
-
-          Date joins them because it is the third axis of the same answer: how
-          many runs, how much volume, and WHEN. It sat beside the SPRAYING
-          VOLUME heading, which made it read as part of a title rather than as
-          one of the figures. */}
-      {volume && (
-        <div className="explorer-stats">
-          <div className="explorer-stat">
-            <span className="explorer-stat-k">Spray Runs</span>
-            <strong className="explorer-stat-v" style={statStyle}>
-              {missionCount.toLocaleString()}
-            </strong>
-          </div>
-          <div className="explorer-stat">
-            <span className="explorer-stat-k">Gallons</span>
-            <strong className="explorer-stat-v" style={statStyle}>
-              {fmtGallons(gallons)}
-            </strong>
-          </div>
-          <div className="explorer-stat">
-            <span className="explorer-stat-k">Date</span>
-            {/* `Dec 1971`, the same label the rest of the panel and the map
-                key use. The design had `1971. 12`, which reads as a sort key
-                rather than a date and would have been the only place on this
-                screen writing a month as a number. */}
-            <strong className="explorer-stat-v">{dateLabel}</strong>
-          </div>
-        </div>
-      )}
-
       {/* The key reads before the controls, not after them: it says what the
           marks on the map ARE, and the transport and the filter below it are
           what the reader does to them. */}
@@ -434,6 +397,47 @@ export default function Timeline({
             </button>
           )}
         </div>
+
+        {/* THE ANSWER, beside the control that changes it.
+
+            These three were a two-line readout under a SPRAYING VOLUME
+            heading; then a display-size row of their own under a rule. They
+            come back to the transport row, but as that row's content rather
+            than a caption on it: three equal columns filling the width the
+            buttons leave, label directly over figure.
+
+            The pairing is the argument. They are the only numbers on this
+            panel that MOVE — isolate one agent and the pair halves, scrub and
+            it falls to a month's worth — so they belong on the same line as
+            play and reset, where a reader can see the cause and the effect
+            without moving their eye down the panel.
+
+            Date joins them because it is the third axis of the same answer:
+            how many runs, how much volume, and WHEN. */}
+        {volume && (
+          <div className="explorer-stats">
+            <div className="explorer-stat">
+              <span className="explorer-stat-k">Spray Runs</span>
+              <strong className="explorer-stat-v" style={statStyle}>
+                {missionCount.toLocaleString()}
+              </strong>
+            </div>
+            <div className="explorer-stat">
+              <span className="explorer-stat-k">Gallons</span>
+              <strong className="explorer-stat-v" style={statStyle}>
+                {fmtGallons(gallons)}
+              </strong>
+            </div>
+            <div className="explorer-stat">
+              <span className="explorer-stat-k">Date</span>
+              {/* `Dec 1971`, the same label the rest of the panel and the map
+                  key use. The design had `1971. 12`, which reads as a sort key
+                  rather than a date and would have been the only place on this
+                  screen writing a month as a number. */}
+              <strong className="explorer-stat-v">{dateLabel}</strong>
+            </div>
+          </div>
+        )}
       </div>
 
       {volume && (
@@ -493,36 +497,14 @@ export default function Timeline({
 
       <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
 
-      {/* Provenance, at the foot, where provenance goes.
+        {/* A label AND a rule now, and the two are no longer redundant.
 
-          It used to sit between the identity and the instructions, which put
-          the least urgent of the three questions a first-time reader has —
-          what is this, where is it from, what can I do — in second place. And
-          it carried the two totals, which was the real fault: the same two
-          numbers are shown live in the transport a couple of hundred pixels
-          below, so on load they read as a duplicate, and the moment anything
-          is filtered or played they disagree with no way to tell which is
-          which. Measured: isolate Orange and the live pair reads 4,676 and
-          12.1M against this line's 8,360 and 19.5M; mid-play, 40 and 45K.
-
-          The numbers go with the move. What is left is what only this line can
-          say: whose record it is and how complete. */}
-      <p className="explorer-dek">
-        The{' '}
-        <a
-          href="https://github.com/andrewstellman/hea-v"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          complete record
-        </a>{' '}
-        behind Stellman et&nbsp;al. (2003).
-      </p>
-
-        {/* A label, not a rule. The block needs to say it is instructions
-            rather than more prose — the citation above it is a sentence in the
-            same size and colour — and a heading does that where a hairline
-            only says "something changed". */}
+            The label alone was right while the citation sat above this block:
+            a hairline would have said "something changed" where the label says
+            what. The citation has moved BELOW the guide, so what sits above is
+            the agent note — the end of the controls. The rule marks that
+            boundary (controls above, how-to-read and provenance below), and
+            the label still names the block under it. Two devices, two jobs. */}
         <p className="explorer-section-label explorer-guide-label">How to read this</p>
         <ul className="explorer-guide">
           {/* The verb starts every line. It was the bolded word before, which
@@ -552,6 +534,34 @@ export default function Timeline({
             <strong>Search</strong> a base or town for every run that crossed it.
           </li>
         </ul>
+
+        {/* Provenance, below the guide.
+
+            It carried the two totals until #181, which was the real fault: the
+            same figures run live in the transport, so on load they read as a
+            duplicate and the moment anything is filtered or played they
+            disagree with no way to tell which is which. Measured then: isolate
+            Orange and the live pair reads 4,676 and 12.1M against this line's
+            8,360 and 19.5M; mid-play, 40 and 45K.
+
+            What is left is what only this line can say — whose record it is
+            and how complete — and that is a footnote, so it now sits where a
+            footnote sits: under the instructions, not above them. Above them
+            it was the second thing a first-time reader met, which put the
+            least urgent of their three questions (what is this, what can I do,
+            where is it from) in second place. */}
+        <p className="explorer-dek">
+          The{' '}
+          <a
+            href="https://github.com/andrewstellman/hea-v"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            complete record
+          </a>{' '}
+          behind Stellman et&nbsp;al. (2003).
+        </p>
+
         {/* With the guide, not at the foot of the panel: it is the fourth
             thing the reader can do, and the three above it are verbs too. */}
         <p className="explorer-links">
