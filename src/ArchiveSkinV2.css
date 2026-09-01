@@ -164,6 +164,10 @@
    headroom and the nowrap below. */
 .map-wrap .explorer-panel {
   width: min(23.25rem, calc(100vw - 3rem));
+  /* The other half of the even inset — see the key column's padding for why
+     the 1.375rem bottom went. Stated here rather than in App.css so the whole
+     spike stays one file. */
+  padding: 1.5rem;
 }
 
 .map-wrap .explorer-panel,
@@ -200,8 +204,18 @@
        equal: at 1rem against the left column's 1.5 the content box was 14px
        wider, and with a table and two bar blocks filling it, that column read
        as the wider one — which it was, where it counts. Same box, same inset,
-       and the two columns' first lines now sit on one baseline. */
-    padding: 1.5rem 1.5rem 1.375rem;
+       and the two columns' first lines now sit on one baseline.
+
+       Even on all four sides now. It was 1.5/1.5/1.375, and 2px of that was
+       optical: the left panel ends in a paragraph, and a line of text carries
+       descender slack under its last baseline, so a slightly shorter bottom
+       inset reads as equal. This panel does not end in a paragraph — it ends
+       in the RADIUS chips, a control with a hard bottom edge and no slack at
+       all — so the same 2px read as the box being short, not balanced. One
+       number is the honest answer when the two panels can end in different
+       kinds of thing. The left panel takes it too, below, so the pair stays a
+       pair. */
+    padding: 1.5rem;
     /* It holds a list, so it needs a floor. Scrolls inside rather than running
        off the screen — the same treatment the control sheet has on a phone,
        for the same reason.
@@ -775,6 +789,18 @@
    Every one of them is a grey 6% track carrying transparent children, which
    is what makes rule 2 cheap here: the track holds the corner and the
    segments inside it need no radius at all. */
+/* One inset for both segmented controls. The agent chips and the radius chips
+   are the same control — 28px tall, 12px/500 type, the same 14px divider at
+   the same 14% forest, the same 2px corner on the group — and they had drifted
+   to different horizontal paddings, 12 against 10. The radius chips are
+   `flex: 1` so they stretch past their own padding anyway and this changes
+   nothing about how they look today; it changes what happens when the panel
+   narrows or a label grows, which is when a 2px difference stops being
+   invisible and starts being the reason one row wraps before the other. */
+.map-wrap .lookup-chip {
+  padding: 0.375rem 0.75rem;
+}
+
 .map-wrap .lookup-search,
 .map-wrap .lookup-radii,
 .map-wrap .lookup-unit,
