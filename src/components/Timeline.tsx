@@ -353,45 +353,43 @@ export default function Timeline({
             275 column. */}
         <h1 className="explorer-title">The Herbicide Atlas of Vietnam</h1>
         <p className="explorer-subtitle">U.S. Air Force defoliation flights over South Vietnam</p>
-        {/* One citation line, then verbs. The old three-sentence paragraph
-            answered "what is this" beautifully and was read by nobody — the
-            reader wants to know what their hands can do. Each bullet is one
-            action; the mechanics (how the dots are counted, how volume is
-            spread) live in Methods, not here. */}
-        <p className="explorer-dek">
-          {/* "HERBS" moved up into the title, so the link drops it: the head
-              read "The HERBS Record" and then, two lines down and underlined,
-              "the complete HERBS record". Same link, same target, same claims
-              — the title now says whose record it is and this says how
-              complete it is and who assembled it. */}
-          The{' '}
-          <a
-            href="https://github.com/andrewstellman/hea-v"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            complete record
-          </a>{' '}
-          behind Stellman et&nbsp;al. (2003): 8,360 spray runs, 19.5M gallons.
-        </p>
+        {/* A label, not a rule. The block needs to say it is instructions
+            rather than more prose — the citation above it is a sentence in the
+            same size and colour — and a heading does that where a hairline
+            only says "something changed". */}
+        <p className="explorer-section-label explorer-guide-label">How to read this</p>
         <ul className="explorer-guide">
-          {/* The verb is the point of each line — bold it and the three
-              bullets can be read as three actions at a glance, without
-              reading the sentences at all. */}
+          {/* The verb starts every line. It was the bolded word before, which
+              got the emphasis right and the position wrong: a reader scanning
+              four lines for what they can DO reads the first word of each, and
+              on one of the four the first word was `Each`. Now the four first
+              words are Press, Click, Zoom, Search, and the list can be read
+              without reading the sentences at all. */}
           <li>
             <strong>Press play</strong> to watch the decade fall month by month.
           </li>
           <li>
-            Each dot is a grid cell&apos;s gallons. <strong>Click</strong> it for the record.
+            {/* `Each is a grid cell's gallons` was cut, not lost: the key bar
+                says what a dot IS, in more detail than this line could, and
+                its info mark says it again. This list says what a reader can
+                DO. Keeping the definition here made the guide answer a
+                question the key had already answered better. */}
+            <strong>Click</strong> any dot for the record behind it.
           </li>
           <li>
-            <strong>Zoom in</strong> until the dots give way to the flight tracks themselves.
+            {/* `until` stays and `themselves` goes. The handoff from dots to
+                tracks happens at a zoom the reader cannot guess, so the word
+                that says KEEP GOING is the one word here doing real work. */}
+            <strong>Zoom in</strong> until the dots give way to flight tracks.
+          </li>
+          <li>
+            <strong>Search</strong> a base or town for every run that crossed it.
           </li>
         </ul>
         {/* With the guide, not at the foot of the panel: it is the fourth
             thing the reader can do, and the three above it are verbs too. */}
         <p className="explorer-links">
-          <Link to="/">← Read the Story</Link>
+          <Link to="/">Read the Story</Link>
         </p>
       </header>
 
@@ -526,6 +524,32 @@ export default function Timeline({
       </div>
 
       <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
+
+      {/* Provenance, at the foot, where provenance goes.
+
+          It used to sit between the identity and the instructions, which put
+          the least urgent of the three questions a first-time reader has —
+          what is this, where is it from, what can I do — in second place. And
+          it carried the two totals, which was the real fault: the same two
+          numbers are shown live in the transport a couple of hundred pixels
+          below, so on load they read as a duplicate, and the moment anything
+          is filtered or played they disagree with no way to tell which is
+          which. Measured: isolate Orange and the live pair reads 4,676 and
+          12.1M against this line's 8,360 and 19.5M; mid-play, 40 and 45K.
+
+          The numbers go with the move. What is left is what only this line can
+          say: whose record it is and how complete. */}
+      <p className="explorer-dek">
+        The{' '}
+        <a
+          href="https://github.com/andrewstellman/hea-v"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          complete record
+        </a>{' '}
+        behind Stellman et&nbsp;al. (2003).
+      </p>
 
       {lookupSlot}
 

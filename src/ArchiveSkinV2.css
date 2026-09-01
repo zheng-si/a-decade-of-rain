@@ -513,7 +513,12 @@
    now comes from size and weight alone, which is what the rest of the panel
    uses. */
 .map-wrap .explorer-subtitle {
-  /* 1.25rem, the head's one block gap — see the note on .explorer-dek. */
+  /* 1.25rem, and it is back here because the citation is no longer between
+     the identity and the instructions — it has gone to the foot, where
+     provenance goes. So this is once again the panel's one head break: above
+     it, what this is; below it, what to do with it. The `Read the Story` link
+     pays the same 1.25rem at the far end of the instructions, so the block is
+     bracketed by one measure rather than two that happen to look similar. */
   margin: 0 0 1.25rem;
   font-size: 0.8125rem;
   /* 500, with the title. The earlier note here said separation comes from size
@@ -551,14 +556,25 @@
    boundaries were the same KIND. They are the same kind; they are not the same
    depth, and that is what the one number could not say.) */
 .map-wrap .explorer-dek {
-  margin-bottom: 0.5625rem;
-  font-weight: 400;
-  /* The guide's own size. The citation and the three actions are the same
-     KIND of thing — prose under the name, read once — and setting the
-     citation a step smaller made it look like a footnote to the actions
-     rather than the line that says where all of this comes from. */
+  /* At the foot now, under the agent note, and both of its old reasons went
+     with the move.
+
+     The size was set to the guide's, because the citation and the actions were
+     neighbours and the same KIND of thing — prose under the name, read once.
+     They are not neighbours any more. Its neighbour is the agent note at
+     0.8125rem, and one step under that is what says "this is the last and
+     least urgent line on the panel" without shrinking a line that carries a
+     link into something nobody will aim at. Two steps down was tried and is
+     too small for that.
+
+     The colour follows the same move: --ink-faint is the notes tier, which is
+     where a provenance line belongs once it is no longer standing in for the
+     panel's headline figures. */
+  margin: 0.75rem 0 0;
   font-size: 0.75rem;
+  font-weight: 400;
   line-height: var(--v2-lead-body);
+  color: var(--ink-faint);
 }
 
 /* ── transport ─────────────────────────────────────────────────────────── */
@@ -641,6 +657,60 @@
   font-weight: 500;
   font-size: 1rem;
   line-height: var(--v2-lead-ui);
+}
+
+/* ── the guide ─────────────────────────────────────────────────────────────
+   Variant C from the four that were built and photographed, minus its rule.
+
+   NO MARKERS. The tick before each line was doing the job the verb already
+   does, and doing it in a second visual language: a list marker says "these
+   are items", the bolded first word says "these are actions", and the second
+   is the true one. With the verb first on all four lines they align on their
+   own and the marker has nothing left to contribute.
+
+   NO RULE either, which is the one change from the variant as shown. A
+   hairline above this block says "something changed here" without saying
+   what; the label says what. Two devices for one boundary is one too many,
+   and this file's whole argument is that a rule earns its place by dividing
+   things a label cannot. */
+.map-wrap .explorer-guide {
+  margin: 0 0 1.25rem;
+}
+
+.map-wrap .explorer-guide-label {
+  /* Tighter under itself than the section labels elsewhere, because what it
+     heads is four short lines rather than a control: 0.5rem reads as "this
+     label belongs to that block", more starts to read as a section. */
+  margin: 0 0 0.5rem;
+}
+
+.map-wrap .explorer-guide li {
+  padding-left: 0;
+}
+
+.map-wrap .explorer-guide li::before {
+  /* The tick, retired. Left as a display:none rather than deleted in App.css
+     so the unskinned build keeps its markers. */
+  display: none;
+}
+
+.map-wrap .explorer-guide li + li {
+  /* Back to the 0.25rem the marked list used, by a longer road. Without a
+     marker holding the left edge this gap is the only thing saying where one
+     item ends, so it was set at 0.5 while two of the four still wrapped to a
+     second line — a wrapped item needs the gap to beat the leading INSIDE it
+     to read as a break at all. Measured as a ratio of that leading: 1.23 at
+     0.25rem, 1.34 at 0.375, 1.47 at 0.5. Then the copy was cut, all four fit
+     on one line, and that argument retired with the wrapping.
+
+     What decides it now is the block's NEIGHBOURS, which is only visible with
+     the whole panel rendered rather than the list on its own. Everything
+     around this block is spaced far wider — 17px from the citation above it,
+     12 to 20 between the sections below — so the four lines are already held
+     together as one thing from the outside. They do not also have to prove it
+     from the inside, and 1.23 is enough to keep four one-liners from reading
+     as a four-line paragraph. */
+  margin-top: 0.25rem;
 }
 
 /* ── section labels ────────────────────────────────────────────────────── */
@@ -835,6 +905,11 @@
 }
 
 .map-wrap .explorer-links {
+  /* The SAME 1.25rem the subtitle pays above the instructions. Si's call and
+     the right one: this link and that gap are the two ends of one block, so
+     they should be one measure. It was 1rem, which is close enough to look
+     like a mistake and far enough to be one. */
+  margin-top: 1.25rem;
   font-size: 0.75rem;
   font-weight: 600;
 }
