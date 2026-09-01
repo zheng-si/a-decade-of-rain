@@ -259,6 +259,23 @@
     min-height: 0;
   }
 
+  /* THE COST of the flex column above, and it has to be paid explicitly:
+     adjacent siblings' margins do not collapse inside a flex container. Every
+     other gap down this panel survived the switch because each of those pairs
+     has a zero on one side — checked, all thirteen of them. This is the one
+     pair with a margin on both: the section label pays 8 below, the search row
+     paid 6 above, and in block layout those collapsed to the larger, 8. In the
+     column they ADD, and the gap under LOCATION LOOKUP went to 14 — the label
+     drifting away from the field it names, which is what it looked like.
+
+     Zeroed rather than the label's 8 rebalanced, because 8 is the number the
+     panel already repeats: label to field, field to RADIUS, RADIUS to the hint
+     under it. The 6 never rendered as anything before this and does not start
+     now. */
+  .map-wrap .archive-key > .lookup > .lookup-search {
+    margin-top: 0;
+  }
+
   .map-wrap .archive-key > .archive-inspect {
     min-height: 0;
     overflow-y: auto;
