@@ -823,19 +823,25 @@
    a bare 1px hairline. That is the whole reason a sentence explaining it ever
    seemed necessary; a control that looks like a control needs no sentence.
 
-   So the playhead gets a grip: a 4×8 cap at the top of the line, in forest
+   So the playhead gets a grip: a 5×8 cap at the top of the line, in forest
    rather than the line's own ink, because the point of it is to read as a
    PART — something you take hold of — and not as a thicker end to the same
-   hairline. Four wide is the number that matters: at two it was a thicker
-   hairline, at four it is a block, and eight tall is what keeps it reading as
-   a vertical grip rather than a square dot. Still small — it sits over a chart
-   of 120 bars and competes with none of them. */
+   hairline. Eight tall over five wide keeps it a vertical grip rather than a
+   square dot. Still small — it sits over a chart of 120 bars and competes with
+   none of them.
+
+   FIVE, NOT FOUR, and the reason is the 1px line under it. Centring works out
+   to `left: 50%` of a 1px box (+0.5) less half the cap's width, so an ODD cap
+   lands on whole pixels either side of the line — 2 left, the line, 2 right —
+   while an even one lands on halves and the browser resolves the two edges
+   differently. At 4 the cap rendered visibly off to one side of its own line.
+   Si caught it. */
 .map-wrap .explorer-playhead::before {
   content: '';
   position: absolute;
   top: 0;
   left: 50%;
-  width: 4px;
+  width: 5px;
   height: 8px;
   transform: translateX(-50%);
   background: var(--forest);
