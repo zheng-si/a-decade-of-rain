@@ -390,11 +390,18 @@ export default function Timeline({
             <strong>Press play</strong> to watch the decade fall month by month.
           </li>
           <li>
-            <strong>Click</strong> any dot for the record behind it. Each is a grid
-            cell&apos;s gallons.
+            {/* `Each is a grid cell's gallons` was cut, not lost: the key bar
+                says what a dot IS, in more detail than this line could, and
+                its info mark says it again. This list says what a reader can
+                DO. Keeping the definition here made the guide answer a
+                question the key had already answered better. */}
+            <strong>Click</strong> any dot for the record behind it.
           </li>
           <li>
-            <strong>Zoom in</strong> until the dots give way to the flight tracks themselves.
+            {/* `until` stays and `themselves` goes. The handoff from dots to
+                tracks happens at a zoom the reader cannot guess, so the word
+                that says KEEP GOING is the one word here doing real work. */}
+            <strong>Zoom in</strong> until the dots give way to flight tracks.
           </li>
           <li>
             <strong>Search</strong> a base or town for every run that crossed it.
