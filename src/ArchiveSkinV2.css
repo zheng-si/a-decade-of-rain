@@ -1214,6 +1214,12 @@
   min-width: 0;
 }
 
+/* The note panel hangs off this, not off the row its button sits on — see the
+   note in ArchiveKey. No overflow here, so it can open above the bar. */
+.map-wrap .map-key-bar-group.is-legend {
+  position: relative;
+}
+
 /* The two halves of the bar are two different KINDS of thing — one sets the
    map's view, one explains its marks — so a seam, the same hairline the chip
    rows draw between their chips. */
@@ -1280,6 +1286,10 @@
   flex: none;
   display: flex;
   align-items: center;
+  /* Inside the row now, so it needs the space the bar's own gap used to give
+     it — and slightly less than a full gap, because it belongs to the label it
+     follows rather than standing between two rows. */
+  margin-left: 0.25rem;
 }
 
 /* No pill behind it. The Material glyph is already a ring, and a disc under a
@@ -1310,9 +1320,16 @@
 .map-wrap .map-key-info-pop {
   position: absolute;
   bottom: calc(100% + 0.625rem);
-  right: -0.5rem;
+  /* Anchored to the legend group's own left edge. It cannot track the button
+     exactly — they are in different boxes now — and at 17rem it does not need
+     to: it opens over the half of the bar the key occupies. */
+  left: 0;
   z-index: 4;
   width: 17rem;
+  /* The row it now lives in is `nowrap`, so that it can never reflow the bar
+     into two lines. A tooltip is prose and has to wrap; without this it came
+     out one line long and 26px tall, clipped by its own width. */
+  white-space: normal;
   padding: 0.5rem 0.625rem;
   background: var(--v2-panel);
   box-shadow: var(--v2-stroke), var(--v2-shadow);
@@ -1324,8 +1341,9 @@
   transition: opacity 0.12s;
 }
 
-.map-wrap .map-key-info:hover .map-key-info-pop,
-.map-wrap .map-key-info button:focus-visible + .map-key-info-pop {
+/* Button and panel are no longer siblings, so the group carries the state. */
+.map-wrap .map-key-bar-group.is-legend:has(.map-key-info:hover) .map-key-info-pop,
+.map-wrap .map-key-bar-group.is-legend:has(.map-key-info button:focus-visible) .map-key-info-pop {
   opacity: 1;
   visibility: visible;
 }
