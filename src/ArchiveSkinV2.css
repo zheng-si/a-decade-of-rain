@@ -429,11 +429,12 @@
      read as part of it. At 600 in accent red above a 500 title, the date was
      competing with the name it dates.
 
-     Regular now, with the title and the subtitle under it. Three 500s stacked
-     in one block was the block asserting itself three times over; at 400 the
-     hierarchy is carried by size, colour and case, which is where it belongs,
-     and the head reads quieter without losing a step of it. */
-  font-weight: 400;
+     Regular was tried and reverted. The argument for it — that three 500s
+     stacked is the block asserting itself three times — is sound on paper and
+     wrong on the panel: at 400 the head stopped holding its own against the
+     map behind it and against the 12px body immediately below, and quiet
+     turned into faint. Medium, with the title and the subtitle. */
+  font-weight: 500;
   /* The subtitle's size. The three lines of the name are one identity now —
      one step between them, and the year is a fact ABOUT the thing being named,
      so it is set at the size of the line that says what the thing is rather
@@ -490,11 +491,10 @@
      the work of a much larger type contrast than the one step of size between
      them; medium says "this is the name" without saying it twice.
 
-     400 now, with the eyebrow and the subtitle. The same argument one step
-     further down: at 18px against 13px of subtitle, size is already carrying
-     the contrast, and Regular stops the head asserting itself three lines
-     running. */
-  font-weight: 400;
+     500 stays. Regular was tried here too and went back for the same reason:
+     size does carry the contrast between the title and its subtitle, but it
+     does nothing for the contrast between the head and the map under it. */
+  font-weight: 500;
   /* Geist sets loose at display sizes next to the 11px it runs at everywhere
      else in this panel; a hair negative brings the title back to the density
      of what it heads. */
@@ -524,10 +524,10 @@
      three lines read as one identity and the tier below starts at the
      citation, which is where the reader is actually crossing a boundary.
 
-     Both at 400 now, and the argument survives the change: what made these
-     one identity was matching each other, not the particular weight they
-     matched at. */
-  font-weight: 400;
+     Back at 500 with the other two. What makes these one identity is matching
+     each other, not the particular weight they match at — which is why the
+     trip to 400 and back cost the block nothing. */
+  font-weight: 500;
   line-height: var(--v2-lead-body);
   color: var(--ink);
 }
