@@ -815,6 +815,44 @@
   color: #fff;
 }
 
+/* ── RADIUS, stacked ───────────────────────────────────────────────────────
+   The label leaves the row and sits above it, and the chips take the whole
+   content width in four equal parts. Two things fall out of that, and they are
+   the reasons for it.
+
+   ALIGNMENT. Every other content edge in this panel lands on the 1.5rem inset
+   — the section label, both ends of the search row, the chip group's right
+   end. The chip group's LEFT end was the one exception, floating at 86px
+   because the label ahead of it happened to be that wide. It reads as an
+   indent nothing asked for. Full width puts it back on the inset with
+   everything else.
+
+   And it makes this control and the agent switch the same control. They were
+   already identical in every measure that is not layout — 28px tall, 12px/500
+   type, the same divider, the same corner, and now the same two text colours —
+   but one wore its label beside it and the other above, which is enough to
+   read as two different things. Now there is one pattern: a caps label, half
+   a rem of air, a full-width segmented row.
+
+   It costs 21px of panel height, which is the honest price of the line the
+   label now occupies. */
+.map-wrap .lookup-row {
+  display: block;
+}
+
+.map-wrap .lookup-row-label {
+  display: block;
+  /* The basis that sized it as a flex item is inert in block flow, but it is
+     removed rather than left to be puzzled over later. 0.5rem is the drop
+     SPRAYING AGENTS gives its own label, and the point here is to match it. */
+  flex: none;
+  margin-bottom: 0.5rem;
+}
+
+.map-wrap .lookup-radii {
+  width: 100%;
+}
+
 .map-wrap .lookup-search,
 .map-wrap .lookup-radii,
 .map-wrap .lookup-unit,
