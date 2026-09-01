@@ -410,7 +410,7 @@ export default function Timeline({
         {/* With the guide, not at the foot of the panel: it is the fourth
             thing the reader can do, and the three above it are verbs too. */}
         <p className="explorer-links">
-          <Link to="/">← Read the Story</Link>
+          <Link to="/">Read the Story</Link>
         </p>
       </header>
 
