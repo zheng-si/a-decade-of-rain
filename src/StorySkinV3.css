@@ -253,7 +253,9 @@
    What moves back to Geist, and why each:
 
      1. The rail. Act numbers and the running title are navigation, not
-        narration; a reader uses them to know where they are.
+        narration; a reader uses them to know where they are — and the
+        colophon mark in the footer with them, which is the same running title
+        beside the same wordmark.
      2. Inside the act card, everything under the year and the name — the deck
         and the period quote are prose, and prose in a monospace at 14px is
         the single densest thing the page asked anyone to read.
@@ -275,6 +277,7 @@
    skin, so the whole spike stays one file plus one import. */
 .story .story-rail-act,
 .story .story-rail-mark span,
+.story .close-mark span,
 .story .story-dek,
 .story .story-quote p,
 .story .rainbow-card-name,
@@ -330,10 +333,17 @@
    one file plus one import, and the whole spike reverts by deleting them. */
 
 .story .story-rail-act,
-.story .story-rail-mark span {
-  /* The two that keep their caps, and so keep needing the tracking that makes
-     caps readable. Small, tracked and set in the sans is what furniture looks
-     like; it is now clearly not part of the narration it sits beside. */
+.story .story-rail-mark span,
+.story .close-mark span {
+  /* The three that keep their caps, and so keep needing the tracking that
+     makes caps readable. Small, tracked and set in the sans is what furniture
+     looks like; it is now clearly not part of the narration it sits beside.
+
+     The colophon mark joins the rail rather than getting its own answer, and
+     it is the same object: the running title of the piece, set beside its
+     wordmark, saying what you are looking at. It had drifted a step larger
+     (0.8125rem) and untracked, which read as a third treatment for a thing
+     that already had two identical ones. */
   font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.05em;
