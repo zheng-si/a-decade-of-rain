@@ -88,6 +88,16 @@
           number, and that stays true at 2px on the shortest bars. */
   --v2-radius: 2px;
 
+  /* A second step, for the big surfaces only. 2px is this screen's corner and
+     stays that on everything a hand touches — chips, switches, the zoom stack,
+     the key bar, the popovers. The two PANELS are a different size of object,
+     and the same proportion argument that keeps the small controls at 2 puts
+     these at 4: a corner reads relative to the box it rounds, and 4px on a
+     372px panel is 1.1% where 2px on the 29px zoom stack is 6.9%. One step up
+     on the largest things is what keeps them reading as the same family
+     rather than as the small ones scaled up. */
+  --v2-radius-lg: 4px;
+
   /* ── leading ──────────────────────────────────────────────────────────
      EXPERIMENT. The complaint is that this screen reads dense next to a
      marketing page, and the audit says the reason is not what it looks like.
@@ -208,7 +218,7 @@
 .map-wrap .archive-key {
   background: var(--v2-panel);
   border: none;
-  border-radius: var(--v2-radius);
+  border-radius: var(--v2-radius-lg);
   /* The stroke, plus their own wide float rather than the whisper. These are
      the two biggest surfaces on the Archive and they hang over a moving map,
      so they need more separation than a card on paper does -- but they had NO
@@ -417,8 +427,13 @@
   /* 500, not the 600 the section labels take. Those labels head controls and
      have to hold their own against them; this one hangs off the title and is
      read as part of it. At 600 in accent red above a 500 title, the date was
-     competing with the name it dates. */
-  font-weight: 500;
+     competing with the name it dates.
+
+     Regular now, with the title and the subtitle under it. Three 500s stacked
+     in one block was the block asserting itself three times over; at 400 the
+     hierarchy is carried by size, colour and case, which is where it belongs,
+     and the head reads quieter without losing a step of it. */
+  font-weight: 400;
   /* The subtitle's size. The three lines of the name are one identity now —
      one step between them, and the year is a fact ABOUT the thing being named,
      so it is set at the size of the line that says what the thing is rather
@@ -473,8 +488,13 @@
   font-size: 1.125rem;
   /* 500, not 600. Geist's semibold at 13.6px over a subtitle at 400 was doing
      the work of a much larger type contrast than the one step of size between
-     them; medium says "this is the name" without saying it twice. */
-  font-weight: 500;
+     them; medium says "this is the name" without saying it twice.
+
+     400 now, with the eyebrow and the subtitle. The same argument one step
+     further down: at 18px against 13px of subtitle, size is already carrying
+     the contrast, and Regular stops the head asserting itself three lines
+     running. */
+  font-weight: 400;
   /* Geist sets loose at display sizes next to the 11px it runs at everywhere
      else in this panel; a hair negative brings the title back to the density
      of what it heads. */
@@ -502,8 +522,12 @@
      alone, and Regular under Medium was quietly filing this line with the
      citation below it rather than with the name above it. Both at 500, the
      three lines read as one identity and the tier below starts at the
-     citation, which is where the reader is actually crossing a boundary. */
-  font-weight: 500;
+     citation, which is where the reader is actually crossing a boundary.
+
+     Both at 400 now, and the argument survives the change: what made these
+     one identity was matching each other, not the particular weight they
+     matched at. */
+  font-weight: 400;
   line-height: var(--v2-lead-body);
   color: var(--ink);
 }
