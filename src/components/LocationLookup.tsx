@@ -581,8 +581,7 @@ export default function LocationLookup({
 
               {results.length === 0 ? (
                 <p className="lookup-empty">
-                  No fixed-wing spray records in this range. That does not mean the area was not
-                  sprayed.
+                  No spray records in this range. That does not mean the area was not sprayed.
                 </p>
               ) : (
                 shape &&
