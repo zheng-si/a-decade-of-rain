@@ -123,8 +123,10 @@ style (no key), AWS Terrain Tiles for the optional 3D relief, geoBoundaries
 for provinces. Scrollama drives the Story. Geist and Courier Prime are
 self-hosted under `public/fonts/`. Deployed on Vercel.
 
-## Data licence and citation
+## Licence and citation
 
-The source data is MIT-licensed by Andrew Stellman via `hea-v`; the pages cite
-it as "the complete record behind Stellman et al. (2003)". A licence for this
-repository's own code has not been chosen yet.
+The code, the build scripts and the notes in this repository are released
+under the MIT licence (see `LICENSE`). The source data is MIT-licensed by
+Andrew Stellman via `hea-v`; the pages cite it as "the complete record behind
+Stellman et al. (2003)". The basemap, terrain and boundary sources carry their
+own licences, listed in the pages' sources.
