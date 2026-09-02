@@ -16,7 +16,7 @@ Source and analysis scripts: <https://github.com/Cypherixc/remedial-vietnam>.
 
 This note documents how that record becomes a picture. It has one substantive finding. The HERBS file books each mission's entire volume against a single row, the first waypoint of its first run, while recording the aircraft's track as a chain of further waypoints; the median run is an 11 km polyline. A map drawn directly from the file's fields therefore places a run's whole volume in the one cell containing one end of it. Measured over the whole record, turning that "booked" field into one in which the volume is spread along the flown track requires physically relocating 58% of all gallons at a 3 km cell, and leaves 59% of cells that received herbicide reading as zero. Within the family of readings the record itself admits (the herbicide fell somewhere along the recorded track) the answer is stable to about ±15% at 3 km under rate profiles far more extreme than an aircraft is likely to have flown; the booked reading sits roughly four times outside that envelope. Both shipped surfaces therefore draw the record as lines, with totals conserved to the gallon.
 
-The note also records the georeferencing, the run reconstruction, every encoding constant, the checks that hold them together, and the limits of what the maps can be asked. It closes with the specific questions we would value your judgement on, including two we found while writing it: the volume appears to be booked per mission rather than per run, which the current pipeline does not yet exploit (a 4.8% correction at 3 km), and the file contains helicopter and ground records that one of the Atlas's caveats currently denies.
+The note also records the georeferencing, the run reconstruction, every encoding constant, the checks that hold them together, and the limits of what the maps can be asked. It closes with the specific questions we would value your judgement on, including two we found while writing it: the tape's own documentation books volume per mission rather than per spray track, which the current pipeline does not yet exploit (a 4.8% correction at 3 km), and the file contains helicopter and ground records that one of the Atlas's caveats currently denies.
 
 ---
 
@@ -41,9 +41,11 @@ The record is `data/herbs.json` from `github.com/andrewstellman/hea-v`, the open
 
 The file has 24,604 rows and fourteen fields: `Date`, `Mission`, `Run`, `CTZ`, `Source`, `Incident`, `Method`, `Leg`, `UTM`, `Agent`, `Gallons`, `FWAC`, `Type`, `Province`. Dates run from 10 August 1961 to 27 December 1971.
 
+The tape's record layout is documented column by column in the 1985 US Army report that produced the Services HERBS supplement (Christian, 1985), which we located while writing this note; the code meanings below follow it. The HERBS system document it descends from (Data Management Agency, US MACV, 1970) is the one Stellman et al. (2003) cite as their reference 3.
+
 ### 2.2 What the fields contain
 
-Table 1 gives the code distributions as observed. The meanings in the right-hand column are our reading; none is confirmed and we ask about them in Section 9.
+Table 1 gives the code distributions as observed. The meanings in the right-hand column follow the 1985 record layout where it lists the code; the codes it does not list are marked, and Section 9 asks about them.
 
 **Table 1. Code fields at the pinned commit.**
 
@@ -54,23 +56,23 @@ Table 1 gives the code distributions as observed. The meanings in the right-hand
 | | B | 3,421 | 1,252,541 | 6.4% | Agent Blue |
 | | P | 1,087 | 500,018 | 2.6% | Agent Purple |
 | | U | 1,336 | 227,538 | 1.2% | Unknown / unspecified |
-| | K | 16 | 13,291 | 0.07% | Agent Pink |
+| | K | 16 | 13,291 | 0.07% | Agent Pink? (the layout lists Pink as R and Pink & Green as S; K is not listed) |
 | | D, T | 4, 2 | 0 | 0 | Dinoxol, Trinoxol |
 | `Method` | F | 16,488 | 18,603,176 | 95.4% | Fixed-wing aircraft |
 | | H | 5,762 | 733,262 | 3.8% | Helicopter |
 | | U | 1,269 | 96,940 | 0.5% | Unknown |
 | | G | 1,081 | 48,312 | 0.25% | Ground |
-| | S | 4 | 9,000 | 0.05% | (unknown) |
-| `Source` | R | 18,150 | 17,536,106 | 90.0% | (Ranch Hand / original HERBS?) |
-| | S | 6,320 | 1,893,722 | 9.7% | (Services HERBS?) |
-| | A | 134 | 60,862 | 0.3% | (unknown) |
+| | S | 4 | 9,000 | 0.05% | not in the layout |
+| `Source` | R | 18,150 | 17,536,106 | 90.0% | Ranch Hand data files |
+| | S | 6,320 | 1,893,722 | 9.7% | Services HERBS Tape files |
+| | A | 134 | 60,862 | 0.3% | not in the layout |
 | `Type` | D | 14,248 | 16,855,761 | 86.5% | Defoliation |
 | | C | 3,837 | 1,753,986 | 9.0% | Crop destruction |
-| | P, F, S, U, W, E | 3,224 … 230 | 395,953 … 39,798 | 4.5% together | (unknown) |
+| | P, F, S, U, W, E | 3,224 … 230 | 395,953 … 39,798 | 4.5% together | P perimeter spraying around an installation; F friendly line of communication; S enemy supply cache; W waterway or landing zone; E enemy infiltration or supply route; U not listed |
 | `CTZ` | 1 / 2 / 3 / 4 | 5,144 / 6,716 / 9,119 / 2,832 | | | Corps Tactical Zones I–IV |
 | | 5 / 6 / 7 | 668 / 1 / 124 | | | (unknown) |
 | `Incident` | blank | 24,535 | | | |
-| | Z, R, E, L, A | 42, 16, 5, 5, 1 | | | (unknown) |
+| | Z, R, E, L, A | 42, 16, 5, 5, 1 | | | Z emergency dump; R spray on the wrong target; E crash with the load aboard; L leak; A abort of mission or aircraft |
 
 `Province` carries 50 distinct values and is blank on 16,628 rows. `UTM` is an eight-character military grid reference on every row (a two-letter 100 km square identifier and two three-digit coordinates, so 100 m precision), drawn from 55 distinct 100 km squares; it carries no zone number. `FWAC` is a six-digit string on 8,045 rows, structured as three two-digit fields that are almost always equal (`030303` on 2,575 rows, `020202` on 1,308, `040404` on 647, and so on); `hea-v`'s own engine reads the aircraft count from the last two digits, and we follow it. It is present on 5,898 of the 5,957 fixed-wing lead rows (99%) and on none of the 2,108 helicopter or 446 ground lead rows, which is what we would expect of a *fixed-wing aircraft count* and is our main reason for reading `Method` H as helicopter.
 
@@ -83,6 +85,8 @@ Two facts about time. Volume by year is 1962: 40,185; 1963: 89,933; 1964: 223,69
 Rows group into **9,141 missions** (distinct `Mission` numbers) and **11,273 runs** (distinct `Mission` + `Run` pairs). Within a run, and within a mission, `Date` and `Agent` never vary; we checked every one.
 
 The `Leg` field is a number followed by a letter, and the two parts index different things. The **letter** is the waypoint within a run (A, B, C …). The **number** is the run's position within its mission: a mission's first run is labelled 1A, 1B …, its second 2A, 2B …, and so on. The evidence is exact: there are 9,141 rows labelled `1A`, one per mission, and every run that lacks a `1A` row begins at `2A`, `3A` or later. A run is therefore a chain of waypoints, and a mission is one or more such chains flown on one day with one agent.
+
+The 1985 layout says the same in the tape's own words. Columns 60 and 61 "identify the track number"; column 62 carries "track start, turn and stop codes", where "A" is "the starting point", each later letter "the UTM grid coordinate at which the aircraft changed flight direction", and the last letter the point "at which the spraying was stopped"; and "a successive number in columns 60 & 61 indicate that on the same mission after completing the previous spray track, the aircraft accomplished an additional spray track". Its worked example is a two-track mission: 1A, 1B, 1C and then 2A, 2B. What `hea-v` calls a run is the tape's spray track.
 
 **Table 2. Shape of the record.**
 
@@ -98,9 +102,9 @@ The `Leg` field is a number followed by a letter, and the two parts index differ
 
 **All 19,490,690 gallons sit on rows labelled `1A`. Every other leg label sums to exactly zero.** This is measured against the source, not inferred.
 
-Three further measurements say what that means. First, the 2,132 runs that have no `1A` row (the second and later runs of multi-run missions) carry no volume, all of them. Second, among fixed-wing missions with a recorded aircraft count, the median volume per aircraft is 1,000 gallons for missions of one, two, four and six runs, and 925 and 967 for three and five (n = 5,896 missions; overall p25 900, p75 1,000; median three aircraft). A C-123's spray tank held 1,000 gallons. Third, a worked example: Mission 136, 18 January 1965, Agent Purple, two aircraft, is recorded as Run 138 (legs 1A and 1B; 2,000 gallons on 1A) and Run 139 (legs 2A and 2B; 0 gallons).
+The layout defines the gallons field (columns 29 to 33) as the "number of gallons of herbicide dispensed during the mission cited": a per-mission quantity. The tape carries no per-track volume. Three further measurements in the file say the same. First, the 2,132 runs that have no `1A` row (the second and later runs of multi-run missions) carry no volume, all of them. Second, among fixed-wing missions with a recorded aircraft count, the median volume per aircraft is 1,000 gallons for missions of one, two, four and six runs, and 925 and 967 for three and five (n = 5,896 missions; overall p25 900, p75 1,000; median three aircraft). A C-123's spray tank held 1,000 gallons. Third, a worked example: Mission 136, 18 January 1965, Agent Purple, two aircraft, is recorded as Run 138 (legs 1A and 1B; 2,000 gallons on 1A) and Run 139 (legs 2A and 2B; 0 gallons).
 
-So the file books a mission's whole load once, against the first waypoint of its first run. The 2,913 runs with no volume anywhere are of two kinds: 2,132 later runs of multi-run missions whose load is on the mission's lead row, and 781 lead runs that record a flight and no gallons. **8,360 runs carry volume**, and that is the count the Atlas shows as *Spray Runs*.
+So the file books a mission's whole load once, against the first waypoint of its first track, which is what its documentation says it does. The 2,913 runs with no volume anywhere are of two kinds: 2,132 later runs of multi-run missions whose load is on the mission's lead row, and 781 lead runs that record a flight and no gallons. **8,360 runs carry volume**, and that is the count the Atlas shows as *Spray Runs*.
 
 This booking is an accounting convention. It is not a statement about where herbicide landed, and a map drawn straight from these fields inherits the convention without saying so. Section 5 measures what that costs.
 
@@ -136,7 +140,7 @@ The quantity this yields, **gallons per kilometre**, is the first quantity in th
 
 The pipeline spreads a *run's* gallons along that *run*. Section 2.4 says the gallons are booked per *mission*, on its first run. For the 1,434 missions with more than one run (15.7% of missions, carrying 3,260,414 gallons, 16.7% of the volume), the current reading therefore concentrates the mission's whole load on its first run and gives the later runs nothing, when by the same physical argument it should be spread along all of them. In those missions the run carrying the gallons is about half the mission's flown length (9,464 km of 19,259 km).
 
-We measured what the correction changes, with the same sampling scheme as Section 5 (`scripts/analyse-mission-spread.mjs`; Appendix C). Spreading per mission instead of per run moves **4.8%** of the volume at a 3 km cell, **2.4%** at 13 km and **1.2%** at 28 km; the number of 3 km cells with volume rises from 7,095 to 7,583 and the peak cell is unchanged (ratio 0.99). It is a real correction and a small one, an order of magnitude below the effect of the booking convention itself (58.8% at 3 km against per-mission spreading) and inside the sensitivity envelope of Section 5.4. It has not yet been applied to the shipped files; we intend to, and would first like to confirm the reading of the leg numbering (Section 9, question 1).
+We measured what the correction changes, with the same sampling scheme as Section 5 (`scripts/analyse-mission-spread.mjs`; Appendix C). Spreading per mission instead of per run moves **4.8%** of the volume at a 3 km cell, **2.4%** at 13 km and **1.2%** at 28 km; the number of 3 km cells with volume rises from 7,095 to 7,583 and the peak cell is unchanged (ratio 0.99). It is a real correction and a small one, an order of magnitude below the effect of the booking convention itself (58.8% at 3 km against per-mission spreading) and inside the sensitivity envelope of Section 5.4. It has not yet been applied to the shipped files. Now that the tape's own layout confirms the reading, we intend to apply it; Section 9, question 1 asks only whether spreading by length across a mission's tracks is the reading you would consider defensible.
 
 ---
 
@@ -315,9 +319,9 @@ The shipped pages are checked by a headless-browser regression suite of some fif
 - **Straight-line interpolation** between consecutive waypoints, at a median 2.63 km spacing, short relative to the cells.
 - **The record is not a survey.** It is what was filed. Runs flown and never recorded are absent from every reading here.
 - **Direction is not known.** The fade runs from the first waypoint on file. Whether the aircraft flew 1A→1B or the clerk listed them in another order is not in the record.
-- **Booking per mission is not yet applied** (Section 4.3): a 4.8% correction at 3 km, pending confirmation of the leg numbering.
-- **Helicopter and ground records are in the file and on the map.** The Atlas's lookup caveat reads "Fixed-wing (Ranch Hand) records only. No helicopter, ground or base-perimeter spraying." By our reading of `Method`, the file contains 2,794 helicopter runs (733,262 gallons, 3.8%) and 637 ground runs (48,312 gallons), and the pipeline draws all of them. The caveat was written from the record's reputation rather than measured against it and will be corrected; the open question is how *complete* those records are (Section 9, question 4).
-- **Code meanings are unconfirmed** for `Method`, `Source`, `Type`, `Incident`, the `CTZ` values 5, 6 and 7, and the three subfields of `FWAC`.
+- **Booking per mission is not yet applied** (Section 4.3): a 4.8% correction at 3 km, to be applied.
+- **Helicopter and ground records are in the file and on the map.** The Atlas's lookup caveat reads "Fixed-wing (Ranch Hand) records only. No helicopter, ground or base-perimeter spraying." By our reading of `Method`, the file contains 2,794 helicopter runs (733,262 gallons, 3.8%) and 637 ground runs (48,312 gallons), and the pipeline draws all of them. The caveat was written from the record's reputation rather than measured against it and will be corrected. The 1985 report says the original HERBS tape "lacks important information on most of the helicopter spray missions prior to 1968" and "has no information whatsoever" on ground and backpack spraying, which the Services HERBS supplement set out to add; how complete the supplement is remains the question (Section 9, question 4).
+- **Some code meanings are unconfirmed**: `Method` S, `Source` A, `Agent` K, the `CTZ` values 5, 6 and 7, and the three subfields of `FWAC` are not in the 1985 layout.
 - **The count of runs** is the count of runs with recorded volume (8,360), not of flights (11,273). The card and the panel say "Spray Runs" and "Sprayings" for that reason.
 - **Quantised references make runs share waypoints.** Over Đồng Xoài at zoom 9.7, 3,084 track endpoints fall in 2,262 four-pixel bins and the busiest holds 33; this is why endpoint markers are off by default and why the direction cue is a fade in the stroke's own paint rather than a bead.
 - **The province and region furniture is modern.** The Corps Tactical Zones are dissolved from today's provinces and are close to, not identical with, the wartime lines. `Province` in the file is blank on two-thirds of rows and is not used.
@@ -328,8 +332,8 @@ The shipped pages are checked by a headless-browser regression suite of some fif
 
 ## 9 · Questions for the authors of the record
 
-1. **Leg numbering and booking.** Is our reading right that the leg *number* indexes the run within a mission, and that the gallons on the `1A` row are the mission's whole load? If so, is spreading that load by length across all of the mission's runs the reading you would consider defensible?
-2. **Codes.** What do `Method` S, `Source` R / S / A, `Type` P / F / S / W / E, `Incident` Z / R / E / L / A and `CTZ` 5 / 6 / 7 denote? What are the three two-digit fields of `FWAC` (we read the last as the number of aircraft that sprayed)?
+1. **Spreading across tracks.** The 1985 layout confirms that gallons are recorded per mission and that a successive track number is a further spray track flown on the same mission. Is spreading that load by length across all of the mission's tracks the reading you would consider defensible, or did the load typically go down on the first track?
+2. **Codes the 1985 layout does not list.** What do `Method` S, `Source` A, `Agent` K (the layout lists Pink as R and Pink & Green as S) and `CTZ` 5 / 6 / 7 denote? What are the three two-digit fields of `FWAC` (we read the last as the number of aircraft that sprayed)?
 3. **Rate along the track.** Is there anything in the operational record (spray-on and spray-off points, altitude, airspeed, swath width) that would argue for a rate profile other than constant, or for a swath we should draw?
 4. **Helicopter and ground coverage.** Should the helicopter and ground records in the file be mapped alongside the Ranch Hand runs as we now do, or are they incomplete enough that the map should carry a stronger caveat or a separate treatment?
 5. **The lattice.** Is `gridpoints.json` the study-area grid of the 2003 work, and is there a published estimate of the georeferencing accuracy of the grid references (the 100 m precision is nominal)?
@@ -342,6 +346,8 @@ The shipped pages are checked by a headless-browser regression suite of some fif
 
 - Stellman, J. M., Stellman, S. D., Christian, R., Weber, T. & Tomasallo, C. (2003). The extent and patterns of usage of Agent Orange and other herbicides in Vietnam. *Nature* 422, 681–687.
 - Stellman, A. `hea-v`: Herbicide Exposure Assessment Vietnam. github.com/andrewstellman/hea-v, commit `cb5948b`. MIT licence.
+- Christian, R. S. (1985). *Services HERBS Tape: A Record of Helicopter and Ground Spraying Missions, Aborts, Leaks, and Incidents.* Headquarters, Department of the Army (DAAG-ESG), 12 September 1985. Copy held in the USDA National Agricultural Library Special Collections.
+- Data Management Agency, US MACV (1970). *Herbicide Report System (HERBS).* Document DARU07. Cited as reference 3 of Stellman et al. (2003).
 - National Academy of Sciences (1974). *The Effects of Herbicides in South Vietnam.*
 - Westing, A. H. (1971). Ecological effects of military defoliation on the forests of South Vietnam. *BioScience* 21, 893–898.
 - Buckingham, W. A. (1982). *Operation Ranch Hand: The Air Force and Herbicides in Southeast Asia, 1961–1971.* Office of Air Force History.
@@ -356,16 +362,16 @@ The shipped pages are checked by a headless-browser regression suite of some fif
 | `Date` | `MM/DD/YY` | 10 Aug 1961 to 27 Dec 1971; constant within a mission |
 | `Mission` | integer | 9,141 distinct |
 | `Run` | integer | 11,273 distinct `Mission`+`Run` pairs |
-| `Leg` | digit(s) + letter | number = run within mission, letter = waypoint within run; 75 distinct labels |
+| `Leg` | digit(s) + letter | tape columns 60–62: number = spray track within the mission, letter = start, turn or stop point; 75 distinct labels |
 | `UTM` | 8 characters | 100 km square + 3+3 digits (100 m); no zone; 55 squares |
 | `Agent` | O W B P U K D T | see Table 1 |
-| `Gallons` | integer | non-zero only on `1A` rows |
+| `Gallons` | integer | tape columns 29–33, per mission; non-zero only on `1A` rows |
 | `FWAC` | 6 digits or blank | three 2-digit fields; last two read as aircraft count; fixed-wing only |
-| `Method` | F H U G S | see Table 1 |
-| `Source` | R S A | see Table 1 |
-| `Type` | D C P F S U W E | see Table 1 |
+| `Method` | F H U G S | tape column 77; F, G, H documented |
+| `Source` | R S A | tape column 73; R, S documented |
+| `Type` | D C P F S U W E | tape column 35, purpose of mission; all but U documented |
 | `CTZ` | 1–7 | 1–4 are the Corps Tactical Zones |
-| `Incident` | blank or Z R E L A | 69 rows non-blank |
+| `Incident` | blank or Z R E L A | tape column 75; 69 rows non-blank |
 | `Province` | text | 50 values; blank on 16,628 rows; not used |
 
 ## Appendix B · Constants
