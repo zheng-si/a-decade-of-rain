@@ -8,7 +8,7 @@
 Time-stamped, georeferenced record of US aerial herbicide spraying in Vietnam.
 Drives the spray heat map and timeline.
 
-- **Records:** 24,604 spray "runs"
+- **Records:** 24,604 rows (waypoint records), which resolve into 9,141 missions and 11,273 Mission + Run pairs
 - **Span:** 1961–1971 (peak 1966–1969)
 - **Total:** 19,490,690 gallons
 - **Size:** ~640 KB (compact array form)
@@ -46,7 +46,7 @@ Licensed **MIT, © 2026 Andrew Stellman**. Pinned to commit
 ```jsonc
 {
   "epoch": "1961-01-01",              // day 1 (matches the HEA-V engine)
-  "fields": ["lon", "lat", "day", "agent", "gallons"],
+  "fields": ["lon", "lat", "day", "agent", "gallons", "ctz"],
   "agents": ["O","W","B","P","U","K","D","T"],   // agent index legend
   "agentNames": { "O": "Agent Orange", "W": "Agent White", ... },
   "runs": [ [108.199, 16.044, 1623, 0, 1500], ... ]  // sorted by day
@@ -75,8 +75,9 @@ points. Measured against `herbs.json` at the pinned commit:
 | gap, leg `nB` → `(n+1)A` | median 2.63 km — the segments chain end to end |
 | polyline length | median **11.4 km**, p90 19.9 km, max 354.6 km |
 
-So a spray run is a **line**, and HERBS books the whole run's volume against
-its first waypoint. The other waypoints are the track, not sorties with a
+So a spray run is a **line**, and HERBS books the whole mission's volume
+against the first waypoint of its first run (the 1985 record layout defines
+`GALLONS` per mission). The other waypoints are the track, not sorties with a
 missing figure.
 
 Two consequences this file's consumers must know:
@@ -89,10 +90,14 @@ Two consequences this file's consumers must know:
    volume anywhere, and with `Mission`/`Run` dropped there is nothing to group
    by, so counting gallons-bearing rows (8,360) undercounts runs.
 
-Fixing either means re-running the ETL to keep the run identity and distribute
-each run's volume along its track. The dataset carries no per-waypoint
-quantity — `Gallons` and `FWAC` both appear only on leg `1A` — so the only
-available weight is geometric (segment length).
+Both are fixed by the second ETL, `scripts/build-spray-tracks.mjs`, which
+keeps the run identity and spreads each mission's volume along its tracks by
+length into `public/data/spray-tracks.json`; the Atlas's dots and tracks and
+the Story's field are drawn from that file, while this point file still feeds
+the timeline, the panel totals and the per-row figures.
+The dataset carries no per-waypoint quantity (`Gallons` and `FWAC` both appear
+only on leg `1A`), so the only available weight is geometric (segment length).
+See `docs/methods.md`.
 
 ## `hotspots.ts` — removed
 
