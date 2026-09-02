@@ -1691,6 +1691,15 @@
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
+/* The mission's one line of identity under its summary: date, agent, aircraft,
+   volume, length. Set like the summary's own supporting text. */
+.lookup-mission-meta {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.45;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
 .lookup-empty {
   margin: 0.5rem 0 0;
   font-size: 0.75rem;

@@ -57,11 +57,14 @@ import { loadTracks, type TrackDataset } from '../data/tracks'
 import LocationLookup, { type LookupState } from './LocationLookup'
 import {
   queryLookup,
+  missionRuns,
+  indexMissions,
   circlePolygon,
   veilPolygon,
   loadGazetteer,
   type LookupHit,
   type GazPlace,
+  type MissionSummary,
 } from './lookup'
 import { binTracks, resetTrackGrid } from './trackGrid'
 import { computeScale } from './mapScale'
@@ -358,6 +361,8 @@ interface UrlState {
   cam?: { center: [number, number]; zoom: number; bearing: number; pitch: number }
   is3D?: boolean
   lookup?: { lng: number; lat: number; radiusKm: number; from: string; to: string }
+  /** A HERBS mission number: `?m=167`. */
+  mission?: number
 }
 
 function readUrlState(): UrlState {
@@ -405,6 +410,10 @@ function readUrlState(): UrlState {
       }
     }
   }
+  // A mission search: `m`, a positive integer. Checked as a whole rather than
+  // parsed, so `?m=12abc` is not mission 12.
+  const m = q.get('m')
+  if (m && /^\d{1,5}$/.test(m) && Number(m) > 0) out.mission = Number(m)
   return out
 }
 
@@ -463,6 +472,8 @@ function buildSearch(
     q.set('lat', lookup.center.lat.toFixed(4))
     q.set('lng', lookup.center.lng.toFixed(4))
     if (lookup.radiusKm !== 5) q.set('r', String(lookup.radiusKm))
+  } else if (lookup.mission != null) {
+    q.set('m', String(lookup.mission))
   }
   return q.toString()
 }
@@ -689,6 +700,7 @@ export default function MapView() {
   // ── location lookup ──────────────────────────────────────────────────────
   const [lookup, setLookup] = useState<LookupState>({
     center: null,
+    mission: null,
     radiusKm: 5,
     from: '1961-01',
     to: '1971-12',
@@ -747,7 +759,7 @@ export default function MapView() {
    *  onto it — the × in the search row and the Clear on the map's own hint —
    *  and two exits that do almost the same thing is how they drift apart. */
   const clearLookup = useCallback(
-    () => setLookup((s) => ({ ...s, center: null, picking: false, place: undefined })),
+    () => setLookup((s) => ({ ...s, center: null, mission: null, picking: false, place: undefined })),
     [],
   )
 
@@ -1154,6 +1166,7 @@ export default function MapView() {
           if (lookupPickRef.current) {
             setLookup((s) => ({
               ...s,
+              mission: null,
               center: { lng: e.lngLat.lng, lat: e.lngLat.lat },
               picking: false,
               place: undefined,
@@ -1328,10 +1341,15 @@ export default function MapView() {
           setIs3D(true)
           applyView(map, true, homeRef.current, false)
         }
+        if (urlState.mission != null) {
+          const m = urlState.mission
+          setLookup((s) => ({ ...s, center: null, place: undefined, mission: m }))
+        }
         if (urlState.lookup) {
           const lk = urlState.lookup
           setLookup((s) => ({
             ...s,
+            mission: null,
             center: { lng: lk.lng, lat: lk.lat },
             radiusKm: lk.radiusKm,
             from: lk.from,
@@ -1666,16 +1684,56 @@ export default function MapView() {
   }
 
   // ── location lookup: query ───────────────────────────────────────────────
+  /** What each mission is, for the search box's suggestion row. One pass over
+   *  the record when it lands; null until then, and the box says so by
+   *  offering nothing for a number. */
+  const missionIndex = useMemo<Map<number, MissionSummary> | null>(
+    () => (tracksReady && tracksRef.current ? indexMissions(tracksRef.current) : null),
+    [tracksReady],
+  )
+  /** The mission the camera was last fitted to, so a results refresh (a
+   *  record opening, say) does not fly the reader back to the whole mission. */
+  const fittedMissionRef = useRef<number | null>(null)
   useEffect(() => {
     const t = tracksRef.current
-    if (!tracksReady || !t || !lookup.center) {
+    if (!tracksReady || !t || (!lookup.center && lookup.mission == null)) {
       lookupResultsRef.current = null
       setLookupResults(null)
+      fittedMissionRef.current = null
       return
     }
+    if (lookup.mission != null) {
+      const res = missionRuns(t, lookup.mission)
+      lookupResultsRef.current = res
+      setLookupResults(res)
+      // Frame the whole mission once, when it is chosen: every track of it on
+      // screen, the way a place search puts its circle on screen. A search
+      // that answers off-screen answers nothing.
+      const map = mapRef.current
+      if (map && res.length && fittedMissionRef.current !== lookup.mission) {
+        fittedMissionRef.current = lookup.mission
+        const b: [number, number, number, number] = [Infinity, Infinity, -Infinity, -Infinity]
+        for (const h of res) {
+          if (h.bounds[0] < b[0]) b[0] = h.bounds[0]
+          if (h.bounds[1] < b[1]) b[1] = h.bounds[1]
+          if (h.bounds[2] > b[2]) b[2] = h.bounds[2]
+          if (h.bounds[3] > b[3]) b[3] = h.bounds[3]
+        }
+        if (b[0] <= b[2])
+          map.fitBounds(
+            [
+              [b[0], b[1]],
+              [b[2], b[3]],
+            ],
+            { padding: fitPaddingFor(map), maxZoom: 11, duration: 700 },
+          )
+      }
+      return
+    }
+    const c = lookup.center!
     const res = queryLookup(t, {
-      lng: lookup.center.lng,
-      lat: lookup.center.lat,
+      lng: c.lng,
+      lat: c.lat,
       radiusKm: lookup.radiusKm,
       dayFrom: monthToFirstDay(lookup.from),
       dayTo: monthToLastDay(lookup.to),
@@ -1721,11 +1779,12 @@ export default function MapView() {
     const map = mapRef.current
     if (!ready || !map) return
     const c = lookup.center
+    const m = lookup.mission ?? null
     // The highlight follows the hits' own colours while the circle is up: in
     // there a run is drawn per agent, and lighting a blue one in the brand red
     // produced a stroke that ran red at one end and blue at the other.
-    setHighlightByFeature(map, c != null)
-    if (!c) {
+    setHighlightByFeature(map, c != null || m != null)
+    if (!c && m == null) {
       restoreRecordTiers(map, hiddenTiersRef.current, tracksRef.current != null)
       for (const id of [
         LOOKUP_HI_PT,
@@ -1814,11 +1873,14 @@ export default function MapView() {
         },
       })
     }
+    // A mission has no circle and no veil: the record's own tiers step back
+    // exactly as they do for a circle, and the mission's tracks are what is
+    // left on the map — a mission is the view, the same way the circle is.
     ;(map.getSource(LOOKUP_VEIL_SRC) as maplibregl.GeoJSONSource).setData(
-      fc([veilPolygon(c.lng, c.lat, lookup.radiusKm)]),
+      fc(c ? [veilPolygon(c.lng, c.lat, lookup.radiusKm)] : []),
     )
     ;(map.getSource(LOOKUP_CIRCLE_SRC) as maplibregl.GeoJSONSource).setData(
-      fc([circlePolygon(c.lng, c.lat, lookup.radiusKm)]),
+      fc(c ? [circlePolygon(c.lng, c.lat, lookup.radiusKm)] : []),
     )
     const t = tracksRef.current
     const hi: GeoJSON.Feature[] = []
@@ -1856,7 +1918,12 @@ export default function MapView() {
     // hit runs, drawn on the lookup's own layers, are what is left: the circle
     // stops being an annotation and becomes the view.
     hideRecordTiers(map, hiddenTiersRef.current)
-    if (!lookupMarkerRef.current) {
+    if (!c) {
+      // A mission search: no centre, so no pin — and one left over from a
+      // circle the reader has just replaced comes off.
+      lookupMarkerRef.current?.remove()
+      lookupMarkerRef.current = null
+    } else if (!lookupMarkerRef.current) {
       const el = document.createElement('div')
       el.className = 'lookup-center-pin'
       const m = new maplibregl.Marker({ element: el, draggable: true })
@@ -1870,7 +1937,7 @@ export default function MapView() {
     } else {
       lookupMarkerRef.current.setLngLat([c.lng, c.lat])
     }
-  }, [ready, lookup.center, lookup.radiusKm, lookupResults, inspect])
+  }, [ready, lookup.center, lookup.mission, lookup.radiusKm, lookupResults, inspect])
 
   // Crosshair while arming a pick (the map handlers hold it during moves).
   useEffect(() => {
@@ -1945,6 +2012,13 @@ export default function MapView() {
     return () => window.removeEventListener('keydown', onKey)
   }, [lookup.picking])
 
+  /** A mission chosen from the search: the other kind of query. It replaces
+   *  any circle — the panel answers one question at a time — and the camera
+   *  follows in the query effect, once the mission's tracks are known. */
+  function handleMission(mission: number) {
+    setLookup((s) => ({ ...s, center: null, place: undefined, picking: false, mission }))
+  }
+
   /** A place chosen from the search: center there, widen city-level queries
    *  to 10 km per the brief, and ease the map over so the circle is on
    *  screen — a search that answers off-screen answers nothing. */
@@ -1952,6 +2026,7 @@ export default function MapView() {
     const coarse = pl.t === 'city' || pl.t === 'town'
     setLookup((s) => ({
       ...s,
+      mission: null,
       center: { lng: pl.lng, lat: pl.lat },
       radiusKm: coarse ? 10 : s.radiusKm,
       picking: false,
@@ -2004,7 +2079,7 @@ export default function MapView() {
     !isPhone &&
     inspect?.kind === 'run' &&
     inspect.mission != null &&
-    lookup.center != null &&
+    (lookup.center != null || lookup.mission != null) &&
     (lookupResults?.some((h) => h.mission === inspect.mission && h.run === inspect.run) ?? false)
 
   const lookupPanel = (
@@ -2041,6 +2116,8 @@ export default function MapView() {
       onClear={clearLookup}
       onOpen={openLookupHit}
       onPlace={handlePlace}
+      onMission={handleMission}
+      missions={missionIndex}
       onBack={() => {
         setInspect(null)
         pinnedRunRef.current = null
@@ -2086,6 +2163,12 @@ export default function MapView() {
       {ready && !lookup.picking && lookup.center && (
         <p className="map-pick-hint" role="status">
           Showing {lookup.radiusKm} km around {lookup.place ? lookup.place.name : 'this point'}
+          <button onClick={clearLookup}>Clear</button>
+        </p>
+      )}
+      {ready && !lookup.picking && !lookup.center && lookup.mission != null && (
+        <p className="map-pick-hint" role="status">
+          Showing HERBS mission {lookup.mission}
           <button onClick={clearLookup}>Clear</button>
         </p>
       )}
