@@ -33,8 +33,13 @@ export interface LookupHit {
   /** The run's whole recorded volume (all its segments and marks), NOT the
    *  amount that fell inside the radius — the source cannot answer that. */
   gallons: number
-  /** Minimum distance from the query point to the run's recorded geometry. */
+  /** Minimum distance from the query point to the run's recorded geometry.
+   *  0 for a mission search, which has no query point. */
   distanceKm: number
+  /** The run's sprayed length in km, summed over its segments. Carried by the
+   *  mission search, whose list shows length where the circle's shows
+   *  distance; the circle's hits leave it unset. */
+  km?: number
   /** Indexes into data.lines.features / data.marks.features, for highlight
    *  and fly-to. */
   lineIdx: number[]
@@ -173,6 +178,120 @@ export function queryLookup(data: TrackDataset, params: LookupParams): LookupHit
   const out = [...hits.values()]
   for (const h of out) h.distanceKm = Math.round(h.distanceKm * 10) / 10
   out.sort((a, b) => a.distanceKm - b.distanceKm || a.day - b.day)
+  return out
+}
+
+/* ── the mission search ────────────────────────────────────────────────────
+   The other way to ask the record a question: by its own key. A HERBS mission
+   number typed into the search box lists that mission's tracks, in the same
+   list the circle answers with — a lookup is a lookup, whether the reader
+   started from a place or from a citation. */
+
+export interface MissionSummary {
+  mission: number
+  runs: number
+  day: number
+  agent: number
+  gi: number
+  fwac: number
+  gallons: number
+  km: number
+}
+
+/** `167`, `M167`, `mission 167`, `#167` → 167. Anything else → null. Five
+ *  digits at most: the record's mission numbers run to four. */
+export function parseMissionQuery(query: string): number | null {
+  const m = /^\s*(?:m(?:ission)?\s*#?\s*|#\s*)?(\d{1,5})\s*$/i.exec(query)
+  if (!m) return null
+  const n = Number(m[1])
+  return n > 0 ? n : null
+}
+
+/** One pass over the record: what each mission is, for the search's
+ *  suggestion row. Built once per dataset and kept by the caller. */
+export function indexMissions(data: TrackDataset): Map<number, MissionSummary> {
+  const out = new Map<number, MissionSummary>()
+  const runsOf = new Map<number, Set<number>>()
+  const touch = (p: { mission: number; run: number; day: number; agent: number; gi: number; fwac: number; gallons: number; km: number }) => {
+    if (!p.mission) return
+    let s = out.get(p.mission)
+    if (!s) {
+      s = { mission: p.mission, runs: 0, day: p.day, agent: p.agent, gi: p.gi, fwac: p.fwac, gallons: 0, km: 0 }
+      out.set(p.mission, s)
+      runsOf.set(p.mission, new Set())
+    }
+    runsOf.get(p.mission)!.add(p.run)
+    s.gallons += p.gallons
+    s.km += p.km
+    if (p.fwac && !s.fwac) s.fwac = p.fwac
+  }
+  for (const f of data.lines.features) touch(f.properties)
+  for (const f of data.marks.features) touch(f.properties)
+  for (const [m, s] of out) {
+    s.runs = runsOf.get(m)!.size
+    s.km = Math.round(s.km * 10) / 10
+  }
+  return out
+}
+
+/** Every track of one mission, as lookup hits — the circle's own answer
+ *  shape, so the list, the highlight and the record card all work unchanged.
+ *  Ordered by run number, which is the order the tape lists the tracks in;
+ *  `distanceKm` is 0 because there is no query point to be distant from. */
+export function missionRuns(data: TrackDataset, mission: number): LookupHit[] {
+  const hits = new Map<string, LookupHit>()
+  const get = (p: { mission: number; run: number; day: number; agent: number; gi: number; fwac: number }) => {
+    const key = `${p.mission}|${p.run}`
+    let h = hits.get(key)
+    if (!h) {
+      h = {
+        key,
+        mission: p.mission,
+        run: p.run,
+        day: p.day,
+        agent: p.agent,
+        gi: p.gi,
+        fwac: p.fwac,
+        gallons: 0,
+        distanceKm: 0,
+        km: 0,
+        lineIdx: [],
+        markIdx: [],
+        bounds: [Infinity, Infinity, -Infinity, -Infinity],
+      }
+      hits.set(key, h)
+    }
+    return h
+  }
+  const grow = (h: LookupHit, x: number, y: number) => {
+    if (x < h.bounds[0]) h.bounds[0] = x
+    if (y < h.bounds[1]) h.bounds[1] = y
+    if (x > h.bounds[2]) h.bounds[2] = x
+    if (y > h.bounds[3]) h.bounds[3] = y
+  }
+  const lines = data.lines.features
+  for (let i = 0; i < lines.length; i++) {
+    const p = lines[i].properties
+    if (p.mission !== mission) continue
+    const h = get(p)
+    h.lineIdx.push(i)
+    h.gallons += p.gallons
+    h.km = (h.km ?? 0) + p.km
+    for (const [x, y] of lines[i].geometry.coordinates as [number, number][]) grow(h, x, y)
+  }
+  const marks = data.marks.features
+  for (let i = 0; i < marks.length; i++) {
+    const p = marks[i].properties
+    if (p.mission !== mission) continue
+    const h = get(p)
+    h.markIdx.push(i)
+    h.gallons += p.gallons
+    const [x, y] = marks[i].geometry.coordinates as [number, number]
+    grow(h, x, y)
+  }
+  const out = [...hits.values()]
+  for (const h of out) h.km = Math.round((h.km ?? 0) * 10) / 10
+  out.sort((a, b) => a.run - b.run)
   return out
 }
 

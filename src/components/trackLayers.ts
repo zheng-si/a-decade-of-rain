@@ -562,8 +562,6 @@ function hiWidthRamp(): maplibregl.ExpressionSpecification {
     Z_TOP, at(TRACKS.near),
   ] as unknown as maplibregl.ExpressionSpecification
 }
-const HI_BUMP = 1.6
-
 /** Which run the highlight source currently holds, so an unchanged hover is
  *  not a write. A mousemove fires many times over one stroke. */
 let hoverKey: number | string | null = null
@@ -638,8 +636,11 @@ function markHiRamp(): maplibregl.ExpressionSpecification {
  *  the track layer's live paint (which is what the lookup did) also meant a
  *  deep link — where the circle exists before spray-tracks.json lands — baked
  *  in the 2.4px fallback and never revisited it. */
-export function hitWidthRamp(floor: number): maplibregl.ExpressionSpecification {
-  const at = (w: TrackRamp) => ['max', ['min', ['*', w.k, ['get', 'gpk']], w.cap], floor]
+export function hitWidthRamp(floor: number, bump = 0): maplibregl.ExpressionSpecification {
+  // The bump goes inside each stop for the reason markHiRamp gives: a zoom
+  // expression cannot be wrapped in arithmetic, and MapLibre refuses the layer
+  // quietly if it is.
+  const at = (w: TrackRamp) => ['+', ['max', ['min', ['*', w.k, ['get', 'gpk']], w.cap], floor], bump]
   return [
     'interpolate', ['linear'], ['zoom'],
     Z_FAR, at(TRACKS.far),
@@ -656,6 +657,26 @@ export function hitMarkRamp(floor: number): maplibregl.ExpressionSpecification {
     Z_TOP, at(m.kNear),
   ] as unknown as maplibregl.ExpressionSpecification
 }
+
+/** The ring that marks a single-point hit as SELECTED: the floored mark ramp
+ *  plus the same clearance markHiRamp gives the record's own highlight ring. */
+export function hitMarkRingRamp(floor: number): maplibregl.ExpressionSpecification {
+  const m = TRACKS.marks
+  const at = (k: number) => [
+    '+',
+    ['max', ['min', ['*', k, ['sqrt', ['get', 'gallons']]], m.cap], floor],
+    2.5,
+  ]
+  return [
+    'interpolate', ['linear'], ['zoom'],
+    Z_FAR, at(m.kFar),
+    Z_TOP, at(m.kNear),
+  ] as unknown as maplibregl.ExpressionSpecification
+}
+
+/** How much wider than its own stroke a lit run is drawn, shared with the
+ *  lookup so a mission's runs sit at exactly the weight a hovered run does. */
+export const HI_BUMP = 1.6
 
 /** Push the current TRACKS onto a live map — one function that knows how a
  *  track parameter reaches the screen, called at creation and by the console. */

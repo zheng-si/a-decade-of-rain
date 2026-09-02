@@ -701,11 +701,13 @@
      heads is four short lines rather than a control: 0.5rem reads as "this
      label belongs to that block", more starts to read as a section.
 
-     And the panel's one rule sits on this label, evenly: 20 of air, the
-     hairline, 20 again. Above it the end of the controls, below it the three
-     things that are read rather than operated. */
-  margin: 1.5rem 0 0.5rem;
-  padding-top: 1.5rem;
+     And the panel's one rule sits on this label, evenly: 16 of air, the
+     hairline, 16 again. Above it the end of the controls, below it the three
+     things that are read rather than operated. It was 20; rendered against
+     the small type on either side of it the line floated, and 16 still reads
+     as two sections without the air reading as a gap. */
+  margin: 1.1875rem 0 0.5rem;
+  padding-top: 1.1875rem;
   border-top: 1px solid var(--rule);
 }
 

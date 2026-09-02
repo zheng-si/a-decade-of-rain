@@ -56,19 +56,28 @@ const haversine = (a, b, c, d) => {
   const dx = (c - a) * r * Math.cos(((b + d) / 2) * r), dy = (d - b) * r
   return Math.sqrt(dx * dx + dy * dy) * R
 }
-const booked = new Map()   // gallons at waypoint 1A — what the file's accounting says
+const booked = new Map()   // gallons at the MISSION's first waypoint — what the file's accounting says
 const spread = new Map()   // gallons along the run — where it fell
 const lines = []
+// The file books a mission's whole load once, on its first track's 1A row; the
+// track file has spread it across the mission's tracks, so the booked panel
+// has to put it back: every track and mark of a mission, wherever it lies,
+// contributes to one cell at the mission's first waypoint (see the same
+// reconstruction in analyse-binning.mjs).
+const missionGal = new Map(), missionFirst = new Map()
+const seat = (m, run, x, y) => { const c = missionFirst.get(m); if (!c || run < c.run) missionFirst.set(m, { run, x, y }) }
+for (const [, , gallons, , flat, m, run] of T.tracks) { missionGal.set(m, (missionGal.get(m) ?? 0) + gallons); seat(m, run, flat[0], flat[1]) }
+for (const [, , gallons, lon, lat, m, run] of T.marks) { missionGal.set(m, (missionGal.get(m) ?? 0) + gallons); seat(m, run, lon, lat) }
+for (const [m, g] of missionGal) {
+  const p = missionFirst.get(m)
+  if (g > 0 && p && inBB(p.x, p.y)) { const k = key(p.x, p.y); booked.set(k, (booked.get(k) ?? 0) + g) }
+}
 for (const [, , gallons, kmLen, flat] of T.tracks) {
   if (gallons <= 0) continue
   let any = false
   for (let i = 0; i + 1 < flat.length; i += 2) if (inBB(flat[i], flat[i + 1])) { any = true; break }
   if (!any) continue
   lines.push({ gallons, kmLen, flat, gpk: kmLen > 0 ? gallons / kmLen : 0 })
-  if (inBB(flat[0], flat[1])) {
-    const k = key(flat[0], flat[1])
-    booked.set(k, (booked.get(k) ?? 0) + gallons)
-  }
   const gpk = kmLen > 0 ? gallons / kmLen : 0
   for (let i = 0; i + 3 < flat.length; i += 2) {
     const [x0, y0, x1, y1] = [flat[i], flat[i + 1], flat[i + 2], flat[i + 3]]
@@ -86,7 +95,6 @@ for (const [, , gallons, kmLen, flat] of T.tracks) {
 for (const [, , gallons, lon, lat] of T.marks) {
   if (gallons <= 0 || !inBB(lon, lat)) continue
   const k = key(lon, lat)
-  booked.set(k, (booked.get(k) ?? 0) + gallons)
   spread.set(k, (spread.get(k) ?? 0) + gallons)
 }
 
@@ -182,7 +190,7 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="$
 <defs><clipPath id="clip"><rect width="${W}" height="${H}"/></clipPath></defs>
 <rect width="${totalW}" height="${totalH}" fill="#ffffff"/>
 
-<text x="${PAD.l}" y="40" font-size="24" font-weight="600" fill="${DARK}">The archive books each run at its first waypoint</text>
+<text x="${PAD.l}" y="40" font-size="24" font-weight="600" fill="${DARK}">The archive books each mission at its first waypoint</text>
 <text x="${PAD.l}" y="66" font-size="14" fill="${LABEL}">Zone D and Đồng Xoài, ${stats.runs.toLocaleString()} spray runs. Both maps below use the same 3 km cells and the same dot-area scale — only the accounting differs.</text>
 
 ${panel(0, 'What the record is', 'THE DATA', linesBody)}
@@ -198,7 +206,7 @@ ${panel(2, 'Volume spread along the run', 'WHERE IT FELL', dots(spread))}
     <line x1="0" y1="0" x2="${scaleLen}" y2="0" stroke="${DARK}" stroke-width="1.4"/>
     <text x="${Number(scaleLen) + 8}" y="4" font-size="11.5">${scaleKm} km</text>
   </g>
-  <text y="72" font-size="12.5" fill="${DARK}">In this window <tspan font-weight="600" fill="${DEEP}">${stats.misplacedPct}%</tspan> of the volume fell in cells the booked reading shows as empty, and its hottest cell is <tspan font-weight="600" fill="${DEEP}">${(peakB / peakS).toFixed(1)}×</tspan> hotter than any ground actually was. Across the whole record those figures are 42% and 2.4×.</text>
+  <text y="72" font-size="12.5" fill="${DARK}">In this window <tspan font-weight="600" fill="${DEEP}">${stats.misplacedPct}%</tspan> of the volume fell in cells the booked reading shows as empty, and its hottest cell is <tspan font-weight="600" fill="${DEEP}">${(peakB / peakS).toFixed(1)}×</tspan> hotter than any ground actually was. Across the whole record those figures are 43% and 2.5×.</text>
   <text y="92" font-size="12.5">Source: HERBS tape (Stellman et al., 2003). Runs with a recorded volume only; a run logged at a single grid reference is identical under both readings.</text>
 </g>
 </svg>`
