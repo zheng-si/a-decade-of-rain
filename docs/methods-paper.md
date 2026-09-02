@@ -6,7 +6,7 @@
 Prepared for Jeanne Mager Stellman and Andrew B. Stellman
 
 Live surfaces: <https://adecadeofrain.sizheng.me/> (the Story) and <https://adecadeofrain.sizheng.me/archive> (the Atlas).
-Source and analysis scripts: <https://github.com/Cypherixc/remedial-vietnam>.
+Source and analysis scripts: <https://github.com/zheng-si/a-decade-of-rain>.
 
 ---
 
