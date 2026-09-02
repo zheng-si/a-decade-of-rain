@@ -2,11 +2,9 @@
 
 ## Methods behind *A Decade of Rain* and *The Herbicide Atlas of Vietnam*
 
-**Si Zheng** · Draft for comment · September 2026
-Prepared for Jeanne Mager Stellman and Andrew B. Stellman
-
-Live surfaces: <https://adecadeofrain.sizheng.me/> (the Story) and <https://adecadeofrain.sizheng.me/archive> (the Atlas).
-Source and analysis scripts: <https://github.com/zheng-si/a-decade-of-rain>.
+Si Zheng
+Draft for comment, September 2026. Prepared for Jeanne Mager Stellman and Andrew B. Stellman.
+Live pages: <https://adecadeofrain.sizheng.me/> (the Story) and <https://adecadeofrain.sizheng.me/archive> (the Atlas). Source and analysis scripts: <https://github.com/zheng-si/a-decade-of-rain>.
 
 ---
 
@@ -20,7 +18,7 @@ The note also records the georeferencing, the run reconstruction, every encoding
 
 ---
 
-## 1 · Purpose and scope
+## 1 Purpose and scope
 
 The project has two surfaces on one dataset.
 
@@ -33,7 +31,7 @@ This is a methods note, not a results paper. Its purpose is to let the people wh
 
 ---
 
-## 2 · The source record
+## 2 The source record
 
 ### 2.1 Provenance
 
@@ -92,8 +90,8 @@ The 1985 layout says the same in the tape's own words. Columns 60 and 61 "identi
 
 | | |
 |---|---|
-| Waypoints per run | 1: 2,691 · 2: 6,385 · 3: 1,080 · 4: 620 · 5: 170 · 6: 137 · 7 or more: 190 |
-| Runs per mission | 1: 7,707 · 2: 1,107 · 3: 148 · 4: 96 · 5 or more: 83 |
+| Waypoints per run | 1: 2,691; 2: 6,385; 3: 1,080; 4: 620; 5: 170; 6: 137; 7 or more: 190 |
+| Runs per mission | 1: 7,707; 2: 1,107; 3: 148; 4: 96; 5 or more: 83 |
 | Runs with more than one waypoint | 8,582 |
 | Median gap between the last waypoint of one run and the first of the next, within a mission | 2.63 km |
 | Median run, as a polyline | 10.9 km (p25 5.4, p75 17.0, p90 19.6, max 354.6) |
@@ -110,7 +108,7 @@ This booking is an accounting convention. It is not a statement about where herb
 
 ---
 
-## 3 · Georeferencing
+## 3 Georeferencing
 
 The grid references omit their UTM zone, and southern Vietnam spans zones 48 and 49. For each row we convert the reference under every candidate zone and latitude band (48 and 49 × N, P, Q, R) with the `mgrs` library and keep the candidate that lands nearest a point of the 0.01° lattice in `gridpoints.json`, accepting it only if it lies within 0.05° of one. The correct zone lands within about 0.01° of the lattice; the wrong one lands roughly 6° away, in the sea, so the choice is unambiguous. All 24,604 rows convert; none is dropped. Coordinates are rounded to 0.001°, about 111 m, which is coarser than the 100 m of the source reference and thirty times finer than the smallest cell any map uses, so positional quantisation is not a term in anything below.
 
@@ -120,7 +118,7 @@ The same conversion runs twice, once in `scripts/build-spray-data.mjs` (which ke
 
 ---
 
-## 4 · Reconstructing runs as lines
+## 4 Reconstructing runs as lines
 
 ### 4.1 Segmentation
 
@@ -146,7 +144,7 @@ Now that the tape's own layout confirms the reading, it is applied: Section 4.2 
 
 ---
 
-## 5 · Two readings of the record, and how far apart they are
+## 5 Two readings of the record, and how far apart they are
 
 Everything in this section is reproducible with `node scripts/analyse-binning.mjs`, which reads only the line file and writes nothing.
 
@@ -217,7 +215,7 @@ Figure 1 shows the two readings over one window, Zone D and Đồng Xoài, the d
 
 ---
 
-## 6 · What the maps draw
+## 6 What the maps draw
 
 All views derive from one geometry (the runs as lines) and one quantity (gallons), with totals conserved between them. They are resolutions of a single encoding, not competing encodings. There is no URL that returns any surface to the booked reading; the comparison lives only in the analysis script, labelled as what it is.
 
@@ -276,7 +274,7 @@ The field is a MapLibre heatmap layer. Each point's weight is √(gallons / ref)
 
 Eight nodes drive the field, each with a camera and a playhead date up to which the field is shown cumulatively: the test sprays (1961–62, shown as labelled points because the 1961 rows carry no volume), War Zone D (to August 1966), War Zone C and the Iron Triangle (to October 1967), the mangroves (to September 1968), the A Sầu valley (to August 1969, zoom 8.6), the three hotspot airbases (to January 1971, zoom 9.6), the reckoning (the whole decade), and a final node that switches the same map to the flight tracks as a handover to the Atlas.
 
-![Figure 6. The Story at the A Sầu node, playhead August 1969: the density field over the A Lưới district boundary, with the running total in the rail.](figures/story-a-sau.jpg)
+![Figure 5. The Story at the A Sầu node, playhead August 1969: the density field over the A Lưới district boundary, with the running total in the rail.](figures/story-a-sau.jpg)
 
 ### 6.5 Time
 
@@ -290,13 +288,13 @@ The answer is told in three layers: one sentence ("32 runs within 5 km of Biên 
 
 The same box answers a HERBS mission number (`4493`, `M4493`, `#4493`), which is the unit the record books volume in and the citation a reader of Stellman et al. is most likely to hold. The answer is the mission's runs in the same table, with length in place of distance, above it the mission's date, agent, aircraft count, logged gallons and total track length, and on the map the runs drawn in the highlight's own language (flat colour, the stroke at its own width plus the highlight's bump, a ring around a single-point run) rather than the record's, because at the record's weight a 2,000-gallon point was a pale mark on bare paper. Mission numbers run from 1 to 13,027 and not every number is used; the lookup says so when a number is absent.
 
-![Figure 5. The lookup: 32 runs within 5 km of Biên Hòa Air Base, the shape of the answer by agent and by year, the caveat, and the records behind a fold.](figures/atlas-lookup.jpg)
+![Figure 6. The lookup: 32 runs within 5 km of Biên Hòa Air Base, the shape of the answer by agent and by year, the caveat, and the records behind a fold.](figures/atlas-lookup.jpg)
 
 The place search runs over a gazetteer of 198 places built from the three Wikipedia lists of United States installations in South Vietnam (Army, Marine Corps, Air Force) with coordinates taken only from the linked articles' own coordinate tags, kept only where the coordinate falls in 8–18°N, 102–110°E, with name variants taken from redirects and a modern province assigned by point-in-polygon. A place is marked high-confidence when two independent sources agree within 2 km and medium otherwise; the harvest never infers a coordinate and never writes low. Matching is diacritic-insensitive over the canonical name and every variant.
 
 ---
 
-## 7 · Verification and reproducibility
+## 7 Verification and reproducibility
 
 Everything above can be regenerated from the pinned commit:
 
@@ -316,7 +314,7 @@ The shipped pages are checked by a headless-browser regression suite of some fif
 
 ---
 
-## 8 · What these maps do not claim, and what we know is wrong
+## 8 What these maps do not claim, and what we know is wrong
 
 - **Deposited volume, not exposure or dose.** No drift, no degradation, no half-life, no soil or canopy interception, no population. An earlier version carried a decay layer; it was removed because a single decay constant across chemistries as different as picloram, TCDD and cacodylic acid produced a map that said the opposite of its own subject. Exposure is `hea-v`'s question and its engine's; these maps stop at where the herbicide was released.
 - **No swath width.** A run is drawn as a line; the real swath had width. At every cell size used here that width is sub-cell.
@@ -334,7 +332,7 @@ The shipped pages are checked by a headless-browser regression suite of some fif
 
 ---
 
-## 9 · Questions for the authors of the record
+## 9 Questions for the authors of the record
 
 1. **Spreading across tracks.** The 1985 layout confirms that gallons are recorded per mission and that a successive track number is a further spray track flown on the same mission. The shipped maps now spread that load by length across all of the mission's tracks (Section 4.3). Is that the reading you would consider defensible, or did the load typically go down on the first track?
 2. **Codes the 1985 layout does not list.** What do `Method` S, `Source` A, `Agent` K (the layout lists Pink as R and Pink & Green as S) and `CTZ` 5 / 6 / 7 denote? What are the three two-digit fields of `FWAC` (we read the last as the number of aircraft that sprayed)?
@@ -348,18 +346,33 @@ The shipped pages are checked by a headless-browser regression suite of some fif
 
 ## References
 
-- Stellman, J. M., Stellman, S. D., Christian, R., Weber, T. & Tomasallo, C. (2003). The extent and patterns of usage of Agent Orange and other herbicides in Vietnam. *Nature* 422, 681–687.
-- Stellman, A. `hea-v`: Herbicide Exposure Assessment Vietnam. github.com/andrewstellman/hea-v, commit `cb5948b`. MIT licence.
-- Christian, R. S. (1985). *Services HERBS Tape: A Record of Helicopter and Ground Spraying Missions, Aborts, Leaks, and Incidents.* Headquarters, Department of the Army (DAAG-ESG), 12 September 1985. Copy held in the USDA National Agricultural Library Special Collections.
-- Data Management Agency, US MACV (1970). *Herbicide Report System (HERBS).* Document DARU07. Cited as reference 3 of Stellman et al. (2003).
-- National Academy of Sciences (1974). *The Effects of Herbicides in South Vietnam.*
-- Westing, A. H. (1971). Ecological effects of military defoliation on the forests of South Vietnam. *BioScience* 21, 893–898.
-- Buckingham, W. A. (1982). *Operation Ranch Hand: The Air Force and Herbicides in Southeast Asia, 1961–1971.* Office of Air Force History.
-- MapLibre GL JS 5; OpenFreeMap (Positron style, OpenMapTiles schema, OpenStreetMap data); geoBoundaries VNM ADM1 and ADM2 (CC BY 4.0); AWS Terrain Tiles (Terrarium encoding).
+Buckingham, W. A. (1982). *Operation Ranch Hand: The Air Force and Herbicides in Southeast Asia, 1961–1971*. Washington, DC: Office of Air Force History.
+
+Christian, R. S. (1985). *Services HERBS Tape: A Record of Helicopter and Ground Spraying Missions, Aborts, Leaks, and Incidents*. Washington, DC: Headquarters, Department of the Army (DAAG-ESG), 12 September 1985. Copy held in the USDA National Agricultural Library Special Collections.
+
+Data Management Agency, US Military Assistance Command, Vietnam (1970). *Herbicide Report System (HERBS)*. Document DARU07. Cited as reference 3 of Stellman et al. (2003).
+
+National Academy of Sciences (1974). *The Effects of Herbicides in South Vietnam. Part A: Summary and Conclusions*. Washington, DC: National Academy of Sciences.
+
+Stellman, J. M., Stellman, S. D., Christian, R., Weber, T., & Tomasallo, C. (2003). The extent and patterns of usage of Agent Orange and other herbicides in Vietnam. *Nature*, 422(6933), 681–687. https://doi.org/10.1038/nature01537
+
+Westing, A. H. (1971). Ecological effects of military defoliation on the forests of South Vietnam. *BioScience*, 21(17), 893–898. https://doi.org/10.2307/1295667
+
+### Software and data
+
+Stellman, A. (2026). *hea-v: Herbicide Exposure Assessment, Vietnam* [data set and software]. GitHub, commit cb5948b. MIT licence. https://github.com/andrewstellman/hea-v
+
+MapLibre GL JS, version 5. https://maplibre.org
+
+OpenFreeMap, Positron style (OpenMapTiles schema; OpenStreetMap contributors, ODbL). https://openfreemap.org
+
+geoBoundaries, VNM ADM1 and ADM2 (CC BY 4.0). https://www.geoboundaries.org
+
+AWS Terrain Tiles, Terrarium encoding (Mapzen, Amazon Web Services). https://registry.opendata.aws/terrain-tiles
 
 ---
 
-## Appendix A · Field dictionary as observed
+## Appendix A Field dictionary as observed
 
 | Field | Form | Notes |
 |---|---|---|
@@ -378,7 +391,7 @@ The shipped pages are checked by a headless-browser regression suite of some fif
 | `Incident` | blank or Z R E L A | tape column 75; 69 rows non-blank |
 | `Province` | text | 50 values; blank on 16,628 rows; not used |
 
-## Appendix B · Constants
+## Appendix B Constants
 
 | | |
 |---|---|
@@ -399,7 +412,7 @@ The shipped pages are checked by a headless-browser regression suite of some fif
 | Lookup radius | 1 to 10 km, default 5 |
 | Home camera | 106.937°E, 12.833°N, zoom 5.94; record bounds 103.8–109.8°E, 8.3–17.7°N (99.9% of rows) |
 
-## Appendix C · The per-mission comparison
+## Appendix C The per-mission comparison
 
 `scripts/analyse-mission-spread.mjs` groups rows by `Mission`, segments each `Mission`+`Run` exactly as the track build does, and produces three fields at each cell size: gallons spread along each run's own segments (the shipped reading), gallons spread along all of a mission's segments by length, and gallons booked at the mission's first waypoint. The three totals are identical (19,490,690). The volume-to-move figures are 4.8% / 2.4% / 1.2% between the first two at 3 / 13 / 28 km, and 58.8% / 26.3% / 11.8% between the booked field and the per-mission field, which reproduces Table 3 to within a rounding. The correction is applied to the shipped files: `build-spray-tracks.mjs` groups by mission, and `analyse-binning.mjs` and `build-figure-binning.mjs` reconstruct the booked reading as the mission's total at the mission's first waypoint, so Tables 3 to 5 and Figure 1 compare the file's own convention with the map as it now ships.
 
