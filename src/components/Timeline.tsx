@@ -352,7 +352,7 @@ export default function Timeline({
             flown, what it was for, and where. 53 characters, one line in the
             275 column. */}
         <h1 className="explorer-title">The Herbicide Atlas of Vietnam</h1>
-        <p className="explorer-subtitle">Every U.S. military herbicide mission on record</p>
+        <p className="explorer-subtitle">U.S. military herbicide missions over South Vietnam</p>
       </header>
 
       {/* The key reads before the controls, not after them: it says what the
