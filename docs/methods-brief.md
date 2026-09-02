@@ -1,6 +1,6 @@
-# Where the Herbicide Fell: A Note on Reading HERBS as Flight Tracks
+# Reading HERBS as Flight Tracks
 
-## What we did with the record behind *A Decade of Rain* and *The Herbicide Atlas of Vietnam*
+## A technical note on the spatial reconstruction behind *A Decade of Rain* and *The Herbicide Atlas of Vietnam*
 
 Si Zheng
 Draft for comment, September 2026. Prepared for Jeanne Mager Stellman and Andrew B. Stellman.
@@ -40,7 +40,7 @@ So the file books a mission's whole load once, against the first waypoint of its
 
 **Reconstructing runs.** Rows are grouped by Mission and Run in the file's own order (sorting by the leg letter would be a second opinion about the flight path), and a run is split where its leg number changes. That gives 8,753 line segments from 8,545 runs, plus 2,831 single-point records from runs logged at one grid reference. Consecutive waypoints are joined by straight lines; the median spacing between them is 2.6 km, well inside the smallest cell any map uses.
 
-**Spreading the volume.** Each mission's gallons are spread along every line track the mission flew, in proportion to length, on the physical argument that an aircraft with the valve open lays down a roughly constant amount per kilometre. Totals are conserved: the build asserts that the gallons leaving by every door equal the gallons that came in, and at the pinned commit the balance is 19,490,688 against 19,490,690, the difference being whole-gallon rounding. A run logged at one point keeps its gallons at that point.
+**Spreading the volume.** We use a constant rate per distance as the simplest allocation assumption the recorded geometry supports, distributing each mission's recorded gallons across its reconstructed tracks in proportion to length; Section 4 tests how much that assumption matters. Totals are conserved: the build asserts that the gallons leaving by every door equal the gallons that came in, and at the pinned commit the balance is 19,490,688 against 19,490,690, the difference being whole-gallon rounding. A run logged at one point keeps its gallons at that point.
 
 The choice of *mission* rather than *run* as the unit follows the layout. We first spread each run's gallons along that run alone, which left the later tracks of the 1,434 multi-track missions (16.7% of the volume) carrying nothing; spreading per mission moves 4.8% of the volume at a 3 km cell relative to that. Spreading by length rather than equally across a mission's tracks moves a further 1.3%. Both corrections are small next to the one in Section 3, and both are now in the shipped files.
 
@@ -61,9 +61,9 @@ We compared two readings of the same file over the same cells: the volume booked
 
 The disagreement dies at the scale of a run. Above about 28 km a run stays inside its own cell and the convention stops mattering; at 3 km, the Atlas's fine cell, 59% of the gallons sit somewhere else and 63% of the cells that received herbicide read as zero. The booked reading is nearly right on a thumbnail of the country and worst exactly where someone looks closely.
 
-Spreading along the track assumes a constant rate, which is an assumption, so we pushed it. Under rate profiles twice as heavy at the front or the back of each track, the field moves 14% at 3 km relative to constant rate; middle-heavy or ends-heavy, 7%. Booking at the first waypoint sits at 59%, roughly four times outside that whole envelope. Within the family of readings the record itself admits, that the herbicide fell somewhere along the recorded track, the answer is settled to about ±14%; the booked reading is not one plausible reading among several.
+The constant rate is an assumption, so we tested it. Under the alternative along-track rate profiles tried here (twice as heavy at the front or the back of each track, or in the middle, or at both ends), the reconstructed 3 km field differs from the constant-rate model by at most about 14%. This is a model-sensitivity range, not an estimate of error against ground truth. By comparison, assigning each mission's entire volume to its first waypoint produces a 59% spatial disagreement, roughly four times the width of that range.
 
-![Figure 1. One window, Zone D and Đồng Xoài, 2,181 runs on the same 3 km cells and the same dot-area scale: the record as recorded (left), the volume booked at each mission's first waypoint (centre), and the volume spread along the tracks (right). Rings on the centre panel mark the 496 cells that were dosed and that reading leaves empty; 37% of the window's volume lies in them, and the booked reading's hottest cell is 3.1 times hotter than any ground was.](figures/binning-comparison.svg)
+![Figure 1. One window, Zone D and Đồng Xoài, 2,181 runs on the same 3 km cells and the same dot-area scale: the reconstructed tracks (left), the recorded volume placed at each mission's first waypoint (centre), and the recorded volume distributed along the tracks (right). Rings on the centre panel mark the 496 cells that carry volume under the track reading and none under the first-waypoint reading; 37% of the window's recorded volume lies in them, and the first-waypoint reading's peak cell contains 3.1 times as much recorded volume as the maximum cell under the track-based reconstruction.](figures/binning-comparison.svg)
 
 ## 5 What the maps do not claim
 
@@ -73,12 +73,12 @@ Two things we corrected while writing the longer note: the maps had spread volum
 
 ## 6 Questions for the authors of the record
 
-1. **Spreading across tracks.** The layout records gallons per mission and calls a successive track number a further spray track on the same mission. Is spreading that load by length across all of the mission's tracks a defensible reading, or did the load typically go down on the first track?
+1. **Spreading across tracks.** The layout records gallons per mission and calls a successive track number a further spray track on the same mission. Is spreading a mission's recorded volume by length across all of its tracks a defensible interpretation? If not, how should the gallons field be understood for missions with multiple spray tracks?
 2. **Codes the 1985 layout does not list.** What do Method S, Source A, Agent K (the layout lists Pink as R) and CTZ 5, 6 and 7 denote? The 668 rows tagged CTZ 5 plot west of the Annamite border, in Laos. And what are the three two-digit fields of FWAC? We read the last as the number of aircraft that sprayed.
 3. **Rate along the track.** Does the operational record (spray-on and spray-off points, altitude, airspeed, swath width) argue for a rate profile other than constant, or for a swath we should draw?
 4. **Helicopter and ground coverage.** Should those records be mapped alongside the Ranch Hand runs as we now do, or are they incomplete enough to need a stronger caveat or a separate treatment?
 5. **The lattice.** Is gridpoints.json the study-area grid of the 2003 work, and is there a published estimate of the georeferencing accuracy of the grid references?
-6. **Spot checks.** Would you compare three places against your own maps: the A Sầu valley (the Story says 224 runs crossed it between 1965 and 1970), Biên Hòa within 5 km, and the Cà Mau peninsula?
+6. **Spot checks, only if convenient.** Would you compare three places against your own maps: the A Sầu valley (the Story says 224 runs crossed it between 1965 and 1970), Biên Hòa within 5 km, and the Cà Mau peninsula?
 7. **Attribution.** How would you like the record and the repository cited on the pages? The current line is "the complete record behind Stellman et al. (2003)", linked to hea-v.
 
 ## References

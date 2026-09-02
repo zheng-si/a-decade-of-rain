@@ -142,7 +142,7 @@ const PROVINCES = clipProvinces()
 const panel = (i, title, kicker, body) => {
   const x = PAD.l + i * (W + GAP)
   return `<g transform="translate(${x} ${PAD.t})">
-  <text x="0" y="-46" font-family="${FONT}" font-size="10.5" font-weight="600" letter-spacing="1.7" fill="${DEEP}">${kicker}</text>
+  <text x="0" y="-46" font-family="${FONT}" font-size="12" fill="${LABEL}">${kicker}</text>
   <text x="0" y="-22" font-family="${FONT}" font-size="17" font-weight="600" fill="${DARK}">${title}</text>
   <rect width="${W}" height="${H}" fill="${LAND}"/>
   <g clip-path="url(#clip)">${PROVINCES}${body}</g>
@@ -190,23 +190,23 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${totalW}" height="$
 <defs><clipPath id="clip"><rect width="${W}" height="${H}"/></clipPath></defs>
 <rect width="${totalW}" height="${totalH}" fill="#ffffff"/>
 
-<text x="${PAD.l}" y="40" font-size="24" font-weight="600" fill="${DARK}">The archive books each mission at its first waypoint</text>
-<text x="${PAD.l}" y="66" font-size="14" fill="${LABEL}">Zone D and Đồng Xoài, ${stats.runs.toLocaleString()} spray runs. Both maps below use the same 3 km cells and the same dot-area scale — only the accounting differs.</text>
+<text x="${PAD.l}" y="40" font-size="24" font-weight="600" fill="${DARK}">Two readings of the same record</text>
+<text x="${PAD.l}" y="66" font-size="14" fill="${LABEL}">Zone D and Đồng Xoài, ${stats.runs.toLocaleString()} spray runs. Both grid panels use the same 3 km cells and the same dot-area scale; only the allocation of recorded volume differs.</text>
 
-${panel(0, 'What the record is', 'THE DATA', linesBody)}
-${panel(1, 'Volume booked at waypoint 1A', 'THE OBVIOUS READING', blanks + dots(booked))}
-${panel(2, 'Volume spread along the run', 'WHERE IT FELL', dots(spread))}
+${panel(0, 'What the record contains', 'Reconstructed tracks', linesBody)}
+${panel(1, 'Volume at each mission’s first waypoint', 'First-waypoint reading', blanks + dots(booked))}
+${panel(2, 'Volume distributed along the tracks', 'Track-based reconstruction', dots(spread))}
 
 <g transform="translate(${PAD.l} ${legendY})" font-size="12.5" fill="${LABEL}">
   <text y="0">Each line is one spray run; width is gallons per kilometre.</text>
   <text x="${W + GAP}" y="0">${stats.cellsB.toLocaleString()} cells carry volume. Peak cell ${Math.round(peakB / 1000)}K gallons.</text>
-  <text x="${W + GAP}" y="20">Rings mark the ${stats.blank.toLocaleString()} cells that were dosed and this map leaves empty.</text>
+  <text x="${W + GAP}" y="20">Rings mark the ${stats.blank.toLocaleString()} cells that carry volume under the track reading and none under this one.</text>
   <text x="${2 * (W + GAP)}" y="0">${stats.cellsS.toLocaleString()} cells carry volume. Peak cell ${Math.round(peakS / 1000)}K gallons.</text>
   <g transform="translate(0 44)">
     <line x1="0" y1="0" x2="${scaleLen}" y2="0" stroke="${DARK}" stroke-width="1.4"/>
     <text x="${Number(scaleLen) + 8}" y="4" font-size="11.5">${scaleKm} km</text>
   </g>
-  <text y="72" font-size="12.5" fill="${DARK}">In this window <tspan font-weight="600" fill="${DEEP}">${stats.misplacedPct}%</tspan> of the volume fell in cells the booked reading shows as empty, and its hottest cell is <tspan font-weight="600" fill="${DEEP}">${(peakB / peakS).toFixed(1)}×</tspan> hotter than any ground actually was. Across the whole record those figures are 43% and 2.5×.</text>
+  <text y="72" font-size="12.5" fill="${DARK}">In this window <tspan font-weight="600">${stats.misplacedPct}%</tspan> of the recorded volume lies in cells that are empty under the first-waypoint reading, and that reading’s peak cell holds <tspan font-weight="600">${(peakB / peakS).toFixed(1)}×</tspan> the volume of the peak cell under the track reading. Across the whole record those figures are 43% and 2.5×.</text>
   <text y="92" font-size="12.5">Source: HERBS tape (Stellman et al., 2003). Runs with a recorded volume only; a run logged at a single grid reference is identical under both readings.</text>
 </g>
 </svg>`
