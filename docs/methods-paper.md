@@ -12,11 +12,11 @@ Source and analysis scripts: <https://github.com/Cypherixc/remedial-vietnam>.
 
 ## Abstract
 
-*A Decade of Rain* is a scroll-driven narrative of Operation Ranch Hand, and *The Herbicide Atlas of Vietnam* is an interactive explorer of the same record: a playable decade, three zoom-dependent encodings of the spray volume, an agent filter, and a place lookup that returns the individual runs that passed within a chosen radius. Both are drawn from one dataset, the HERBS file as republished in Andrew Stellman's open `hea-v` repository, pinned to a single commit.
+*A Decade of Rain* is a scroll-driven narrative of Operation Ranch Hand, and *The Herbicide Atlas of Vietnam* is an interactive explorer of the same record: a playable decade, three zoom-dependent encodings of the spray volume, an agent filter, and a lookup that returns the individual runs that passed within a chosen radius of a place, or the runs of a given HERBS mission number. Both are drawn from one dataset, the HERBS file as republished in Andrew Stellman's open `hea-v` repository, pinned to a single commit.
 
-This note documents how that record becomes a picture. It has one substantive finding. The HERBS file books each mission's entire volume against a single row, the first waypoint of its first run, while recording the aircraft's track as a chain of further waypoints; the median run is an 11 km polyline. A map drawn directly from the file's fields therefore places a run's whole volume in the one cell containing one end of it. Measured over the whole record, turning that "booked" field into one in which the volume is spread along the flown track requires physically relocating 58% of all gallons at a 3 km cell, and leaves 59% of cells that received herbicide reading as zero. Within the family of readings the record itself admits (the herbicide fell somewhere along the recorded track) the answer is stable to about ±15% at 3 km under rate profiles far more extreme than an aircraft is likely to have flown; the booked reading sits roughly four times outside that envelope. Both shipped surfaces therefore draw the record as lines, with totals conserved to the gallon.
+This note documents how that record becomes a picture. It has one substantive finding. The HERBS file books each mission's entire volume against a single row, the first waypoint of its first run, while recording the aircraft's track as a chain of further waypoints; the median run is an 11 km polyline. A map drawn directly from the file's fields therefore places a mission's whole volume in the one cell containing one end of its first track. Measured over the whole record, turning that "booked" field into one in which the volume is spread along the flown tracks requires physically relocating 59% of all gallons at a 3 km cell, and leaves 63% of cells that received herbicide reading as zero. Within the family of readings the record itself admits (the herbicide fell somewhere along the recorded track) the answer is stable to about ±14% at 3 km under rate profiles far more extreme than an aircraft is likely to have flown; the booked reading sits roughly four times outside that envelope. Both shipped surfaces therefore draw the record as lines, with totals conserved to the gallon.
 
-The note also records the georeferencing, the run reconstruction, every encoding constant, the checks that hold them together, and the limits of what the maps can be asked. It closes with the specific questions we would value your judgement on, including two we found while writing it: the tape's own documentation books volume per mission rather than per spray track, which the current pipeline does not yet exploit (a 4.8% correction at 3 km), and the file contains helicopter and ground records that one of the Atlas's caveats currently denies.
+The note also records the georeferencing, the run reconstruction, every encoding constant, the checks that hold them together, and the limits of what the maps can be asked. It closes with the specific questions we would value your judgement on, including two we found while writing it and have since acted on: the tape's own documentation books volume per mission rather than per spray track, so the pipeline now spreads each mission's load across every track it flew (a 4.8% correction at 3 km, Section 4.3), and the file contains helicopter and ground records that one of the Atlas's caveats denied until this draft (Section 8).
 
 ---
 
@@ -104,7 +104,7 @@ The 1985 layout says the same in the tape's own words. Columns 60 and 61 "identi
 
 The layout defines the gallons field (columns 29 to 33) as the "number of gallons of herbicide dispensed during the mission cited": a per-mission quantity. The tape carries no per-track volume. Three further measurements in the file say the same. First, the 2,132 runs that have no `1A` row (the second and later runs of multi-run missions) carry no volume, all of them. Second, among fixed-wing missions with a recorded aircraft count, the median volume per aircraft is 1,000 gallons for missions of one, two, four and six runs, and 925 and 967 for three and five (n = 5,896 missions; overall p25 900, p75 1,000; median three aircraft). A C-123's spray tank held 1,000 gallons. Third, a worked example: Mission 136, 18 January 1965, Agent Purple, two aircraft, is recorded as Run 138 (legs 1A and 1B; 2,000 gallons on 1A) and Run 139 (legs 2A and 2B; 0 gallons).
 
-So the file books a mission's whole load once, against the first waypoint of its first track, which is what its documentation says it does. The 2,913 runs with no volume anywhere are of two kinds: 2,132 later runs of multi-run missions whose load is on the mission's lead row, and 781 lead runs that record a flight and no gallons. **8,360 runs carry volume**, and that is the count the Atlas shows as *Spray Runs*.
+So the file books a mission's whole load once, against the first waypoint of its first track, which is what its documentation says it does. The 2,913 runs with no volume anywhere are of two kinds: 2,132 later runs of multi-run missions whose load is on the mission's lead row, and 781 lead runs that record a flight and no gallons. **8,360 missions carry volume**, one lead row each, and that is the count the Atlas shows as *Spray Runs* (Section 8). On the map, after the per-mission spread of Section 4.3, 10,205 of the 11,273 runs carry a share of it.
 
 This booking is an accounting convention. It is not a statement about where herbicide landed, and a map drawn straight from these fields inherits the convention without saying so. Section 5 measures what that costs.
 
@@ -130,17 +130,19 @@ Splitting at a leg-number change affects 176 runs. Section 2.3 now suggests that
 
 ### 4.2 Spreading the volume
 
-The source carries no per-waypoint quantity, so volume can only be spread along a track geometrically. We spread each run's gallons along its own segments **in proportion to length**, on the physical argument that an aircraft with the valve open lays down a roughly constant amount per kilometre. Each segment's share is rounded to a whole gallon; the build asserts that the gallons leaving by the two doors (spread along tracks, or parked on single-point records) equal the gallons that came in, to within one gallon per rounded segment. At the pinned commit the balance is 19,490,688 out against 19,490,690 in.
+The source carries no per-waypoint quantity, so volume can only be spread along a track geometrically. We spread each mission's gallons along all of the line tracks that mission flew **in proportion to length**, on the physical argument that an aircraft with the valve open lays down a roughly constant amount per kilometre, and that the spray system was calibrated to a rate per area rather than a share per track. Each segment's share is rounded to a whole gallon; the build asserts that the gallons leaving by the two doors (spread along tracks, or parked on single-point records) equal the gallons that came in, to within one gallon per rounded segment. At the pinned commit the balance is 19,490,688 out against 19,490,690 in.
 
-A run logged at several grid references but with no measurable length keeps its gallons split evenly by count across its points, with the remainder on the first. (An earlier version handed every such point the run's full volume; the guard above is what caught the 22,018-gallon double count.)
+A single-point record inside a mission that also flew line tracks has no length to take a share of and takes none (107 such points, 71,220 gallons, 0.37% of the record, now on their sibling lines). A mission with no measurable length at all keeps its gallons split evenly by count across its points, with the remainder on the first. (An earlier version handed every such point the run's full volume; the guard above is what caught the 22,018-gallon double count.)
 
-The quantity this yields, **gallons per kilometre**, is the first quantity in the record that is comparable *between* runs: a 40 km run and a 2 km run carrying the same load did very different things to the ground beneath them. Over the 7,047 segments that carry volume it runs p10 52, median 189, p90 485, maximum 9,074 gal/km. Over all 8,753 line segments including those with none, the distribution the stroke widths were set against, it is p25 36, median 162, p75 288, p90 442, p99 1,143.
+The quantity this yields, **gallons per kilometre**, is the first quantity in the record that is comparable *between* runs: a 40 km run and a 2 km run carrying the same load did very different things to the ground beneath them. Over the 8,514 segments that carry volume it runs p10 43, median 174, p90 393, maximum 9,074 gal/km. Over all 8,753 line segments including the 239 with none, the distribution the stroke widths were set against, it is p25 101, median 171, p75 263, p90 389, p99 871.
 
-### 4.3 A refinement found while writing this note: spreading per mission
+### 4.3 A correction found while writing this note: spreading per mission, not per run
 
-The pipeline spreads a *run's* gallons along that *run*. Section 2.4 says the gallons are booked per *mission*, on its first run. For the 1,434 missions with more than one run (15.7% of missions, carrying 3,260,414 gallons, 16.7% of the volume), the current reading therefore concentrates the mission's whole load on its first run and gives the later runs nothing, when by the same physical argument it should be spread along all of them. In those missions the run carrying the gallons is about half the mission's flown length (9,464 km of 19,259 km).
+Until this draft the pipeline spread a *run's* gallons along that *run*. Section 2.4 says the gallons are booked per *mission*, on its first run. For the 1,434 missions with more than one run (15.7% of missions, carrying 3,260,414 gallons, 16.7% of the volume), that reading concentrated the mission's whole load on its first run and gave the later runs nothing, when by the same physical argument it should be spread along all of them. In those missions the run carrying the gallons is about half the mission's flown length (9,464 km of 19,259 km), and 11% of all flown kilometres sat in a no-volume tier that the Atlas hides by default.
 
-We measured what the correction changes, with the same sampling scheme as Section 5 (`scripts/analyse-mission-spread.mjs`; Appendix C). Spreading per mission instead of per run moves **4.8%** of the volume at a 3 km cell, **2.4%** at 13 km and **1.2%** at 28 km; the number of 3 km cells with volume rises from 7,095 to 7,583 and the peak cell is unchanged (ratio 0.99). It is a real correction and a small one, an order of magnitude below the effect of the booking convention itself (58.8% at 3 km against per-mission spreading) and inside the sensitivity envelope of Section 5.4. It has not yet been applied to the shipped files. Now that the tape's own layout confirms the reading, we intend to apply it; Section 9, question 1 asks only whether spreading by length across a mission's tracks is the reading you would consider defensible.
+We measured what the correction changes, with the same sampling scheme as Section 5 (`scripts/analyse-mission-spread.mjs`; Appendix C). Spreading per mission instead of per run moves **4.8%** of the volume at a 3 km cell, **2.4%** at 13 km and **1.2%** at 28 km; the number of 3 km cells with volume rises from 7,095 to 7,583 and the peak cell is unchanged (ratio 0.99). It is a real correction and a small one, an order of magnitude below the effect of the booking convention itself (58.8% at 3 km against per-mission spreading) and inside the sensitivity envelope of Section 5.4.
+
+Now that the tape's own layout confirms the reading, it is applied: Section 4.2 describes the build as it now ships. On the map the line tracks with no volume fall from 1,706 (11,835 km) to 239 (2,193 km), 1,467 later tracks carry a share for the first time, and over the Zone D window of Figure 1 the number of runs drawn rises from 1,959 to 2,181. Mission 167, for instance, four tracks on 1 April 1965: 3,000 / 0 / 0 / 0 gallons becomes 627 / 627 / 899 / 846. We chose by-length over an equal split because the spray system metered a rate per area and track lengths inside a mission differ (longest to shortest, median 1.44, p90 4.1); the two splits differ by 1.3% of volume at 3 km. Section 9, question 1 asks whether this is the reading you would consider defensible.
 
 ---
 
@@ -152,8 +154,8 @@ Everything in this section is reproducible with `node scripts/analyse-binning.mj
 
 | | What it does | What it claims |
 |---|---|---|
-| **Booked at 1A** | the whole run's gallons in the cell holding its first waypoint | this is where the archive keeps its accounts |
-| **Spread along the run** | gallons per kilometre × length, distributed along the flown track | this is where the herbicide fell |
+| **Booked at 1A** | the whole mission's gallons in the cell holding the first waypoint of its first track | this is where the archive keeps its accounts |
+| **Spread along the run** | gallons per kilometre × length, distributed along every track the mission flew | this is where the herbicide fell |
 
 Both carry the identical total, 19.491 million gallons. Nothing is created or lost. **The disagreement between them is purely spatial.** A statement about a national or provincial total is unaffected by the choice; every statement about a *place* depends on it entirely.
 
@@ -169,13 +171,13 @@ For a cell size *d* we sample each run's track at intervals no larger than a thi
 
 | Cell | Cells with volume | Volume to move | Peak cell ratio |
 |---|---|---|---|
-| 1 km | 5,027 → 34,276 | 82% | 2.46× |
-| **3 km** | **3,033 → 7,101** | **58%** | **2.53×** |
-| 7 km | 1,793 → 2,697 | 42% | 1.90× |
-| **13 km** | **846 → 979** | **26%** | **1.11×** |
-| 28 km | 289 → 308 | 11% | 0.98× |
-| 56 km | 97 → 101 | 5% | 0.99× |
-| 111 km | 38 → 39 | 2% | 0.99× |
+| 1 km | 4,880 → 37,257 | 83% | 2.46× |
+| **3 km** | **2,960 → 7,620** | **59%** | **2.51×** |
+| 7 km | 1,761 → 2,835 | 43% | 1.91× |
+| **13 km** | **839 → 1,017** | **26%** | **1.11×** |
+| 28 km | 289 → 313 | 12% | 0.99× |
+| 56 km | 97 → 102 | 5% | 0.99× |
+| 111 km | 38 → 40 | 2% | 0.98× |
 
 The disagreement dies at the scale of a run. Above about 28 km a run stays inside its own cell and the booking convention stops mattering; below it, the convention decides the map. The consequence is the reverse of what a reader expects: the booked reading is nearly right on a thumbnail of the whole country and worst at the scale where someone looks closely.
 
@@ -183,15 +185,15 @@ The disagreement dies at the scale of a run. Above about 28 km a run stays insid
 
 | Cell | Mean | Mean abs. difference | Relative | Dosed cells read as 0 | More than 2× out | Spearman |
 |---|---|---|---|---|---|---|
-| 1 km | 466 | 762 | 163% | 86% | 97% | 0.09 |
-| **3 km** | **248** | **286** | **115%** | **59%** | **83%** | **0.33** |
-| 7 km | 163 | 137 | 84% | 35% | 65% | 0.57 |
-| 13 km | 113 | 58 | 51% | 15% | 41% | 0.81 |
-| 28 km | 83 | 19 | 23% | 6% | 18% | 0.95 |
-| 56 km | 64 | 7 | 10% | 4% | 9% | 0.98 |
-| 111 km | 41 | 2 | 4% | 3% | 3% | 0.99 |
+| 1 km | 430 | 714 | 166% | 88% | 97% | 0.11 |
+| **3 km** | **232** | **273** | **118%** | **63%** | **85%** | **0.34** |
+| 7 km | 156 | 134 | 86% | 39% | 70% | 0.56 |
+| 13 km | 109 | 57 | 53% | 19% | 46% | 0.80 |
+| 28 km | 82 | 19 | 24% | 8% | 20% | 0.95 |
+| 56 km | 63 | 7 | 11% | 5% | 9% | 0.98 |
+| 111 km | 40 | 2 | 4% | 5% | 5% | 0.99 |
 
-At 3 km, the Atlas's fine cell, the difference between the readings is larger than the quantity being mapped, and 59% of cells that received herbicide read as zero under the booked reading. The rank correlation is 0.33: the booked field does not merely misstate how much, it fails to order which place received more.
+At 3 km, the Atlas's fine cell, the difference between the readings is larger than the quantity being mapped, and 63% of cells that received herbicide read as zero under the booked reading. The rank correlation is 0.34: the booked field does not merely misstate how much, it fails to order which place received more.
 
 ### 5.4 The argument, given that there is no ground truth
 
@@ -203,15 +205,15 @@ Spreading along the run assumes a constant rate, which is an assumption. So we p
 
 | Cell | 2× front-loaded | 2× back-loaded | Middle-heavy | Ends-heavy | **Booked at 1A** |
 |---|---|---|---|---|---|
-| 3 km | 15% | 15% | 7% | 7% | **58%** |
+| 3 km | 14% | 14% | 7% | 7% | **59%** |
 | 13 km | 8% | 8% | 2% | 2% | **26%** |
-| 28 km | 3% | 3% | 1% | 1% | **11%** |
+| 28 km | 3% | 3% | 1% | 1% | **12%** |
 
-This is the finding. Within the family of readings the record admits, the answer is settled to about ±15% at 3 km under profiles far more extreme than anything Ranch Hand is likely to have flown. Booking everything at the first waypoint sits roughly four times outside that entire envelope. It is not one plausible reading among several: it lies outside the range of readings compatible with the aircraft having flown the track the record itself supplies, because it requires that eleven kilometres of a spraying run received nothing.
+This is the finding. Within the family of readings the record admits, the answer is settled to about ±14% at 3 km under profiles far more extreme than anything Ranch Hand is likely to have flown. Booking everything at the first waypoint sits roughly four times outside that entire envelope. It is not one plausible reading among several: it lies outside the range of readings compatible with the aircraft having flown the track the record itself supplies, because it requires that eleven kilometres of a spraying run received nothing.
 
-Figure 1 shows the two readings over one window, Zone D and Đồng Xoài, the densest linear structure in the record: 1,959 runs, the same 3 km cells and the same dot-area scale in both panels. In that window 36% of the volume fell in cells the booked reading shows as empty, and the booked reading's hottest cell is 3.1× hotter than any ground actually was (528 cells carrying volume, peak 95K gallons, against 1,009 cells and a peak of 30K).
+Figure 1 shows the two readings over one window, Zone D and Đồng Xoài, the densest linear structure in the record: 2,181 runs, the same 3 km cells and the same dot-area scale in both panels. In that window 37% of the volume fell in cells the booked reading shows as empty, and the booked reading's hottest cell is 3.1× hotter than any ground actually was (526 cells carrying volume, peak 95K gallons, against 1,018 cells and a peak of 31K).
 
-![Figure 1. The record as recorded (left), the volume booked at waypoint 1A (centre) and the volume spread along the run (right), Zone D and Đồng Xoài. Rings on the centre panel mark the 486 cells that were dosed and that reading leaves empty.](figures/binning-comparison.svg)
+![Figure 1. The record as recorded (left), the volume booked at the mission's first waypoint (centre) and the volume spread along the mission's tracks (right), Zone D and Đồng Xoài. Rings on the centre panel mark the 496 cells that were dosed and that reading leaves empty.](figures/binning-comparison.svg)
 
 ---
 
@@ -268,9 +270,9 @@ Hovering names a run's gallons and gallons per kilometre; clicking opens its car
 
 ### 6.4 The Story: a density field binned from the same lines
 
-The Story's field is built by `scripts/build-story-heat.mjs` from the line file into the same 0.03° cell the Atlas's fine tier uses, split by month because the Story's heat layer filters on the playhead and month is the resolution it steps in. The result is 21,711 (cell, month) points over 20,959 cells, carrying the record's total to the gallon, and *smaller* than the 24,604-waypoint file it replaced, because binning 8,753 runs into shared cells collapses more than sampling them adds. Each point sits at the volume-weighted centroid of the samples that made it, not at the cell's geometric centre: a point at the centre put the whole field on a lattice, and at the Story's deep zooms it rendered as graph paper; a cell clipped by one straight run now gets its point on that run.
+The Story's field is built by `scripts/build-story-heat.mjs` from the line file into the same 0.03° cell the Atlas's fine tier uses, split by month because the Story's heat layer filters on the playhead and month is the resolution it steps in. The result is 23,729 (cell, month) points over 22,930 cells, carrying the record's total to the gallon, and *smaller* than the 24,604-waypoint file it replaced, because binning 8,753 runs into shared cells collapses more than sampling them adds. Each point sits at the volume-weighted centroid of the samples that made it, not at the cell's geometric centre: a point at the centre put the whole field on a lattice, and at the Story's deep zooms it rendered as graph paper; a cell clipped by one straight run now gets its point on that run.
 
-The field is a MapLibre heatmap layer. Each point's weight is √(gallons / ref) clamped to [0, 1], with *ref* the 90th percentile of the cell-month totals, 2,068 gallons, derived at build time rather than typed so that most cells land in the ramp's working range and only the heaviest saturate; the square root is there for the same reason the dots take one, because a blob's visual weight goes with its area. The kernel radius is set from the data's resolution: the cell is 0.0217 × 2^z pixels at 11°N, and a kernel narrower than its sample spacing does not smooth, it draws the samples. The radius stops (3 px at zoom 5, 12 at 8, 46 at 10, 180 at 12) track 0.043 × 2^z, about two cells, which is what it took on the page for the field to read as continuous. The intensity ramp is nearly flat (0.80 at zoom 5 to 0.85 at 10): since the kernel now covers a fixed ground area, the number of points inside it does not change with zoom, so the intensity should not either. The colour ramp runs from transparent through `rgb(255,84,73)` to `rgb(214,54,40)` at full density, staying warm at the core rather than darkening to grey. Layer opacity is 0.8.
+The field is a MapLibre heatmap layer. Each point's weight is √(gallons / ref) clamped to [0, 1], with *ref* the 90th percentile of the cell-month totals, 1,925 gallons, derived at build time rather than typed so that most cells land in the ramp's working range and only the heaviest saturate; the square root is there for the same reason the dots take one, because a blob's visual weight goes with its area. The kernel radius is set from the data's resolution: the cell is 0.0217 × 2^z pixels at 11°N, and a kernel narrower than its sample spacing does not smooth, it draws the samples. The radius stops (3 px at zoom 5, 12 at 8, 46 at 10, 180 at 12) track 0.043 × 2^z, about two cells, which is what it took on the page for the field to read as continuous. The intensity ramp is nearly flat (0.80 at zoom 5 to 0.85 at 10): since the kernel now covers a fixed ground area, the number of points inside it does not change with zoom, so the intensity should not either. The colour ramp runs from transparent through `rgb(255,84,73)` to `rgb(214,54,40)` at full density, staying warm at the core rather than darkening to grey. Layer opacity is 0.8.
 
 Eight nodes drive the field, each with a camera and a playhead date up to which the field is shown cumulatively: the test sprays (1961–62, shown as labelled points because the 1961 rows carry no volume), War Zone D (to August 1966), War Zone C and the Iron Triangle (to October 1967), the mangroves (to September 1968), the A Sầu valley (to August 1969, zoom 8.6), the three hotspot airbases (to January 1971, zoom 9.6), the reckoning (the whole decade), and a final node that switches the same map to the flight tracks as a handover to the Atlas.
 
@@ -282,9 +284,11 @@ Dates are epoch day numbers with 1 January 1961 as day 1, matching `hea-v`'s own
 
 ### 6.6 The place lookup
 
-A reader can search a place or drop a pin, choose a radius of 1 to 10 km (default 5), and read the runs whose recorded geometry passed within it (`src/components/lookup.ts`). Distance is point-to-geometry: for a track, the minimum distance from the query point to any of its segments, because the aircraft passed the whole line and not just its vertices; for a single-point record, plain distance. The unit of answer is the run, keyed by `Mission` + `Run`, because that is the unit of the source: a run drawn as three segments is still one flight and appears once. Each hit reports the run's *whole* recorded volume, all its segments included, with the caveat on screen that this is the run's logged volume booked at its first waypoint and not the share that fell inside the circle, which the source cannot answer.
+A reader can search a place or drop a pin, choose a radius of 1 to 10 km (default 5), and read the runs whose recorded geometry passed within it (`src/components/lookup.ts`). Distance is point-to-geometry: for a track, the minimum distance from the query point to any of its segments, because the aircraft passed the whole line and not just its vertices; for a single-point record, plain distance. The unit of answer is the run, keyed by `Mission` + `Run`, because that is the unit of the source: a run drawn as three segments is still one flight and appears once. Each hit reports the run's *whole* volume, all its segments included, with the caveat on screen that this is the run's share of its mission's logged volume, spread along the track by length, and not the share that fell inside the circle, which the source cannot answer.
 
-The answer is told in three layers: one sentence ("32 runs within 5 km of Biên Hòa"), then its shape (gallons or run counts by agent and by year), then the records themselves behind a fold, each cited as M·R with its date, agent and distance, so the answer is checkable against HERBS. Two texts are fixed and load-bearing: the empty state ("No fixed-wing spray records in this range. That does not mean the area was not sprayed.") and the caveat under every answer. Section 8 notes that the caveat's wording needs correcting.
+The answer is told in three layers: one sentence ("32 runs within 5 km of Biên Hòa"), then its shape (gallons or run counts by agent and by year), then the records themselves behind a fold, each cited as M·R with its date, agent and distance, so the answer is checkable against HERBS. Two texts are fixed and load-bearing: the empty state ("No fixed-wing spray records in this range. That does not mean the area was not sprayed.") and the caveat under every answer, which now reads "Every HERBS record, not only Ranch Hand: fixed-wing flights carry 95% of the gallons, helicopter and ground spraying the rest." (Section 8 records what it said before.)
+
+The same box answers a HERBS mission number (`4493`, `M4493`, `#4493`), which is the unit the record books volume in and the citation a reader of Stellman et al. is most likely to hold. The answer is the mission's runs in the same table, with length in place of distance, above it the mission's date, agent, aircraft count, logged gallons and total track length, and on the map the runs drawn in the highlight's own language (flat colour, the stroke at its own width plus the highlight's bump, a ring around a single-point run) rather than the record's, because at the record's weight a 2,000-gallon point was a pale mark on bare paper. Mission numbers run from 1 to 13,027 and not every number is used; the lookup says so when a number is absent.
 
 ![Figure 5. The lookup: 32 runs within 5 km of Biên Hòa Air Base, the shape of the answer by agent and by year, the caveat, and the records behind a fold.](figures/atlas-lookup.jpg)
 
@@ -319,10 +323,10 @@ The shipped pages are checked by a headless-browser regression suite of some fif
 - **Straight-line interpolation** between consecutive waypoints, at a median 2.63 km spacing, short relative to the cells.
 - **The record is not a survey.** It is what was filed. Runs flown and never recorded are absent from every reading here.
 - **Direction is not known.** The fade runs from the first waypoint on file. Whether the aircraft flew 1A→1B or the clerk listed them in another order is not in the record.
-- **Booking per mission is not yet applied** (Section 4.3): a 4.8% correction at 3 km, to be applied.
-- **Helicopter and ground records are in the file and on the map.** The Atlas's lookup caveat reads "Fixed-wing (Ranch Hand) records only. No helicopter, ground or base-perimeter spraying." By our reading of `Method`, the file contains 2,794 helicopter runs (733,262 gallons, 3.8%) and 637 ground runs (48,312 gallons), and the pipeline draws all of them. The caveat was written from the record's reputation rather than measured against it and will be corrected. The 1985 report says the original HERBS tape "lacks important information on most of the helicopter spray missions prior to 1968" and "has no information whatsoever" on ground and backpack spraying, which the Services HERBS supplement set out to add; how complete the supplement is remains the question (Section 9, question 4).
+- **Booking per mission was applied late** (Section 4.3): until this draft the map spread each run's gallons along that run alone, so the later tracks of a multi-track mission carried nothing. A 4.8% correction at 3 km, now in the shipped files.
+- **Helicopter and ground records are in the file and on the map.** Until this draft the Atlas's lookup caveat read "Fixed-wing (Ranch Hand) records only. No helicopter, ground or base-perimeter spraying." By our reading of `Method`, the file contains 2,794 helicopter runs (733,262 gallons, 3.8%) and 637 ground runs (48,312 gallons), and the pipeline draws all of them. The caveat was written from the record's reputation rather than measured against it; it now reads "Every HERBS record, not only Ranch Hand: fixed-wing flights carry 95% of the gallons, helicopter and ground spraying the rest." The 1985 report says the original HERBS tape "lacks important information on most of the helicopter spray missions prior to 1968" and "has no information whatsoever" on ground and backpack spraying, which the Services HERBS supplement set out to add; how complete the supplement is remains the question (Section 9, question 4).
 - **Some code meanings are unconfirmed**: `Method` S, `Source` A, `Agent` K, the `CTZ` values 5, 6 and 7, and the three subfields of `FWAC` are not in the 1985 layout.
-- **The count of runs** is the count of runs with recorded volume (8,360), not of flights (11,273). The card and the panel say "Spray Runs" and "Sprayings" for that reason.
+- **The count of runs** on the panel (8,360) is the count of lead rows with recorded volume, which is the count of missions that logged any, not of flights (11,273) and no longer of runs drawn with volume (10,205 after Section 4.3). The card and the panel say "Spray Runs" and "Sprayings" for that reason; the label is due a rethink.
 - **Quantised references make runs share waypoints.** Over Đồng Xoài at zoom 9.7, 3,084 track endpoints fall in 2,262 four-pixel bins and the busiest holds 33; this is why endpoint markers are off by default and why the direction cue is a fade in the stroke's own paint rather than a bead.
 - **The province and region furniture is modern.** The Corps Tactical Zones are dissolved from today's provinces and are close to, not identical with, the wartime lines. `Province` in the file is blank on two-thirds of rows and is not used.
 - **A vegetation overlay was attempted and abandoned.** Overlaying the runs on a hand-traced redraw of the 1974 vegetation map reproduced the literature's total sprayed area (about 1.6 million hectares) but not its per-class anchors, because every georeferencing method tried on a map with no datum plateaued at a 20 to 30 km residual. The Story's ecosystem figure therefore uses literature values and marks the rest as estimates.
@@ -332,7 +336,7 @@ The shipped pages are checked by a headless-browser regression suite of some fif
 
 ## 9 · Questions for the authors of the record
 
-1. **Spreading across tracks.** The 1985 layout confirms that gallons are recorded per mission and that a successive track number is a further spray track flown on the same mission. Is spreading that load by length across all of the mission's tracks the reading you would consider defensible, or did the load typically go down on the first track?
+1. **Spreading across tracks.** The 1985 layout confirms that gallons are recorded per mission and that a successive track number is a further spray track flown on the same mission. The shipped maps now spread that load by length across all of the mission's tracks (Section 4.3). Is that the reading you would consider defensible, or did the load typically go down on the first track?
 2. **Codes the 1985 layout does not list.** What do `Method` S, `Source` A, `Agent` K (the layout lists Pink as R and Pink & Green as S) and `CTZ` 5 / 6 / 7 denote? What are the three two-digit fields of `FWAC` (we read the last as the number of aircraft that sprayed)?
 3. **Rate along the track.** Is there anything in the operational record (spray-on and spray-off points, altitude, airspeed, swath width) that would argue for a rate profile other than constant, or for a swath we should draw?
 4. **Helicopter and ground coverage.** Should the helicopter and ground records in the file be mapped alongside the Ranch Hand runs as we now do, or are they incomplete enough that the map should carry a stronger caveat or a separate treatment?
@@ -388,7 +392,7 @@ The shipped pages are checked by a headless-browser regression suite of some fif
 | Dot radius | max(floor, min(k√g, cap)); Table 7 |
 | Stroke width | min(k·gpk, cap); k 0.8/162 → 3/162, cap 4 → 14 px over zoom 5.6 → 11 |
 | Stroke opacity / feather / fade | 0.8 / 1.5 px / alpha 1 → 0.3 from first waypoint |
-| Heat weight | √(g / 2,068), clamped to [0, 1] |
+| Heat weight | √(g / 1,925), clamped to [0, 1] |
 | Heat radius | 3, 12, 46, 180 px at zoom 5, 8, 10, 12 (≈ 0.043 × 2^z) |
 | Heat intensity / opacity | 0.80 → 0.85 / 0.8 |
 | Agent hues | `#ff7700` `#8c9cb1` `#2b99ee` `#b781ea`; dim `#c9cdc4` |
@@ -397,7 +401,7 @@ The shipped pages are checked by a headless-browser regression suite of some fif
 
 ## Appendix C · The per-mission comparison
 
-`scripts/analyse-mission-spread.mjs` groups rows by `Mission`, segments each `Mission`+`Run` exactly as the track build does, and produces three fields at each cell size: gallons spread along each run's own segments (the shipped reading), gallons spread along all of a mission's segments by length, and gallons booked at the mission's first waypoint. The three totals are identical (19,490,690). The volume-to-move figures are 4.8% / 2.4% / 1.2% between the first two at 3 / 13 / 28 km, and 58.8% / 26.3% / 11.8% between the booked field and the per-mission field, which reproduces Table 3 to within a rounding. The correction itself is not yet applied to the shipped files.
+`scripts/analyse-mission-spread.mjs` groups rows by `Mission`, segments each `Mission`+`Run` exactly as the track build does, and produces three fields at each cell size: gallons spread along each run's own segments (the shipped reading), gallons spread along all of a mission's segments by length, and gallons booked at the mission's first waypoint. The three totals are identical (19,490,690). The volume-to-move figures are 4.8% / 2.4% / 1.2% between the first two at 3 / 13 / 28 km, and 58.8% / 26.3% / 11.8% between the booked field and the per-mission field, which reproduces Table 3 to within a rounding. The correction is applied to the shipped files: `build-spray-tracks.mjs` groups by mission, and `analyse-binning.mjs` and `build-figure-binning.mjs` reconstruct the booked reading as the mission's total at the mission's first waypoint, so Tables 3 to 5 and Figure 1 compare the file's own convention with the map as it now ships.
 
 ---
 
