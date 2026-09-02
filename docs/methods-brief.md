@@ -10,9 +10,9 @@ Live pages: <https://adecadeofrain.sizheng.me/> (the Story) and <https://adecade
 
 ## 1 Why this note
 
-Two web pages draw the HERBS file as republished in Andrew Stellman's open hea-v repository (data/herbs.json, MIT licence, pinned to commit cb5948b): a scroll-driven narrative of the decade, and an explorer in which the decade plays month by month and any place or mission number returns the individual runs behind it. Every number below was recomputed from that commit and can be reproduced with the scripts in the repository.
+Two web pages draw the HERBS file as republished in Andrew Stellman's open hea-v repository (data/herbs.json, MIT licence, pinned to commit cb5948b): a scroll-driven narrative of the decade, and an explorer in which the decade plays month by month and any place or mission number returns the individual runs behind it. Every number below was recomputed from that commit with the scripts in the repository.
 
-This is not a results paper. It exists to let the people who built HERBS check what we have done with it. One thing we found while doing it seems worth your attention on its own: the file books each mission's entire volume at a single waypoint while recording the track as a chain of further waypoints, and a map drawn straight from the fields inherits that convention without saying so. Section 3 measures what that costs. Section 6 lists the questions we would most value an answer to.
+This note exists to let the people who built HERBS check what we have done with it. One thing we found seems worth your attention on its own: the file books each mission's entire volume at a single waypoint while recording the track as a chain of further waypoints, and a map drawn straight from the fields inherits that convention without saying so. Section 3 measures what that costs. Section 6 lists the questions we would most value an answer to.
 
 ## 2 What the record says
 
@@ -67,15 +67,15 @@ Spreading along the track assumes a constant rate, which is an assumption, so we
 
 ## 5 What the maps do not claim
 
-They show where the record says herbicide was released, not where it landed or whom it reached: no drift, no swath width, no degradation, no canopy or soil interception, no population. Direction is not known; the tracks are drawn with a fade from the first waypoint on file, which is a reading cue and not a heading claim. Runs flown and never recorded are absent from every reading here.
+They show where the record says herbicide was released, not where it landed or whom it reached: no drift, no swath width, no degradation, no canopy or soil interception, no population. Direction is not known; the fade along each track runs from the first waypoint on file, a reading cue and not a heading claim.
 
-Two things we got wrong and have corrected while writing the longer note: until this draft the maps spread volume per run rather than per mission (above), and the Atlas's caveat said the record was fixed-wing only. By our reading of the Method field the file holds 2,108 helicopter and 446 ground missions, 4% of the gallons, and the maps draw them; the caveat now says so. The 1985 report says the original tape lacked most helicopter missions before 1968 and had nothing on ground spraying, which the Services HERBS supplement set out to add. How complete that supplement is, we cannot tell from the file.
+Two things we corrected while writing the longer note: the maps had spread volume per run rather than per mission (above), and the Atlas's caveat said the record was fixed-wing only. By our reading of the Method field the file holds 2,108 helicopter and 446 ground missions, 4% of the gallons, and the maps draw them; the caveat now says so. The 1985 report says the original tape lacked most helicopter missions before 1968 and had nothing on ground spraying, which the Services HERBS supplement set out to add. How complete that supplement is, we cannot tell from the file.
 
 ## 6 Questions for the authors of the record
 
 1. **Spreading across tracks.** The layout records gallons per mission and calls a successive track number a further spray track on the same mission. Is spreading that load by length across all of the mission's tracks a defensible reading, or did the load typically go down on the first track?
 2. **Codes the 1985 layout does not list.** What do Method S, Source A, Agent K (the layout lists Pink as R) and CTZ 5, 6 and 7 denote? The 668 rows tagged CTZ 5 plot west of the Annamite border, in Laos. And what are the three two-digit fields of FWAC? We read the last as the number of aircraft that sprayed.
-3. **Rate along the track.** Is there anything in the operational record (spray-on and spray-off points, altitude, airspeed, swath width) that would argue for a rate profile other than constant, or for a swath we should draw?
+3. **Rate along the track.** Does the operational record (spray-on and spray-off points, altitude, airspeed, swath width) argue for a rate profile other than constant, or for a swath we should draw?
 4. **Helicopter and ground coverage.** Should those records be mapped alongside the Ranch Hand runs as we now do, or are they incomplete enough to need a stronger caveat or a separate treatment?
 5. **The lattice.** Is gridpoints.json the study-area grid of the 2003 work, and is there a published estimate of the georeferencing accuracy of the grid references?
 6. **Spot checks.** Would you compare three places against your own maps: the A Sầu valley (the Story says 224 runs crossed it between 1965 and 1970), Biên Hòa within 5 km, and the Cà Mau peninsula?
@@ -91,4 +91,4 @@ Stellman, J. M., Stellman, S. D., Christian, R., Weber, T., & Tomasallo, C. (200
 
 ---
 
-*The analysis scripts, the figure and this note were prepared with the help of an AI coding assistant; every figure was recomputed from the pinned source. A longer methods note with the full field dictionary, every encoding constant and the verification checks is in the repository as docs/methods-paper.md.*
+*Prepared with the help of an AI coding assistant; every figure was recomputed from the pinned source. The full methods note is docs/methods-paper.md in the repository.*
