@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { dayToDate } from '../data/spray'
 import type { ReactNode } from 'react'
-import { loadGazetteer, searchGazetteer, type GazPlace, type LookupHit } from './lookup'
+import {
+  loadGazetteer,
+  searchGazetteer,
+  parseMissionQuery,
+  type GazPlace,
+  type LookupHit,
+  type MissionSummary,
+} from './lookup'
 import { fmtGallons, tint } from './ArchiveInspect'
 import type { GroupInfo } from './ArchiveInspect'
 
@@ -41,6 +48,11 @@ export interface LookupState {
    *  Cleared the moment the reader re-picks or drags: the hint describes the
    *  place, and the point is no longer the place. */
   place?: { name: string; coarse: boolean; low: boolean }
+  /** A HERBS mission number typed into the search. The other kind of query:
+   *  by the record's own key rather than by place. Exclusive with `center` —
+   *  setting either clears the other, because the panel answers one question
+   *  at a time and the map draws one answer. */
+  mission?: number | null
 }
 
 interface Props {
@@ -58,6 +70,11 @@ interface Props {
   onClear: () => void
   onOpen: (hit: LookupHit) => void
   onPlace: (place: GazPlace) => void
+  /** A mission chosen from the search. */
+  onMission: (mission: number) => void
+  /** What each mission is, for the suggestion row; null until the record has
+   *  loaded. */
+  missions: Map<number, MissionSummary> | null
   onBack?: () => void
   /** `mission|run` of the record open INLINE in the list (desktop), plus the
    *  card to render there. The card expands under its own row — the reader
@@ -107,9 +124,12 @@ export default function LocationLookup({
   onClear,
   onOpen,
   onPlace,
+  onMission,
+  missions,
   onBack,
 }: Props) {
   const { center, radiusKm, picking, place } = state
+  const mission = state.mission ?? null
 
   // ── the place search ────────────────────────────────────────────────────
   const [query, setQuery] = useState('')
@@ -161,6 +181,21 @@ export default function LocationLookup({
     onPlace(pl)
   }
 
+  /** A number in the box is a mission number, not a place. The gazetteer
+   *  holds no digits-only names, so the two kinds of query cannot collide. */
+  const missionQ = useMemo(() => parseMissionQuery(query), [query])
+  const missionHit = missionQ != null && missions ? (missions.get(missionQ) ?? null) : null
+  /** The largest mission number in the record, for the no-match line. Read
+   *  off the index rather than typed: the number is the file's, not ours. */
+  const maxMission = useMemo(() => (missions ? Math.max(0, ...missions.keys()) : 0), [missions])
+  const chooseMission = (m: MissionSummary) => {
+    setQuery(`Mission ${m.mission}`)
+    setOpen(false)
+    onMission(m.mission)
+  }
+  /** How many rows the popup holds, whichever kind of query is in the box. */
+  const optionCount = missionQ != null ? (missionHit ? 1 : 0) : matches.length
+
   const shown = useMemo(() => results?.slice(0, 200) ?? null, [results])
   const truncated = results != null && results.length > 200
 
@@ -199,8 +234,8 @@ export default function LocationLookup({
      record with no circle on it. One rule instead, for both doors: no circle,
      no query. Typing does not change `center`, so this cannot fire mid-word. */
   useEffect(() => {
-    if (!center) setQuery('')
-  }, [center])
+    if (!center && mission == null) setQuery('')
+  }, [center, mission])
 
   /* And the other half of the same rule: a centre that is no longer THE PLACE
      stops wearing its name. Dragging the pin clears `place` but the field kept
@@ -220,9 +255,11 @@ export default function LocationLookup({
           between announcements) that repeats the summary sentence, off
           screen. */}
       <div className="sr-live" aria-live="polite">
-        {center && results != null
-          ? `${results.length} ${results.length === 1 ? 'run' : 'runs'} within ${radiusKm} km`
-          : ''}
+        {mission != null && results != null
+          ? `${results.length} ${results.length === 1 ? 'run' : 'runs'} on HERBS mission ${mission}`
+          : center && results != null
+            ? `${results.length} ${results.length === 1 ? 'run' : 'runs'} within ${radiusKm} km`
+            : ''}
       </div>
 
       {/* ── one row, one act ──────────────────────────────────────────────
@@ -244,18 +281,22 @@ export default function LocationLookup({
           // anyone outside the period's vocabulary it reads as two words, and
           // one of them is a Google product. These are the things the index
           // actually holds.
-          placeholder="Search an air base, camp or town…"
-          aria-label="Search air bases, camps and towns"
+          // Two kinds of query in one field, and the placeholder names both:
+          // the gazetteer's places, or the record's own key. "No." rather than
+          // "number" because the field is 218px wide and the pin beside it
+          // has already spent its share.
+          placeholder="Search a place or mission no.…"
+          aria-label="Search air bases, camps, towns and HERBS mission numbers"
           // The full ARIA 1.2 combobox contract, not just a listbox floating
           // in space: without these four the popup, the arrow-key highlight
           // and the open/closed state all existed only visually — a screen
           // reader heard a plain text field and nothing else.
           role="combobox"
-          aria-expanded={open && matches.length > 0}
+          aria-expanded={open && optionCount > 0}
           aria-controls="lookup-search-listbox"
           aria-autocomplete="list"
           aria-activedescendant={
-            open && matches.length > 0 ? `lookup-search-opt-${hi}` : undefined
+            open && optionCount > 0 ? `lookup-search-opt-${hi}` : undefined
           }
           onFocus={() => {
             ensureGaz()
@@ -270,10 +311,12 @@ export default function LocationLookup({
           onKeyDown={(e) => {
             if (e.key === 'ArrowDown') {
               e.preventDefault()
-              setHi((h) => Math.min(h + 1, matches.length - 1))
+              setHi((h) => Math.min(h + 1, optionCount - 1))
             } else if (e.key === 'ArrowUp') {
               e.preventDefault()
               setHi((h) => Math.max(h - 1, 0))
+            } else if (e.key === 'Enter' && missionQ != null) {
+              if (missionHit) chooseMission(missionHit)
             } else if (e.key === 'Enter' && matches[hi]) {
               choose(matches[hi])
             } else if (e.key === 'Escape') {
@@ -306,7 +349,7 @@ export default function LocationLookup({
               there are 57px spare and this spends about 26 of them. */}
           <span className="lookup-search-word">Pick</span>
         </button>
-        {(center || query) && (
+        {(center || mission != null || query) && (
           <button
             className="lookup-search-btn"
             aria-label="Clear the search"
@@ -323,7 +366,38 @@ export default function LocationLookup({
             </svg>
           </button>
         )}
-        {open && matches.length > 0 && (
+        {/* A mission number gets one row: the mission, with what it is. The
+            row is the same element the places use, so it sits, highlights
+            and answers the keyboard the same way. */}
+        {open && missionQ != null && missionHit && (
+          <ul className="lookup-search-drop" id="lookup-search-listbox" role="listbox">
+            <li key={`m${missionHit.mission}`}>
+              <button
+                className="lookup-search-item is-hi"
+                id="lookup-search-opt-0"
+                role="option"
+                aria-selected
+                onMouseDown={(e) => {
+                  e.preventDefault()
+                  chooseMission(missionHit)
+                }}
+              >
+                <span className="lookup-place-name">Mission {missionHit.mission}</span>
+                <span className="lookup-place-meta">
+                  {missionHit.runs} {missionHit.runs === 1 ? 'run' : 'runs'} · {fmtDay(missionHit.day)} ·{' '}
+                  {groups[missionHit.gi]?.label ?? '?'}
+                </span>
+              </button>
+            </li>
+          </ul>
+        )}
+        {open && missionQ != null && !missionHit && missions && (
+          <p className="lookup-search-none">
+            No mission {missionQ} in the record. Mission numbers run from 1 to{' '}
+            {maxMission.toLocaleString()}, and not every number is used.
+          </p>
+        )}
+        {open && missionQ == null && matches.length > 0 && (
           <ul className="lookup-search-drop" id="lookup-search-listbox" role="listbox">
             {matches.map((pl, i) => (
               <li key={pl.n}>
@@ -350,14 +424,18 @@ export default function LocationLookup({
             ))}
           </ul>
         )}
-        {open && query.trim() !== '' && gazReady && matches.length === 0 && (
+        {open && missionQ == null && query.trim() !== '' && gazReady && matches.length === 0 && (
           <p className="lookup-search-none">
             No match. The index covers air bases, army and marine bases, firebases, landing
-            zones, camps and towns. It does not cover unit numbers.
+            zones, camps and towns. It does not cover unit numbers. A HERBS mission number
+            (M4493, or just 4493) lists that mission&apos;s runs.
           </p>
         )}
       </div>
 
+      {/* No radius for a mission: the answer is the mission's own tracks, not
+          what fell within a distance of anything. */}
+      {mission == null && (
       <div className="lookup-row">
         {/* "Radius", not "Within": the row is a property of the search and the
             label names it, rather than starting a sentence the chips have to
@@ -376,6 +454,7 @@ export default function LocationLookup({
           ))}
         </div>
       </div>
+      )}
 
       {place?.coarse && (
         <p className="lookup-place-hint">
@@ -388,6 +467,99 @@ export default function LocationLookup({
           This place&apos;s coordinate is inferred. Check the pin against the map before reading
           the list.
         </p>
+      )}
+
+      {/* ── the mission's answer ──────────────────────────────────────────
+          One sentence, then the tracks themselves as the list, open. The
+          circle's answer folds its records because sixty rows are evidence
+          rather than an answer; a mission's rows ARE the answer — the reader
+          asked for this mission, and what it is, is its tracks. No By Agent
+          and no By Year: one mission is one agent on one day. */}
+      {mission != null && results != null && (
+        <>
+          {cardOpen && results.length > 0 ? (
+            <button className="lookup-back" onClick={onBack}>
+              ← Back to {results.length} {results.length === 1 ? 'result' : 'results'}
+            </button>
+          ) : (
+            <>
+              <p className="lookup-summary">
+                <strong>{results.length}</strong>
+                {results.length === 1 ? ' run' : ' runs'} on{' '}
+                <span className="lookup-where">HERBS mission {mission}</span>
+              </p>
+              {results.length === 0 ? (
+                <p className="lookup-empty">No mission {mission} in the record.</p>
+              ) : (
+                (() => {
+                  const first = results[0]
+                  const gallons = results.reduce((a, h) => a + h.gallons, 0)
+                  const km = results.reduce((a, h) => a + (h.km ?? 0), 0)
+                  return (
+                    <p className="lookup-mission-meta">
+                      {fmtDay(first.day)} · {groups[first.gi]?.label ?? '?'}
+                      {first.fwac > 0 ? ` · ${first.fwac} aircraft` : ''}
+                      {' · '}
+                      {gallons > 0 ? `${fmtGallons(gallons)} gallons` : 'no volume logged'}
+                      {km > 0 ? ` · ${km.toFixed(1)} km` : ''}
+                    </p>
+                  )
+                })()
+              )}
+              {results.length > 0 && (
+                <p className="lookup-caveat">
+                  Every HERBS record, not only Ranch Hand: fixed-wing flights carry 95% of the
+                  gallons, helicopter and ground spraying the rest. Gallons are the
+                  mission&apos;s logged volume, spread along its tracks by length.
+                </p>
+              )}
+            </>
+          )}
+          {results.length > 0 && !cardOpen && (
+            <>
+              <div className="lookup-head" aria-hidden="true">
+                <span>Mission·Run</span>
+                <span>Date</span>
+                <span>Agent</span>
+                <span>Length</span>
+              </div>
+              <ol className="lookup-list">
+                {results.map((h) => {
+                  const isOpen = detailKey === `${h.mission}|${h.run}`
+                  const hue = groups[h.gi]?.color
+                  return (
+                    <li key={h.key} ref={isOpen ? openRowRef : undefined}>
+                      <button
+                        className={`lookup-item${isOpen ? ' is-open' : ''}`}
+                        aria-expanded={isOpen}
+                        style={isOpen ? { background: tint(hue, 0.16) } : undefined}
+                        onClick={() => onOpen(h)}
+                      >
+                        <span className="lookup-item-id">
+                          M{h.mission}
+                          {h.run !== h.mission ? `·R${h.run}` : ''}
+                        </span>
+                        <span className="lookup-item-date">{fmtDay(h.day)}</span>
+                        <span className="lookup-item-agent">{groups[h.gi]?.label ?? '?'}</span>
+                        <span className="lookup-item-dist">
+                          {h.km && h.km > 0 ? `${h.km.toFixed(1)} km` : 'point'}
+                        </span>
+                      </button>
+                      {isOpen && detail != null && (
+                        <div
+                          className="lookup-detail"
+                          style={{ background: tint(hue, 0.08), borderColor: tint(hue, 0.3) }}
+                        >
+                          {detail}
+                        </div>
+                      )}
+                    </li>
+                  )
+                })}
+              </ol>
+            </>
+          )}
+        </>
       )}
 
       {center && results != null && (
@@ -567,11 +739,11 @@ export default function LocationLookup({
               )}
 
               <p className="lookup-caveat">
-                Fixed-wing (Ranch Hand) records only. No helicopter, ground or base-perimeter
-                spraying.
+                Every HERBS record, not only Ranch Hand: fixed-wing flights carry 95% of the
+                gallons, helicopter and ground spraying the rest.
                 {results.length > 0 &&
                   unit === 'volume' &&
-                  ' Gallons are each run’s whole logged volume, booked at its first waypoint, not the share that fell inside this circle.'}
+                  ' Gallons are each run’s share of its mission’s logged volume, spread along the track by length, not the share that fell inside this circle.'}
               </p>
             </>
           )}

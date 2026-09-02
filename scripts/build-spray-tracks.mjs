@@ -7,35 +7,54 @@
  * whole point.
  *
  * WHAT THE SOURCE ACTUALLY SAYS. Measured against herbs.json at the pinned
- * commit, not inferred:
+ * commit, and confirmed by the tape's own record layout (Christian, R. S.,
+ * "Services HERBS Tape", HQDA, September 1985 — see docs/methods-paper.md §2):
  *
- *   · every row carries a Leg of the form 1A, 1B, 2A … (100% of 24,604)
- *   · grouped by Mission + Run there are 11,273 runs; 8,582 have more than one
- *     waypoint, and the waypoints chain end to end (median gap from leg nB to
- *     (n+1)A is 2.63 km)
- *   · 11,097 of the 11,273 are a single numbered leg — one unbroken track
- *   · the commonest shape is two waypoints: a straight line from A to B
- *   · ALL 19,490,690 gallons sit on leg 1A; every other leg sums to exactly 0
- *   · the median run traces an 11.4 km polyline (p90 19.9 km, max 354.6)
- *   · Date, Agent, Method, Type, Source and CTZ never vary within a run
+ *   · every row carries a Leg of the form 1A, 1B, 2A … (100% of 24,604). The
+ *     LETTER is the waypoint: A the start, each later letter a change of
+ *     direction, the last the point where spraying stopped. The NUMBER is the
+ *     spray track within the mission: "a successive number … indicate[s] that
+ *     on the same mission after completing the previous spray track, the
+ *     aircraft accomplished an additional spray track"
+ *   · grouped by Mission there are 9,141 missions; by Mission + Run (hea-v's
+ *     run is the tape's track) 11,273 tracks. 1,434 missions flew more than
+ *     one track; Date and Agent never vary within a mission
+ *   · GALLONS is a per-MISSION field — "the number of gallons of herbicide
+ *     dispensed during the mission cited" — and the file carries it once, on
+ *     the mission's 1A row. ALL 19,490,690 gallons sit on rows labelled 1A;
+ *     every other leg label sums to exactly 0, and every track without a 1A
+ *     row (2,132 of them) carries 0. The tape has no per-track volume
+ *   · the median track traces an 10.9 km polyline (p90 19.6 km, max 354.6)
  *
- * So a spray run is a LINE flown on one day by one aircraft type carrying one
- * agent, and HERBS books the run's whole volume against the first waypoint.
- * Reading those rows as independent points — which is what dropping Mission /
- * Run / Leg forces you to do — puts an eleven-kilometre run's entire volume in
- * the cell containing one of its ends.
+ * So a spray track is a LINE, a mission is one or more of them flown on one
+ * day with one agent, and HERBS books the mission's whole load once. Reading
+ * the rows as independent points — which is what dropping Mission / Run / Leg
+ * forces you to do — puts a mission's entire volume in the cell containing one
+ * end of its first track.
  *
- * WHAT THIS FILE DOES NOT KNOW. There is no per-waypoint quantity anywhere in
- * the source: Gallons and FWAC both appear only on leg 1A. So volume can only
- * be spread along a track geometrically, and this script spreads it by LENGTH,
- * on the physical argument that an aircraft with the valve open lays down a
- * roughly constant amount per kilometre flown.
+ * WHAT THIS FILE DOES NOT KNOW. There is no per-waypoint or per-track quantity
+ * anywhere in the source, so volume can only be spread along the flown
+ * geometry, and this script spreads it BY LENGTH ACROSS ALL OF A MISSION'S
+ * TRACKS, on the physical argument that an aircraft with the valve open lays
+ * down a roughly constant amount per kilometre flown, calibrated at a fixed
+ * rate (3 gallons per acre). Spreading per mission rather than per track is
+ * the reading the layout supports; it moves 4.8% of the volume at a 3 km cell
+ * against spreading each track's own booked figure along that track alone
+ * (scripts/analyse-mission-spread.mjs), and it gives the later tracks of a
+ * multi-track mission — 11% of all flown kilometres — the volume the file
+ * booked against their mission.
+ *
+ * A track recorded at a single grid reference has no length to take a share
+ * of. In a mission that also flew line tracks it therefore gets none (110 such
+ * points in 88 missions, 71,220 gallons, 0.37% of the record, now on the
+ * sibling lines); in a mission with no line length at all the load is split
+ * across its points by count, the only weight the source supports there.
  *
  * One thing the data genuinely cannot answer: whether the aircraft sprayed
- * across the jump from leg n to leg n+1, or whether that jump is a turn. This
- * script assumes it is a turn and spreads volume only WITHIN a numbered leg —
- * which is why the leg number exists at all. It matters for 176 runs out of
- * 11,273, and the assumption is recorded here rather than buried in a formula.
+ * across a change of leg NUMBER inside one Mission + Run pair, which happens
+ * in 176 runs and which the layout does not describe. This script treats it
+ * as a break and spreads volume only within a numbered leg; the assumption is
+ * recorded here rather than buried in a formula.
  *
  * Run:  npm run build:tracks
  */
@@ -160,14 +179,16 @@ async function main() {
   ])
   indexGrid(grid.rows)
 
-  // Group by run, preserving source order — the rows arrive in leg order and
-  // that order IS the track. Sorting by the Leg label would be a second
-  // opinion about the flight path; the file's own order is the first.
-  const runs = new Map()
+  // Group by mission, then by run inside it, preserving source order — the
+  // rows arrive in leg order and that order IS the track. Sorting by the Leg
+  // label would be a second opinion about the flight path; the file's own
+  // order is the first.
+  const missions = new Map()
   for (const r of herbs) {
-    const key = `${r.Mission}|${r.Run}`
-    let g = runs.get(key)
-    if (!g) runs.set(key, (g = []))
+    let runs = missions.get(r.Mission)
+    if (!runs) missions.set(r.Mission, (runs = new Map()))
+    let g = runs.get(r.Run)
+    if (!g) runs.set(r.Run, (g = []))
     g.push(r)
   }
 
@@ -194,85 +215,117 @@ async function main() {
     return segs.filter((s) => s.length > 0)
   }
 
-  const tracks = [] // [agent, day, gallons, km, [lon,lat,…]]
-  const marks = [] // single-point runs: [agent, day, gallons, lon, lat]
+  const tracks = [] // [agent, day, gallons, km, [lon,lat,…], mission, run, fwac]
+  const marks = [] // single-point runs: [agent, day, gallons, lon, lat, mission, run, fwac]
+  let runCount = 0
   let dropped = 0
   let totalGallons = 0
   let spreadGallons = 0
   let markGallons = 0
+  let multiTrack = 0
+  let laterTracksWithVolume = 0
+  let pointsInMixed = 0
 
-  for (const rows of runs.values()) {
-    const day = dateToDay(rows[0].Date)
+  for (const [missionId, runs] of missions) {
+    // Everything below is a property of the MISSION, and the layout says so:
+    // date, agent, the load, and the aircraft count. Read them off the first
+    // row that carries them, which is the 1A row.
+    const rowsAll = [...runs.values()].flat()
+    const day = dateToDay(rowsAll[0].Date)
     if (day == null) {
-      dropped += rows.length
+      dropped += rowsAll.length
       continue
     }
-    let agent = AGENTS.indexOf(rows[0].Agent)
+    let agent = AGENTS.indexOf(rowsAll[0].Agent)
     if (agent < 0) agent = AGENTS.indexOf('U')
-    const gallons = rows.reduce((s, r) => s + Math.max(0, Math.round(r.Gallons || 0)), 0)
+    const gallons = rowsAll.reduce((s, r) => s + Math.max(0, Math.round(r.Gallons || 0)), 0)
     totalGallons += gallons
-    // Run identity, carried through so a record on screen can cite the row it
-    // came from. Mission and Run are integers in the source; like Date and
-    // Agent they never vary within a run (verified at the pinned commit).
-    const mission = Number(rows[0].Mission) || 0
-    const runNo = Number(rows[0].Run) || 0
-    // FWAC (aircraft count) books on leg 1A like Gallons. Six digits, three
-    // two-digit subfields; hea-v's own engine.js reads the count from the
-    // LAST two ("FWAC filter uses last 2 digits"), and that reading is
-    // followed here rather than inventing one. 0 = not recorded.
-    const fw = String(rows[0].FWAC || '')
+    const mission = Number(missionId) || 0
+    // FWAC (aircraft count) books with the gallons, on the mission's 1A row.
+    // Six digits, three two-digit subfields; hea-v's own engine.js reads the
+    // count from the LAST two ("FWAC filter uses last 2 digits"), and that
+    // reading is followed here rather than inventing one. 0 = not recorded.
+    // It is the mission's aircraft count, so every track of the mission
+    // carries it — a second track flown by the same formation is not a track
+    // with no aircraft on it.
+    const fwRow = rowsAll.find((r) => String(r.FWAC || '').length === 6)
+    const fw = String(fwRow?.FWAC || '')
     const fwac = fw.length === 6 ? parseInt(fw.slice(-2), 10) || 0 : 0
 
-    const segs = segmentsOf(rows)
-    if (!segs.length) {
-      dropped += rows.length
-      continue
+    // Segment every run of the mission first, so the mission's total sprayed
+    // length is known before any volume is handed out.
+    const perRun = []
+    for (const [runId, rows] of runs) {
+      const segs = segmentsOf(rows)
+      if (!segs.length) {
+        dropped += rows.length
+        continue
+      }
+      runCount++
+      const lengths = segs.map((s) => {
+        let t = 0
+        for (let i = 1; i < s.length; i++) t += km(s[i - 1], s[i])
+        return t
+      })
+      perRun.push({ runNo: Number(runId) || 0, segs, lengths })
     }
-    // Total sprayed length: only within-leg segments count, per the note at the
-    // top. A run whose segments are all single points has zero length and can
-    // only be a mark.
-    const lengths = segs.map((s) => {
-      let t = 0
-      for (let i = 1; i < s.length; i++) t += km(s[i - 1], s[i])
-      return t
-    })
-    const total = lengths.reduce((a, b) => a + b, 0)
+    if (!perRun.length) continue
+    if (perRun.length > 1) multiTrack++
 
-    if (total <= 0) {
-      // No line to draw — a run recorded at one place. Its gallons stay put,
-      // which for a point is not an approximation but the whole record.
+    const missionKm = perRun.reduce((a, r) => a + r.lengths.reduce((x, y) => x + y, 0), 0)
+
+    if (missionKm <= 0) {
+      // No line anywhere in the mission — a record kept at one place, or at a
+      // few. The load stays put, which for a point is not an approximation but
+      // the whole record.
       //
-      // "Stay put" has to mean SPLIT once a run has more than one point, and
-      // that is what this replaces: the old line handed EVERY single-point
-      // segment the run's full volume, so a run logged at three places
-      // published three times its gallons. Measured across the record it put
-      // 22,018 gallons into the marks that the source never recorded — 0.11%
-      // against 19.5M, which is small, and wrong in a file whose entire claim
-      // is that it is the record.
+      // "Stay put" has to mean SPLIT once the mission has more than one point,
+      // and that is what this replaces: an earlier version handed EVERY
+      // single-point segment the full volume, so a run logged at three places
+      // published three times its gallons — 22,018 gallons the source never
+      // recorded, 0.11% against 19.5M, which is small, and wrong in a file
+      // whose entire claim is that it is the record.
       //
       // Length-share is unavailable here by definition, so count is the only
       // weight the source supports. The remainder rides on the first point so
       // the parts sum to the whole exactly rather than to within a rounding.
-      const points = segs.reduce((n, s) => n + (s.length === 1 ? 1 : 0), 0)
+      const points = perRun.reduce((n, r) => n + r.segs.filter((s) => s.length === 1).length, 0)
       const each = points ? Math.floor(gallons / points) : 0
       let rest = gallons - each * points
-      for (const s of segs) {
-        let g = 0
-        if (s.length === 1) {
-          g = each + rest
-          rest = 0
+      for (const r of perRun) {
+        for (const s of r.segs) {
+          let g = 0
+          if (s.length === 1) {
+            g = each + rest
+            rest = 0
+          }
+          markGallons += g
+          marks.push([agent, day, g, s[0][0], s[0][1], mission, r.runNo, fwac])
         }
-        markGallons += g
-        marks.push([agent, day, g, s[0][0], s[0][1], mission, runNo, fwac])
       }
       continue
     }
-    for (let i = 0; i < segs.length; i++) {
-      if (segs[i].length < 2) continue
-      // Volume by share of length — the only weight the source supports.
-      const g = Math.round((gallons * lengths[i]) / total)
-      spreadGallons += g
-      tracks.push([agent, day, g, Number(lengths[i].toFixed(2)), segs[i].flat(), mission, runNo, fwac])
+
+    // Volume by share of the MISSION's length — the only weight the source
+    // supports, applied to the unit the source books the volume against.
+    for (const r of perRun) {
+      let runG = 0
+      for (let i = 0; i < r.segs.length; i++) {
+        const s = r.segs[i]
+        if (s.length < 2) {
+          // A point track inside a mission that also flew lines: no length, no
+          // share. It stays in the file as a mark so the map can still say the
+          // aircraft was there.
+          pointsInMixed++
+          marks.push([agent, day, 0, s[0][0], s[0][1], mission, r.runNo, fwac])
+          continue
+        }
+        const g = Math.round((gallons * r.lengths[i]) / missionKm)
+        spreadGallons += g
+        runG += g
+        tracks.push([agent, day, g, Number(r.lengths[i].toFixed(2)), s.flat(), mission, r.runNo, fwac])
+      }
+      if (runG > 0 && r !== perRun[0]) laterTracksWithVolume++
     }
   }
 
@@ -288,9 +341,10 @@ async function main() {
     },
     epoch: '1961-01-01',
     note:
-      "A spray run is a line. HERBS books a run's whole volume against its " +
-      'first waypoint; here it is spread along the run by segment length, ' +
-      'which is the only weighting the source supports.',
+      'A spray track is a line, and a mission is one or more of them. HERBS ' +
+      "books a mission's whole volume once, against the first waypoint of its " +
+      'first track; here it is spread by length across every track the ' +
+      'mission flew, which is the only weighting the source supports.',
     agents: AGENTS,
     trackFields: ['agent', 'day', 'gallons', 'km', 'coords', 'mission', 'run', 'fwac'],
     markFields: ['agent', 'day', 'gallons', 'lon', 'lat', 'mission', 'run', 'fwac'],
@@ -301,26 +355,31 @@ async function main() {
   await writeFile(OUT, JSON.stringify(out))
 
   const lens = tracks.map((t) => t[3]).sort((a, b) => a - b)
-  const gpk = tracks.filter((t) => t[3] > 0).map((t) => t[2] / t[3]).sort((a, b) => a - b)
+  const gpk = tracks.filter((t) => t[3] > 0 && t[2] > 0).map((t) => t[2] / t[3]).sort((a, b) => a - b)
   const q = (a, p) => a[Math.floor(a.length * p)]
   console.log(`✓ wrote ${OUT}`)
-  console.log(`  runs:      ${runs.size} → ${tracks.length} tracks + ${marks.length} marks`)
+  console.log(`  missions:  ${missions.size} (${multiTrack} with more than one track)`)
+  console.log(`  tracks:    ${runCount} → ${tracks.length} lines + ${marks.length} marks`)
   console.log(`  dropped:   ${dropped} rows`)
   console.log(
-    `  gallons:   ${totalGallons.toLocaleString()} in, ${spreadGallons.toLocaleString()} along tracks + ` +
+    `  gallons:   ${totalGallons.toLocaleString()} in, ${spreadGallons.toLocaleString()} along lines + ` +
       `${markGallons.toLocaleString()} on marks`,
+  )
+  console.log(
+    `  mission:   ${laterTracksWithVolume} later tracks now carry volume; ` +
+      `${pointsInMixed} point tracks in line missions carry none`,
   )
 
   // The guard that would have caught the point-run double-count on the day it
   // was written. Every gallon the source records leaves by exactly one of two
-  // doors — spread along a track, or parked on a mark — so the two have to sum
+  // doors — spread along a line, or parked on a mark — so the two have to sum
   // to the input. Rounding per segment is allowed to move a gallon between
-  // runs; it is not allowed to invent or lose one, so the tolerance is the
+  // tracks; it is not allowed to invent or lose one, so the tolerance is the
   // number of rounded segments, not a percentage.
   const leak = spreadGallons + markGallons - totalGallons
   if (Math.abs(leak) > tracks.length) {
     throw new Error(
-      `gallons do not balance: ${spreadGallons} along tracks + ${markGallons} on marks ` +
+      `gallons do not balance: ${spreadGallons} along lines + ${markGallons} on marks ` +
         `= ${spreadGallons + markGallons}, against ${totalGallons} in (${leak > 0 ? '+' : ''}${leak})`,
     )
   }
@@ -328,7 +387,7 @@ async function main() {
   console.log(`  track km:  p50 ${q(lens, 0.5)}  p90 ${q(lens, 0.9)}  max ${lens[lens.length - 1]}`)
   console.log(
     `  gal/km:    p10 ${Math.round(q(gpk, 0.1))}  p50 ${Math.round(q(gpk, 0.5))}  ` +
-      `p90 ${Math.round(q(gpk, 0.9))}  max ${Math.round(gpk[gpk.length - 1])}`,
+      `p90 ${Math.round(q(gpk, 0.9))}  max ${Math.round(gpk[gpk.length - 1])}  (lines with volume)`,
   )
 }
 

@@ -43,15 +43,46 @@ const km = (a, b, c, d) => {
  * recorded gallons whatever profile is used — the totals can never drift, and
  * any disagreement between two profiles is purely spatial.
  */
+// The file's OWN booking, reconstructed: a mission's whole volume against the
+// first waypoint of its first track (the 1A row), which is where HERBS keeps
+// it — see the 1985 record layout quoted in docs/methods-paper.md §2.4. The
+// track file spreads that volume across the mission's tracks, so booking each
+// LINE's share at that line's own first point would understate what the file
+// does by exactly the amount the mission-level spread corrects. `last` is the
+// mirror image, the mission's volume at the last waypoint of its last track.
+const missionGal = new Map()
+const missionFirst = new Map()
+const missionLast = new Map()
+const seat = (map, m, run, x, y, later) => {
+  const cur = map.get(m)
+  if (!cur || (later ? run > cur.run : run < cur.run)) map.set(m, { run, x, y })
+}
+for (const [, , gallons, , flat, m, run] of T.tracks) {
+  missionGal.set(m, (missionGal.get(m) ?? 0) + gallons)
+  seat(missionFirst, m, run, flat[0], flat[1], false)
+  seat(missionLast, m, run, flat[flat.length - 2], flat[flat.length - 1], true)
+}
+for (const [, , gallons, lon, lat, m, run] of T.marks) {
+  missionGal.set(m, (missionGal.get(m) ?? 0) + gallons)
+  seat(missionFirst, m, run, lon, lat, false)
+  seat(missionLast, m, run, lon, lat, true)
+}
+
 function field(deg, mode, rate = () => 1) {
   const key = (x, y) => `${Math.floor(x / deg)}|${Math.floor(y / deg)}`
   const M = new Map()
   const add = (k, v) => M.set(k, (M.get(k) ?? 0) + v)
+  if (mode === 'first' || mode === 'last') {
+    const seats = mode === 'first' ? missionFirst : missionLast
+    for (const [m, g] of missionGal) {
+      const p = seats.get(m)
+      if (g > 0 && p) add(key(p.x, p.y), g)
+    }
+    return M
+  }
   for (const [, , gallons, runKm, flat] of T.tracks) {
     if (gallons <= 0) continue
     const n = flat.length / 2
-    if (mode === 'first') { add(key(flat[0], flat[1]), gallons); continue }
-    if (mode === 'last') { add(key(flat[2 * n - 2], flat[2 * n - 1]), gallons); continue }
     if (n < 2 || runKm <= 0) { add(key(flat[0], flat[1]), gallons); continue }
     // Step finely enough that no cell is skipped, and cap the step so a coarse
     // grid does not sample a long run at two points.
@@ -101,7 +132,7 @@ const q = (p) => lens[Math.floor(lens.length * p)]
 const totalGal =
   T.tracks.reduce((a, t) => a + t[2], 0) + T.marks.reduce((a, m) => a + m[2], 0)
 console.log('§0 · the record')
-console.log(`   ${T.tracks.length.toLocaleString()} runs as lines, ${T.marks.length.toLocaleString()} at a single grid reference`)
+console.log(`   ${missionGal.size.toLocaleString()} missions: ${T.tracks.length.toLocaleString()} tracks as lines, ${T.marks.length.toLocaleString()} at a single grid reference`)
 console.log(`   ${(totalGal / 1e6).toFixed(3)}M gallons, and BOTH readings carry all of it — the disagreement is purely spatial`)
 console.log(`   run length km: p25 ${q(0.25).toFixed(1)} · median ${q(0.5).toFixed(1)} · p75 ${q(0.75).toFixed(1)} · p90 ${q(0.9).toFixed(1)} · max ${lens[lens.length - 1].toFixed(1)}`)
 

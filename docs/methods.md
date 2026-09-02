@@ -18,20 +18,26 @@ node scripts/build-figure-binning.mjs   # docs/figures/binning-comparison.svg
 ## 1 · The source, and the one thing about it that matters
 
 The HERBS tape (Stellman et al., 2003) records Operation Ranch Hand as
-**24,604 waypoints** grouped by Mission and Run into **11,273 spray runs**.
-Each run is a chain of legs — 1A, 1B, 1C — and the waypoints join end to end.
-The median run traces an **11 km polyline**.
+**24,604 waypoints** grouped into **9,141 missions** and, within them,
+**11,273 spray tracks** (what `hea-v` calls runs). Each track is a chain of
+waypoints — 1A, 1B, 1C — joined end to end; a second track on the same mission
+is 2A, 2B … The median track traces an **11 km polyline**, and 1,434 missions
+(15.7%) flew more than one.
 
 One field decides how the record can be drawn:
 
-> **All 19,490,690 gallons sit on leg 1A. Every other leg sums to exactly 0.**
+> **All 19,490,690 gallons sit on rows labelled 1A. Every other leg label sums
+> to exactly 0.**
 
-Measured against the source in `scripts/build-spray-tracks.mjs`, not inferred.
+Measured against the source in `scripts/build-spray-tracks.mjs`, not inferred,
+and confirmed by the tape's own record layout (Christian, 1985; quoted in
+[`methods-paper.md`](methods-paper.md) §2): gallons are "the number of gallons
+of herbicide dispensed during the mission cited", a per-mission field.
 
-The archive books each run's entire volume against its **first waypoint**. That
-is an accounting convention, not a statement about where herbicide landed —
-and a map drawn straight from those fields inherits the convention without
-saying so.
+The archive books each mission's entire volume against the **first waypoint of
+its first track**. That is an accounting convention, not a statement about
+where herbicide landed — and a map drawn straight from those fields inherits
+the convention without saying so.
 
 Source coordinates are quantised to 0.001°, about **111 m** on the ground —
 30× finer than the smallest cell any of these maps uses. Positional
@@ -41,10 +47,10 @@ quantisation is therefore not a term in anything below.
 
 | | what it does | what it claims |
 |---|---|---|
-| **Booked at 1A** | the whole run's gallons in the cell holding waypoint 1A | this is where the archive keeps its accounts |
-| **Spread along the run** | gallons per kilometre × length, distributed along the flown track | this is where the herbicide fell |
+| **Booked at 1A** | the whole mission's gallons in the cell holding its first waypoint | this is where the archive keeps its accounts |
+| **Spread along the tracks** | gallons per kilometre × length, distributed along every track the mission flew | this is where the herbicide fell |
 
-Both carry the identical total, **19.513 M gallons**. Nothing is created or
+Both carry the identical total, **19.491 M gallons**. Nothing is created or
 lost. **The disagreement between them is purely spatial.**
 
 That matters for what each can support: any statement about a national or
@@ -60,13 +66,13 @@ be physically relocated to turn one field into the other.
 
 | cell | cells with volume | volume to move | peak cell |
 |---|---|---|---|
-| 1 km | 5,027 → 34,276 | 82% | 2.46× |
-| **3 km** | **3,033 → 7,101** | **58%** | **2.53×** |
-| 7 km | 1,793 → 2,697 | 42% | 1.90× |
-| **13 km** | **846 → 979** | **26%** | **1.11×** |
-| 28 km | 289 → 308 | 11% | 0.98× |
-| 56 km | 97 → 101 | 5% | 0.99× |
-| 111 km | 38 → 39 | 2% | 0.99× |
+| 1 km | 4,880 → 37,257 | 83% | 2.46× |
+| **3 km** | **2,960 → 7,620** | **59%** | **2.51×** |
+| 7 km | 1,761 → 2,835 | 43% | 1.91× |
+| **13 km** | **839 → 1,017** | **26%** | **1.11×** |
+| 28 km | 289 → 313 | 12% | 0.99× |
+| 56 km | 97 → 102 | 5% | 0.99× |
+| 111 km | 38 → 40 | 2% | 0.98× |
 
 **The disagreement dies at the scale of a run.** The median run is 11 km; above
 about 28 km a run stays inside its own cell and the booking convention stops
@@ -83,17 +89,18 @@ gives volume to.
 
 | cell | mean | mean abs difference | relative | dosed cells read as 0 | >2× out | Spearman |
 |---|---|---|---|---|---|---|
-| 1 km | 467 | 762 | 163% | 86% | 97% | 0.10 |
-| **3 km** | **248** | **286** | **115%** | **59%** | **83%** | **0.33** |
-| 7 km | 164 | 137 | 84% | 35% | 65% | 0.57 |
-| 13 km | 113 | 58 | 51% | 15% | 41% | 0.81 |
-| 28 km | 84 | 19 | 23% | 6% | 18% | 0.95 |
-| 111 km | 41 | 2 | 4% | 3% | 3% | 0.99 |
+| 1 km | 430 | 714 | 166% | 88% | 97% | 0.11 |
+| **3 km** | **232** | **273** | **118%** | **63%** | **85%** | **0.34** |
+| 7 km | 156 | 134 | 86% | 39% | 70% | 0.56 |
+| 13 km | 109 | 57 | 53% | 19% | 46% | 0.80 |
+| 28 km | 82 | 19 | 24% | 8% | 20% | 0.95 |
+| 56 km | 63 | 7 | 11% | 5% | 9% | 0.98 |
+| 111 km | 40 | 2 | 4% | 5% | 5% | 0.99 |
 
 At 3 km — the scale of the explorer's fine grid — the difference between the
-two readings is **larger than the quantity being mapped**, and **59% of cells
+two readings is **larger than the quantity being mapped**, and **63% of cells
 that received herbicide read as zero** under the booked reading. Rank
-correlation is 0.33: it does not merely misstate how much, it fails to order
+correlation is 0.34: it does not merely misstate how much, it fails to order
 which place received more.
 
 ## 5 · The argument, given that there is no ground truth
@@ -103,7 +110,7 @@ fields above are estimates derived from the same records. Every figure in §3
 and §4 is a *disagreement between two readings*, never an error against a true
 value, and this document does not claim otherwise.
 
-Spreading volume along the run assumes a constant rate, which is an assumption.
+Spreading volume along the tracks assumes a constant rate, which is an assumption.
 So the assumption is pushed as hard as the record allows: the herbicide fell
 *somewhere along the track the aircraft flew* — that much the record does
 establish — and within that constraint the rate profile is varied to extremes.
@@ -112,9 +119,17 @@ Volume to move, relative to a constant rate:
 
 | cell | 2× front-loaded | 2× back-loaded | middle-heavy | ends-heavy | **booked at 1A** |
 |---|---|---|---|---|---|
-| 3 km | 15% | 15% | 7% | 7% | **58%** |
+| 3 km | 14% | 14% | 7% | 7% | **59%** |
 | 13 km | 8% | 8% | 2% | 2% | **26%** |
-| 28 km | 3% | 3% | 1% | 1% | **11%** |
+| 28 km | 3% | 3% | 1% | 1% | **12%** |
+
+A second, smaller question sits inside the first: the file books the load per
+**mission**, and a mission may have flown several tracks. Spreading the load by
+length across all of them (what the maps now do) against spreading each
+track's own booked figure along that track alone moves **4.8%** of the volume
+at 3 km, 2.4% at 13 km and 1.2% at 28 km
+(`scripts/analyse-mission-spread.mjs`) — inside the envelope above, and an
+order of magnitude below the booking convention.
 
 **This is the finding.** Within the family of readings the record admits, the
 answer is settled to about ±15% at 3 km, under rate profiles far more extreme
@@ -147,8 +162,8 @@ The Story's field is built by `scripts/build-story-heat.mjs` into the same
 0.03° cell the Archive's fine tier uses — one binning, two presentations —
 split by month because the Story's heat layer filters on the playhead and month
 is the resolution it steps in. It carries the record's total to the gallon
-(19.513 M) and is *smaller* than the waypoint file it replaced: 21,711 points
-against 24,604, because binning 8,753 runs into shared cells collapses more
+(19.491 M) and is *smaller* than the waypoint file it replaced: 23,729 points
+against 24,604, because binning 8,753 tracks into shared cells collapses more
 than sampling them adds.
 
 **A binned field has two constraints a scattered one does not**, and both were
