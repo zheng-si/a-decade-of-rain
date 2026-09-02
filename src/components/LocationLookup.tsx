@@ -508,9 +508,9 @@ export default function LocationLookup({
               )}
               {results.length > 0 && (
                 <p className="lookup-caveat">
-                  Fixed-wing (Ranch Hand) records only. No helicopter, ground or base-perimeter
-                  spraying. Gallons are the mission&apos;s logged volume, spread along its tracks
-                  by length.
+                  Every HERBS record, not only Ranch Hand: fixed-wing flights carry 95% of the
+                  gallons, helicopter and ground spraying the rest. Gallons are the
+                  mission&apos;s logged volume, spread along its tracks by length.
                 </p>
               )}
             </>
@@ -739,11 +739,11 @@ export default function LocationLookup({
               )}
 
               <p className="lookup-caveat">
-                Fixed-wing (Ranch Hand) records only. No helicopter, ground or base-perimeter
-                spraying.
+                Every HERBS record, not only Ranch Hand: fixed-wing flights carry 95% of the
+                gallons, helicopter and ground spraying the rest.
                 {results.length > 0 &&
                   unit === 'volume' &&
-                  ' Gallons are each run’s whole logged volume, booked at its first waypoint, not the share that fell inside this circle.'}
+                  ' Gallons are each run’s share of its mission’s logged volume, spread along the track by length, not the share that fell inside this circle.'}
               </p>
             </>
           )}

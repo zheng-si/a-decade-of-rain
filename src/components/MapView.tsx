@@ -44,6 +44,8 @@ import {
   setHighlightByFeature,
   setTrackTaper,
   taperGradient,
+  hitMarkRingRamp,
+  HI_BUMP,
   hitWidthRamp,
   hitMarkRamp,
   setTrackTime,
@@ -198,6 +200,9 @@ const LOOKUP_HI_SRC = 'lookup-hi'
 const LOOKUP_VEIL_LAYER = 'lookup-veil-fill'
 const LOOKUP_CIRCLE_LAYER = 'lookup-circle-line'
 const LOOKUP_HI_PT = 'lookup-hi-pt'
+/** The ring a single-point run wears while its mission is the view: the same
+ *  ring the record's own highlight gives a hovered or opened mark. */
+const LOOKUP_HI_RING = 'lookup-hi-ring'
 /** ONE STROKE LAYER PER AGENT COLOUR.
  *
  *  The hits are coloured by agent — that is what makes the "By Agent" bars in
@@ -1787,6 +1792,7 @@ export default function MapView() {
     if (!c && m == null) {
       restoreRecordTiers(map, hiddenTiersRef.current, tracksRef.current != null)
       for (const id of [
+        LOOKUP_HI_RING,
         LOOKUP_HI_PT,
         ...LOOKUP_HI_LINES,
         LOOKUP_CIRCLE_LAYER,
@@ -1872,6 +1878,25 @@ export default function MapView() {
           'circle-stroke-width': 1,
         },
       })
+      // Hollow, over the mark, in the mark's own colour: the record's
+      // highlight ring, so a single-point run in a mission reads as selected
+      // rather than as a dot that happens to be alone on the paper. Shown
+      // only while a mission is the view; a circle keeps the plain marks.
+      map.addLayer({
+        id: LOOKUP_HI_RING,
+        type: 'circle',
+        source: LOOKUP_HI_SRC,
+        filter: ['==', ['geometry-type'], 'Point'],
+        layout: { visibility: 'none' },
+        paint: {
+          'circle-color': 'rgba(0,0,0,0)',
+          'circle-radius': hitMarkRingRamp(2.2) as never,
+          'circle-stroke-color': ['get', 'c'],
+          'circle-stroke-width': 1.75,
+          'circle-pitch-alignment': 'map',
+          'circle-pitch-scale': 'map',
+        },
+      })
     }
     // A mission has no circle and no veil: the record's own tiers step back
     // exactly as they do for a circle, and the mission's tracks are what is
@@ -1892,6 +1917,31 @@ export default function MapView() {
     }
     ;(map.getSource(LOOKUP_HI_SRC) as maplibregl.GeoJSONSource).setData(fc(hi))
 
+    // A mission is drawn SELECTED, a circle is drawn as the record. Inside a
+    // circle the hits keep the key's language (width is gallons per km, each
+    // run fades from its first waypoint) because the circle is a piece of the
+    // record with the rest stepped back. A mission is a handful of runs the
+    // reader asked for by name, and at the record's own weight a 2K-gallon
+    // point or a 60 gal/km stroke was a pale mark on bare paper that the eye
+    // had to hunt for. So the mission takes the highlight's look instead:
+    // flat colour with no taper, the stroke at its own width plus the hover
+    // bump, and a ring around every single-point run. The record's hover and
+    // open-row highlight already draw exactly this, so a mission on screen is
+    // "these runs, lit", not a third encoding.
+    const asMission = !c && m != null
+    LOOKUP_HI_COLOURS.forEach((colour, i) => {
+      const id = LOOKUP_HI_LINES[i]
+      if (!map.getLayer(id)) return
+      const taper = asMission ? null : taperGradient(colour)
+      // Clearing line-gradient (undefined) is the one reset that is safe here:
+      // line-color is left set underneath it in both states, so there is no
+      // path to the spec default of black.
+      map.setPaintProperty(id, 'line-gradient', (taper ?? undefined) as never)
+      map.setPaintProperty(id, 'line-width', hitWidthRamp(1.2, asMission ? HI_BUMP : 0) as never)
+    })
+    if (map.getLayer(LOOKUP_HI_RING))
+      map.setLayoutProperty(LOOKUP_HI_RING, 'visibility', asMission ? 'visible' : 'none')
+
     // One record open: the other fifty-nine step back to a fifth. They are
     // still there — the reader chose this one OUT of them, and the answer is
     // partly the company it keeps — but they stop competing with it. Keyed on
@@ -1910,6 +1960,8 @@ export default function MapView() {
     for (const id of LOOKUP_HI_LINES)
       if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', fade(1))
     if (map.getLayer(LOOKUP_HI_PT)) map.setPaintProperty(LOOKUP_HI_PT, 'circle-opacity', fade(1))
+    if (map.getLayer(LOOKUP_HI_RING))
+      map.setPaintProperty(LOOKUP_HI_RING, 'circle-stroke-opacity', fade(1))
 
     // Everything outside the circle leaves the map. The veil alone was a 55%
     // paper wash over the record, which in the dense provinces is still a
