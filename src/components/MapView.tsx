@@ -753,12 +753,18 @@ export default function MapView() {
    *  and no answer at all, because the card's presence is what suppresses it.
    *  Every door into a new centre had to remember to close it; this is the one
    *  place that knows a centre changed. Opening a record from the list does
-   *  not move the centre, so it does not trip this. */
+   *  not move the centre, so it does not trip this.
+   *
+   *  A mission is a centre too. Searching mission 119 with a row of mission
+   *  120 open left that row's card up under 119's list, where it no longer
+   *  matched any row and so rendered as the stand-alone map-click card: two
+   *  looks for one thing, and the second one about a mission the reader had
+   *  just left. */
   useEffect(() => {
     setInspect(null)
     pinnedRunRef.current = null
     if (mapRef.current) paintLit(mapRef.current, hoverRunRef.current)
-  }, [lookup.center?.lng, lookup.center?.lat])
+  }, [lookup.center?.lng, lookup.center?.lat, lookup.mission])
 
   /** The one way out of a lookup. Hoisted because there are now two doors
    *  onto it — the × in the search row and the Clear on the map's own hint —
