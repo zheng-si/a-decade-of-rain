@@ -52,6 +52,16 @@ export const TRACK_DIM_LAYER = 'spray-track-dim'
 /** Segments of runs with no recorded volume — the same fact the hollow rings
  *  carry on the dot map, in the grammar of a line. */
 export const TRACK_NIL_LAYER = 'spray-track-nil'
+/** The positional halo: a soft band under every sprayed stroke, as wide as the
+ *  coordinate accuracy of the record. HERBS grid references are nominally 100 m
+ *  but Stellman et al. (2004) put the working accuracy nearer 500 m and warn
+ *  that any finer distance is false precision. A hairline at z14 claims 10 m;
+ *  the band says where the line could be. It is NOT a swath and not a
+ *  confidence interval, which is why it is drawn in the ink of the ground and
+ *  not in the agent's colour. */
+export const TRACK_HALO_LAYER = 'spray-track-halo'
+/** The same band, drawn again under the highlighted run at a legible alpha. */
+export const TRACK_HI_HALO_LAYER = 'spray-track-hi-halo'
 /** Runs recorded at a single grid reference: no line exists to draw. */
 export const TRACK_MARK_LAYER = 'spray-track-mark'
 /** The one run under the pointer, redrawn opaque and a little wider.
@@ -167,8 +177,10 @@ export interface TrackStyle {
    *
    *  What the direction MEANS is worth being careful about either way: head is
    *  leg 1A, the run's first row and the one the gallons are booked against.
-   *  The record gives no flight bearing, so this is "first waypoint on file",
-   *  not "verified direction of travel". */
+   *  For a connected aerial path that is also where spraying began: Stellman
+   *  et al. (2003, EHP) read the letters as the spray-on point, the turns and
+   *  the spray-off point in order. It is still a sequence, not a bearing, and
+   *  it is not claimed for records logged as point applications. */
   ends: {
     head: number
     tail: number
@@ -189,6 +201,13 @@ export interface TrackStyle {
   nil: { width: number; opacity: number; dash: [number, number]; shown: boolean }
   /** Runs recorded at a single grid reference — a point, drawn as one. */
   marks: { kFar: number; kNear: number; cap: number; shown: boolean }
+  /** The positional halo under each sprayed stroke. `metres` is the HALF
+   *  width, on the ground, so 500 puts the band's edge 500 m either side of
+   *  the line; the width in px follows the zoom exactly, unlike every other
+   *  ramp here, because the band measures the ground and not the record. Soft
+   *  edged (blur is half the width) so it reads as "about here", not as a
+   *  corridor with a boundary. */
+  halo: { metres: number; opacity: number; hiOpacity: number; shown: boolean }
   /** Fade along the stroke, head to tail. 0 = flat, 1 = tail fully transparent.
    *
    *  The direction cue this map actually ships, and the only one that can be:
@@ -208,7 +227,8 @@ export interface TrackStyle {
    *  the head — towards leg 1A, the waypoint the gallons are booked against —
    *  which with a taper reads as a brush loading as it lands. 'head' is the
    *  other reading: the aircraft leaving its first waypoint and running out.
-   *  Neither is a claim about heading; the record carries none.
+   *  Neither is a claim about bearing: the letters give the spray sequence
+   *  (see `ends`), not a compass heading.
    *
    *  There is no duration. The wipe is driven by where the playhead sits inside
    *  its own filter step, so a run draws on over exactly one step and the
@@ -246,6 +266,13 @@ export const TRACKS: TrackStyle = {
   ends: { head: 0.75, tail: 0.75, opacity: 0.6, blur: 0.3, shown: false, fuse: true },
   nil: { width: 0.6, opacity: 0.35, dash: [2, 2], shown: false },
   marks: { kFar: 0.02, kNear: 0.09, cap: 14, shown: true },
+  // 500 m either side, after Stellman et al. (2004). Faint on purpose, and
+  // drawn once per geometry (TrackProps.halo) so that a route flown daily
+  // does not stack into a black corridor; parallel passes 80 m apart still
+  // sum, to a grey that says "several lines could be here". The highlight
+  // draws the band again at `hiOpacity` for the one run under the pointer,
+  // which is where a reader actually asks "how exactly is this placed?".
+  halo: { metres: 500, opacity: 0.1, hiOpacity: 0.16, shown: true },
   // Strong enough to read at a glance on a 155 px median stroke, short of 1.0
   // so the tail still records that the aircraft was there.
   taper: 0.7,
@@ -333,6 +360,7 @@ export function setTracks(next: Partial<TrackStyle>) {
   if (next.nil) TRACKS.nil = { ...next.nil, dash: [next.nil.dash[0], next.nil.dash[1]] }
   if (next.marks) TRACKS.marks = { ...next.marks }
   if (next.draw) TRACKS.draw = { ...next.draw }
+  if (next.halo) TRACKS.halo = { ...next.halo }
 }
 
 /** The taper's own alpha at a point along the stroke. */
@@ -491,6 +519,36 @@ function widthRamp(): maplibregl.ExpressionSpecification {
     Z_FAR, at(TRACKS.far),
     Z_TOP, at(TRACKS.near),
   ] as unknown as maplibregl.ExpressionSpecification
+}
+
+/** Metres on the ground at the latitude of the record, in px at zoom z.
+ *
+ *  Web Mercator: 156,543 m per px at z0 on the equator, scaled by cos(lat) and
+ *  halved per zoom. Taken at 11.5°N, the middle of the sprayed area; from Cà
+ *  Mau (8.6°) to the DMZ (17°) the error is under 2%, which on a band that
+ *  says "roughly 500 m" is nothing. Written as an exponential-2 interpolate
+ *  between the hand-off and z18 so the band doubles with every zoom exactly,
+ *  as a distance on the ground must and as no gallons ramp here does. */
+const M_PER_PX_Z0 = 156543.03392 * Math.cos((11.5 * Math.PI) / 180)
+const Z_HALO_TOP = 18
+function metresRamp(metres: number): maplibregl.ExpressionSpecification {
+  const px = (z: number) => (metres * 2 ** z) / M_PER_PX_Z0
+  return [
+    'interpolate', ['exponential', 2], ['zoom'],
+    Z_NEAR, px(Z_NEAR),
+    Z_HALO_TOP, px(Z_HALO_TOP),
+  ] as unknown as maplibregl.ExpressionSpecification
+}
+
+/** The halo's full width: twice the half width the table states. */
+function haloWidthRamp(): maplibregl.ExpressionSpecification {
+  return metresRamp(TRACKS.halo.metres * 2)
+}
+
+/** Feather equal to the half width, so the band has no edge at all: alpha
+ *  peaks on the line and falls to nothing at the stated distance. */
+function haloBlurRamp(): maplibregl.ExpressionSpecification {
+  return metresRamp(TRACKS.halo.metres)
 }
 
 /** Endpoint radius: half the line's own width at this zoom, times head or tail.
@@ -693,8 +751,17 @@ export function applyTracks(map: maplibregl.Map) {
   // console could open a blank band between the two encodings and nothing said
   // so. minzoom is a layer property like any other; it belongs in the same
   // apply as the paint.
-  for (const id of [TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER, TRACK_END_LAYER, TRACK_DRAW_LAYER, TRACK_HI_LAYER, TRACK_HI_MARK_LAYER, ...TRACK_HUE_LAYERS, ...TRACK_DRAW_HUE_LAYERS]) {
+  for (const id of [TRACK_HALO_LAYER, TRACK_HI_HALO_LAYER, TRACK_LAYER, TRACK_DIM_LAYER, TRACK_NIL_LAYER, TRACK_MARK_LAYER, TRACK_END_LAYER, TRACK_DRAW_LAYER, TRACK_HI_LAYER, TRACK_HI_MARK_LAYER, ...TRACK_HUE_LAYERS, ...TRACK_DRAW_HUE_LAYERS]) {
     if (map.getLayer(id)) map.setLayerZoomRange(id, trackStart, 24)
+  }
+  for (const id of [TRACK_HALO_LAYER, TRACK_HI_HALO_LAYER]) {
+    if (!map.getLayer(id)) continue
+    map.setPaintProperty(id, 'line-width', haloWidthRamp() as never)
+    map.setPaintProperty(id, 'line-blur', haloBlurRamp() as never)
+    vis(id, TRACKS.halo.shown)
+  }
+  if (map.getLayer(TRACK_HI_HALO_LAYER)) {
+    map.setPaintProperty(TRACK_HI_HALO_LAYER, 'line-opacity', TRACKS.halo.hiOpacity)
   }
   // The highlight is the stroke's own ramp plus a constant, so a console change
   // to the width has to reach it too — otherwise hovering would report the
@@ -771,7 +838,30 @@ export function addTrackLayers(
   map.addSource(TRACK_MARK_SOURCE, { type: 'geojson', data: data.marks })
   map.addSource(TRACK_END_SOURCE, { type: 'geojson', data: data.ends })
 
-  // Unsprayed tracks first, so a real spray line always draws over the record
+  // The positional halo at the very bottom, under every stroke: it is ground
+  // the line could occupy, not a mark of its own, so nothing may draw under it.
+  map.addLayer(
+    {
+      id: TRACK_HALO_LAYER,
+      type: 'line',
+      source: TRACK_SOURCE,
+      minzoom: Z_NEAR,
+      // Once per geometry, not once per run — see TrackProps.halo.
+      filter: all(HAS_VOLUME, ['==', ['get', 'halo'], 1]),
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        // The ground's own ink, never the agent's: a coloured band would read
+        // as a swath of that agent, which is the one thing this is not.
+        'line-color': '#101a14',
+        'line-width': haloWidthRamp(),
+        'line-blur': haloBlurRamp(),
+        'line-opacity': dayGate(TRACKS.halo.opacity),
+      },
+    },
+    labelId,
+  )
+
+  // Unsprayed tracks next, so a real spray line always draws over the record
   // of a pass that carried nothing.
   map.addLayer(
     {
@@ -945,6 +1035,26 @@ export function addTrackLayers(
     type: 'geojson',
     data: { type: 'FeatureCollection', features: [] },
   })
+  // The highlighted run's own band, under its stroke. The record's halo is
+  // faint so that stacks stay legible; the one run under the pointer can
+  // afford to show its 500 m plainly.
+  map.addLayer(
+    {
+      id: TRACK_HI_HALO_LAYER,
+      type: 'line',
+      source: TRACK_HI_SOURCE,
+      minzoom: Z_NEAR,
+      filter: ['==', ['geometry-type'], 'LineString'],
+      layout: { 'line-cap': 'round', 'line-join': 'round' },
+      paint: {
+        'line-color': '#101a14',
+        'line-width': haloWidthRamp(),
+        'line-blur': haloBlurRamp(),
+        'line-opacity': TRACKS.halo.hiOpacity,
+      },
+    },
+    labelId,
+  )
   map.addLayer(
     {
       id: TRACK_HI_LAYER,
@@ -1034,6 +1144,7 @@ function applyDayGate(map: maplibregl.Map) {
   // Zero while the twins carry it, for the same reason the gradient write is
   // skipped: the filter that hides this layer is slower than any paint, so it
   // must not be able to draw anything in the gap.
+  set(TRACK_HALO_LAYER, 'line-opacity', TRACKS.halo.opacity)
   set(TRACK_LAYER, 'line-opacity', hueLive ? 0 : TRACKS.opacity)
   set(TRACK_DIM_LAYER, 'line-opacity', TRACKS.opacity)
   set(TRACK_NIL_LAYER, 'line-opacity', TRACKS.nil.opacity)

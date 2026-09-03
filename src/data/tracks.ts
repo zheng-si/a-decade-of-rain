@@ -42,11 +42,12 @@ export interface TrackProps {
   /** Endpoint features only: 0 = head, 1 = tail.
    *
    *  "Head" means leg 1A — the first row of the run and the one HERBS books
-   *  the gallons against. Whether the aircraft physically flew 1A→1B or the
-   *  clerk listed them in some other order is NOT in the record; the letters
-   *  are the only ordering it gives, so they are the only ordering to use, and
-   *  a reader should be told the arrow means "first waypoint on file", not
-   *  "direction of flight, verified". */
+   *  the gallons against. For a connected aerial path the letters are the
+   *  spray sequence: Stellman et al. (2003, EHP) read A as the point where
+   *  spraying began, the middle letters as turns made while spraying and the
+   *  last as spray-off. That is an order, not a compass bearing, and it is not
+   *  claimed for records logged as point applications (perimeter spraying
+   *  went guard post to guard post and is not connected). */
   end?: 0 | 1
   /** HERBS run identity — Mission and Run numbers from the source rows, so a
    *  record on screen can cite the row it came from. 0 = not carried. */
@@ -55,6 +56,17 @@ export interface TrackProps {
   /** Aircraft count for the run, read the way hea-v's own engine reads FWAC
    *  (the last two digits). 0 = not recorded. */
   fwac: number
+  /** 1 on the one run that carries the positional halo for its geometry.
+   *
+   *  Runs repeat: a route north of Đồng Xoài was flown daily for three weeks
+   *  on the same five grid references, and 488 sprayed geometries in the file
+   *  occur more than once (the largest 32 times). The halo is a statement
+   *  about where a LINE could be, so it is owed once per line, not once per
+   *  flight; drawn per run, the alpha of a 21-deep stack saturates into a
+   *  black corridor with an edge, which is the one picture the band exists to
+   *  avoid. The earliest sprayed run of each geometry carries it, so under the
+   *  playhead the band appears with the first flight and stays. */
+  halo: 0 | 1
 }
 
 interface RawTracks {
@@ -130,10 +142,20 @@ async function parseTracks(
           mission: mission ?? 0,
           run: run ?? 0,
           fwac: fwac ?? 0,
+          halo: 0,
         },
       }
     },
   )
+  // One halo per distinct sprayed geometry, on its earliest run. See `halo`.
+  const firstOf = new Map<string, GeoJSON.Feature<GeoJSON.LineString, TrackProps>>()
+  for (const f of lines) {
+    if (f.properties.gpk <= 0) continue
+    const k = f.geometry.coordinates.join(';')
+    const seen = firstOf.get(k)
+    if (!seen || f.properties.day < seen.properties.day) firstOf.set(k, f)
+  }
+  for (const f of firstOf.values()) f.properties.halo = 1
 
   const marks: GeoJSON.Feature<GeoJSON.Point, TrackProps>[] = raw.marks.map(
     ([agent, day, gallons, lon, lat, mission, run, fwac]) => {
@@ -153,6 +175,7 @@ async function parseTracks(
           mission: mission ?? 0,
           run: run ?? 0,
           fwac: fwac ?? 0,
+          halo: 0,
         },
       }
     },
