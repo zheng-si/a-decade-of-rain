@@ -714,6 +714,21 @@
   opacity: 0.75;
 }
 
+/* A cell of the proximity grid: a square, because the mark on the map is a
+   square, at the raster's own alpha. */
+.archive-key-legend .key-cell {
+  display: block;
+  width: 0.625rem;
+  height: 0.625rem;
+  margin: 0 auto;
+  opacity: 0.7;
+}
+
+/* The band buttons stand in the legend's row, before the swatches. */
+.archive-key-legend .map-key-bands {
+  margin-right: 0.5rem;
+}
+
 .archive-key-legend .key-line-dash {
   display: block;
   width: 0.875rem;

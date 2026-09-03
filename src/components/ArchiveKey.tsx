@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type maplibregl from 'maplibre-gl'
 import { TRACK_LAYER, TRACKS } from './trackLayers'
+import { hitRamp } from '../data/proximity'
 // The key's shared furniture. Both surfaces render these classes, so the
 // stylesheet travels with the components rather than with either route.
 import './MapKey.css'
@@ -52,7 +53,19 @@ interface Props {
    *  still changes; it just changes the bar's WIDTH, and a legend that grows
    *  sideways under the map does not move anything else on the screen. */
   layout?: 'panel' | 'bar'
+  /** The proximity grid — Stellman & Stellman's table drawn in place of the
+   *  dots. `proximityReady` is whether it has landed: the switch is live
+   *  before that, and the key must not describe a grid that is not up yet. */
+  proximity?: boolean
+  proximityReady?: boolean
+  onToggleProximity?: () => void
+  band?: number
+  bands?: number[]
+  onSetBand?: (km: number) => void
 }
+
+/** The five classes of the count ramp, matching hitRamp / HIT_CLASS_LABELS. */
+const HIT_LABELS = ['1–2', '3–5', '6–10', '11–20', '21+']
 
 export default function ArchiveKey({
   map,
@@ -64,6 +77,12 @@ export default function ArchiveKey({
   hues,
   tracks = false,
   layout = 'panel',
+  proximity = false,
+  proximityReady = false,
+  onToggleProximity,
+  band = 1,
+  bands = [0.5, 1, 2, 5],
+  onSetBand,
 }: Props) {
   /** Whether the TRACK layer is drawing right now.
    *
@@ -161,6 +180,33 @@ export default function ArchiveKey({
   )
 
   // The three pieces, built once and placed by whichever layout is asking.
+  // The layer switch: the record's own marks, or the authors' proximity
+  // grid under the strokes. Sits before Flat/3D because it decides what the
+  // key describes; Flat/3D only decides how the ground is tilted.
+  const layerSwitch = onToggleProximity ? (
+    <>
+      <p className="map-key-view-label">Layer</p>
+      <div className="map-key-view" role="group" aria-label="Map layer">
+        <button
+          type="button"
+          className={`map-key-view-btn${proximity ? '' : ' is-active'}`}
+          aria-pressed={!proximity}
+          onClick={() => proximity && onToggleProximity()}
+        >
+          Record
+        </button>
+        <button
+          type="button"
+          className={`map-key-view-btn${proximity ? ' is-active' : ''}`}
+          aria-pressed={proximity}
+          onClick={() => !proximity && onToggleProximity()}
+        >
+          Proximity
+        </button>
+      </div>
+    </>
+  ) : null
+  const onProximity = proximity && proximityReady
   const viewSwitch = (
     <>
       <p className="map-key-view-label">Map View</p>
@@ -197,16 +243,19 @@ export default function ArchiveKey({
      against), not a verified heading: HERBS records no bearing, so "direction
      of flight" would be a claim the record does not make.
      The second sentence only while the colour is carrying the agent: with a
-     chip on, colour means "the one you picked", which the chip already says. */
-  const note =
-    (onTracks
-      ? 'Stroke width is gallons per kilometre. Each run fades away from its first waypoint on file.'
-      : 'Dot area is the gallons that fell in the cell, counted along every run that crossed it.') +
-    (byAgent
-      ? onTracks
-        ? ' Colour is the agent that flew it.'
-        : ' Colour is the agent that sprayed the most in that cell.'
-      : '')
+     chip on, colour means "the one you picked", which the chip already says.
+     Over the proximity grid the note describes the grid instead: whose model
+     it is, what a hit is, and what the colour is not. */
+  const note = onProximity
+    ? `Stellman and Stellman's proximity model, 1961 to 1971, on their 0.01° grid. A hit is a recorded spray-path leg passing within ${band} km of the cell's grid point; colour is the number of hits, whole record. Proximity to a recorded path, not deposition or exposure.${onTracks ? ' The strokes are the recorded paths themselves.' : ''}`
+    : (onTracks
+        ? 'Stroke width is gallons per kilometre. Each run fades away from its first waypoint on file.'
+        : 'Dot area is the gallons that fell in the cell, counted along every run that crossed it.') +
+      (byAgent
+        ? onTracks
+          ? ' Colour is the agent that flew it.'
+          : ' Colour is the agent that sprayed the most in that cell.'
+        : '')
 
   /* ON THE ROW IT EXPLAINS, not at the end of the bar.
      The note opens by describing this one mark — how wide a stroke is, how big
@@ -257,6 +306,59 @@ export default function ArchiveKey({
   /* Exposed: this list and the note under it are the only place the map's
      marks are NAMED, and aria-hidden left the AX tree with zero nodes
      carrying the legend. The swatches alone stay decorative. */
+  /* The grid's own key: the band, then the five classes of the ramp in the
+     selection's colour. The band buttons live in the key because the band is
+     part of what the colour means — "hits within 1 km" is a different map
+     from "hits within 5 km" and the same swatch would name both. */
+  const ramp = hitRamp(tint)
+  const proxList = (
+    <>
+      <div className="map-key-view map-key-bands" role="group" aria-label="Distance band">
+        {bands.map((d) => (
+          <button
+            key={d}
+            type="button"
+            className={`map-key-view-btn${d === band ? ' is-active' : ''}`}
+            aria-pressed={d === band}
+            onClick={() => d !== band && onSetBand?.(d)}
+          >
+            {d} km
+          </button>
+        ))}
+      </div>
+      <ul className={layout === 'bar' ? 'map-key-list is-inline' : 'map-key-list'}>
+        {HIT_LABELS.map((label, i) => (
+          <li key={label}>
+            <span className="key-swatch" aria-hidden="true">
+              <span className="key-cell" style={{ background: ramp[i] }} />
+            </span>
+            {i === 0 ? `${label} hits` : label}
+            {i === 0 ? onRow : null}
+          </li>
+        ))}
+        {onTracks && (
+          <li>
+            <span className="key-swatch" aria-hidden="true">
+              <span
+                className={byAgent ? 'key-line is-hues' : 'key-line'}
+                style={{
+                  background: byAgent
+                    ? `linear-gradient(90deg, ${hues!.join(', ')})`
+                    : `linear-gradient(90deg, ${tint}, ${tint}00)`,
+                }}
+              />
+            </span>
+            Spray Run
+          </li>
+        )}
+        <li>
+          <span className="key-swatch key-border" aria-hidden="true" />
+          National Border
+        </li>
+      </ul>
+    </>
+  )
+
   const list = (
     <ul className={layout === 'bar' ? 'map-key-list is-inline' : 'map-key-list'}>
         {!onTracks && (
@@ -375,11 +477,12 @@ export default function ArchiveKey({
        a rule scoped to that class. Dropping it left the rows labelled and
        blank. The bar's own rules undo the block layout it also carries. */
     return (
-      <div className="archive-key-legend map-key-bar" role="group" aria-label="Map key">
+      <div className={`archive-key-legend map-key-bar${onProximity ? ' is-wide' : ''}`} role="group" aria-label="Map key">
+        {layerSwitch && <div className="map-key-bar-group">{layerSwitch}</div>}
         <div className="map-key-bar-group">{viewSwitch}</div>
         <div className="map-key-bar-group is-legend">
           <p className="map-key-view-label">Map Key</p>
-          {list}
+          {onProximity ? proxList : list}
           {infoPanel}
         </div>
       </div>
@@ -388,8 +491,9 @@ export default function ArchiveKey({
 
   return (
     <div className="archive-key-legend">
+      {layerSwitch}
       {viewSwitch}
-      {list}
+      {onProximity ? proxList : list}
       <p className="map-key-note">{note}</p>
     </div>
   )

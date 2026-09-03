@@ -1718,6 +1718,17 @@
   }
 }
 
+/* The proximity key is wider than the record's — a layer switch, four band
+   buttons and five classes — and does not fit the centred clearance at any
+   common width. It takes the same left-anchored room the narrow viewport
+   does, at every width. */
+.map-wrap .map-key-bar.is-wide {
+  left: calc(1.5rem + 23.25rem + 1.5rem);
+  transform: none;
+  /* Short of the scale bar, which is the map's own and cannot move. */
+  max-width: calc(100% - 26.25rem - 7rem);
+}
+
 .map-wrap .map-key-bar-group {
   display: flex;
   align-items: center;

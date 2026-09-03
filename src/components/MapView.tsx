@@ -56,6 +56,14 @@ import {
   setLayersVisible,
 } from './trackLayers'
 import { loadTracks, type TrackDataset } from '../data/tracks'
+import {
+  loadProximity,
+  cellAt,
+  hitsAt,
+  hitRamp,
+  renderProximity,
+  type ProximityGrid,
+} from '../data/proximity'
 import LocationLookup, { type LookupState } from './LocationLookup'
 import {
   queryLookup,
@@ -368,7 +376,20 @@ interface UrlState {
   lookup?: { lng: number; lat: number; radiusKm: number; from: string; to: string }
   /** A HERBS mission number: `?m=167`. */
   mission?: number
+  /** The proximity grid instead of the record's dots: `?layer=proximity`,
+   *  with the band in km as `d` (0.5, 1, 2 or 5; 1 when absent). */
+  proximity?: boolean
+  band?: number
 }
+
+/** The proximity bands, in km, as Stellman & Stellman (2004) define them. */
+const PROX_BANDS = [0.5, 1, 2, 5]
+const PROX_SOURCE = 'proximity'
+const PROX_LAYER = 'proximity-l'
+/** The strokes' colour over the grid: the panel's own dark green, and the
+ *  same grey the record uses for a de-emphasised agent. */
+const PROX_INK = '#213528'
+const PROX_INK_DIM = '#9aa39c'
 
 function readUrlState(): UrlState {
   const q = new URLSearchParams(window.location.search)
@@ -419,6 +440,9 @@ function readUrlState(): UrlState {
   // parsed, so `?m=12abc` is not mission 12.
   const m = q.get('m')
   if (m && /^\d{1,5}$/.test(m) && Number(m) > 0) out.mission = Number(m)
+  if (q.get('layer') === 'proximity') out.proximity = true
+  const d = Number(q.get('d'))
+  if (PROX_BANDS.includes(d)) out.band = d
   return out
 }
 
@@ -443,8 +467,14 @@ function buildSearch(
   agentKey: string,
   is3D: boolean,
   lookup: LookupState,
+  proximity: boolean,
+  band: number,
 ): string {
   const q = new URLSearchParams()
+  if (proximity) {
+    q.set('layer', 'proximity')
+    if (band !== 1) q.set('d', String(band))
+  }
   // The console's own flag rides along. It is not view state, but this
   // function is the sole author of the query string, so anything it does not
   // re-emit is deleted -- and the agent colours are applied at LOAD, which
@@ -693,6 +723,20 @@ export default function MapView() {
   const [playing, setPlaying] = useState(false)
   const [agentKey, setAgentKey] = useState('all')
   const [is3D, setIs3D] = useState(false)
+  // ── the proximity grid ───────────────────────────────────────────────────
+  // Stellman & Stellman's own table, drawn instead of the record's dots. The
+  // strokes stay: the grid is a model and the strokes are the evidence it was
+  // made from, and the reader should be able to see both at once.
+  const [proximity, setProximity] = useState(false)
+  const [band, setBand] = useState(1)
+  const [proxReady, setProxReady] = useState(false)
+  const proxRef = useRef<ProximityGrid | null>(null)
+  const proxOnRef = useRef(false)
+  proxOnRef.current = proximity
+  const bandRef = useRef(1)
+  bandRef.current = band
+  /** The selected agent GROUP (0–3) or null for all, mirrored for the hover. */
+  const proxGroupRef = useRef<number | null>(null)
   const [stats, setStats] = useState({ missions: 0, runs: 0, gallons: 0 })
   const [volume, setVolume] = useState<VolumeChart | null>(null)
   const [inspect, setInspect] = useState<Inspect | null>(null)
@@ -1145,6 +1189,35 @@ export default function MapView() {
           }
           hoverRunRef.current = null
           paintHover()
+          // Over the proximity grid the dots are hidden, so the thing under
+          // the pointer is a cell of the authors' table. One line of the
+          // selected band, one line of the other three, and the word "hits"
+          // because it is their word: a spray-path leg recorded within the
+          // distance of the cell's grid point.
+          if (proxOnRef.current && proxRef.current) {
+            const g = proxRef.current
+            const cell = cellAt(g, e.lngLat.lng, e.lngLat.lat)
+            const sel = proxGroupRef.current
+            const hits = cell >= 0 ? hitsAt(g, cell, sel == null ? null : [sel]) : null
+            if (!hits || !hits[3]) {
+              hover.remove()
+              map.getCanvas().style.cursor = ''
+              return
+            }
+            const bi = PROX_BANDS.indexOf(bandRef.current)
+            const others = PROX_BANDS.map((d, i) => (i === bi ? null : `${d} km ${hits[i].toLocaleString()}`))
+              .filter(Boolean)
+              .join(' · ')
+            map.getCanvas().style.cursor = 'default'
+            hover
+              .setLngLat(e.lngLat)
+              .setHTML(
+                `<strong><span class="n">${hits[bi].toLocaleString()}</span> Hit${hits[bi] === 1 ? '' : 's'} within ${PROX_BANDS[bi]} km</strong>` +
+                  `<span>${others} · ${sel == null ? 'All agents' : groupLabels[sel]}</span>`,
+              )
+              .addTo(map)
+            return
+          }
           const feats = map.queryRenderedFeatures(e.point, { layers: volLayers })
           if (!feats.length) {
             hover.remove()
@@ -1352,6 +1425,8 @@ export default function MapView() {
           setIs3D(true)
           applyView(map, true, homeRef.current, false)
         }
+        if (urlState.proximity) setProximity(true)
+        if (urlState.band != null) setBand(urlState.band)
         if (urlState.mission != null) {
           const m = urlState.mission
           setLookup((s) => ({ ...s, center: null, place: undefined, mission: m }))
@@ -1530,12 +1605,15 @@ export default function MapView() {
         setDrawVisible(map, false)
       }
       settledDayRef.current = day
+      // Over the proximity grid the strokes go to ink: the grid has the
+      // colour, and a red stroke on a red cell was neither readable nor
+      // honest about which of the two is the record.
       setTrackAgents(
         map,
         activeIndices,
-        choices.find((c) => c.key === agentKey)?.color ?? DOTS.tint,
-        DOTS.dim,
-        groupHues,
+        proxOnRef.current ? PROX_INK : (choices.find((c) => c.key === agentKey)?.color ?? DOTS.tint),
+        proxOnRef.current ? PROX_INK_DIM : DOTS.dim,
+        proxOnRef.current ? groupHues.map(() => PROX_INK) : groupHues,
       )
     }
     if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
@@ -1683,6 +1761,80 @@ export default function MapView() {
     setDrawVisible(map, false)
     settledDayRef.current = dayRef.current
   }, [playing, tracksReady])
+
+  // ── the proximity grid: load once, on first request ─────────────────────
+  useEffect(() => {
+    if (!proximity || proxRef.current) return
+    let cancelled = false
+    loadProximity()
+      .then((g) => {
+        if (cancelled) return
+        proxRef.current = g
+        setProxReady(true)
+      })
+      .catch((e) => console.error('proximity grid failed to load', e))
+    return () => {
+      cancelled = true
+    }
+  }, [proximity])
+
+  // ── and draw it ──────────────────────────────────────────────────────────
+  // The image is re-rendered whenever the band or the selection changes: a
+  // 1512 × 2460 canvas, painted per pixel from 125,915 cells, well under a
+  // frame on this machine. The dots step aside while the grid is up; the
+  // strokes stay. The band's colour is the selection's own, as everywhere.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const g = proxRef.current
+    const groups = choices.filter((c) => c.indices && c.color)
+    const gi = groups.findIndex((c) => c.key === agentKey)
+    proxGroupRef.current = gi >= 0 ? gi : null
+    const on = proximity && !!g
+    if (on) {
+      const tint = choices.find((c) => c.key === agentKey)?.color ?? DOTS.tint
+      const bi = PROX_BANDS.indexOf(band)
+      const img = renderProximity(g, bi < 0 ? 1 : bi, gi >= 0 ? [gi] : null, hitRamp(tint))
+      const src = map.getSource(PROX_SOURCE) as maplibregl.ImageSource | undefined
+      if (src) src.updateImage(img)
+      else {
+        map.addSource(PROX_SOURCE, { type: 'image', url: img.url, coordinates: img.coordinates })
+        // Under the record's bottom tier, so dots (when they return) and
+        // strokes always draw over the model they were the evidence for.
+        map.addLayer(
+          {
+            id: PROX_LAYER,
+            type: 'raster',
+            source: PROX_SOURCE,
+            paint: {
+              'raster-opacity': 0.7,
+              'raster-resampling': 'nearest',
+              'raster-fade-duration': 0,
+            },
+          },
+          map.getLayer(VOL_COARSE_LAYER) ? VOL_COARSE_LAYER : undefined,
+        )
+      }
+    }
+    if (map.getLayer(PROX_LAYER)) map.setLayoutProperty(PROX_LAYER, 'visibility', on ? 'visible' : 'none')
+    // The grid tiers: hidden while the grid is up, back when it is down —
+    // unless a lookup is holding them hidden for its own reasons.
+    const lookupUp = lookup.center != null || lookup.mission != null
+    if (on) setLayersVisible(map, GRID_TIERS.slice(0, 2), false)
+    else if (!lookupUp) setLayersVisible(map, GRID_TIERS.slice(0, 2), true)
+    // The strokes: ink over the grid, their own colours over the record. The
+    // day effect makes the same choice on every step; this is the toggle.
+    if (tracksRef.current) {
+      const colour = choices.find((c) => c.key === agentKey)?.color ?? DOTS.tint
+      setTrackAgents(
+        map,
+        activeIndices,
+        on ? PROX_INK : colour,
+        on ? PROX_INK_DIM : DOTS.dim,
+        on ? groupHues.map(() => PROX_INK) : groupHues,
+      )
+    }
+  }, [ready, proximity, proxReady, band, agentKey, choices, lookup.center, lookup.mission, activeIndices, groupHues, tracksReady])
 
   // Switch between flat (top-down) and tilted 3D terrain.
   function toggleView() {
@@ -2112,11 +2264,13 @@ export default function MapView() {
         agentKey,
         is3D,
         lookup,
+        proximity,
+        band,
       )
       window.history.replaceState(null, '', `${window.location.pathname}${search ? `?${search}` : ''}`)
     }, 300)
     return () => window.clearTimeout(id)
-  }, [ready, day, agentKey, is3D, camTick, bounds.max, lookup])
+  }, [ready, day, agentKey, is3D, camTick, bounds.max, lookup, proximity, band])
 
   // ── where the lookup lives ──────────────────────────────────────────────
   // One element, two homes. On a desktop it belongs to the KEY panel, beside
@@ -2337,6 +2491,15 @@ export default function MapView() {
           hues={groupHues}
           tracks={TRACKS}
           layout="bar"
+          proximity={proximity}
+          proximityReady={proxReady}
+          onToggleProximity={() => {
+            if (!proximity) track('archive_proximity')
+            setProximity(!proximity)
+          }}
+          band={band}
+          bands={PROX_BANDS}
+          onSetBand={setBand}
         />
       )}
     </div>
