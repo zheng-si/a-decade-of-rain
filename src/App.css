@@ -714,6 +714,17 @@
   opacity: 0.75;
 }
 
+/* The positional halo: a soft band with no edge, the ink of the ground at the
+   layer's own alpha built up across the band. Drawn as a vertical gradient so
+   the swatch samples the map's mark (a blurred line) rather than a bar. */
+.archive-key-legend .key-halo {
+  display: block;
+  width: 0.875rem;
+  height: 0.5rem;
+  margin: 0 auto;
+  background: linear-gradient(180deg, rgba(16, 26, 20, 0), rgba(16, 26, 20, 0.28) 50%, rgba(16, 26, 20, 0));
+}
+
 .archive-key-legend .key-line-dash {
   display: block;
   width: 0.875rem;

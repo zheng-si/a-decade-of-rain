@@ -192,15 +192,20 @@ export default function ArchiveKey({
   )
 
   /* The encoding, once. Width is gallons per KM, not gallons — the only
-     quantity comparable between a 2 km run and a 40 km one. The fade names
-     each run's FIRST WAYPOINT ON FILE (leg 1A, the row the gallons are booked
-     against), not a verified heading: HERBS records no bearing, so "direction
-     of flight" would be a claim the record does not make.
-     The second sentence only while the colour is carrying the agent: with a
-     chip on, colour means "the one you picked", which the chip already says. */
+     quantity comparable between a 2 km run and a 40 km one — and it is
+     recorded spray density, which is Stellman's own term for gallons over
+     path length. It is NOT swath width: a reader who takes a 14 px stroke for
+     the width of the spray has read the one thing this key must forbid.
+     The fade follows the letters: for a connected aerial path A is where
+     spraying began and the later letters are turns and the stop (Stellman et
+     al., 2003, EHP), so the taper is the recorded sequence, not a bearing.
+     The halo is the coordinate accuracy of the record, about 500 m
+     (Stellman et al., 2004), which is why it is a soft band and not a corridor
+     with an edge. The last sentence only while the colour is carrying the
+     agent: with a chip on, colour means "the one you picked". */
   const note =
     (onTracks
-      ? 'Stroke width is gallons per kilometre. Each run fades away from its first waypoint on file.'
+      ? 'Stroke width is recorded spray density in gallons per kilometre, not swath width. Each run fades along its recorded waypoint sequence from A. The soft band is the roughly 500 m positional accuracy of HERBS coordinates, not spray width.'
       : 'Dot area is the gallons that fell in the cell, counted along every run that crossed it.') +
     (byAgent
       ? onTracks
@@ -325,6 +330,17 @@ export default function ArchiveKey({
               )}
             </span>
             Logged at One Point
+          </li>
+        )}
+        {/* The positional halo. Named in the key or it reads as a printing
+            fault: a grey smear under every stroke that the legend does not
+            mention. Gated on the same flag as the layer, like the nil row. */}
+        {onTracks && TRACKS.halo.shown && (
+          <li>
+            <span className="key-swatch" aria-hidden="true">
+              <span className="key-halo" />
+            </span>
+            Position Uncertainty
           </li>
         )}
         {filtered && otherAgents}
