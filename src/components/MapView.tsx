@@ -1210,11 +1210,22 @@ export default function MapView() {
               .filter(Boolean)
               .join(' · ')
             map.getCanvas().style.cursor = 'default'
+            // With nothing isolated the cell's count is a sum over four
+            // agents, so the third line says what it is made of: the same
+            // four the chips name, in the same order, with zeros kept so the
+            // line is always the same shape.
+            const byAgent =
+              sel == null
+                ? g.groups
+                    .map((_, gi) => `${groupLabels[gi] ?? g.groups[gi]} ${hitsAt(g, cell, [gi])[bi].toLocaleString()}`)
+                    .join(' · ')
+                : groupLabels[sel]
             hover
               .setLngLat(e.lngLat)
               .setHTML(
                 `<strong><span class="n">${hits[bi].toLocaleString()}</span> Hit${hits[bi] === 1 ? '' : 's'} within ${PROX_BANDS[bi]} km</strong>` +
-                  `<span>${others} · ${sel == null ? 'All agents' : groupLabels[sel]}</span>`,
+                  `<span>${others}</span>` +
+                  `<span>${byAgent}</span>`,
               )
               .addTo(map)
             return
