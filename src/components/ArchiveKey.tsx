@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import type maplibregl from 'maplibre-gl'
 import { TRACK_LAYER, TRACKS } from './trackLayers'
 import { hitRamp } from '../data/proximity'
@@ -48,10 +48,10 @@ interface Props {
   band?: number
   bands?: number[]
   onSetBand?: (km: number) => void
-  /** Over the grid the strokes are off by default and can be switched back
-   *  on as a reference. */
-  trackRef?: boolean
-  onToggleTrackRef?: () => void
+  /** The agent chips, composed by the panel that owns their state. They sit
+   *  under the two switches because they apply to both models: a filter on
+   *  the record and a filter on the grid are the same choice. */
+  agents?: ReactNode
 }
 
 /** The five classes of the count ramp, matching hitRamp / HIT_CLASS_LABELS. */
@@ -78,8 +78,7 @@ export default function ArchiveKey({
   band = 1,
   bands = [0.5, 1, 2, 5],
   onSetBand,
-  trackRef = false,
-  onToggleTrackRef,
+  agents,
 }: Props) {
   /** Whether the TRACK layer is drawing right now.
    *
@@ -195,19 +194,6 @@ export default function ArchiveKey({
           ))}
         </div>
       </div>
-      {onToggleTrackRef && (
-        <div className="map-key-toggle">
-          <span id="map-key-trackref-label">Turn on flight track reference</span>
-          <button
-            type="button"
-            className="map-key-switch"
-            role="switch"
-            aria-checked={trackRef}
-            aria-labelledby="map-key-trackref-label"
-            onClick={onToggleTrackRef}
-          />
-        </div>
-      )}
       {/* The one fact the transport would otherwise carry: this model is the
           whole record, and the playhead is not part of it. */}
       <p className="map-key-line">Whole record, 1961 to 1971. The timeline does not apply to this model.</p>
@@ -360,17 +346,6 @@ export default function ArchiveKey({
           {i === 0 ? infoMark : null}
         </li>
       ))}
-      {trackRef && onTracks && (
-        <li>
-          <span className="key-swatch" aria-hidden="true">
-            <span
-              className="key-line"
-              style={{ background: 'linear-gradient(90deg, #213528, rgba(33, 53, 40, 0))' }}
-            />
-          </span>
-          Spray Run
-        </li>
-      )}
       {border}
     </>
   )
@@ -379,8 +354,9 @@ export default function ArchiveKey({
      NAMED, and aria-hidden left the AX tree with zero nodes carrying the
      legend. The swatches alone stay decorative. */
   return (
-    <div className="archive-key-legend">
+    <div className={`archive-key-legend${onProximity ? ' is-grid' : ''}`}>
       {controls}
+      {agents}
       {gridControls}
       <p className="map-key-view-label">Map Key</p>
       <div className="map-key-rows">

@@ -1139,9 +1139,34 @@
   margin-top: 1.125rem;
   padding-top: 0;
   padding-bottom: 1.125rem;
-  margin-bottom: 1.125rem;
+  margin-bottom: 0;
   border-top: none;
   border-bottom: 1px solid var(--rule);
+}
+
+/* Over the grid the transport is gone and the guide's own rule follows
+   directly, so the key draws none: two rules with nothing between them read
+   as a missing element. */
+.map-wrap .archive-key-legend.is-grid {
+  padding-bottom: 0.25rem;
+  border-bottom: none;
+}
+
+/* The transport's 1.5rem was the panel's block measure with no rule above
+   it; under the key's rule it reads as a hole, so it pays the rule-to-block
+   measure the guide uses instead. */
+.map-wrap .archive-key-legend + .explorer-transport {
+  padding-top: 1.125rem;
+}
+
+/* The agent chips inside the key: the block's own label rhythm, and the
+   note under the chips closes the group before the key's label. */
+.map-wrap .archive-key-legend .explorer-section-label {
+  margin-top: 0;
+}
+
+.map-wrap .archive-key-legend .explorer-agent-note {
+  margin-bottom: 1rem;
 }
 
 /* Two labelled switches on one row. The model switch takes the width the
@@ -1184,52 +1209,27 @@
   flex: none;
 }
 
-/* The reference toggle: a caps label and a switch, on one line. */
-.map-wrap .map-key-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin: 0 0 0.875rem;
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: var(--track-caps);
-  text-transform: uppercase;
-  color: var(--ink);
-}
-
-.map-wrap .map-key-switch {
+/* The band row is four segments, so it carries the same hairline seam the
+   agent and radius rows draw between theirs; a two-segment switch does not
+   need one to be told apart. Retired beside the selected segment, as there. */
+.map-wrap .map-key-bands .map-key-view-btn {
   position: relative;
-  flex: none;
-  width: 2.125rem;
-  height: 1.125rem;
-  padding: 0;
-  border: none;
-  border-radius: 62.4375rem;
-  background: rgba(33, 53, 40, 0.16);
-  cursor: pointer;
-  transition: background 0.15s;
 }
 
-.map-wrap .map-key-switch::after {
+.map-wrap .map-key-bands .map-key-view-btn + .map-key-view-btn::before {
   content: '';
   position: absolute;
-  top: 0.125rem;
-  left: 0.125rem;
-  width: 0.875rem;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
   height: 0.875rem;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(33, 53, 40, 0.25);
-  transition: transform 0.15s;
+  background: rgba(33, 53, 40, 0.14);
 }
 
-.map-wrap .map-key-switch[aria-checked='true'] {
-  background: var(--forest);
-}
-
-.map-wrap .map-key-switch[aria-checked='true']::after {
-  transform: translateX(1rem);
+.map-wrap .map-key-bands .map-key-view-btn.is-active::before,
+.map-wrap .map-key-bands .map-key-view-btn.is-active + .map-key-view-btn::before {
+  display: none;
 }
 
 /* The one line of prose the grid's key carries: a note, not a label. */

@@ -73,7 +73,7 @@ interface TimelineProps {
   /** The map key: view switch, scale, legend. It belongs with the other
    *  things that say how to READ the map rather than with the things that
    *  answer a question, so it closes this panel. Desktop only. */
-  keySlot?: ReactNode
+  keySlot?: ReactNode | ((agents: ReactNode) => ReactNode)
   /** The hit grid is the whole record, so while it is up the transport and
    *  the chart are not shown: a playhead that moves nothing on the map is a
    *  control that lies. The agent chips stay — they filter the grid. */
@@ -284,6 +284,38 @@ export default function Timeline({
     )
   }, [volume, dayMin, span])
 
+  // The agent filter, as one block, so the key can take it: it applies to
+  // both models, and under the two switches is where a choice that applies
+  // to both belongs. Rendered here when nothing asks for it.
+  const agentsBlock = (
+    <>
+      <p className="explorer-section-label">Spraying Agents</p>
+      <div className="explorer-agents">
+        {agentChoices.map((c) => {
+          const active = c.key === activeAgentKey
+          return (
+            <button
+              key={c.key}
+              className={`agent-chip${active ? ' is-active' : ''}`}
+              // The selected agent was announced by a class name and an inline
+              // background, neither of which reaches assistive tech: five
+              // chips, all read identically, none of them saying which one the
+              // map is filtered to.
+              aria-pressed={active}
+              style={active && c.color ? { background: c.color, borderColor: c.color } : undefined}
+              onClick={() => onSelectAgent(c.key)}
+            >
+              {c.color && <span className="agent-dot" style={{ background: c.color }} />}
+              {c.label}
+            </button>
+          )
+        })}
+      </div>
+      <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
+    </>
+  )
+  const keyTakesAgents = typeof keySlot === 'function'
+
   return (
     <section
       className={`explorer-panel${
@@ -363,7 +395,7 @@ export default function Timeline({
       {/* The key reads before the controls, not after them: it says what the
           marks on the map ARE, and the transport and the filter below it are
           what the reader does to them. */}
-      {keySlot}
+      {typeof keySlot === 'function' ? keySlot(agentsBlock) : keySlot}
 
       {!hideTransport && (
       <>
@@ -471,30 +503,7 @@ export default function Timeline({
       </>
       )}
 
-      <p className="explorer-section-label">Spraying Agents</p>
-      <div className="explorer-agents">
-        {agentChoices.map((c) => {
-          const active = c.key === activeAgentKey
-          return (
-            <button
-              key={c.key}
-              className={`agent-chip${active ? ' is-active' : ''}`}
-              // The selected agent was announced by a class name and an inline
-              // background, neither of which reaches assistive tech: five
-              // chips, all read identically, none of them saying which one the
-              // map is filtered to.
-              aria-pressed={active}
-              style={active && c.color ? { background: c.color, borderColor: c.color } : undefined}
-              onClick={() => onSelectAgent(c.key)}
-            >
-              {c.color && <span className="agent-dot" style={{ background: c.color }} />}
-              {c.label}
-            </button>
-          )
-        })}
-      </div>
-
-      <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
+      {!keyTakesAgents && agentsBlock}
 
         {/* A label AND a rule, and the two no longer say the same thing.
 
@@ -516,7 +525,7 @@ export default function Timeline({
               <strong>Pick a distance</strong> to change what a hit counts as.
             </li>
             <li>
-              <strong>Turn on</strong> the reference to see the flown paths over the grid.
+              <strong>Zoom in</strong> to read the grid cell by cell.
             </li>
             <li>
               <strong>Search</strong> a base or town for every run that crossed it.

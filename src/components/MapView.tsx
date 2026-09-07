@@ -386,10 +386,6 @@ interface UrlState {
 const PROX_BANDS = [0.5, 1, 2, 5]
 const PROX_SOURCE = 'proximity'
 const PROX_LAYER = 'proximity-l'
-/** The strokes' colour over the grid: the panel's own dark green, and the
- *  same grey the record uses for a de-emphasised agent. */
-const PROX_INK = '#213528'
-const PROX_INK_DIM = '#9aa39c'
 
 function readUrlState(): UrlState {
   const q = new URLSearchParams(window.location.search)
@@ -737,8 +733,6 @@ export default function MapView() {
   bandRef.current = band
   /** The selected agent GROUP (0–3) or null for all, mirrored for the hover. */
   const proxGroupRef = useRef<number | null>(null)
-  /** Over the grid the strokes are off unless asked for as a reference. */
-  const [trackRef, setTrackRef] = useState(false)
   /** Whether the camera is in the track band, and whether it has ever been:
    *  the zoom hint over the map shows until the reader has crossed the
    *  hand-off once, which is the moment the hint's sentence comes true. */
@@ -1612,15 +1606,12 @@ export default function MapView() {
         setDrawVisible(map, false)
       }
       settledDayRef.current = day
-      // Over the proximity grid the strokes go to ink: the grid has the
-      // colour, and a red stroke on a red cell was neither readable nor
-      // honest about which of the two is the record.
       setTrackAgents(
         map,
         activeIndices,
-        proxOnRef.current ? PROX_INK : (choices.find((c) => c.key === agentKey)?.color ?? DOTS.tint),
-        proxOnRef.current ? PROX_INK_DIM : DOTS.dim,
-        proxOnRef.current ? groupHues.map(() => PROX_INK) : groupHues,
+        choices.find((c) => c.key === agentKey)?.color ?? DOTS.tint,
+        DOTS.dim,
+        groupHues,
       )
     }
     if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
@@ -1829,26 +1820,20 @@ export default function MapView() {
     const lookupUp = lookup.center != null || lookup.mission != null
     if (on) setLayersVisible(map, GRID_TIERS.slice(0, 2), false)
     else if (!lookupUp) setLayersVisible(map, GRID_TIERS.slice(0, 2), true)
-    // The strokes: off over the grid unless asked for as a reference, and in
-    // ink when they are; their own colours over the record. Only the layers
-    // that carry the record — the optional tiers (nil, ends) keep their own
-    // flags. Shown again, a layer carries whatever day it was hidden at, so
-    // the playhead and the colours are pushed after the visibility.
+    // The strokes go with the dots: one model on the map at a time. Two
+    // encodings over each other — coloured cells under coloured lines — read
+    // as neither. Only the layers that carry the record; the optional tiers
+    // (nil, ends) keep their own flags. Shown again, a layer carries whatever
+    // day it was hidden at, so the playhead is pushed after the visibility.
     if (tracksRef.current) {
       const strokeIds = [TRACK_LAYER, ...TRACK_HUE_LAYERS, TRACK_DIM_LAYER, TRACK_MARK_LAYER]
-      if (on) setLayersVisible(map, strokeIds, trackRef)
-      else if (!lookupUp) setLayersVisible(map, strokeIds, true)
-      setTrackTime(map, dayRef.current)
-      const colour = choices.find((c) => c.key === agentKey)?.color ?? DOTS.tint
-      setTrackAgents(
-        map,
-        activeIndices,
-        on ? PROX_INK : colour,
-        on ? PROX_INK_DIM : DOTS.dim,
-        on ? groupHues.map(() => PROX_INK) : groupHues,
-      )
+      if (on) setLayersVisible(map, strokeIds, false)
+      else if (!lookupUp) {
+        setLayersVisible(map, strokeIds, true)
+        setTrackTime(map, dayRef.current)
+      }
     }
-  }, [ready, proximity, proxReady, band, agentKey, choices, lookup.center, lookup.mission, activeIndices, groupHues, tracksReady, trackRef])
+  }, [ready, proximity, proxReady, band, agentKey, choices, lookup.center, lookup.mission, tracksReady])
 
   // Switch between flat (top-down) and tilted 3D terrain.
   function toggleView() {
@@ -2486,7 +2471,7 @@ export default function MapView() {
              and how to read it, before the things the reader does to it. The
              phone keeps its one-line legend (the block is display:none there)
              and so has no model switch yet. */
-          keySlot={
+          keySlot={(agents) => (
             <ArchiveKey
               map={mapRef.current}
               ready={ready}
@@ -2505,10 +2490,9 @@ export default function MapView() {
               band={band}
               bands={PROX_BANDS}
               onSetBand={setBand}
-              trackRef={trackRef}
-              onToggleTrackRef={() => setTrackRef((v) => !v)}
+              agents={agents}
             />
-          }
+          )}
           /* The grid is the whole record: the transport and the chart would
              move a playhead that moves nothing on the map. */
           hideTransport={proximity}
