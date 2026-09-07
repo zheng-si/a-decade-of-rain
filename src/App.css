@@ -1879,6 +1879,12 @@
   background: rgba(33, 53, 40, 0.94);
   box-shadow: 0 2px 10px rgba(40, 38, 30, 0.18);
 }
+/* The zoom hint sits at the foot of the map, where the key bar used to,
+   so it never shares the top strip with the mode signs. */
+.map-pick-hint.is-zoom {
+  top: auto;
+  bottom: 1.5rem;
+}
 .map-pick-hint button {
   border: none;
   border-radius: 0;

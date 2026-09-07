@@ -737,6 +737,13 @@ export default function MapView() {
   bandRef.current = band
   /** The selected agent GROUP (0–3) or null for all, mirrored for the hover. */
   const proxGroupRef = useRef<number | null>(null)
+  /** Over the grid the strokes are off unless asked for as a reference. */
+  const [trackRef, setTrackRef] = useState(false)
+  /** Whether the camera is in the track band, and whether it has ever been:
+   *  the zoom hint over the map shows until the reader has crossed the
+   *  hand-off once, which is the moment the hint's sentence comes true. */
+  const [near, setNear] = useState(false)
+  const [crossedOnce, setCrossedOnce] = useState(false)
   const [stats, setStats] = useState({ missions: 0, runs: 0, gallons: 0 })
   const [volume, setVolume] = useState<VolumeChart | null>(null)
   const [inspect, setInspect] = useState<Inspect | null>(null)
@@ -1822,9 +1829,16 @@ export default function MapView() {
     const lookupUp = lookup.center != null || lookup.mission != null
     if (on) setLayersVisible(map, GRID_TIERS.slice(0, 2), false)
     else if (!lookupUp) setLayersVisible(map, GRID_TIERS.slice(0, 2), true)
-    // The strokes: ink over the grid, their own colours over the record. The
-    // day effect makes the same choice on every step; this is the toggle.
+    // The strokes: off over the grid unless asked for as a reference, and in
+    // ink when they are; their own colours over the record. Only the layers
+    // that carry the record — the optional tiers (nil, ends) keep their own
+    // flags. Shown again, a layer carries whatever day it was hidden at, so
+    // the playhead and the colours are pushed after the visibility.
     if (tracksRef.current) {
+      const strokeIds = [TRACK_LAYER, ...TRACK_HUE_LAYERS, TRACK_DIM_LAYER, TRACK_MARK_LAYER]
+      if (on) setLayersVisible(map, strokeIds, trackRef)
+      else if (!lookupUp) setLayersVisible(map, strokeIds, true)
+      setTrackTime(map, dayRef.current)
       const colour = choices.find((c) => c.key === agentKey)?.color ?? DOTS.tint
       setTrackAgents(
         map,
@@ -1834,7 +1848,7 @@ export default function MapView() {
         on ? groupHues.map(() => PROX_INK) : groupHues,
       )
     }
-  }, [ready, proximity, proxReady, band, agentKey, choices, lookup.center, lookup.mission, activeIndices, groupHues, tracksReady])
+  }, [ready, proximity, proxReady, band, agentKey, choices, lookup.center, lookup.mission, activeIndices, groupHues, tracksReady, trackRef])
 
   // Switch between flat (top-down) and tilted 3D terrain.
   function toggleView() {
@@ -1913,7 +1927,12 @@ export default function MapView() {
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
-    const update = () => setScale(computeScale(map))
+    const update = () => {
+      setScale(computeScale(map))
+      const n = map.getZoom() >= Z_NEAR
+      setNear(n)
+      if (n) setCrossedOnce(true)
+    }
     update()
     map.on('move', update)
     window.addEventListener('resize', update)
@@ -2463,44 +2482,57 @@ export default function MapView() {
             setAgentKey(key)
           }}
           lookupSlot={isPhone ? lookupPanel : null}
-          /* The key has left the column. It is rendered as a bar over the
-             map, below — see the note there. */
-          keySlot={null}
+          /* The key, back in the column at the top: what the map is showing
+             and how to read it, before the things the reader does to it. The
+             phone keeps its one-line legend (the block is display:none there)
+             and so has no model switch yet. */
+          keySlot={
+            <ArchiveKey
+              map={mapRef.current}
+              ready={ready}
+              is3D={is3D}
+              onToggle3D={toggleView}
+              tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
+              filtered={agentKey !== 'all'}
+              hues={groupHues}
+              tracks={TRACKS}
+              proximity={proximity}
+              proximityReady={proxReady}
+              onToggleProximity={() => {
+                if (!proximity) track('archive_proximity')
+                setProximity(!proximity)
+              }}
+              band={band}
+              bands={PROX_BANDS}
+              onSetBand={setBand}
+              trackRef={trackRef}
+              onToggleTrackRef={() => setTrackRef((v) => !v)}
+            />
+          }
+          /* The grid is the whole record: the transport and the chart would
+             move a playhead that moves nothing on the map. */
+          hideTransport={proximity}
         />
       )}
-      {/* The key, laid along the bottom of the map instead of stacked in the
-          left panel.
-          The key's LENGTH is a function of the zoom: four rows over the grid,
-          five over the tracks, and a note that wraps to two lines in one state
-          and one in the other. In the column that made the chart, the chips
-          and the note below it step up and down as the reader zoomed — motion
-          in a part of the panel nobody was looking at, caused by something
-          they did somewhere else. On the bar the same rows cost WIDTH, and
-          nothing else on the screen moves.
-          Bottom-LEFT, continuing the panel's own column rather than starting a
-          second one: the bottom-right belongs to MapLibre's scale and
-          attribution, which are the map's own furniture and cannot move. */}
-      {ready && !isPhone && (
-        <ArchiveKey
-          map={mapRef.current}
-          ready={ready}
-          is3D={is3D}
-          onToggle3D={toggleView}
-          tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
-          filtered={agentKey !== 'all'}
-          hues={groupHues}
-          tracks={TRACKS}
-          layout="bar"
-          proximity={proximity}
-          proximityReady={proxReady}
-          onToggleProximity={() => {
-            if (!proximity) track('archive_proximity')
-            setProximity(!proximity)
-          }}
-          band={band}
-          bands={PROX_BANDS}
-          onSetBand={setBand}
-        />
+      {/* The way out of the grid, over the map it changes. Same furniture as
+          the lookup's "Showing 5 km around": the map is in a mode, and here is
+          how it ends. Never over a lookup's own sign. */}
+      {ready && proximity && !lookup.picking && !lookup.center && lookup.mission == null && (
+        <p className="map-pick-hint" role="status">
+          Showing hit frequency within {band} km, 1961 to 1971
+          <button onClick={() => setProximity(false)}>Flight tracks</button>
+        </p>
+      )}
+      {/* The one thing a reader at the country view cannot guess: that the
+          dots give way to the flown lines further in. Shown until they have
+          crossed the hand-off once, which is when the sentence comes true;
+          never while a lookup or the grid is up, and never under the picking
+          sign. */}
+      {ready && !proximity && !near && !crossedOnce && !lookup.picking && !lookup.center && lookup.mission == null && (
+        <p className="map-pick-hint is-zoom" role="status">
+          Zoom in until the dots give way to flight tracks
+          <button onClick={() => setCrossedOnce(true)}>Got it</button>
+        </p>
       )}
     </div>
   )
