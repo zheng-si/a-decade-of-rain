@@ -725,12 +725,20 @@
   width: 1.75rem;
 }
 
+/* Line at the left edge, point at the right: the two read as two marks
+   rather than as one mark with a tail. */
 .archive-key-legend .key-run {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
+  justify-content: space-between;
   width: 100%;
+}
+
+/* The single dot (an agent isolated over the dot tier) sat at 10px, the
+   heaviest mark in the column against 4px and 5px points elsewhere. */
+.archive-key-legend .key-dot:not(.is-small) {
+  width: 0.4375rem;
+  height: 0.4375rem;
 }
 
 .archive-key-legend .key-run .key-line {
