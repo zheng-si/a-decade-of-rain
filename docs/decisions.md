@@ -47,9 +47,31 @@ each line is one recorded run at one width, and the dark is where runs
 overlap. The note opens below the label and spans the key's inner width.
 **Why.** The key is 12rem wide and sits at the screen's right edge; the
 Archive's 16rem note would run off it.
-**Open.** The ramp's end labels, "Less / More sprayed", are untouched.
-Whether they should name the quantity is the open question at the foot,
-with the candidates rendered.
+
+### The heat legend keeps its words
+**Decided.** The ramp's end labels stay "Less / More sprayed". The
+quantity is named once, behind the (i), and not on the surface.
+**Why.** "Sprayed" is the Story's own verb: the cards say "sprayed eleven
+times" and "sprayed over Vietnam", and the site's rule accepts it (the
+herbicide was sprayed over Vietnam, not that it fell). The pair is the
+sibling of the handover's "One run / Flown repeatedly": a short left, and
+on the right a past participle of the act the map draws, so the key's two
+states speak one grammar. Read cold at 0.625rem in a corner, "less
+sprayed, more sprayed" is one pass. Five pairs were rendered on the key at
+both root sizes and judged on four lenses (fidelity to the record, the
+reader at a glance, one system across the site, the row's typography);
+the pair as shipped led on three of the four and on the total.
+**Set aside.** "Less / More gallons logged", the most faithful pair:
+"logged" is a bookkeeping word in a narrative corner, the label takes 56%
+of the row and starts under the ramp's pale half, and it repeats the
+note's own sentence on the surface. "Less / More": beside the handover
+pair it is the one label in the key that names nothing. "Fewer gallons /
+More gallons": symmetric ends read as a numeric scale over a ramp whose
+light end is near nothing, and gallons on a place is the claim the site
+does not make. "Less / More herbicide logged": the record logs gallons,
+not herbicide. Two pairs outside the five were considered and not taken:
+"Less / More gallons sprayed" (the site's own phrase, on the Rainbow
+figure and the timeline) and "Lightly / Heavily sprayed".
 
 ## 2026-09-08 · The Atlas panel and the hit grid (PR #190)
 
@@ -135,8 +157,8 @@ leg within the chosen distance, proximity rather than deposition or
 exposure. Citation forms: "Stellman et al. (2003)" for the Nature and EHP
 papers, "Stellman and Stellman (2004)" for the JEEEA paper. No em dashes
 in Archive copy.
-**Open.** The Story's heat-field legend ("Less / More sprayed") is under
-separate discussion.
+**Settled.** The Story's heat-field legend keeps "Less / More sprayed"
+(above, under PR #192).
 
 ### The switches are conventional segmented controls
 **Decided.** Every switch on the Archive (model, view, agents, band,
@@ -233,14 +255,5 @@ surfaces split into two stylesheets (`StorySkinV3.css`,
 - **Mission numbering.** The JEEEA 2004 paper's Figure 1 shows mission
   3087; hea-v's mission 3087 is a different date. Numbering between the
   paper and the shipped file may differ; to ask.
-- **Story heat legend.** Whether "Less / More sprayed" should name the
-  quantity more precisely, as the Atlas copy now does. Five pairs were
-  rendered on PR #192's key at both root sizes (13.6 and 16 px), none of
-  them wrapping and none moving the key's height: the pair as shipped;
-  "Less / More", with the (i) carrying the quantity; "Less / More gallons
-  logged"; "Fewer gallons / More gallons"; "Less / More herbicide logged".
-  The longest, "More herbicide logged", leaves 35 px of air between the two
-  labels at the laptop root, against 69 px for the pair as shipped. The
-  pick is the designer's.
 - **Publication.** Zenodo DOI and `CITATION.cff`; a Data and methods page
   on the site; the methods note (PR #184) still in draft.
