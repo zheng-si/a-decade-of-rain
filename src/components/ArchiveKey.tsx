@@ -217,7 +217,9 @@ export default function ArchiveKey({
         ? onTracks
           ? ' Colour is the agent that flew it.'
           : ' Colour is the agent that sprayed the most in that cell.'
-        : '')
+        : filtered
+          ? ' The other agents stay on the map in grey.'
+          : '')
 
   /* ON THE ROW IT EXPLAINS. The note opens by describing this one mark, so
      the marker for it belongs against that row rather than after the last
@@ -260,24 +262,6 @@ export default function ArchiveKey({
       }}
     />
   )
-  const otherAgents = (
-    <li key="other">
-      <span className="key-swatch" aria-hidden="true">
-        {/* A line above the hand-off, a dot below it — the same split the
-            tiers themselves make. The grey line fades like the coloured one,
-            because the dim twin carries the same taper. */}
-        {onTracks ? (
-          <span
-            className="key-line"
-            style={{ background: 'linear-gradient(90deg, #c9cdc4, rgba(201, 205, 196, 0))' }}
-          />
-        ) : (
-          <span className="key-dot key-dot-dim" />
-        )}
-      </span>
-      Other Agents
-    </li>
-  )
   const border = (
     <li key="border">
       <span className="key-swatch key-border" aria-hidden="true" />
@@ -294,13 +278,12 @@ export default function ArchiveKey({
     </li>
   )
 
-  /* FOUR ROWS, ALWAYS. The key's row count used to follow the zoom (two
+  /* THREE ROWS, ALWAYS. The key's row count used to follow the zoom (two
      over the dots, three over the strokes) and the filter (one more with an
      agent isolated), and every change stepped the transport and the chart
      below it. The rows that exist are listed in reading order — the marks,
-     Other Agents while an agent is isolated, the border — and the list is
-     padded to its tallest state with rows that hold their height and say
-     nothing. */
+     then the border — and the dot tier is padded to the stroke tier's three
+     with one row that holds its height and says nothing. */
   const markRows: ReactNode[] = []
   if (!onTracks)
     markRows.push(
@@ -345,14 +328,12 @@ export default function ArchiveKey({
         {onTracks ? 'Flown, No Volume' : 'Flight Path Point'}
       </li>,
     )
-  if (filtered) markRows.push(otherAgents)
   markRows.push(border)
-  // Padded to the tallest state (two marks, Other Agents, the border) with
-  // rows that hold their height and say nothing, so the list is the same
-  // height at every zoom and every filter and the transport below never
-  // moves. The padding sits at the foot, where it reads as the block's own
-  // bottom room rather than as a hole in the list.
-  while (markRows.length < 4) markRows.push(placeholder(`ph${markRows.length}`))
+  // No Other Agents row: with an agent isolated the chips already say which
+  // one, and the note says the rest are grey. Padded to the stroke tier's
+  // three rows with one row that holds its height and says nothing, at the
+  // foot, so the transport below sits at the same place at both zooms.
+  while (markRows.length < 3) markRows.push(placeholder(`ph${markRows.length}`))
   const recordRows = <>{markRows}</>
 
   const ramp = hitRamp(tint)
