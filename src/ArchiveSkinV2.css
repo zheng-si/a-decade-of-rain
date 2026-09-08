@@ -159,6 +159,14 @@
      are the same kind of thing — the selected state of a control — so they get
      the same fill. They had drifted to two different darks. */
   --v2-fill: var(--forest);
+  /* The 6% forest track, composited over the white panel, as a solid: the
+     selected segment of every switch wears one pixel of it inside its edge,
+     which reads as the segment sitting 1px inside the track — the
+     conventional segmented control — without the track growing. Solid rather
+     than the alpha value because it is painted OVER the dark fill, where 6%
+     forest would vanish. */
+  --v2-track-solid: #f1f2f1;
+  --v2-inset: inset 0 0 0 1px var(--v2-track-solid);
   /* Panel ground. The Figma has the left panel at 0.65 and the key at 0.62 —
      close enough that the difference reads as drift, so both take one value.
      It went to 0.90 first, because at 0.65 the spray field showing through was
@@ -630,22 +638,39 @@
    separate circles — squares with a gap would read as two unrelated things.
    Rule 2 of the radius: the corner goes on the block, and the buttons are
    clipped to it, so the seam down the middle stays a straight line. */
+/* Play and reset are two actions, not two halves of one control: play acts
+   on the record, reset puts the playhead back. They stood in one clipped
+   block with no seam, which read as a switch. Apart by 4px, each with its
+   own corner, they read as the two buttons they are. */
 .map-wrap .transport-buttons {
-  gap: 0;
-  border-radius: var(--v2-radius);
-  overflow: hidden;
-  box-shadow: var(--v2-lift);
+  gap: 0.25rem;
+  border-radius: 0;
+  overflow: visible;
+  box-shadow: none;
 }
 
 .map-wrap .transport-btn.is-primary,
 .map-wrap .transport-btn.is-primary:disabled {
   background: var(--v2-fill);
+  box-shadow: var(--v2-lift);
 }
 
 .map-wrap .transport-btn {
   width: 1.875rem;
   height: 1.875rem;
-  border-radius: 0;
+  border-radius: var(--v2-radius);
+}
+
+/* ── the selected segment of every switch ─────────────────────────────────
+   One pixel of the track inside the edge of the selected segment, so it
+   sits 1px inside the track the way a segmented control's thumb does. The
+   same rule for the model and view switches, the band row, the agent chips
+   (over their own colours), the radius chips and the unit toggle. */
+.map-wrap .map-key-view-btn.is-active,
+.map-wrap .agent-chip.is-active,
+.map-wrap .lookup-chip.is-active,
+.map-wrap .lookup-unit button.is-active {
+  box-shadow: var(--v2-inset);
 }
 
 /* The reset button, on the switch system with everything else. It was the last
