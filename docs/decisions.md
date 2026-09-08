@@ -8,6 +8,49 @@ the change lives. Standing rules and open questions are at the foot.
 Dates are the day the decision landed on `master` unless noted. Pull
 request numbers refer to this repository.
 
+## 2026-09-08 · The Story's switches and the key's note (PR #192)
+
+Opened the day PR #190 merged; in review as this entry is written, so the
+date is the decision's, not the landing's.
+
+### The Story's switches follow the Archive's
+**Decided.** Every switch on the Story is the segmented control PR #190
+settled on the Archive: a 2px track at 6% forest, the selected segment as
+a thumb with the skin's 2px corner. One rule at the end of
+`StorySkinV3.css` covers the key's Flat/3D pair, the agent chips (over
+their own colours), the chart's Accumulation/Each year pair and the
+ecosystems' sort pair. The agent row's track takes the corner it never
+had; the seams between unselected chips stay.
+**Why.** The switch a reader meets on one page is the switch they meet on
+the other. The rule sits last in the file on purpose: each of these rows
+zeroes its own padding further up, and it has to win by source order.
+**Not a switch.** The method tabs are two independent toggles on bare
+paper, with nothing for a track to sit on. They keep the button treatment
+and take none of the track.
+
+### The (i) and its note are shared furniture
+**Decided.** `InfoMark.css` travels with the component and carries the
+mark, the note's structure and the open state. Each skin lays its own
+surface over it: the ground, the corner, the shadow and the width. The
+Archive's rules that were exact duplicates are gone.
+**Why.** The same arrangement as `MapKey.css`: what is structural is
+shared, and each skin wins on specificity rather than on load order.
+**Checked.** The Archive's four notes render pixel-identical before and
+after (compared at 2x, 0 differing pixels in each).
+
+### The Story's key takes the Archive's rule for notes
+**Decided.** One (i) on a new Map Key label, and it says how the marks
+are drawn. On the heat nodes: colour is the gallons logged along every run
+that crossed each 3 km cell, month by month up to the date shown, blurred
+into one field; darker is more; all agents share one hue. At the handover:
+each line is one recorded run at one width, and the dark is where runs
+overlap. The note opens below the label and spans the key's inner width.
+**Why.** The key is 12rem wide and sits at the screen's right edge; the
+Archive's 16rem note would run off it.
+**Open.** The ramp's end labels, "Less / More sprayed", are untouched.
+Whether they should name the quantity is the open question at the foot,
+with the candidates rendered.
+
 ## 2026-09-08 · The Atlas panel and the hit grid (PR #190)
 
 ### Two models on one map, not three
@@ -154,7 +197,8 @@ reversed in PR #190 (above).
 
 **Decided.** Both surfaces share one switch grammar: a grey track,
 segments butted together, notes on the row rhythm. PR #190 refines it
-(2px track, thumb corner) on the Archive; the Story is to follow.
+(2px track, thumb corner) on the Archive; PR #192 carries the refinement
+to the Story.
 
 ## 2026-08-12 · The Archive (PR #152)
 
@@ -190,6 +234,13 @@ surfaces split into two stylesheets (`StorySkinV3.css`,
   3087; hea-v's mission 3087 is a different date. Numbering between the
   paper and the shipped file may differ; to ask.
 - **Story heat legend.** Whether "Less / More sprayed" should name the
-  quantity more precisely, as the Atlas copy now does.
+  quantity more precisely, as the Atlas copy now does. Five pairs were
+  rendered on PR #192's key at both root sizes (13.6 and 16 px), none of
+  them wrapping and none moving the key's height: the pair as shipped;
+  "Less / More", with the (i) carrying the quantity; "Less / More gallons
+  logged"; "Fewer gallons / More gallons"; "Less / More herbicide logged".
+  The longest, "More herbicide logged", leaves 35 px of air between the two
+  labels at the laptop root, against 69 px for the pair as shipped. The
+  pick is the designer's.
 - **Publication.** Zenodo DOI and `CITATION.cff`; a Data and methods page
   on the site; the methods note (PR #184) still in draft.
