@@ -1296,40 +1296,21 @@
   color: var(--ink-faint);
 }
 
-/* A host carries one (i) and its note. The note hangs off the host, not off
-   the label the mark sits in, so it can be wider than the label's box; it
-   opens above by default and below (`is-below`) where the host is near the
-   top of its panel. */
-.map-wrap .map-key-pop-host {
-  position: relative;
-}
-
+/* The host, the mark, the note and the open state are InfoMark.css's, shared
+   with the Story. This skin sets only the note's width in the column: wider
+   than the label's box, narrower than the panel. */
 .map-wrap .map-key-pop-host > .map-key-info-pop {
-  left: 0;
   width: 16rem;
-  z-index: 5;
-}
-
-.map-wrap .map-key-pop-host > .map-key-info-pop.is-below {
-  bottom: auto;
-  top: calc(100% + 0.375rem);
 }
 
 .map-wrap .map-key-rows > .map-key-info-pop {
   left: 1.25rem;
 }
 
-.map-wrap .map-key-pop-host:has(.map-key-info:hover) > .map-key-info-pop,
-.map-wrap .map-key-pop-host:has(.map-key-info button:focus-visible) > .map-key-info-pop {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* A label with its mark beside it. The mark is sized to the label's caps
-   (0.75rem against a 0.625rem uppercase label) and lifted half a pixel, so
-   its centre sits on the caps' centre rather than on the line box's, which
-   the descender space pulls low. The label keeps the line box every other
-   label has, so a label with a mark is no taller than one without. */
+/* A label with its mark beside it: InfoMark.css's `.has-info` rules, restated
+   at this skin's specificity so the row rule below (`.map-wrap .map-key-info`,
+   which pulls the mark back against a key row's text) cannot reach a mark
+   that sits inside a label. */
 .map-wrap .map-key-view-label.has-info,
 .map-wrap .lookup-row-label.has-info {
   display: inline-flex;
@@ -2087,11 +2068,11 @@
 /* The note is the one thing that cannot come along: two lines of prose would
    set the bar's height by its longest sentence and put the height problem back
    one axis over. It becomes the one thing in the key a reader asks for. */
+/* The mark itself (the ring, no pill, the hover ink) and the note's structure
+   (position, the open state, the type size) are InfoMark.css's now, shared
+   with the Story. What stays here is this skin's own: where the mark sits in
+   a key row, and what surface the note stands on. */
 .map-wrap .map-key-info {
-  position: relative;
-  flex: none;
-  display: flex;
-  align-items: center;
   /* Pulled back against the label. The row's own 0.4375rem gap already sits
      between them, and adding to it put the marker 11px out — reading as the
      next item in the key rather than as a mark on the one before it. Negative,
@@ -2100,54 +2081,13 @@
   margin-left: -0.25rem;
 }
 
-/* No pill behind it. The Material glyph is already a ring, and a disc under a
-   ring is two circles saying one thing — on a bar whose own swatches are 4px
-   dots it was also the heaviest mark in the row. */
-.map-wrap .map-key-info button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: none;
-  background: none;
-  color: var(--ink-faint);
-  cursor: help;
-}
-
-.map-wrap .map-key-info svg {
-  display: block;
-  width: 0.875rem;
-  height: 0.875rem;
-}
-
-.map-wrap .map-key-info button:hover,
-.map-wrap .map-key-info button:focus-visible {
-  color: var(--ink);
-}
-
 .map-wrap .map-key-info-pop {
-  position: absolute;
-  bottom: calc(100% + 0.625rem);
-  /* Anchored to the legend group's own left edge. It cannot track the button
-     exactly — they are in different boxes now — and at 17rem it does not need
-     to: it opens over the half of the bar the key occupies. */
-  left: 0;
-  z-index: 4;
+  /* 17rem was the bar's; the column's host narrows it to 16rem above. */
   width: 17rem;
-  /* The row it now lives in is `nowrap`, so that it can never reflow the bar
-     into two lines. A tooltip is prose and has to wrap; without this it came
-     out one line long and 26px tall, clipped by its own width. */
-  white-space: normal;
-  padding: 0.5rem 0.625rem;
   background: var(--v2-panel);
   border-radius: var(--v2-radius);
   box-shadow: var(--v2-stroke), var(--v2-shadow);
-  font-size: 0.625rem;
   line-height: var(--v2-lead-body);
-  color: var(--ink-faint);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.12s;
 }
 
 /* Button and panel are no longer siblings, so the group carries the state. */

@@ -1,0 +1,97 @@
+/* ── the (i) and its note: the shared furniture ────────────────────────────
+   InfoMark.tsx renders these classes on both surfaces (the Atlas's key and
+   lookup, the Story's key), so the rules that make the mark a mark and the
+   note a note travel with the component rather than with either route. Same
+   arrangement as MapKey.css: what is structural is here, and each skin lays
+   its own surface over it (`.map-wrap .map-key-info-pop` in ArchiveSkinV2.css,
+   `.story .map-key-info-pop` in StorySkinV3.css carry the ground, the corner,
+   the shadow and the width), winning on specificity rather than on load order.
+
+   A HOST carries one (i) and its note. The note hangs off the host, not off
+   the label the mark sits in, so it can be wider than the label's box; it
+   opens above by default and below (`is-below`) where the host is near the
+   top of its panel. The host, not the button, carries the open state, because
+   button and note are not siblings. */
+
+.map-key-pop-host {
+  position: relative;
+}
+
+.map-key-info {
+  position: relative;
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+
+/* No pill behind it. The Material glyph is already a ring, and a disc under a
+   ring is two circles saying one thing. */
+.map-key-info button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--ink-faint);
+  cursor: help;
+}
+
+.map-key-info svg {
+  display: block;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.map-key-info button:hover,
+.map-key-info button:focus-visible {
+  color: var(--ink);
+}
+
+.map-key-info-pop {
+  position: absolute;
+  bottom: calc(100% + 0.625rem);
+  left: 0;
+  z-index: 5;
+  /* Prose, so it has to wrap even inside a `nowrap` row. */
+  white-space: normal;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.625rem;
+  line-height: 1.55;
+  color: var(--ink-faint);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s;
+}
+
+.map-key-info-pop.is-below {
+  bottom: auto;
+  top: calc(100% + 0.375rem);
+}
+
+.map-key-pop-host:has(.map-key-info:hover) > .map-key-info-pop,
+.map-key-pop-host:has(.map-key-info button:focus-visible) > .map-key-info-pop {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* A label with its mark beside it. The mark is sized to the label's caps
+   (0.75rem against a 0.625rem uppercase label) and lifted half a pixel, so
+   its centre sits on the caps' centre rather than on the line box's, which
+   the descender space pulls low. The label keeps the line box every other
+   label has, so a label with a mark is no taller than one without. */
+.has-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.has-info .map-key-info {
+  margin-left: 0;
+  transform: translateY(-0.5px);
+}
+
+.has-info .map-key-info svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}

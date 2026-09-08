@@ -875,3 +875,18 @@
 .story .eco-sort-btn.is-active {
   border-radius: var(--v3-radius);
 }
+
+/* ── the key's (i), on this skin's surface ─────────────────────────────────
+   The mark and the note's structure are InfoMark.css's, shared with the
+   Atlas. The note here stands on the key's own paper with the skin's corner
+   and shadow, and it spans the key's inner width rather than the Atlas's
+   16rem: the key is 12rem wide and sits at the screen's right edge, so a
+   wider note would run off it. */
+.story .map-key-info-pop {
+  left: 0;
+  right: 0;
+  width: auto;
+  background: rgba(252, 251, 247, 0.98);
+  border-radius: var(--v3-radius);
+  box-shadow: var(--v3-shadow);
+}

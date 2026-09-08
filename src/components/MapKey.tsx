@@ -3,7 +3,19 @@ import type maplibregl from 'maplibre-gl'
 // The key's shared furniture. Both surfaces render these classes, so the
 // stylesheet travels with the components rather than with either route.
 import { computeScale } from './mapScale'
+import { InfoMark, InfoPop } from './InfoMark'
 import './MapKey.css'
+
+// ── the key's note: the encoding, nothing else ────────────────────────────
+// The same rule as the Atlas's key: one (i) on the Map Key label, and it says
+// how the marks are drawn. The field is the gallons logged along every run
+// that crossed each cell (the runs as lines, docs/methods.md §3), month by
+// month up to the node's date, blurred by the heatmap; the handover node
+// draws the runs themselves at one width.
+const KEY_NOTE = {
+  heat: 'Colour is the gallons logged along every run that crossed each 3 km cell, month by month up to the date shown, blurred into one field. Darker is more; all agents share one hue.',
+  tracks: 'Each line is one recorded run, drawn at one width. Darker is where runs overlap.',
+}
 
 interface Props {
   map: maplibregl.Map | null
@@ -70,6 +82,17 @@ export default function MapKey({ map, ready, started, is3D, onToggle3D, tracks }
             <span className="map-key-compass-needle" />
           </span>
         </div>
+      </div>
+
+      {/* The legend's own label, with the note behind its (i). The host is the
+          label alone, so the note opens under it over the swatches, the way
+          the Atlas's model note opens over its switch. */}
+      <div className="map-key-pop-host">
+        <p className="map-key-view-label has-info">
+          Map Key
+          <InfoMark id="story-key-note-pop" label="How the marks are drawn" />
+        </p>
+        <InfoPop id="story-key-note-pop" text={tracks ? KEY_NOTE.tracks : KEY_NOTE.heat} below />
       </div>
 
       {tracks ? (
