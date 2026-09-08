@@ -12,8 +12,6 @@ import {
   addStoryMarks,
   setStoryMarksTime,
   setStoryMarksVisible,
-  addStoryHits,
-  setStoryHitsVisible,
 } from '../components/storyMarks'
 import { mapConfig } from '../config/mapConfig'
 import {
@@ -54,23 +52,16 @@ import { applyLabelCuration } from '../components/labelLayers'
 import { quietBasemap, addVietnamLabel } from '../components/volumeGrid'
 import './Story.css'
 
-// PROTOTYPE (2026-09, `?mark=dots|soft|hits`): the field drawn with another
-// mark, so the alternatives can be compared on the real page. See
+// PROTOTYPE (2026-09, `?mark=dots|soft`): the field drawn with another mark,
+// so the alternatives can be compared on the real page. See
 // components/storyMarks.ts. With no flag nothing below changes the heat.
 const STORY_MARK = storyMarkFromUrl()
-let fieldOn = true
-let fieldDay = 0
 function setFieldTime(map: maplibregl.Map, day: number) {
-  fieldDay = day
   setStoryHeatTime(map, day)
-  if (STORY_MARK === 'dots' || STORY_MARK === 'soft') setStoryMarksTime(map, day)
-  // The grid carries no time: it is simply off before the story starts.
-  if (STORY_MARK === 'hits') setStoryHitsVisible(map, fieldOn && day > 0)
+  if (STORY_MARK !== 'heat') setStoryMarksTime(map, day)
 }
 function setFieldVisible(map: maplibregl.Map, on: boolean) {
-  fieldOn = on
   if (STORY_MARK === 'heat') setStoryHeatVisible(map, on)
-  else if (STORY_MARK === 'hits') setStoryHitsVisible(map, on && fieldDay > 0)
   else setStoryMarksVisible(map, on)
 }
 // v3 skin — one scoped file over Story.css. See the header of StorySkinV3.css.
@@ -814,12 +805,9 @@ export default function Story() {
         addStoryHeat(map, SPRAY_SOURCE, heat.dayMax)
         // PROTOTYPE (`?mark=`): the same gallons with another mark, the heat
         // parked out of sight. See components/storyMarks.ts.
-        if (STORY_MARK !== 'heat') setStoryHeatVisible(map, false)
-        if (STORY_MARK === 'dots' || STORY_MARK === 'soft') addStoryMarks(map, heat, STORY_MARK)
-        if (STORY_MARK === 'hits') {
-          addStoryHits(map, () => !!mapRef.current, () => fieldOn && fieldDay > 0).catch((e) =>
-            console.error('story hits failed to load', e),
-          )
+        if (STORY_MARK !== 'heat') {
+          setStoryHeatVisible(map, false)
+          addStoryMarks(map, heat, STORY_MARK)
         }
 
         // Military-region dividers + tags — shared with the Archive.

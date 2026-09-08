@@ -17,8 +17,21 @@
  *   ?mark=soft   the same dots with a soft edge (circle-blur 1, radius ×1.6,
  *                opacity 0.7), placed at the cell's gallons-weighted centroid,
  *                so overlaps compose into a field without a kernel.
- *   ?mark=hits   the Stellmans' hit grid (proximity.json, the 1 km band, all
- *                agents), whole decade — the shipped table carries no time.
+ *
+ * Three knobs, so the size can be judged on the real page without a
+ * redeploy (the Atlas's dots are sized to sit inside their cell, which is
+ * not what a field wants):
+ *
+ *   &k=2.5      radius scale on the Atlas's k, cap and floor together (1 =
+ *               the Atlas's own dot; soft defaults to 1.6)
+ *   &blur=0.7   circle-blur, 0 hard to 1 faded from the centre (dots 0.25,
+ *               soft 1 by default)
+ *   &alpha=0.7  circle-opacity (dots 0.9, soft 0.7 by default)
+ *   &tier=8     the zoom at which the 0.03° tier takes over from the 0.12°
+ *               tier (the Atlas's Z_MID, 7, by default)
+ *
+ * The hit grid was tried here and set aside: the shipped table carries no
+ * time, and a Story without the playhead is not the Story.
  *
  * Time: each cell's months are turned into a cumulative series once, and a
  * step is a feature valid from its month until the next one, so the playhead
@@ -30,14 +43,21 @@ import { Z_MID } from '../config/mapConfig'
 import { DOTS, DOT_ANCHORS } from './volumeGrid'
 import { firstLabelLayerId } from './mapTheme'
 import type { HeatDataset } from '../data/heat'
-import { loadProximity, renderProximity, hitRamp } from '../data/proximity'
 
-export type StoryMark = 'heat' | 'dots' | 'soft' | 'hits'
+export type StoryMark = 'heat' | 'dots' | 'soft'
+
+const query = () =>
+  typeof window === 'undefined' ? new URLSearchParams() : new URLSearchParams(window.location.search)
 
 export function storyMarkFromUrl(): StoryMark {
-  if (typeof window === 'undefined') return 'heat'
-  const m = new URLSearchParams(window.location.search).get('mark')
-  return m === 'dots' || m === 'soft' || m === 'hits' ? m : 'heat'
+  const m = query().get('mark')
+  return m === 'dots' || m === 'soft' ? m : 'heat'
+}
+
+/** A numeric knob from the URL, or its default. */
+function knob(name: string, fallback: number): number {
+  const v = parseFloat(query().get(name) ?? '')
+  return Number.isFinite(v) ? v : fallback
 }
 
 const COARSE_DEG = 0.12
@@ -47,8 +67,6 @@ const FOREVER = 1e7
 
 export const STORY_DOTS_COARSE = 'story-dots-coarse'
 export const STORY_DOTS_FINE = 'story-dots-fine'
-export const STORY_HITS_LAYER = 'story-hits'
-const STORY_HITS_SOURCE = 'story-hits-src'
 
 interface Month {
   g: number
@@ -129,11 +147,15 @@ export function addStoryMarks(map: maplibregl.Map, heat: HeatDataset, mark: 'dot
   if (map.getLayer(STORY_DOTS_COARSE)) return
   const soft = mark === 'soft'
   const before = firstLabelLayerId(map)
+  const k = knob('k', soft ? 1.6 : 1)
+  const blur = knob('blur', soft ? 1 : DOTS.blur)
+  const alpha = knob('alpha', soft ? 0.7 : DOTS.opacity)
+  const tierZoom = knob('tier', Z_MID)
   const paint = (tier: 'coarse' | 'fine') => ({
     'circle-color': DOTS.tint,
-    'circle-opacity': soft ? 0.7 : DOTS.opacity,
-    'circle-blur': soft ? 1 : DOTS.blur,
-    'circle-radius': radius(tier, soft ? 1.6 : 1),
+    'circle-opacity': alpha,
+    'circle-blur': blur,
+    'circle-radius': radius(tier, k),
     'circle-pitch-alignment': 'map' as const,
     'circle-pitch-scale': 'map' as const,
   })
@@ -144,7 +166,7 @@ export function addStoryMarks(map: maplibregl.Map, heat: HeatDataset, mark: 'dot
       id: STORY_DOTS_COARSE,
       type: 'circle',
       source: STORY_DOTS_COARSE,
-      maxzoom: Z_MID,
+      maxzoom: tierZoom,
       layout: { visibility: 'none' },
       filter: timeFilter(0),
       paint: paint('coarse'),
@@ -159,7 +181,7 @@ export function addStoryMarks(map: maplibregl.Map, heat: HeatDataset, mark: 'dot
       id: STORY_DOTS_FINE,
       type: 'circle',
       source: STORY_DOTS_FINE,
-      minzoom: Z_MID,
+      minzoom: tierZoom,
       layout: { visibility: 'none' },
       filter: timeFilter(0),
       paint: paint('fine'),
@@ -177,30 +199,5 @@ export function setStoryMarksTime(map: maplibregl.Map, day: number) {
 export function setStoryMarksVisible(map: maplibregl.Map, on: boolean) {
   for (const id of [STORY_DOTS_COARSE, STORY_DOTS_FINE]) {
     if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', on ? 'visible' : 'none')
-  }
-}
-
-/** The hit grid as the Atlas draws it (proximity.ts), in the Story's hue.
- *  `alive` is asked after the load, since the map may have been torn down. */
-export async function addStoryHits(map: maplibregl.Map, alive: () => boolean, visible: () => boolean) {
-  const g = await loadProximity(`${import.meta.env.BASE_URL}data/proximity.json`)
-  if (!alive() || map.getLayer(STORY_HITS_LAYER)) return
-  const img = renderProximity(g, 1, null, hitRamp(DOTS.tint))
-  map.addSource(STORY_HITS_SOURCE, { type: 'image', url: img.url, coordinates: img.coordinates })
-  map.addLayer(
-    {
-      id: STORY_HITS_LAYER,
-      type: 'raster',
-      source: STORY_HITS_SOURCE,
-      layout: { visibility: visible() ? 'visible' : 'none' },
-      paint: { 'raster-opacity': 0.7, 'raster-resampling': 'nearest', 'raster-fade-duration': 0 },
-    },
-    firstLabelLayerId(map),
-  )
-}
-
-export function setStoryHitsVisible(map: maplibregl.Map, on: boolean) {
-  if (map.getLayer(STORY_HITS_LAYER)) {
-    map.setLayoutProperty(STORY_HITS_LAYER, 'visibility', on ? 'visible' : 'none')
   }
 }
