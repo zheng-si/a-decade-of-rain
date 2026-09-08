@@ -733,6 +733,12 @@
 .map-wrap .explorer-guide + .explorer-dek {
   font-size: 0.6875rem;
   line-height: 1.4;
+  /* 0.625rem above, and the link below pays the same. At 0.875rem the
+     citation sat three and a half times the guide's own line gap off the
+     guide and read as fallen out of the block; at 0.625rem the four lines
+     and their source read as one thing, with the label's 0.5rem still the
+     tighter of the two. */
+  margin-top: 0.625rem;
 }
 
 .map-wrap .explorer-guide li {
@@ -1001,7 +1007,7 @@
      subtitle no longer pays anything. What brackets it now is the rule above
      and the panel's own padding below, and inside those the three blocks are
      peers on one measure. */
-  margin-top: 0.875rem;
+  margin-top: 0.625rem;
   font-size: 0.75rem;
   font-weight: 600;
 }
