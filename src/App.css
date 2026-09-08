@@ -717,17 +717,30 @@
 /* The stroke tier's two marks in one swatch: a short line and a point beside
    it, because a run with length is a line and a run logged at one grid
    reference is a point, and one row names both. */
+/* The Archive's swatch column is wider than the Story's 1.25rem: the run
+   swatch holds a line AND a point, and at 20px the two touched. 28px gives
+   the full-length line, a gap, and a point that reads as one. Every row
+   shares the column, so the labels stay on one line. */
+.archive-key-legend .key-swatch {
+  width: 1.75rem;
+}
+
 .archive-key-legend .key-run {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.1875rem;
+  gap: 0.25rem;
   width: 100%;
 }
 
 .archive-key-legend .key-run .key-line {
-  width: 0.625rem;
+  width: 0.875rem;
   margin: 0;
+}
+
+.archive-key-legend .key-run .key-dot.is-small {
+  width: 5px;
+  height: 5px;
 }
 
 /* A cell of the proximity grid: a square, because the mark on the map is a
