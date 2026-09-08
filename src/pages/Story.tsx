@@ -7,6 +7,14 @@ import { Link } from 'react-router-dom'
 import { loadSpray, dateToDay, dayToDate, fmtGallons, type SprayDataset } from '../data/spray'
 import { loadHeat } from '../data/heat'
 import { loadTracks } from '../data/tracks'
+import {
+  storyMarkFromUrl,
+  addStoryMarks,
+  setStoryMarksTime,
+  setStoryMarksVisible,
+  addStoryHits,
+  setStoryHitsVisible,
+} from '../components/storyMarks'
 import { mapConfig } from '../config/mapConfig'
 import {
   resolveMapStyle,
@@ -22,6 +30,7 @@ import {
   crossfadeStoryMarks,
   cancelStoryXfade,
   resetStoryMarks,
+  setStoryTracksVisible,
   STORY_HEAT_LAYER,
   STORY_WATER,
 } from '../components/mapTheme'
@@ -44,6 +53,26 @@ import StoryNav from '../components/StoryNav'
 import { applyLabelCuration } from '../components/labelLayers'
 import { quietBasemap, addVietnamLabel } from '../components/volumeGrid'
 import './Story.css'
+
+// PROTOTYPE (2026-09, `?mark=dots|soft|hits`): the field drawn with another
+// mark, so the alternatives can be compared on the real page. See
+// components/storyMarks.ts. With no flag nothing below changes the heat.
+const STORY_MARK = storyMarkFromUrl()
+let fieldOn = true
+let fieldDay = 0
+function setFieldTime(map: maplibregl.Map, day: number) {
+  fieldDay = day
+  setStoryHeatTime(map, day)
+  if (STORY_MARK === 'dots' || STORY_MARK === 'soft') setStoryMarksTime(map, day)
+  // The grid carries no time: it is simply off before the story starts.
+  if (STORY_MARK === 'hits') setStoryHitsVisible(map, fieldOn && day > 0)
+}
+function setFieldVisible(map: maplibregl.Map, on: boolean) {
+  fieldOn = on
+  if (STORY_MARK === 'heat') setStoryHeatVisible(map, on)
+  else if (STORY_MARK === 'hits') setStoryHitsVisible(map, on && fieldDay > 0)
+  else setStoryMarksVisible(map, on)
+}
 // v3 skin — one scoped file over Story.css. See the header of StorySkinV3.css.
 import '../StorySkinV3.css'
 // Geist @font-face declarations (shared with the Archive spike).
@@ -430,7 +459,7 @@ export default function Story() {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduce) {
       dayRef.current = toDay
-      setStoryHeatTime(map, toDay)
+      setFieldTime(map, toDay)
       return
     }
     let done = false
@@ -462,7 +491,7 @@ export default function Story() {
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (reduce || fromDay === toDay) {
       dayRef.current = toDay
-      setStoryHeatTime(map, toDay)
+      setFieldTime(map, toDay)
       return
     }
     const data = dataRef.current
@@ -484,13 +513,13 @@ export default function Story() {
       const bucket = Math.round(d / step)
       if (bucket !== lastBucket) {
         lastBucket = bucket
-        setStoryHeatTime(map, d)
+        setFieldTime(map, d)
       }
       if (t < 1) {
         heatAnimRef.current = requestAnimationFrame(tick)
       } else {
         dayRef.current = toDay
-        setStoryHeatTime(map, toDay) // land exactly on the event date
+        setFieldTime(map, toDay) // land exactly on the event date
         heatAnimRef.current = null
       }
     }
@@ -509,8 +538,8 @@ export default function Story() {
     // (Symmetric padding shifts nothing anyway; this camera is a plain centre.)
     map.flyTo({ ...HOOK.camera, pitch, bearing: 0, duration: 1200, essential: true })
     dayRef.current = 0
-    setStoryHeatTime(map, 0) // before 1962 → nothing shown
-    setStoryHeatVisible(map, true)
+    setFieldTime(map, 0) // before 1962 → nothing shown
+    setFieldVisible(map, true)
     wantTracksRef.current = false
     // Back at the hook, so no dissolve to preserve: park the lines and give
     // the heat its alpha back outright.
@@ -607,8 +636,16 @@ export default function Story() {
     // is doing. Entering or leaving the handover dissolves between the two;
     // every other step just parks the tracks and restores the heat's alpha,
     // which the fade leaves at 0 when the lines win.
-    if (ev.tracks || wasTracks) crossfadeStoryMarks(map, !!ev.tracks)
-    else resetStoryMarks(map)
+    if (STORY_MARK === 'heat') {
+      if (ev.tracks || wasTracks) crossfadeStoryMarks(map, !!ev.tracks)
+      else resetStoryMarks(map)
+    } else {
+      // PROTOTYPE: no dissolve to run against a hidden heat; the field's
+      // mark steps aside for the runs and comes back on the next node.
+      resetStoryMarks(map)
+      if (ev.tracks) setStoryTracksVisible(map, true)
+      setFieldVisible(map, !ev.tracks && !ev.crosses)
+    }
 
     if (ev.tracks) {
       // The same country, redrawn as the record. The camera does not move
@@ -617,7 +654,7 @@ export default function Story() {
       cancelHeatAnim()
       cancelPendingSweep()
       dayRef.current = day
-      setStoryHeatTime(map, day)
+      setFieldTime(map, day)
       clearCrosses()
     } else if (isPilot) {
       // No heat here; keep the filter in sync (invisibly) so the next heat node
@@ -625,13 +662,13 @@ export default function Story() {
       cancelHeatAnim()
       cancelPendingSweep()
       dayRef.current = day
-      setStoryHeatTime(map, day)
-      setStoryHeatVisible(map, false)
+      setFieldTime(map, day)
+      setFieldVisible(map, false)
       showCrosses(ev.crosses)
     } else {
       // Bloom the newly sprayed area into view — but only AFTER the camera has
       // flown to the node, so it's never missed on a long flight.
-      setStoryHeatVisible(map, true)
+      setFieldVisible(map, true)
       clearCrosses()
       armSweepOnArrival(map, day)
     }
@@ -775,6 +812,15 @@ export default function Story() {
         // computes over TIME, where no spatial convention applies.
         map.addSource(SPRAY_SOURCE, { type: 'geojson', data: heat.features })
         addStoryHeat(map, SPRAY_SOURCE, heat.dayMax)
+        // PROTOTYPE (`?mark=`): the same gallons with another mark, the heat
+        // parked out of sight. See components/storyMarks.ts.
+        if (STORY_MARK !== 'heat') setStoryHeatVisible(map, false)
+        if (STORY_MARK === 'dots' || STORY_MARK === 'soft') addStoryMarks(map, heat, STORY_MARK)
+        if (STORY_MARK === 'hits') {
+          addStoryHits(map, () => !!mapRef.current, () => fieldOn && fieldDay > 0).catch((e) =>
+            console.error('story hits failed to load', e),
+          )
+        }
 
         // Military-region dividers + tags — shared with the Archive.
         addMilitaryRegions(map, mrGeo, mrLabelsGeo, STORY_HEAT_LAYER)
@@ -819,7 +865,10 @@ export default function Story() {
             addStoryTracks(map, t.lines)
             // The reader can reach the handover before this 560 kB lands, in
             // which case the lines still arrive by dissolve rather than pop.
-            if (wantTracksRef.current) crossfadeStoryMarks(map, true)
+            if (wantTracksRef.current) {
+              if (STORY_MARK === 'heat') crossfadeStoryMarks(map, true)
+              else setStoryTracksVisible(map, true)
+            }
           })
           .catch((e) => console.error('story tracks failed to load', e))
 
