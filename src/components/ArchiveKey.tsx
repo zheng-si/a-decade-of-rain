@@ -179,7 +179,7 @@ export default function ArchiveKey({
   const gridControls = proximity ? (
     <>
       <div className="map-key-control">
-        <p className="map-key-view-label">Distance</p>
+        <p className="map-key-view-label">Hit distance</p>
         <div className="map-key-view map-key-bands" role="group" aria-label="Distance band">
           {bands.map((d) => (
             <button

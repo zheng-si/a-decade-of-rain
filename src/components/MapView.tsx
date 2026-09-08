@@ -225,6 +225,8 @@ const LOOKUP_HI_RING = 'lookup-hi-ring'
  *  the map, which is worse than any colour. Every LineString is drawn by
  *  exactly one of these. */
 const LOOKUP_HI_COLOURS = Array.from(new Set(mapConfig.agents.map((g) => g.color)))
+/** The hits' colour over the hit grid: the panel's own dark green. */
+const LOOKUP_INK = '#213528'
 const LOOKUP_HI_LINES = LOOKUP_HI_COLOURS.map((_, i) => `lookup-hi-line-${i}`)
 /** The tiers that draw THE RECORD — the two grids, the raw dots and every
  *  track layer. A lookup hides them all and draws its hits itself. */
@@ -2102,18 +2104,35 @@ export default function MapView() {
     // open-row highlight already draw exactly this, so a mission on screen is
     // "these runs, lit", not a third encoding.
     const asMission = !c && m != null
+    // Over the hit grid the hits go to ink. The grid has the colour, and an
+    // orange run on a red cell was the least visible thing in the answer;
+    // the agent is in the list beside it. The four colour layers keep their
+    // filters and all draw the same ink, so nothing leaves the map.
     LOOKUP_HI_COLOURS.forEach((colour, i) => {
       const id = LOOKUP_HI_LINES[i]
       if (!map.getLayer(id)) return
-      const taper = asMission ? null : taperGradient(colour)
+      const stroke = proximity ? LOOKUP_INK : colour
+      const taper = asMission ? null : taperGradient(stroke)
+      map.setPaintProperty(id, 'line-color', stroke)
       // Clearing line-gradient (undefined) is the one reset that is safe here:
       // line-color is left set underneath it in both states, so there is no
       // path to the spec default of black.
       map.setPaintProperty(id, 'line-gradient', (taper ?? undefined) as never)
       map.setPaintProperty(id, 'line-width', hitWidthRamp(1.2, asMission ? HI_BUMP : 0) as never)
     })
-    if (map.getLayer(LOOKUP_HI_RING))
+    if (map.getLayer(LOOKUP_HI_PT))
+      map.setPaintProperty(LOOKUP_HI_PT, 'circle-color', proximity ? LOOKUP_INK : (['get', 'c'] as never))
+    if (map.getLayer(LOOKUP_HI_RING)) {
       map.setLayoutProperty(LOOKUP_HI_RING, 'visibility', asMission ? 'visible' : 'none')
+      map.setPaintProperty(LOOKUP_HI_RING, 'circle-stroke-color', proximity ? LOOKUP_INK : (['get', 'c'] as never))
+    }
+    // The veil: a third of paper over bare basemap in the record view, where
+    // the tiers outside the circle are hidden anyway. Over the grid nothing is
+    // hidden — the cells stay — so the same wash barely dimmed a red cell and
+    // the circle stopped being a focus. Heavier there, so the outside fades
+    // to a tint and the inside is the view.
+    if (map.getLayer(LOOKUP_VEIL_LAYER))
+      map.setPaintProperty(LOOKUP_VEIL_LAYER, 'fill-opacity', proximity ? 0.72 : 0.32)
 
     // One record open: the other fifty-nine step back to a fifth. They are
     // still there — the reader chose this one OUT of them, and the answer is
@@ -2162,7 +2181,7 @@ export default function MapView() {
     } else {
       lookupMarkerRef.current.setLngLat([c.lng, c.lat])
     }
-  }, [ready, lookup.center, lookup.mission, lookup.radiusKm, lookupResults, inspect])
+  }, [ready, lookup.center, lookup.mission, lookup.radiusKm, lookupResults, inspect, proximity])
 
   // Crosshair while arming a pick (the map handlers hold it during moves).
   useEffect(() => {
@@ -2313,6 +2332,7 @@ export default function MapView() {
     <LocationLookup
       state={lookup}
       results={lookupResults}
+      proximity={proximity}
       groups={choices
         .filter((c) => c.indices && c.color)
         .map((c) => ({ label: c.label, color: c.color! }))}
