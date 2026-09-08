@@ -714,22 +714,6 @@
   opacity: 0.75;
 }
 
-/* The stroke tier's two marks in one swatch: a short line and a point beside
-   it, because a run with length is a line and a run logged at one grid
-   reference is a point, and one row names both. */
-.archive-key-legend .key-run {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.1875rem;
-  width: 100%;
-}
-
-.archive-key-legend .key-run .key-line {
-  width: 0.625rem;
-  margin: 0;
-}
-
 /* A cell of the proximity grid: a square, because the mark on the map is a
    square, at the raster's own alpha. */
 .archive-key-legend .key-cell {

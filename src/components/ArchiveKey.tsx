@@ -261,7 +261,7 @@ export default function ArchiveKey({
     />
   )
   const otherAgents = (
-    <li>
+    <li key="other">
       <span className="key-swatch" aria-hidden="true">
         {/* A line above the hand-off, a dot below it — the same split the
             tiers themselves make. The grey line fades like the coloured one,
@@ -279,14 +279,14 @@ export default function ArchiveKey({
     </li>
   )
   const border = (
-    <li>
+    <li key="border">
       <span className="key-swatch key-border" aria-hidden="true" />
       National Border
     </li>
   )
-  /* The same row, holding its height open while it has nothing to say. */
-  const placeholder = (
-    <li className="is-placeholder" aria-hidden="true">
+  /* A row holding its height open while it has nothing to say. */
+  const placeholder = (key: string) => (
+    <li key={key} className="is-placeholder" aria-hidden="true">
       <span className="key-swatch" aria-hidden="true">
         <span className="key-dot key-dot-dim" />
       </span>
@@ -294,56 +294,66 @@ export default function ArchiveKey({
     </li>
   )
 
-  /* THREE ROWS, ALWAYS. The key's row count used to follow the zoom (two
+  /* FOUR ROWS, ALWAYS. The key's row count used to follow the zoom (two
      over the dots, three over the strokes) and the filter (one more with an
      agent isolated), and every change stepped the transport and the chart
-     below it. Both variables are folded away here. The strokes' two marks
-     share one row: a run with length is a line and a run logged at one grid
-     reference is a point, and the swatch shows both — 2,829 of the 11,273
-     runs are points, and left out of the key a reader took them for
-     leftovers of the tier below. And the Other Agents row is always there,
-     at the foot: named while an agent is isolated, holding its height open
-     while none is. */
-  const recordRows = (
-    <>
-      {!onTracks && (
-        <li>
-          <span className="key-swatch" aria-hidden="true">
-            {byAgent ? hueDots : <span className="key-dot" style={{ background: tint }} />}
-          </span>
-          Sprayed Volume
-          {infoMark}
-        </li>
-      )}
-      {onTracks && (
-        <li>
-          <span className="key-swatch" aria-hidden="true">
-            <span className="key-run">
-              {runLine}
-              <span className="key-dot is-small" style={{ background: byAgent ? hues![0] : tint }} />
-            </span>
-          </span>
-          Spray Run
-          {infoMark}
-        </li>
-      )}
-      {/* The no-volume mark, only while the layer that draws it is on. */}
-      {((onTracks && TRACKS.nil.shown) || !tracks) && (
-        <li>
-          <span className="key-swatch" aria-hidden="true">
-            {onTracks ? (
-              <span className="key-line-dash" style={{ borderColor: tint }} />
-            ) : (
-              <span className="key-ring" style={{ borderColor: tint }} />
-            )}
-          </span>
-          {onTracks ? 'Flown, No Volume' : 'Flight Path Point'}
-        </li>
-      )}
-      {border}
-      {filtered ? otherAgents : placeholder}
-    </>
-  )
+     below it. The rows that exist are listed in reading order — the marks,
+     Other Agents while an agent is isolated, the border — and the list is
+     padded to its tallest state with rows that hold their height and say
+     nothing. */
+  const markRows: ReactNode[] = []
+  if (!onTracks)
+    markRows.push(
+      <li key="vol">
+        <span className="key-swatch" aria-hidden="true">
+          {byAgent ? hueDots : <span className="key-dot" style={{ background: tint }} />}
+        </span>
+        Sprayed Volume
+        {infoMark}
+      </li>,
+    )
+  if (onTracks)
+    markRows.push(
+      <li key="run">
+        <span className="key-swatch" aria-hidden="true">
+          {runLine}
+        </span>
+        Spray Run
+        {infoMark}
+      </li>,
+      // 2,829 of the 11,273 runs are logged against ONE grid reference, so
+      // there is no line to draw and the record is a point. Left out of the
+      // key, a reader took them for leftovers of the tier below.
+      <li key="pt">
+        <span className="key-swatch" aria-hidden="true">
+          {byAgent ? hueDots : <span className="key-dot" style={{ background: tint }} />}
+        </span>
+        Logged at One Point
+      </li>,
+    )
+  // The no-volume mark, only while the layer that draws it is on.
+  if ((onTracks && TRACKS.nil.shown) || !tracks)
+    markRows.push(
+      <li key="nil">
+        <span className="key-swatch" aria-hidden="true">
+          {onTracks ? (
+            <span className="key-line-dash" style={{ borderColor: tint }} />
+          ) : (
+            <span className="key-ring" style={{ borderColor: tint }} />
+          )}
+        </span>
+        {onTracks ? 'Flown, No Volume' : 'Flight Path Point'}
+      </li>,
+    )
+  if (filtered) markRows.push(otherAgents)
+  markRows.push(border)
+  // Padded to the tallest state (two marks, Other Agents, the border) with
+  // rows that hold their height and say nothing, so the list is the same
+  // height at every zoom and every filter and the transport below never
+  // moves. The padding sits at the foot, where it reads as the block's own
+  // bottom room rather than as a hole in the list.
+  while (markRows.length < 4) markRows.push(placeholder(`ph${markRows.length}`))
+  const recordRows = <>{markRows}</>
 
   const ramp = hitRamp(tint)
   const gridRows = (
