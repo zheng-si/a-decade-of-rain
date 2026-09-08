@@ -597,11 +597,13 @@
   border-top: none;
 }
 
-/* Two lines beside the buttons: what is counted and when, then the counts. */
+/* Two lines beside the buttons: what is counted and when, then the counts.
+   The gap is the 0.5rem every caps label on this screen drops to what it
+   heads; it was 0.3125rem here, the one label short of the rest. */
 .map-wrap .transport-readout {
   display: flex;
   flex-direction: column;
-  gap: 0.3125rem;
+  gap: 0.5rem;
   min-width: 0;
 }
 
@@ -1019,6 +1021,21 @@
 .map-wrap .axis-year,
 .map-wrap .lookup-unit button {
   line-height: var(--v2-lead-ui);
+  /* No vertical padding: the button's line box is then the label's own
+     (same size, same lead), and the toggle stands taller than the label by
+     exactly its 2px track, top and bottom. That is what lets the row below
+     give the LABEL the 0.5rem every other caps label drops, rather than
+     giving it to the toggle and leaving the label 4.5px further off. */
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* The label and the toggle share a centre line and a baseline. The toggle
+   overhangs the label by its 2px track, so the row's foot margin is the
+   label's 0.5rem less that 2px: label to bars 0.5rem, track to bars 2px
+   less, and neither can drift without the other. */
+.map-wrap .inspect-section-row {
+  margin-bottom: calc(0.5rem - 2px);
 }
 
 /* ── the last vendor stroke ────────────────────────────────────────────────
@@ -1318,15 +1335,24 @@
 
 /* The two switches share a baseline: both labels get the same box, and the
    row aligns its two controls at the foot, so a label with a mark and a
-   label without cannot put their switches on different lines. */
+   label without cannot put their switches on different lines. The text sits
+   at the FOOT of that box, not its centre: centred, the line box floated
+   1px clear of the 0.5rem drop every other label makes to its control. */
 .map-wrap .map-key-controls {
   align-items: flex-end;
 }
 
 .map-wrap .map-key-controls .map-key-view-label {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   min-height: 1rem;
+}
+
+/* Foot-aligned with the text, the mark would sit on the line box's foot
+   rather than its centre; half the difference between the line box and the
+   mark puts it back where the other marks are. */
+.map-wrap .map-key-controls .map-key-view-label .map-key-info {
+  margin-bottom: calc((var(--v2-lead-ui) * 1em - 0.75rem) / 2);
 }
 
 /* The model line holds two lines' height whichever model is up, so the
@@ -1635,9 +1661,17 @@
 .map-wrap .lookup-detail .inspect-kicker {
   display: none;
 }
+/* 0.1875rem under the title, on top of the grid's 0.3125rem row gap: 0.5rem
+   from the title to the first fact, the drop every caps label on this
+   screen gives what it heads. The same sum under the two breakdown labels
+   below, which had been carrying their 0.5rem AND the row gap. */
 .map-wrap .archive-key > .archive-inspect .inspect-kicker {
   grid-column: 1 / -1;
-  margin: 0;
+  margin: 0 0 0.1875rem;
+}
+.map-wrap .lookup-detail .archive-inspect .inspect-section-label,
+.map-wrap .archive-key > .archive-inspect .inspect-section-label {
+  margin-bottom: 0.1875rem;
 }
 .map-wrap .lookup-detail .inspect-coords,
 .map-wrap .lookup-detail .inspect-figure,
@@ -1739,7 +1773,9 @@
   border: 1px solid;
 }
 .map-wrap .archive-key > .archive-inspect.is-tinted .inspect-kicker {
-  margin: 0 -0.625rem;
+  /* The band's foot to the first fact: the same 0.5rem as the plain title's
+     (0.1875rem here plus the grid's row gap). */
+  margin: 0 -0.625rem 0.1875rem;
   padding: 0.4375rem 0.625rem;
 }
 /* Centred on the title, and inset from the right edge by what the title is
