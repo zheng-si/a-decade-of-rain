@@ -4,6 +4,10 @@
 // lookup's radius. The panel opens on hover or keyboard focus and hangs off
 // the nearest `.map-key-pop-host`, so the mark can sit inside a label while
 // the note escapes the label's own box.
+//
+// The stylesheet travels with the component: both surfaces render these
+// classes, and each skin lays its own surface over the shared structure.
+import './InfoMark.css'
 
 interface Props {
   /** The panel's id, so the button can name it for assistive tech. */

@@ -848,3 +848,45 @@
 .story .alt-verdict-chip {
   letter-spacing: 0.04em;
 }
+
+/* ── every switch: a 2px track, a thumb with its own corner ───────────────
+   The Archive's decision (2026-09, PR #190), carried over so the switch a
+   reader meets on one page is the switch they meet on the other: the track
+   is 6% forest with 2px of padding, and the selected segment sits inside it
+   as a thumb with the skin's own 2px corner. One rule for the key's Flat/3D
+   pair, the agent chips (over their own colours), the chart's
+   Accumulation/Each year pair and the ecosystems' sort pair. The seams
+   between unselected chips stay where they were. `.method-tabs` is not a
+   switch (two independent toggles on bare paper) and is not here.
+   LAST in the file on purpose: each of these rows zeroes its own padding
+   further up, and this has to win over all of them by source order. */
+.story .map-key-view,
+.story .rainbow-switch,
+.story .rainbow-mode,
+.story .eco-sort {
+  padding: 2px;
+  background: rgba(33, 53, 40, 0.06);
+  border-radius: var(--v3-radius);
+}
+
+.story .map-key-view-btn.is-active,
+.story .rainbow-chip.is-active,
+.story .rainbow-mode-btn.is-active,
+.story .eco-sort-btn.is-active {
+  border-radius: var(--v3-radius);
+}
+
+/* ── the key's (i), on this skin's surface ─────────────────────────────────
+   The mark and the note's structure are InfoMark.css's, shared with the
+   Atlas. The note here stands on the key's own paper with the skin's corner
+   and shadow, and it spans the key's inner width rather than the Atlas's
+   16rem: the key is 12rem wide and sits at the screen's right edge, so a
+   wider note would run off it. */
+.story .map-key-info-pop {
+  left: 0;
+  right: 0;
+  width: auto;
+  background: rgba(252, 251, 247, 0.98);
+  border-radius: var(--v3-radius);
+  box-shadow: var(--v3-shadow);
+}
