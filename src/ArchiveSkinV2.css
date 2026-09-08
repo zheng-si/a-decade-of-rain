@@ -709,14 +709,30 @@
      heads is four short lines rather than a control: 0.5rem reads as "this
      label belongs to that block", more starts to read as a section.
 
-     And the panel's one rule sits on this label, evenly: 16 of air, the
-     hairline, 16 again. Above it the end of the controls, below it the three
-     things that are read rather than operated. It was 20; rendered against
-     the small type on either side of it the line floated, and 16 still reads
-     as two sections without the air reading as a gap. */
-  margin: 1.1875rem 0 0.5rem;
-  padding-top: 1.1875rem;
+     And the panel's one rule sits on this label the way the key's rule sits
+     on the transport: 15 of air above, the hairline, 15 below. Above it the
+     year axis, whose box already carries 4px under the digits, so the margin
+     is 0.875rem and the digits sit 16 off the line; below it the same
+     1.125rem the transport pays under its own rule. It was 19 both sides,
+     and rendered against the 8.5px digits above it the line floated. */
+  margin: 0.875rem 0 0.5rem;
+  padding-top: 1.125rem;
   border-top: 1px solid var(--rule);
+}
+
+/* One step down from the agent note's 0.8125rem was the guide's 0.75rem;
+   it is two now, at 0.6875rem on a 1.4 lead, and the citation under it
+   follows. The four lines are read once and then only scanned for their
+   first word, and at 0.75rem they were the largest running text on the
+   panel after the subtitle. */
+.map-wrap .explorer-guide li {
+  font-size: 0.6875rem;
+  line-height: 1.4;
+}
+
+.map-wrap .explorer-guide + .explorer-dek {
+  font-size: 0.6875rem;
+  line-height: 1.4;
 }
 
 .map-wrap .explorer-guide li {
@@ -1773,7 +1789,12 @@
 .map-wrap .archive-key > .archive-inspect.is-tinted {
   margin-top: 0.875rem;
   padding: 0 0.625rem 0.4375rem;
-  border: 1px solid;
+  /* No hairline: the tinted ground and the darker band are the card's edge,
+     and the stroke at 30% of the hue read as a third tone on a two-tone
+     object. The skin's own 2px corner instead; the card is a scroll box, so
+     the band's bleed to the edges is clipped to that corner with it. */
+  border: none;
+  border-radius: var(--v2-radius);
 }
 .map-wrap .archive-key > .archive-inspect.is-tinted .inspect-kicker {
   /* The band's foot to the first fact: the same 0.5rem as the plain title's
