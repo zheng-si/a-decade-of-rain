@@ -211,7 +211,7 @@ export default function ArchiveKey({
   const note = onProximity
     ? `Stellman and Stellman's proximity model, 1961 to 1971, on their 0.01° grid. A hit is a recorded spray-path leg passing within ${band} km of the cell's grid point; colour is the number of hits, whole record. Proximity to a recorded path, not deposition or exposure.`
     : (onTracks
-        ? 'Stroke width is gallons per kilometre. Each run fades away from its first waypoint on file.'
+        ? 'Stroke width is gallons per kilometre. Each run fades away from its first waypoint on file. A run logged at one grid reference is drawn as a point, with area for its gallons.'
         : 'Dot area is the gallons that fell in the cell, counted along every run that crossed it.') +
       (byAgent
         ? onTracks
@@ -284,7 +284,26 @@ export default function ArchiveKey({
       National Border
     </li>
   )
+  /* The same row, holding its height open while it has nothing to say. */
+  const placeholder = (
+    <li className="is-placeholder" aria-hidden="true">
+      <span className="key-swatch" aria-hidden="true">
+        <span className="key-dot key-dot-dim" />
+      </span>
+      Other Agents
+    </li>
+  )
 
+  /* THREE ROWS, ALWAYS. The key's row count used to follow the zoom (two
+     over the dots, three over the strokes) and the filter (one more with an
+     agent isolated), and every change stepped the transport and the chart
+     below it. Both variables are folded away here. The strokes' two marks
+     share one row: a run with length is a line and a run logged at one grid
+     reference is a point, and the swatch shows both — 2,829 of the 11,273
+     runs are points, and left out of the key a reader took them for
+     leftovers of the tier below. And the Other Agents row is always there,
+     at the foot: named while an agent is isolated, holding its height open
+     while none is. */
   const recordRows = (
     <>
       {!onTracks && (
@@ -299,24 +318,15 @@ export default function ArchiveKey({
       {onTracks && (
         <li>
           <span className="key-swatch" aria-hidden="true">
-            {runLine}
+            <span className="key-run">
+              {runLine}
+              <span className="key-dot is-small" style={{ background: byAgent ? hues![0] : tint }} />
+            </span>
           </span>
           Spray Run
           {infoMark}
         </li>
       )}
-      {/* 2,829 of the 11,273 runs are logged against ONE grid reference, so
-          there is no line to draw and the record is a point. Left out of the
-          key, a reader took them for leftovers of the tier below. */}
-      {onTracks && (
-        <li>
-          <span className="key-swatch" aria-hidden="true">
-            {byAgent ? hueDots : <span className="key-dot" style={{ background: tint }} />}
-          </span>
-          Logged at One Point
-        </li>
-      )}
-      {filtered && otherAgents}
       {/* The no-volume mark, only while the layer that draws it is on. */}
       {((onTracks && TRACKS.nil.shown) || !tracks) && (
         <li>
@@ -331,6 +341,7 @@ export default function ArchiveKey({
         </li>
       )}
       {border}
+      {filtered ? otherAgents : placeholder}
     </>
   )
 
