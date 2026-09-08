@@ -584,7 +584,7 @@ export default function Timeline({
             target="_blank"
             rel="noopener noreferrer"
           >
-            complete record
+            revised HERBS file
           </a>{' '}
           behind Stellman et&nbsp;al. (2003).
         </p>

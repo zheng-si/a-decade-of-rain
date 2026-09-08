@@ -220,7 +220,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
     bbox: [104.4, 8.4, 109.4, 17.1],
     agent: 'all',
     dek: 'A decade of spraying, in one number.',
-    body: 'Across the whole campaign, roughly 19.5 million gallons of herbicide fell on Vietnam, at least 11 million of it Agent Orange. What follows is not just where it landed, but what it takes to clean it up.',
+    body: 'Across the whole campaign, roughly 19.5 million gallons of herbicide were sprayed over Vietnam, at least 11 million of it Agent Orange. What follows is not just where it was sprayed, but what it takes to clean it up.',
     stat: { value: '19.5M', label: 'gallons, 1961–1971' },
   },
   {

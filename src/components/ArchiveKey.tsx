@@ -209,10 +209,10 @@ export default function ArchiveKey({
      grid instead: whose model it is, what a hit is, and what the colour is
      not. */
   const note = onProximity
-    ? `Stellman and Stellman's proximity model, 1961 to 1971, on their 0.01° grid. A hit is a recorded spray-path leg passing within ${band} km of the cell's grid point; colour is the number of hits, whole record. Proximity to a recorded path, not deposition or exposure.`
+    ? `Stellman and Stellman's proximity model, 1961 to 1971, on their 0.01° grid. A hit is a recorded spray-path leg passing within ${band} km of the cell's grid point; colour is the number of hits, whole record. Separate spray paths of one mission count separately, so a cell can carry more hits than missions. Proximity to a recorded path, not deposition or exposure.`
     : (onTracks
-        ? 'Stroke width is gallons per kilometre. Each run fades away from its first waypoint on file. A run logged at one grid reference is drawn as a point, with area for its gallons.'
-        : 'Dot area is the gallons that fell in the cell, counted along every run that crossed it.') +
+        ? 'Stroke width is gallons per kilometre. Each run fades from A, where spraying began, through its turning points to where it stopped. A run logged at one grid reference is drawn as a point, with area for its gallons. Waypoints are joined by straight lines, as the record gives them; real paths along roads and rivers may have curved. HERBS coordinates are nominally 100 m and accurate to roughly 500 m (Stellman and Stellman, 2004).'
+        : 'Dot area is the gallons recorded along every run that crossed the cell.') +
       (byAgent
         ? onTracks
           ? ' Colour is the agent that flew it.'

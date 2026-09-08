@@ -66,7 +66,7 @@ export const REF_GROUPS: RefGroup[] = [
     title: 'Data',
     sourceIds: ['stellman_2003', 'nas_1974', 'westing_bioscience', 'aso_stoten'],
     lines: [
-      'Spray missions: HERBS file digitisation (24,604 runs, 1961–1971) behind Stellman et al. 2003',
+      'Spray missions: HERBS, the revised file of Stellman et al. (2003), via hea-v. 9,141 missions, 11,273 runs, 24,604 waypoint rows, 1961–1971',
     ],
   },
   {
