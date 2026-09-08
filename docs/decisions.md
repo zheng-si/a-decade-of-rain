@@ -8,6 +8,29 @@ the change lives. Standing rules and open questions are at the foot.
 Dates are the day the decision landed on `master` unless noted. Pull
 request numbers refer to this repository.
 
+## 2026-09-08 · The Story keeps its heat field (PR #194)
+
+### The field stays
+**Decided.** The Story keeps its heat field. The question was whether the
+one encoding on the site that is neither the record's own marks nor the
+authors' own model could be replaced by one that needs no paragraph of its
+own. Not at the size the page needs; so the paragraph is written instead
+(`docs/methods.md` §6 and §7, `docs/methods-paper.md` §6.4): a reading aid
+over the same gallons as the Atlas's fine tier, smoothed over about two
+cells, an ordinal scale, no claim of deposition, every constant listed.
+**Why.** Three alternatives were drawn on the real page behind a URL flag
+at six nodes, on the preview with the basemap. The hit grid went first: the
+shipped table carries no time, and a Story without the playhead is not the
+Story. The Atlas's dots at their own size, which is sized to sit inside
+their cell, were too small to carry the page. Enlarged (2.5 to 4.5 times),
+soft-edged and with the coarse tier held to z8, they approached the field
+at the country zoom, but in the valleys the lattice showed and the field's
+kernel was doing the filling. The designer's call.
+**Set aside.** The prototype: each cell's months turned into a cumulative
+series so the playhead is one filter, the Atlas's dot rule with a scale on
+it, four knobs on the URL. It is in this branch's history and out of the
+tree.
+
 ## 2026-09-08 · The Story's switches and the key's note (PR #192)
 
 Opened the day PR #190 merged; in review as this entry is written, so the

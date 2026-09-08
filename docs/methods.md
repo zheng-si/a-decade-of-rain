@@ -182,6 +182,22 @@ found by looking at the result rather than by reasoning about it:
    ground area, the number of points inside it no longer changes with zoom, so
    the intensity should not either.
 
+**Why the Story draws a field, and how to read it.** The Story's nodes sit
+between z6.3 and z9.6 on a map that also carries relief, place names, a
+narrative card and a playhead. At those zooms the record's own marks are
+either a lattice of cell-bound dots or, as runs, dashes a few pixels long.
+The field is the same fine-tier binning smoothed over about two cells, so
+that where the decade's volume accumulated reads at a glance and fills in
+month by month as the reader scrolls. It is a reading aid over the same
+gallons, not a further quantity: every constant in it (the cell, the month,
+√(gallons / p90), the radius, the intensity, the ramp, the opacity) is listed
+in `docs/methods-paper.md` §6.4 and its appendix, its scale is ordinal (the
+legend says less and more; the key's note says what is counted), and nothing
+in it is a claim about deposition. The alternatives were drawn on the page
+before this was settled, in September 2026: the Archive's dots at their own
+size and enlarged, the same dots soft-edged, and the Stellmans' hit grid.
+They are recorded, with what they showed, in `docs/decisions.md`.
+
 **Why tiers at all.** The median run is 11 km. Across the explorer's zoom range
 that line measures **7 px at the zoom floor and 291 px at the ceiling — a
 factor of 42**. Below roughly 15 px a line cannot be told from a dot, so
@@ -215,6 +231,10 @@ carrying the same load did very different things to the ground beneath them.
   cacodylic acid produced a map that said the opposite of its own subject.
 - **No swath width.** A run is drawn as a line; the real spray swath had width.
   At every cell size used here that width is sub-cell.
+- **A heat blob is not a footprint.** The Story's field is smoothed over about
+  two cells (3 to 7 km on the ground, by zoom). The edge of a blob is where the
+  kernel runs out, not where the spraying stopped, and its colour is relative
+  to the 90th percentile of the cell-month totals, not a quantity on a scale.
 - **Straight-line interpolation** between consecutive waypoints. The waypoints
   chain end to end at a median 2.63 km gap, so the interpolated path is short
   relative to the cells.
