@@ -11,6 +11,7 @@ import {
 } from './lookup'
 import { fmtGallons, tint } from './ArchiveInspect'
 import type { GroupInfo } from './ArchiveInspect'
+import { InfoMark, InfoPop } from './InfoMark'
 
 // ── location lookup: the place column's query and its answer ──────────────
 // An archive query, phrased as one: search a place or pick a point, choose a
@@ -81,6 +82,11 @@ interface Props {
    *  compares a record against its neighbours without leaving the list. */
   detailKey?: string | null
   detail?: ReactNode
+  /** The map is showing the hit grid. The circle still counts the record's
+   *  runs, so the panel has to say that the two figures on screen are
+   *  different units, and name its radius so it is not taken for the grid's
+   *  distance band. */
+  proximity?: boolean
 }
 
 const RADII = [1, 2, 5, 10]
@@ -127,6 +133,7 @@ export default function LocationLookup({
   onMission,
   missions,
   onBack,
+  proximity = false,
 }: Props) {
   const { center, radiusKm, picking, place } = state
   const mission = state.mission ?? null
@@ -436,11 +443,24 @@ export default function LocationLookup({
       {/* No radius for a mission: the answer is the mission's own tracks, not
           what fell within a distance of anything. */}
       {mission == null && (
-      <div className="lookup-row">
+      <div className="lookup-row is-radius map-key-pop-host">
         {/* "Radius", not "Within": the row is a property of the search and the
             label names it, rather than starting a sentence the chips have to
-            finish. Cased like the panel's other structural labels. */}
-        <span className="lookup-row-label">Radius</span>
+            finish. Cased like the panel's other structural labels. The (i)
+            says what the circle counts, and over the hit grid that its count
+            and the cells' are different units. */}
+        <span className="lookup-row-label has-info">
+          {proximity ? 'Search radius' : 'Radius'}
+          <InfoMark id="lookup-radius-pop" label="What the radius counts" />
+        </span>
+        <InfoPop
+          id="lookup-radius-pop"
+          below
+          text={
+            "Every recorded run passing within this distance of the centre, with its share of the mission's logged volume. Not the share that fell inside the circle." +
+            (proximity ? " The cells show the model's hits, a different unit." : '')
+          }
+        />
         <div className="lookup-radii" role="group" aria-label="Search radius">
           {RADII.map((r) => (
             <button

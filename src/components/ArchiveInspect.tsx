@@ -308,6 +308,16 @@ export default function ArchiveInspect({
               )}
             </p>
           )}
+          {/* The gallons on a run with length are a SHARE, not a field: HERBS
+              books a mission's whole volume once, on its 1A row, and the build
+              spreads it across the mission's tracks by length. The lookup's
+              caveat says so; a run opened from the map had no such line. */}
+          {data.gallons > 0 && data.km != null && data.mission != null && data.mission > 0 && (
+            <p className="inspect-note">
+              Gallons are this run&apos;s share of its mission&apos;s logged volume, spread along
+              the mission&apos;s tracks by length.
+            </p>
+          )}
           {/* The run IS the subject and it carries no volume: say that, rather
               than the waypoint explanation below, which describes a piece of a
               run whose gallons are elsewhere. Reached from the map now that the

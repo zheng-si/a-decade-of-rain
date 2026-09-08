@@ -73,7 +73,11 @@ interface TimelineProps {
   /** The map key: view switch, scale, legend. It belongs with the other
    *  things that say how to READ the map rather than with the things that
    *  answer a question, so it closes this panel. Desktop only. */
-  keySlot?: ReactNode
+  keySlot?: ReactNode | ((agents: ReactNode) => ReactNode)
+  /** The hit grid is the whole record, so while it is up the transport and
+   *  the chart are not shown: a playhead that moves nothing on the map is a
+   *  control that lies. The agent chips stay — they filter the grid. */
+  hideTransport?: boolean
   onScrub: (day: number) => void
   onPlay: () => void
   onPause: () => void
@@ -111,6 +115,7 @@ export default function Timeline({
   inspectOpen = false,
   lookupSlot,
   keySlot,
+  hideTransport = false,
   onScrub,
   onPlay,
   onPause,
@@ -279,6 +284,38 @@ export default function Timeline({
     )
   }, [volume, dayMin, span])
 
+  // The agent filter, as one block, so the key can take it: it applies to
+  // both models, and under the two switches is where a choice that applies
+  // to both belongs. Rendered here when nothing asks for it.
+  const agentsBlock = (
+    <>
+      <p className="explorer-section-label">Spraying Agents</p>
+      <div className="explorer-agents">
+        {agentChoices.map((c) => {
+          const active = c.key === activeAgentKey
+          return (
+            <button
+              key={c.key}
+              className={`agent-chip${active ? ' is-active' : ''}`}
+              // The selected agent was announced by a class name and an inline
+              // background, neither of which reaches assistive tech: five
+              // chips, all read identically, none of them saying which one the
+              // map is filtered to.
+              aria-pressed={active}
+              style={active && c.color ? { background: c.color, borderColor: c.color } : undefined}
+              onClick={() => onSelectAgent(c.key)}
+            >
+              {c.color && <span className="agent-dot" style={{ background: c.color }} />}
+              {c.label}
+            </button>
+          )
+        })}
+      </div>
+      <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
+    </>
+  )
+  const keyTakesAgents = typeof keySlot === 'function'
+
   return (
     <section
       className={`explorer-panel${
@@ -358,8 +395,10 @@ export default function Timeline({
       {/* The key reads before the controls, not after them: it says what the
           marks on the map ARE, and the transport and the filter below it are
           what the reader does to them. */}
-      {keySlot}
+      {typeof keySlot === 'function' ? keySlot(agentsBlock) : keySlot}
 
+      {!hideTransport && (
+      <>
       <div className="explorer-transport">
         <div className="transport-buttons">
           <button
@@ -461,31 +500,10 @@ export default function Timeline({
           {axis}
         </div>
       )}
+      </>
+      )}
 
-      <p className="explorer-section-label">Spraying Agents</p>
-      <div className="explorer-agents">
-        {agentChoices.map((c) => {
-          const active = c.key === activeAgentKey
-          return (
-            <button
-              key={c.key}
-              className={`agent-chip${active ? ' is-active' : ''}`}
-              // The selected agent was announced by a class name and an inline
-              // background, neither of which reaches assistive tech: five
-              // chips, all read identically, none of them saying which one the
-              // map is filtered to.
-              aria-pressed={active}
-              style={active && c.color ? { background: c.color, borderColor: c.color } : undefined}
-              onClick={() => onSelectAgent(c.key)}
-            >
-              {c.color && <span className="agent-dot" style={{ background: c.color }} />}
-              {c.label}
-            </button>
-          )
-        })}
-      </div>
-
-      <p className="explorer-agent-note">{AGENT_NOTES[activeAgentKey] ?? ''}</p>
+      {!keyTakesAgents && agentsBlock}
 
         {/* A label AND a rule, and the two no longer say the same thing.
 
@@ -496,6 +514,24 @@ export default function Timeline({
             boundary: controls above, the things that are read rather than
             operated below. The label still names the block under it. */}
         <p className="explorer-section-label explorer-guide-label">How to read this</p>
+        {hideTransport ? (
+          /* The grid's own four: what a reader can DO to it. Play and click
+             are the record's verbs, and neither does anything here. */
+          <ul className="explorer-guide">
+            <li>
+              <strong>Hover</strong> any cell for its hits at every distance.
+            </li>
+            <li>
+              <strong>Pick a distance</strong> to change what a hit counts as.
+            </li>
+            <li>
+              <strong>Zoom in</strong> to read the grid cell by cell.
+            </li>
+            <li>
+              <strong>Search</strong> a base or town for every run that crossed it.
+            </li>
+          </ul>
+        ) : (
         <ul className="explorer-guide">
           {/* The verb starts every line. It was the bolded word before, which
               got the emphasis right and the position wrong: a reader scanning
@@ -524,6 +560,7 @@ export default function Timeline({
             <strong>Search</strong> a base or town for every run that crossed it.
           </li>
         </ul>
+        )}
         {/* Provenance, under the instructions.
 
             It used to sit between the identity and the instructions, which put
@@ -547,7 +584,7 @@ export default function Timeline({
             target="_blank"
             rel="noopener noreferrer"
           >
-            complete record
+            revised HERBS file
           </a>{' '}
           behind Stellman et&nbsp;al. (2003).
         </p>

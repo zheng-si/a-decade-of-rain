@@ -714,6 +714,62 @@
   opacity: 0.75;
 }
 
+/* The stroke tier's two marks in one swatch: a short line and a point beside
+   it, because a run with length is a line and a run logged at one grid
+   reference is a point, and one row names both. */
+/* The Archive's swatch column is wider than the Story's 1.25rem: the run
+   swatch holds a line AND a point, and at 20px the two touched. 28px gives
+   the full-length line, a gap, and a point that reads as one. Every row
+   shares the column, so the labels stay on one line. */
+.archive-key-legend .key-swatch {
+  width: 1.75rem;
+}
+
+/* Line at the left edge, point at the right: the two read as two marks
+   rather than as one mark with a tail. */
+.archive-key-legend .key-run {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* The single dot (an agent isolated over the dot tier) sat at 10px, the
+   heaviest mark in the column against 4px and 5px points elsewhere. */
+.archive-key-legend .key-dot:not(.is-small) {
+  width: 0.4375rem;
+  height: 0.4375rem;
+}
+
+.archive-key-legend .key-run .key-line {
+  width: 0.875rem;
+  margin: 0;
+}
+
+/* No auto margins inside the pair: `.key-dot` centres itself with them, and
+   in a space-between row that put the point in the middle of the free space
+   rather than at the edge. */
+.archive-key-legend .key-run .key-dot.is-small {
+  width: 5px;
+  height: 5px;
+  margin: 0;
+}
+
+/* A cell of the proximity grid: a square, because the mark on the map is a
+   square, at the raster's own alpha. */
+.archive-key-legend .key-cell {
+  display: block;
+  width: 0.625rem;
+  height: 0.625rem;
+  margin: 0 auto;
+  opacity: 0.7;
+}
+
+/* The band buttons stand in the legend's row, before the swatches. */
+.archive-key-legend .map-key-bands {
+  margin-right: 0.5rem;
+}
+
 .archive-key-legend .key-line-dash {
   display: block;
   width: 0.875rem;
@@ -1863,6 +1919,12 @@
   color: #f2efe7;
   background: rgba(33, 53, 40, 0.94);
   box-shadow: 0 2px 10px rgba(40, 38, 30, 0.18);
+}
+/* The zoom hint sits at the foot of the map, where the key bar used to,
+   so it never shares the top strip with the mode signs. */
+.map-pick-hint.is-zoom {
+  top: auto;
+  bottom: 1.5rem;
 }
 .map-pick-hint button {
   border: none;

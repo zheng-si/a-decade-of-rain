@@ -56,6 +56,14 @@ import {
   setLayersVisible,
 } from './trackLayers'
 import { loadTracks, type TrackDataset } from '../data/tracks'
+import {
+  loadProximity,
+  cellAt,
+  hitsAt,
+  hitRamp,
+  renderProximity,
+  type ProximityGrid,
+} from '../data/proximity'
 import LocationLookup, { type LookupState } from './LocationLookup'
 import {
   queryLookup,
@@ -368,7 +376,16 @@ interface UrlState {
   lookup?: { lng: number; lat: number; radiusKm: number; from: string; to: string }
   /** A HERBS mission number: `?m=167`. */
   mission?: number
+  /** The proximity grid instead of the record's dots: `?layer=proximity`,
+   *  with the band in km as `d` (0.5, 1, 2 or 5; 1 when absent). */
+  proximity?: boolean
+  band?: number
 }
+
+/** The proximity bands, in km, as Stellman & Stellman (2004) define them. */
+const PROX_BANDS = [0.5, 1, 2, 5]
+const PROX_SOURCE = 'proximity'
+const PROX_LAYER = 'proximity-l'
 
 function readUrlState(): UrlState {
   const q = new URLSearchParams(window.location.search)
@@ -419,6 +436,9 @@ function readUrlState(): UrlState {
   // parsed, so `?m=12abc` is not mission 12.
   const m = q.get('m')
   if (m && /^\d{1,5}$/.test(m) && Number(m) > 0) out.mission = Number(m)
+  if (q.get('layer') === 'proximity') out.proximity = true
+  const d = Number(q.get('d'))
+  if (PROX_BANDS.includes(d)) out.band = d
   return out
 }
 
@@ -443,8 +463,14 @@ function buildSearch(
   agentKey: string,
   is3D: boolean,
   lookup: LookupState,
+  proximity: boolean,
+  band: number,
 ): string {
   const q = new URLSearchParams()
+  if (proximity) {
+    q.set('layer', 'proximity')
+    if (band !== 1) q.set('d', String(band))
+  }
   // The console's own flag rides along. It is not view state, but this
   // function is the sole author of the query string, so anything it does not
   // re-emit is deleted -- and the agent colours are applied at LOAD, which
@@ -693,6 +719,25 @@ export default function MapView() {
   const [playing, setPlaying] = useState(false)
   const [agentKey, setAgentKey] = useState('all')
   const [is3D, setIs3D] = useState(false)
+  // ── the proximity grid ───────────────────────────────────────────────────
+  // Stellman & Stellman's own table, drawn instead of the record's dots. The
+  // strokes stay: the grid is a model and the strokes are the evidence it was
+  // made from, and the reader should be able to see both at once.
+  const [proximity, setProximity] = useState(false)
+  const [band, setBand] = useState(1)
+  const [proxReady, setProxReady] = useState(false)
+  const proxRef = useRef<ProximityGrid | null>(null)
+  const proxOnRef = useRef(false)
+  proxOnRef.current = proximity
+  const bandRef = useRef(1)
+  bandRef.current = band
+  /** The selected agent GROUP (0–3) or null for all, mirrored for the hover. */
+  const proxGroupRef = useRef<number | null>(null)
+  /** Whether the camera is in the track band, and whether it has ever been:
+   *  the zoom hint over the map shows until the reader has crossed the
+   *  hand-off once, which is the moment the hint's sentence comes true. */
+  const [near, setNear] = useState(false)
+  const [crossedOnce, setCrossedOnce] = useState(false)
   const [stats, setStats] = useState({ missions: 0, runs: 0, gallons: 0 })
   const [volume, setVolume] = useState<VolumeChart | null>(null)
   const [inspect, setInspect] = useState<Inspect | null>(null)
@@ -1145,6 +1190,46 @@ export default function MapView() {
           }
           hoverRunRef.current = null
           paintHover()
+          // Over the proximity grid the dots are hidden, so the thing under
+          // the pointer is a cell of the authors' table. One line of the
+          // selected band, one line of the other three, and the word "hits"
+          // because it is their word: a spray-path leg recorded within the
+          // distance of the cell's grid point.
+          if (proxOnRef.current && proxRef.current) {
+            const g = proxRef.current
+            const cell = cellAt(g, e.lngLat.lng, e.lngLat.lat)
+            const sel = proxGroupRef.current
+            const hits = cell >= 0 ? hitsAt(g, cell, sel == null ? null : [sel]) : null
+            if (!hits || !hits[3]) {
+              hover.remove()
+              map.getCanvas().style.cursor = ''
+              return
+            }
+            const bi = PROX_BANDS.indexOf(bandRef.current)
+            const others = PROX_BANDS.map((d, i) => (i === bi ? null : `${d} km ${hits[i].toLocaleString()}`))
+              .filter(Boolean)
+              .join(' · ')
+            map.getCanvas().style.cursor = 'default'
+            // With nothing isolated the cell's count is a sum over four
+            // agents, so the third line says what it is made of: the same
+            // four the chips name, in the same order, with zeros kept so the
+            // line is always the same shape.
+            const byAgent =
+              sel == null
+                ? g.groups
+                    .map((_, gi) => `${groupLabels[gi] ?? g.groups[gi]} ${hitsAt(g, cell, [gi])[bi].toLocaleString()}`)
+                    .join(' · ')
+                : groupLabels[sel]
+            hover
+              .setLngLat(e.lngLat)
+              .setHTML(
+                `<strong><span class="n">${hits[bi].toLocaleString()}</span> Hit${hits[bi] === 1 ? '' : 's'} within ${PROX_BANDS[bi]} km</strong>` +
+                  `<span>${others}</span>` +
+                  `<span>${byAgent}</span>`,
+              )
+              .addTo(map)
+            return
+          }
           const feats = map.queryRenderedFeatures(e.point, { layers: volLayers })
           if (!feats.length) {
             hover.remove()
@@ -1352,6 +1437,8 @@ export default function MapView() {
           setIs3D(true)
           applyView(map, true, homeRef.current, false)
         }
+        if (urlState.proximity) setProximity(true)
+        if (urlState.band != null) setBand(urlState.band)
         if (urlState.mission != null) {
           const m = urlState.mission
           setLookup((s) => ({ ...s, center: null, place: undefined, mission: m }))
@@ -1684,6 +1771,81 @@ export default function MapView() {
     settledDayRef.current = dayRef.current
   }, [playing, tracksReady])
 
+  // ── the proximity grid: load once, on first request ─────────────────────
+  useEffect(() => {
+    if (!proximity || proxRef.current) return
+    let cancelled = false
+    loadProximity()
+      .then((g) => {
+        if (cancelled) return
+        proxRef.current = g
+        setProxReady(true)
+      })
+      .catch((e) => console.error('proximity grid failed to load', e))
+    return () => {
+      cancelled = true
+    }
+  }, [proximity])
+
+  // ── and draw it ──────────────────────────────────────────────────────────
+  // The image is re-rendered whenever the band or the selection changes: a
+  // 1512 × 2460 canvas, painted per pixel from 125,915 cells, well under a
+  // frame on this machine. The dots step aside while the grid is up; the
+  // strokes stay. The band's colour is the selection's own, as everywhere.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const g = proxRef.current
+    const groups = choices.filter((c) => c.indices && c.color)
+    const gi = groups.findIndex((c) => c.key === agentKey)
+    proxGroupRef.current = gi >= 0 ? gi : null
+    const on = proximity && !!g
+    if (on) {
+      const tint = choices.find((c) => c.key === agentKey)?.color ?? DOTS.tint
+      const bi = PROX_BANDS.indexOf(band)
+      const img = renderProximity(g, bi < 0 ? 1 : bi, gi >= 0 ? [gi] : null, hitRamp(tint))
+      const src = map.getSource(PROX_SOURCE) as maplibregl.ImageSource | undefined
+      if (src) src.updateImage(img)
+      else {
+        map.addSource(PROX_SOURCE, { type: 'image', url: img.url, coordinates: img.coordinates })
+        // Under the record's bottom tier, so dots (when they return) and
+        // strokes always draw over the model they were the evidence for.
+        map.addLayer(
+          {
+            id: PROX_LAYER,
+            type: 'raster',
+            source: PROX_SOURCE,
+            paint: {
+              'raster-opacity': 0.7,
+              'raster-resampling': 'nearest',
+              'raster-fade-duration': 0,
+            },
+          },
+          map.getLayer(VOL_COARSE_LAYER) ? VOL_COARSE_LAYER : undefined,
+        )
+      }
+    }
+    if (map.getLayer(PROX_LAYER)) map.setLayoutProperty(PROX_LAYER, 'visibility', on ? 'visible' : 'none')
+    // The grid tiers: hidden while the grid is up, back when it is down —
+    // unless a lookup is holding them hidden for its own reasons.
+    const lookupUp = lookup.center != null || lookup.mission != null
+    if (on) setLayersVisible(map, GRID_TIERS.slice(0, 2), false)
+    else if (!lookupUp) setLayersVisible(map, GRID_TIERS.slice(0, 2), true)
+    // The strokes go with the dots: one model on the map at a time. Two
+    // encodings over each other — coloured cells under coloured lines — read
+    // as neither. Only the layers that carry the record; the optional tiers
+    // (nil, ends) keep their own flags. Shown again, a layer carries whatever
+    // day it was hidden at, so the playhead is pushed after the visibility.
+    if (tracksRef.current) {
+      const strokeIds = [TRACK_LAYER, ...TRACK_HUE_LAYERS, TRACK_DIM_LAYER, TRACK_MARK_LAYER]
+      if (on) setLayersVisible(map, strokeIds, false)
+      else if (!lookupUp) {
+        setLayersVisible(map, strokeIds, true)
+        setTrackTime(map, dayRef.current)
+      }
+    }
+  }, [ready, proximity, proxReady, band, agentKey, choices, lookup.center, lookup.mission, tracksReady])
+
   // Switch between flat (top-down) and tilted 3D terrain.
   function toggleView() {
     const map = mapRef.current
@@ -1761,7 +1923,12 @@ export default function MapView() {
   useEffect(() => {
     const map = mapRef.current
     if (!ready || !map) return
-    const update = () => setScale(computeScale(map))
+    const update = () => {
+      setScale(computeScale(map))
+      const n = map.getZoom() >= Z_NEAR
+      setNear(n)
+      if (n) setCrossedOnce(true)
+    }
     update()
     map.on('move', update)
     window.addEventListener('resize', update)
@@ -1829,7 +1996,9 @@ export default function MapView() {
         // Lighter than it was: with the record's own tiers hidden there is
         // nothing under this but the basemap, and 0.55 over bare paper reads as
         // a smudge rather than as a focus.
-        paint: { 'fill-color': '#f7f3ec', 'fill-opacity': 0.32 },
+        // The site's own paper (--paper in App.css), so the veil is the same
+        // ground the panels stand on rather than a warmer paper of its own.
+        paint: { 'fill-color': '#faf9f4', 'fill-opacity': 0.32 },
       })
       map.addLayer({
         id: LOOKUP_CIRCLE_LAYER,
@@ -1947,6 +2116,14 @@ export default function MapView() {
     })
     if (map.getLayer(LOOKUP_HI_RING))
       map.setLayoutProperty(LOOKUP_HI_RING, 'visibility', asMission ? 'visible' : 'none')
+    // The veil: a third of paper over bare basemap in the record view, where
+    // the tiers outside the circle are hidden anyway. Over the grid nothing is
+    // hidden — the cells stay — so the same wash barely dimmed a red cell and
+    // the circle stopped being a focus. Much heavier there, so the outside
+    // fades to a tint, the inside is the view, and the hits keep their agent
+    // colours because the red they sat on is gone.
+    if (map.getLayer(LOOKUP_VEIL_LAYER))
+      map.setPaintProperty(LOOKUP_VEIL_LAYER, 'fill-opacity', proximity ? 0.82 : 0.32)
 
     // One record open: the other fifty-nine step back to a fifth. They are
     // still there — the reader chose this one OUT of them, and the answer is
@@ -1995,7 +2172,7 @@ export default function MapView() {
     } else {
       lookupMarkerRef.current.setLngLat([c.lng, c.lat])
     }
-  }, [ready, lookup.center, lookup.mission, lookup.radiusKm, lookupResults, inspect])
+  }, [ready, lookup.center, lookup.mission, lookup.radiusKm, lookupResults, inspect, proximity])
 
   // Crosshair while arming a pick (the map handlers hold it during moves).
   useEffect(() => {
@@ -2112,11 +2289,13 @@ export default function MapView() {
         agentKey,
         is3D,
         lookup,
+        proximity,
+        band,
       )
       window.history.replaceState(null, '', `${window.location.pathname}${search ? `?${search}` : ''}`)
     }, 300)
     return () => window.clearTimeout(id)
-  }, [ready, day, agentKey, is3D, camTick, bounds.max, lookup])
+  }, [ready, day, agentKey, is3D, camTick, bounds.max, lookup, proximity, band])
 
   // ── where the lookup lives ──────────────────────────────────────────────
   // One element, two homes. On a desktop it belongs to the KEY panel, beside
@@ -2144,6 +2323,7 @@ export default function MapView() {
     <LocationLookup
       state={lookup}
       results={lookupResults}
+      proximity={proximity}
       groups={choices
         .filter((c) => c.indices && c.color)
         .map((c) => ({ label: c.label, color: c.color! }))}
@@ -2309,35 +2489,50 @@ export default function MapView() {
             setAgentKey(key)
           }}
           lookupSlot={isPhone ? lookupPanel : null}
-          /* The key has left the column. It is rendered as a bar over the
-             map, below — see the note there. */
-          keySlot={null}
+          /* The key, back in the column at the top: what the map is showing
+             and how to read it, before the things the reader does to it. The
+             phone keeps its one-line legend (the block is display:none there)
+             and so has no model switch yet. */
+          keySlot={(agents) => (
+            <ArchiveKey
+              map={mapRef.current}
+              ready={ready}
+              is3D={is3D}
+              onToggle3D={toggleView}
+              tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
+              filtered={agentKey !== 'all'}
+              hues={groupHues}
+              tracks={TRACKS}
+              proximity={proximity}
+              proximityReady={proxReady}
+              onToggleProximity={() => {
+                if (!proximity) track('archive_proximity')
+                setProximity(!proximity)
+              }}
+              band={band}
+              bands={PROX_BANDS}
+              onSetBand={setBand}
+              agents={agents}
+            />
+          )}
+          /* The grid is the whole record: the transport and the chart would
+             move a playhead that moves nothing on the map. */
+          hideTransport={proximity}
         />
       )}
-      {/* The key, laid along the bottom of the map instead of stacked in the
-          left panel.
-          The key's LENGTH is a function of the zoom: four rows over the grid,
-          five over the tracks, and a note that wraps to two lines in one state
-          and one in the other. In the column that made the chart, the chips
-          and the note below it step up and down as the reader zoomed — motion
-          in a part of the panel nobody was looking at, caused by something
-          they did somewhere else. On the bar the same rows cost WIDTH, and
-          nothing else on the screen moves.
-          Bottom-LEFT, continuing the panel's own column rather than starting a
-          second one: the bottom-right belongs to MapLibre's scale and
-          attribution, which are the map's own furniture and cannot move. */}
-      {ready && !isPhone && (
-        <ArchiveKey
-          map={mapRef.current}
-          ready={ready}
-          is3D={is3D}
-          onToggle3D={toggleView}
-          tint={choices.find((c) => c.key === agentKey)?.color ?? '#ff5449'}
-          filtered={agentKey !== 'all'}
-          hues={groupHues}
-          tracks={TRACKS}
-          layout="bar"
-        />
+      {/* No sign for the grid: the model switch in the panel names the mode
+          and is its own way out, unlike a lookup, whose × lives three hundred
+          pixels from the circle. */}
+      {/* The one thing a reader at the country view cannot guess: that the
+          dots give way to the flown lines further in. Shown until they have
+          crossed the hand-off once, which is when the sentence comes true;
+          never while a lookup or the grid is up, and never under the picking
+          sign. */}
+      {ready && !proximity && !near && !crossedOnce && !lookup.picking && !lookup.center && lookup.mission == null && (
+        <p className="map-pick-hint is-zoom" role="status">
+          Zoom in until the dots give way to flight tracks
+          <button onClick={() => setCrossedOnce(true)}>Got it</button>
+        </p>
       )}
     </div>
   )
