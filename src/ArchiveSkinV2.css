@@ -159,14 +159,6 @@
      are the same kind of thing — the selected state of a control — so they get
      the same fill. They had drifted to two different darks. */
   --v2-fill: var(--forest);
-  /* The 6% forest track, composited over the white panel, as a solid: the
-     selected segment of every switch wears one pixel of it inside its edge,
-     which reads as the segment sitting 1px inside the track — the
-     conventional segmented control — without the track growing. Solid rather
-     than the alpha value because it is painted OVER the dark fill, where 6%
-     forest would vanish. */
-  --v2-track-solid: #f1f2f1;
-  --v2-inset: inset 0 0 0 1px var(--v2-track-solid);
   /* Panel ground. The Figma has the left panel at 0.65 and the key at 0.62 —
      close enough that the difference reads as drift, so both take one value.
      It went to 0.90 first, because at 0.65 the spray field showing through was
@@ -659,18 +651,6 @@
   width: 1.875rem;
   height: 1.875rem;
   border-radius: var(--v2-radius);
-}
-
-/* ── the selected segment of every switch ─────────────────────────────────
-   One pixel of the track inside the edge of the selected segment, so it
-   sits 1px inside the track the way a segmented control's thumb does. The
-   same rule for the model and view switches, the band row, the agent chips
-   (over their own colours), the radius chips and the unit toggle. */
-.map-wrap .map-key-view-btn.is-active,
-.map-wrap .agent-chip.is-active,
-.map-wrap .lookup-chip.is-active,
-.map-wrap .lookup-unit button.is-active {
-  box-shadow: var(--v2-inset);
 }
 
 /* The reset button, on the switch system with everything else. It was the last
@@ -1382,9 +1362,8 @@
   border-radius: 0;
 }
 
-/* The 2px inset existed to let a rounded thumb sit inside a rounded track.
-   With both square there is nothing to inset for, and the gap only blurred
-   the edge the switch is made of. */
+/* Track, no hairline. The padding and the track's tint are set once for
+   every switch at the end of this file; see "every switch" there. */
 .map-wrap .archive-key-legend .map-key-view {
   padding: 0;
   /* The 6% forest track, no hairline — the B decision (2026-08), same rules
@@ -2110,4 +2089,28 @@
 .map-wrap .map-key-bar-group.is-legend:has(.map-key-info button:focus-visible) .map-key-info-pop {
   opacity: 1;
   visibility: visible;
+}
+
+/* ── every switch: a 2px track, a thumb with its own corner ───────────────
+   The conventional segmented control: the track is 10% forest with 2px of
+   padding, and the selected segment sits inside it as a thumb with the
+   skin's own 2px corner. One rule for the model and view switches, the band
+   row, the agent chips (over their own colours), the radius chips and the
+   unit toggle, so the six cannot drift apart. The seams between the
+   unselected segments stay where they were. LAST in the file on purpose:
+   each of these rows zeroes its own padding and sets the older 6% track
+   further up, and this has to win over all of them by source order. */
+.map-wrap .archive-key-legend .map-key-view,
+.map-wrap .explorer-agents,
+.map-wrap .lookup-radii,
+.map-wrap .lookup-unit {
+  padding: 2px;
+  background: rgba(33, 53, 40, 0.1);
+}
+
+.map-wrap .archive-key-legend .map-key-view-btn.is-active,
+.map-wrap .explorer-agents .agent-chip.is-active,
+.map-wrap .lookup-radii .lookup-chip.is-active,
+.map-wrap .lookup-unit button.is-active {
+  border-radius: var(--v2-radius);
 }
