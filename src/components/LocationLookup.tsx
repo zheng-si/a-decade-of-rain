@@ -11,6 +11,7 @@ import {
 } from './lookup'
 import { fmtGallons, tint } from './ArchiveInspect'
 import type { GroupInfo } from './ArchiveInspect'
+import { InfoMark, InfoPop } from './InfoMark'
 
 // ── location lookup: the place column's query and its answer ──────────────
 // An archive query, phrased as one: search a place or pick a point, choose a
@@ -442,11 +443,24 @@ export default function LocationLookup({
       {/* No radius for a mission: the answer is the mission's own tracks, not
           what fell within a distance of anything. */}
       {mission == null && (
-      <div className="lookup-row">
+      <div className="lookup-row is-radius map-key-pop-host">
         {/* "Radius", not "Within": the row is a property of the search and the
             label names it, rather than starting a sentence the chips have to
-            finish. Cased like the panel's other structural labels. */}
-        <span className="lookup-row-label">{proximity ? 'Search radius' : 'Radius'}</span>
+            finish. Cased like the panel's other structural labels. The (i)
+            says what the circle counts, and over the hit grid that its count
+            and the cells' are different units. */}
+        <span className="lookup-row-label has-info">
+          {proximity ? 'Search radius' : 'Radius'}
+          <InfoMark id="lookup-radius-pop" label="What the radius counts" />
+        </span>
+        <InfoPop
+          id="lookup-radius-pop"
+          below
+          text={
+            "Every recorded run passing within this distance of the centre, with its share of the mission's logged volume. Not the share that fell inside the circle." +
+            (proximity ? " The cells show the model's hits, a different unit." : '')
+          }
+        />
         <div className="lookup-radii" role="group" aria-label="Search radius">
           {RADII.map((r) => (
             <button
@@ -749,8 +763,6 @@ export default function LocationLookup({
                 {results.length > 0 &&
                   unit === 'volume' &&
                   ' Gallons are each run’s share of its mission’s logged volume, spread along the track by length, not the share that fell inside this circle.'}
-                {proximity &&
-                  ' This circle counts recorded runs from the centre; the cells show the model’s hits, which count spray-path legs from each cell’s grid point. The two are different units.'}
               </p>
             </>
           )}

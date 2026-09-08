@@ -2520,15 +2520,9 @@ export default function MapView() {
           hideTransport={proximity}
         />
       )}
-      {/* The way out of the grid, over the map it changes. Same furniture as
-          the lookup's "Showing 5 km around": the map is in a mode, and here is
-          how it ends. Never over a lookup's own sign. */}
-      {ready && proximity && !lookup.picking && !lookup.center && lookup.mission == null && (
-        <p className="map-pick-hint" role="status">
-          Showing hit frequency within {band} km, 1961 to 1971
-          <button onClick={() => setProximity(false)}>Flight tracks</button>
-        </p>
-      )}
+      {/* No sign for the grid: the model switch in the panel names the mode
+          and is its own way out, unlike a lookup, whose × lives three hundred
+          pixels from the circle. */}
       {/* The one thing a reader at the country view cannot guess: that the
           dots give way to the flown lines further in. Shown until they have
           crossed the hand-off once, which is when the sentence comes true;

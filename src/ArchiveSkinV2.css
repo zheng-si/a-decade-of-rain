@@ -1258,20 +1258,54 @@
   color: var(--ink-faint);
 }
 
-/* The rows carry the info mark's panel, which opens above them. */
-.map-wrap .map-key-rows {
+/* A host carries one (i) and its note. The note hangs off the host, not off
+   the label the mark sits in, so it can be wider than the label's box; it
+   opens above by default and below (`is-below`) where the host is near the
+   top of its panel. */
+.map-wrap .map-key-pop-host {
   position: relative;
 }
 
-.map-wrap .map-key-rows .map-key-info-pop {
-  left: 1.25rem;
-  width: 15rem;
+.map-wrap .map-key-pop-host > .map-key-info-pop {
+  left: 0;
+  width: 16rem;
+  z-index: 5;
 }
 
-.map-wrap .map-key-rows:has(.map-key-info:hover) .map-key-info-pop,
-.map-wrap .map-key-rows:has(.map-key-info button:focus-visible) .map-key-info-pop {
+.map-wrap .map-key-pop-host > .map-key-info-pop.is-below {
+  bottom: auto;
+  top: calc(100% + 0.375rem);
+}
+
+.map-wrap .map-key-rows > .map-key-info-pop {
+  left: 1.25rem;
+}
+
+.map-wrap .map-key-pop-host:has(.map-key-info:hover) > .map-key-info-pop,
+.map-wrap .map-key-pop-host:has(.map-key-info button:focus-visible) > .map-key-info-pop {
   opacity: 1;
   visibility: visible;
+}
+
+/* A label with its mark beside it: the mark sits on the label's line, at
+   the row's own gap, and the note is not part of the label's box. */
+.map-wrap .map-key-view-label.has-info,
+.map-wrap .lookup-row-label.has-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.map-wrap .map-key-view-label .map-key-info,
+.map-wrap .lookup-row-label .map-key-info {
+  margin-left: 0;
+}
+
+/* The radius row follows a control, not a label, so it pays a block's gap
+   above rather than a label's: measured, the search box to this label was
+   6.8px, the same as the label to its own chips. */
+.map-wrap .lookup-row.is-radius {
+  margin-top: 1rem;
 }
 
 .map-wrap .archive-key-legend .map-key-list {

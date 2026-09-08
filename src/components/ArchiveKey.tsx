@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import type maplibregl from 'maplibre-gl'
 import { TRACK_LAYER, TRACKS } from './trackLayers'
 import { hitRamp } from '../data/proximity'
+import { InfoMark, InfoPop } from './InfoMark'
 // The key's shared furniture. Both surfaces render these classes, so the
 // stylesheet travels with the components rather than with either route.
 import './MapKey.css'
@@ -9,17 +10,19 @@ import './MapKey.css'
 // ── the Explorer's map key ────────────────────────────────────────────────
 // The block under the panel's title that says what the map is showing and
 // how to read it: which model is drawn (the record's own marks, or the
-// Stellmans' hit grid), Flat or 3D, and the legend for whichever is up.
+// Stellmans' hit grid), Flat or 3D, the agent filter, and the legend for
+// whichever model is up.
+//
+// WHAT IS SAID WHERE. One line under the model switch says what the model is,
+// always visible, the way the agent note sits under the chips. The (i) marks
+// carry the rest, each one owning one question: the model's source and its
+// limits on the switch, the bands on the distance row, the encoding on the
+// key's first row. Nothing is said twice.
 //
 // It went out to a bar along the bottom of the map for a while, to stop the
 // panel's height stepping as the zoom changed the row count. The bar cost
-// readability — a legend read sideways, one row at a time, with its note
-// behind a hover — and the hit grid's key did not fit it at all. It is back
-// in the column, at the top, where a reader looks first; the rows below it
-// may step, and that is the smaller cost.
-//
-// The scale bar and compass stay with the MAP itself (maplibre's own control,
-// bottom-right): a scale belongs against the thing it measures.
+// readability and the hit grid's key did not fit it; it is back in the
+// column, and the row count is fixed instead (see recordRows).
 
 interface Props {
   map: maplibregl.Map | null
@@ -28,16 +31,13 @@ interface Props {
   onToggle3D: () => void
   /** Colour of the current selection (an agent colour, or the brand red). */
   tint: string
-  /** Whether an agent is isolated (shows the grey-context legend row). */
+  /** Whether an agent is isolated. */
   filtered: boolean
   /** The agent groups' colours. With nothing isolated the map draws every run
-   *  and every dot in its own agent's colour, so the key has to show four —
-   *  a red swatch over a four-colour map is the same fault as a dot over a
-   *  map of lines. */
+   *  and every dot in its own agent's colour, so the key has to show four. */
   hues?: string[]
   /** The map is drawing tracks at its near zoom, so the key must describe
-   *  lines there. A key that shows a dot over a map of lines is not a smaller
-   *  problem than a key with the wrong words on it. */
+   *  lines there. */
   tracks?: boolean
   /** The hit grid — Stellman & Stellman's table drawn in place of the dots.
    *  `proximityReady` is whether it has landed: the switch is live before
@@ -49,19 +49,25 @@ interface Props {
   bands?: number[]
   onSetBand?: (km: number) => void
   /** The agent chips, composed by the panel that owns their state. They sit
-   *  under the two switches because they apply to both models: a filter on
-   *  the record and a filter on the grid are the same choice. */
+   *  under the two switches because they apply to both models. */
   agents?: ReactNode
 }
 
 /** The five classes of the count ramp, matching hitRamp / HIT_CLASS_LABELS. */
 const HIT_LABELS = ['1–2 hits', '3–5 hits', '6–10 hits', '11–20 hits', '21+ hits']
 
-/* Material Symbols "info", 300 weight, optical size 24 — the outlined ring
-   rather than a filled disc. Material's own viewBox: the origin sits on the
-   baseline, so the artwork runs from y −960 to 0. */
-const INFO_PATH =
-  'M450-290h60v-230h-60v230Zm52.92-307.75q9.39-9.29 9.39-23.02t-9.29-23.02q-9.29-9.28-23.02-9.28t-23.02 9.28q-9.29 9.29-9.29 23.02t9.39 23.02q9.38 9.29 22.92 9.29 13.54 0 22.92-9.29ZM480.07-100q-78.84 0-148.21-29.92t-120.68-81.21q-51.31-51.29-81.25-120.63Q100-401.1 100-479.93q0-78.84 29.92-148.21t81.21-120.68q51.29-51.31 120.63-81.25Q401.1-860 479.93-860q78.84 0 148.21 29.92t120.68 81.21q51.31 51.29 81.25 120.63Q860-558.9 860-480.07q0 78.84-29.92 148.21t-81.21 120.68q-51.29 51.31-120.63 81.25Q558.9-100 480.07-100Zm-.07-60q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z'
+// ── the notes ─────────────────────────────────────────────────────────────
+const MODEL_LINE = {
+  record: 'Every spray run in HERBS, drawn where it was flown.',
+  grid: "Stellman and Stellman's model: how often a recorded path came within a set distance of each 1 km cell, whole record.",
+}
+const MODEL_NOTE = {
+  record:
+    'The revised HERBS file behind Stellman et al. (2003): 9,141 missions, 11,273 runs. Waypoints are joined by straight lines; coordinates are accurate to roughly 500 m. Flight paths, not where herbicide landed.',
+  grid: "Their 2004 model on their 0.01° grid, from the same file. A hit is a spray-path leg passing within the chosen distance of a cell. Proximity, not deposition or exposure. The timeline does not apply.",
+}
+const BAND_NOTE =
+  "The 2004 paper's four bands. They nest: a hit within 0.5 km is also one within 5 km. Paths of one mission count separately."
 
 export default function ArchiveKey({
   map,
@@ -80,20 +86,11 @@ export default function ArchiveKey({
   onSetBand,
   agents,
 }: Props) {
-  /** Whether the TRACK layer is drawing right now.
-   *
-   *  Which MARKS exist depends on the zoom: at the shipped hand-off the fine
-   *  grid draws dots below it and strokes above it. The two never share the
-   *  screen, and the key named both at every zoom until this existed — so a
-   *  reader looking at a map of lines was told there were cells on it too.
-   *
-   *  Asked of the MAP rather than computed from Z_NEAR. Comparing against the
-   *  imported constant made the key a third owner of the hand-off, alongside
-   *  volumeGrid and trackLayers; a layer's own minzoom cannot drift from the
+  /** Whether the TRACK layer is drawing right now. Asked of the MAP rather
+   *  than computed from Z_NEAR: a layer's own minzoom cannot drift from the
    *  layer. */
   const [onTracks, setOnTracks] = useState(false)
-  /** The colour is carrying the agent only while nothing is isolated: with a
-   *  chip on, it means "the one you picked" and the chip already says so. */
+  /** The colour is carrying the agent only while nothing is isolated. */
   const byAgent = !filtered && (hues?.length ?? 0) > 0
 
   useEffect(() => {
@@ -104,11 +101,8 @@ export default function ArchiveKey({
     }
     update()
     map.on('move', update)
-    // And when the LAYERS arrive, not just when the camera does: the track
-    // layers are added after spray-tracks.json lands, and a deep link never
-    // moves the map. `styledata` fires when a layer is added or its zoom range
-    // is set, so it is the event that says "the thing you are describing now
-    // exists".
+    // And when the LAYERS arrive, not just when the camera does: a deep link
+    // never moves the map. `styledata` fires when a layer is added.
     map.on('styledata', update)
     window.addEventListener('resize', update)
     return () => {
@@ -119,129 +113,110 @@ export default function ArchiveKey({
   }, [ready, map, tracks])
 
   const onProximity = proximity && proximityReady
+  const mode = proximity ? 'grid' : 'record'
 
   // ── the controls ─────────────────────────────────────────────────────────
-  // Two labelled switches on one row: which model, then Flat or 3D. The model
-  // comes first because it decides what the rest of the key describes; the
-  // view only decides how the ground is tilted.
+  // Two labelled switches on one row, then one line saying what the model
+  // is. The model comes first because it decides what the rest of the key
+  // describes; the view only decides how the ground is tilted.
   const controls = (
-    <div className="map-key-controls">
-      {onToggleProximity && (
-        <div className="map-key-control is-grow">
-          <p className="map-key-view-label">Visualisation Model</p>
-          <div className="map-key-view" role="group" aria-label="Visualisation model">
+    <>
+      <div className="map-key-controls">
+        {onToggleProximity && (
+          <div className="map-key-control is-grow map-key-pop-host">
+            <p className="map-key-view-label has-info">
+              Visualisation Model
+              <InfoMark id="map-key-model-pop" label="About this model" />
+            </p>
+            <InfoPop id="map-key-model-pop" text={MODEL_NOTE[mode]} below />
+            <div className="map-key-view" role="group" aria-label="Visualisation model">
+              <button
+                type="button"
+                className={`map-key-view-btn${proximity ? '' : ' is-active'}`}
+                aria-pressed={!proximity}
+                onClick={() => proximity && onToggleProximity()}
+              >
+                Flight Track
+              </button>
+              <button
+                type="button"
+                className={`map-key-view-btn${proximity ? ' is-active' : ''}`}
+                aria-pressed={proximity}
+                onClick={() => !proximity && onToggleProximity()}
+              >
+                Hit Frequency
+              </button>
+            </div>
+          </div>
+        )}
+        <div className="map-key-control is-view">
+          <p className="map-key-view-label">Map View</p>
+          <div className="map-key-view" role="group" aria-label="Map view">
             <button
               type="button"
-              className={`map-key-view-btn${proximity ? '' : ' is-active'}`}
-              aria-pressed={!proximity}
-              onClick={() => proximity && onToggleProximity()}
+              className={`map-key-view-btn${is3D ? '' : ' is-active'}`}
+              aria-pressed={!is3D}
+              onClick={() => is3D && onToggle3D()}
             >
-              Flight Track
+              Flat
             </button>
             <button
               type="button"
-              className={`map-key-view-btn${proximity ? ' is-active' : ''}`}
-              aria-pressed={proximity}
-              onClick={() => !proximity && onToggleProximity()}
+              className={`map-key-view-btn${is3D ? ' is-active' : ''}`}
+              aria-pressed={is3D}
+              onClick={() => !is3D && onToggle3D()}
             >
-              Hit Frequency
+              3D
             </button>
           </div>
         </div>
-      )}
-      <div className="map-key-control is-view">
-        <p className="map-key-view-label">Map View</p>
-        <div className="map-key-view" role="group" aria-label="Map view">
-          <button
-            type="button"
-            className={`map-key-view-btn${is3D ? '' : ' is-active'}`}
-            aria-pressed={!is3D}
-            onClick={() => is3D && onToggle3D()}
-          >
-            Flat
-          </button>
-          <button
-            type="button"
-            className={`map-key-view-btn${is3D ? ' is-active' : ''}`}
-            aria-pressed={is3D}
-            onClick={() => !is3D && onToggle3D()}
-          >
-            3D
-          </button>
-        </div>
       </div>
-    </div>
+      {onToggleProximity && <p className="map-key-line">{MODEL_LINE[mode]}</p>}
+    </>
   )
 
-  // The grid's own controls: the band, because it is part of what the colour
-  // means ("hits within 1 km" is a different map from "hits within 5 km"),
-  // and the strokes as an optional reference over the model.
+  // The band row, because the band is part of what the colour means: "hits
+  // within 1 km" is a different map from "hits within 5 km".
   const gridControls = proximity ? (
-    <>
-      <div className="map-key-control">
-        <p className="map-key-view-label">Hit distance</p>
-        <div className="map-key-view map-key-bands" role="group" aria-label="Distance band">
-          {bands.map((d) => (
-            <button
-              key={d}
-              type="button"
-              className={`map-key-view-btn${d === band ? ' is-active' : ''}`}
-              aria-pressed={d === band}
-              onClick={() => d !== band && onSetBand?.(d)}
-            >
-              {d} km
-            </button>
-          ))}
-        </div>
+    <div className="map-key-control map-key-pop-host">
+      <p className="map-key-view-label has-info">
+        Hit distance
+        <InfoMark id="map-key-band-pop" label="About the distance bands" />
+      </p>
+      <InfoPop id="map-key-band-pop" text={BAND_NOTE} below />
+      <div className="map-key-view map-key-bands" role="group" aria-label="Distance band">
+        {bands.map((d) => (
+          <button
+            key={d}
+            type="button"
+            className={`map-key-view-btn${d === band ? ' is-active' : ''}`}
+            aria-pressed={d === band}
+            onClick={() => d !== band && onSetBand?.(d)}
+          >
+            {d} km
+          </button>
+        ))}
       </div>
-      {/* The one fact the transport would otherwise carry: this model is the
-          whole record, and the playhead is not part of it. */}
-      <p className="map-key-line">Whole record, 1961 to 1971. The timeline does not apply to this model.</p>
-    </>
+    </div>
   ) : null
 
-  // ── the note ─────────────────────────────────────────────────────────────
-  /* The encoding, once, behind the info mark on the first row. Width is
-     gallons per KM, not gallons — the only quantity comparable between a 2 km
-     run and a 40 km one. The fade names each run's FIRST WAYPOINT ON FILE
-     (leg 1A, the row the gallons are booked against), not a verified
-     heading: HERBS records no bearing. Over the grid the note describes the
-     grid instead: whose model it is, what a hit is, and what the colour is
-     not. */
-  const note = onProximity
-    ? `Stellman and Stellman's proximity model, 1961 to 1971, on their 0.01° grid. A hit is a recorded spray-path leg passing within ${band} km of the cell's grid point; colour is the number of hits, whole record. Separate spray paths of one mission count separately, so a cell can carry more hits than missions. Proximity to a recorded path, not deposition or exposure.`
+  // ── the key's own note: the encoding, nothing else ───────────────────────
+  const keyNote = onProximity
+    ? 'Colour is the number of hits within the chosen distance, in five classes.' +
+      (filtered ? ' An isolated agent counts only its own paths.' : '')
     : (onTracks
-        ? 'Stroke width is gallons per kilometre. Each run fades from A, where spraying began, through its turning points to where it stopped. A run logged at one grid reference is drawn as a point, with area for its gallons. Waypoints are joined by straight lines, as the record gives them; real paths along roads and rivers may have curved. HERBS coordinates are nominally 100 m and accurate to roughly 500 m (Stellman and Stellman, 2004).'
+        ? 'Width is gallons per kilometre. Each run fades from A, where spraying began. A run logged at one point is drawn as a point.'
         : 'Dot area is the gallons recorded along every run that crossed the cell.') +
       (byAgent
         ? onTracks
-          ? ' Colour is the agent that flew it.'
-          : ' Colour is the agent that sprayed the most in that cell.'
+          ? ' Colour is the agent.'
+          : ' Colour is the agent that sprayed the most in the cell.'
         : filtered
-          ? ' The other agents stay on the map in grey.'
+          ? ' Other agents stay on the map in grey.'
           : '')
-
-  /* ON THE ROW IT EXPLAINS. The note opens by describing this one mark, so
-     the marker for it belongs against that row rather than after the last
-     one. The panel hangs off the list, which is positioned for it. */
-  const infoMark = (
-    <span className="map-key-info">
-      <button type="button" aria-label="How the marks are drawn" aria-describedby="map-key-note-pop">
-        <svg viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true">
-          <path d={INFO_PATH} />
-        </svg>
-      </button>
-    </span>
-  )
-  const infoPanel = (
-    <span id="map-key-note-pop" role="tooltip" className="map-key-info-pop">
-      {note}
-    </span>
-  )
+  const keyInfo = <InfoMark id="map-key-note-pop" label="How the marks are drawn" />
 
   // ── the rows ─────────────────────────────────────────────────────────────
-  // Short rows, one footnote. The rows NAME the marks and the note explains
-  // the encoding once, so the list stays scannable.
   const hueDots = (
     <span className="key-dot-row">
       {hues!.slice(0, 3).map((h) => (
@@ -268,6 +243,7 @@ export default function ArchiveKey({
       National Border
     </li>
   )
+
   /* TWO ROWS, ALWAYS. The key's row count used to follow the zoom (two over
      the dots, three over the strokes) and the filter (one more with an agent
      isolated), and every change stepped the transport and the chart below
@@ -283,15 +259,13 @@ export default function ArchiveKey({
           {byAgent ? hueDots : <span className="key-dot" style={{ background: tint }} />}
         </span>
         Sprayed Volume
-        {infoMark}
+        {keyInfo}
       </li>,
     )
   // One row for the stroke tier's two marks: a run with length is a line and
   // a run logged at one grid reference is a point, and the swatch shows
   // both — 2,829 of the 11,273 runs are points, and left out of the key a
-  // reader took them for leftovers of the tier below. The note says which
-  // is which. One row here and one over the dots, so the list is the same
-  // height at both zooms.
+  // reader took them for leftovers of the tier below.
   if (onTracks)
     markRows.push(
       <li key="run">
@@ -302,7 +276,7 @@ export default function ArchiveKey({
           </span>
         </span>
         Spray Run
-        {infoMark}
+        {keyInfo}
       </li>,
     )
   // The no-volume mark, only while the layer that draws it is on.
@@ -331,14 +305,14 @@ export default function ArchiveKey({
             <span className="key-cell" style={{ background: ramp[i] }} />
           </span>
           {label}
-          {i === 0 ? infoMark : null}
+          {i === 0 ? keyInfo : null}
         </li>
       ))}
       {border}
     </>
   )
 
-  /* Exposed: this list and the note are the only place the map's marks are
+  /* Exposed: this list and the notes are the only place the map's marks are
      NAMED, and aria-hidden left the AX tree with zero nodes carrying the
      legend. The swatches alone stay decorative. */
   return (
@@ -347,9 +321,9 @@ export default function ArchiveKey({
       {agents}
       {gridControls}
       <p className="map-key-view-label">Map Key</p>
-      <div className="map-key-rows">
+      <div className="map-key-rows map-key-pop-host">
         <ul className="map-key-list">{onProximity ? gridRows : recordRows}</ul>
-        {infoPanel}
+        <InfoPop id="map-key-note-pop" text={keyNote} />
       </div>
     </div>
   )
