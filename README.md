@@ -102,6 +102,8 @@ All in `public/data/`, fetched by the pages at runtime.
   (`npm run build:figures`) draws `docs/figures/binning-comparison.svg`.
 
 `docs/` also holds the design-system notes and the map label and zoom studies.
+[`docs/decisions.md`](docs/decisions.md) is the decision log: what was chosen,
+why, what was set aside, and what is still open.
 
 ## Running it
 
