@@ -1205,6 +1205,24 @@
   white-space: nowrap;
 }
 
+/* The band row and the agent row both span the column, like the rules
+   above and below them. Measured at 268.6 and 266.2 against a 275.4 column:
+   each sat 7 to 9px short of the right edge because it was sized to its
+   chips. The chips share the extra evenly. */
+.map-wrap .archive-key-legend .map-key-bands {
+  width: 100%;
+}
+
+.map-wrap .archive-key-legend .explorer-agents {
+  display: flex;
+  width: 100%;
+}
+
+.map-wrap .archive-key-legend .explorer-agents .agent-chip {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
 .map-wrap .map-key-control.is-view .map-key-view-btn {
   flex: none;
 }
