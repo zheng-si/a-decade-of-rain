@@ -58,7 +58,7 @@ const HIT_LABELS = ['1–2 hits', '3–5 hits', '6–10 hits', '11–20 hits', '
 
 // ── the notes ─────────────────────────────────────────────────────────────
 const MODEL_LINE = {
-  record: 'Every spray run in HERBS, drawn where it was flown.',
+  record: 'The record itself: every spray run in HERBS, drawn where it was flown and weighted by the gallons logged per kilometre.',
   grid: "Stellman and Stellman's model: how often a recorded path came within a set distance of each 1 km cell, whole record.",
 }
 const MODEL_NOTE = {
