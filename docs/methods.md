@@ -3,6 +3,9 @@
 How the maps in this project turn the HERBS record into a picture, and what
 that picture can and cannot be asked.
 
+A fuller write-up, prepared for the authors of the record, is
+[`methods-paper.md`](methods-paper.md).
+
 Everything here is reproducible:
 
 ```
