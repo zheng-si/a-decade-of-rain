@@ -746,9 +746,13 @@
   margin: 0;
 }
 
+/* No auto margins inside the pair: `.key-dot` centres itself with them, and
+   in a space-between row that put the point in the middle of the free space
+   rather than at the edge. */
 .archive-key-legend .key-run .key-dot.is-small {
   width: 5px;
   height: 5px;
+  margin: 0;
 }
 
 /* A cell of the proximity grid: a square, because the mark on the map is a
