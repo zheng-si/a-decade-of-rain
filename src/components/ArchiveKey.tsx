@@ -268,22 +268,13 @@ export default function ArchiveKey({
       National Border
     </li>
   )
-  /* A row holding its height open while it has nothing to say. */
-  const placeholder = (key: string) => (
-    <li key={key} className="is-placeholder" aria-hidden="true">
-      <span className="key-swatch" aria-hidden="true">
-        <span className="key-dot key-dot-dim" />
-      </span>
-      Other Agents
-    </li>
-  )
-
-  /* THREE ROWS, ALWAYS. The key's row count used to follow the zoom (two
-     over the dots, three over the strokes) and the filter (one more with an
-     agent isolated), and every change stepped the transport and the chart
-     below it. The rows that exist are listed in reading order — the marks,
-     then the border — and the dot tier is padded to the stroke tier's three
-     with one row that holds its height and says nothing. */
+  /* TWO ROWS, ALWAYS. The key's row count used to follow the zoom (two over
+     the dots, three over the strokes) and the filter (one more with an agent
+     isolated), and every change stepped the transport and the chart below
+     it. Now one row names the marks — the dots' one mark, or the strokes'
+     two in one swatch — and one names the border. No Other Agents row: with
+     an agent isolated the chips already say which one, and the note says the
+     rest stay grey. Nothing is padded and nothing moves. */
   const markRows: ReactNode[] = []
   if (!onTracks)
     markRows.push(
@@ -295,23 +286,23 @@ export default function ArchiveKey({
         {infoMark}
       </li>,
     )
+  // One row for the stroke tier's two marks: a run with length is a line and
+  // a run logged at one grid reference is a point, and the swatch shows
+  // both — 2,829 of the 11,273 runs are points, and left out of the key a
+  // reader took them for leftovers of the tier below. The note says which
+  // is which. One row here and one over the dots, so the list is the same
+  // height at both zooms.
   if (onTracks)
     markRows.push(
       <li key="run">
         <span className="key-swatch" aria-hidden="true">
-          {runLine}
+          <span className="key-run">
+            {runLine}
+            <span className="key-dot is-small" style={{ background: byAgent ? hues![0] : tint }} />
+          </span>
         </span>
         Spray Run
         {infoMark}
-      </li>,
-      // 2,829 of the 11,273 runs are logged against ONE grid reference, so
-      // there is no line to draw and the record is a point. Left out of the
-      // key, a reader took them for leftovers of the tier below.
-      <li key="pt">
-        <span className="key-swatch" aria-hidden="true">
-          {byAgent ? hueDots : <span className="key-dot" style={{ background: tint }} />}
-        </span>
-        Logged at One Point
       </li>,
     )
   // The no-volume mark, only while the layer that draws it is on.
@@ -329,11 +320,6 @@ export default function ArchiveKey({
       </li>,
     )
   markRows.push(border)
-  // No Other Agents row: with an agent isolated the chips already say which
-  // one, and the note says the rest are grey. Padded to the stroke tier's
-  // three rows with one row that holds its height and says nothing, at the
-  // foot, so the transport below sits at the same place at both zooms.
-  while (markRows.length < 3) markRows.push(placeholder(`ph${markRows.length}`))
   const recordRows = <>{markRows}</>
 
   const ramp = hitRamp(tint)
