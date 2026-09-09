@@ -737,6 +737,8 @@ export default function MapView() {
   const [proximity, setProximity] = useState(false)
   const [band, setBand] = useState(1)
   const [proxReady, setProxReady] = useState(false)
+  /** The grid's fetch failed; the status line says so instead of waiting. */
+  const [proxFailed, setProxFailed] = useState(false)
   const proxRef = useRef<ProximityGrid | null>(null)
   const proxOnRef = useRef(false)
   proxOnRef.current = proximity
@@ -1832,13 +1834,17 @@ export default function MapView() {
   useEffect(() => {
     if (!proximity || proxRef.current) return
     let cancelled = false
+    setProxFailed(false)
     loadProximity()
       .then((g) => {
         if (cancelled) return
         proxRef.current = g
         setProxReady(true)
       })
-      .catch((e) => console.error('proximity grid failed to load', e))
+      .catch((e) => {
+        console.error('proximity grid failed to load', e)
+        if (!cancelled) setProxFailed(true)
+      })
     return () => {
       cancelled = true
     }
@@ -2485,6 +2491,22 @@ export default function MapView() {
       {loadError && (
         <p className="map-load-error" role="status">
           The archive could not be loaded. Please try again.
+        </p>
+      )}
+      {/* Until the record lands there is nothing on the paper to say the
+          Atlas is coming: five seconds of bare paper on a slow connection,
+          and the grid's 4.4 MB arrived with no sign of itself either (the
+          phone pass, PR #195). One line in the load error's own card, gone
+          the moment the thing it announces is there; a status role, so it is
+          announced as well as seen. */}
+      {!ready && !loadError && (
+        <p className="map-load-status" role="status">
+          Loading the record…
+        </p>
+      )}
+      {ready && proximity && !proxReady && (
+        <p className="map-load-status" role="status">
+          {proxFailed ? 'The hit grid could not be loaded.' : 'Loading the hit grid…'}
         </p>
       )}
       {ready && (

@@ -1441,7 +1441,12 @@
    all that is left to do. Same paper and hairline as the panels beside it.
    Rendered outside the `ready` gate, so it is reachable in exactly the state
    where nothing else is. */
-.map-load-error {
+/* The same card says the Atlas is on its way. Bare paper for five seconds on
+   a slow connection, and the grid's 4.4 MB arriving with no sign of itself,
+   were the phone pass's finding (PR #195); one line, gone the moment the
+   thing it announces is there. */
+.map-load-error,
+.map-load-status {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -2028,6 +2033,15 @@
      the foot's strip at these widths. */
   .map-pick-hint.is-zoom {
     bottom: 3.5rem;
+  }
+}
+
+/* Up to 900px the columns are 20rem (ArchiveSkinV2.css, "two columns on a
+   tablet"), so the column's outer edge is 21.5rem and the strip's centre
+   moves in with it. */
+@media (min-width: 641px) and (max-width: 900px) {
+  .map-pick-hint {
+    left: calc(50% + 10.75rem);
   }
 }
 

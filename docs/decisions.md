@@ -8,6 +8,72 @@ the change lives. Standing rules and open questions are at the foot.
 Dates are the day the decision landed on `master` unless noted. Pull
 request numbers refer to this repository.
 
+## 2026-09-09 · The phone pass's questions, answered (PR #195)
+
+The nine questions the pass left open, and three smaller ones from its
+findings, were put to the designer as options and decided the same
+morning. Each is recorded with what was set aside. The mocks that
+informed them were CSS injected on the branch's build, not code; the
+changes below are.
+
+- **The sheet's foot on phones.** The HOW TO READ THIS label goes with the
+  guide and the citation it headed; the rule it carried moves to the Read
+  the Story link, which stays as the way out. Set aside: showing the guide
+  and the citation on the phone now that the sheet scrolls, which would
+  have needed the guide's verbs rewritten for touch.
+- **The key block.** Stays whole in the expanded sheet, as shipped. Set
+  aside: chips only, the arrangement before PR #190, which keeps the model
+  switch and the hit grid off the phone.
+- **The notes on touch.** The (i) is a toggle on a touch screen: a tap
+  opens the note, a second tap on the mark or a tap anywhere else closes
+  it, Escape too, and the mark carries `aria-expanded`. The hover rule is
+  fenced to pointers that hover, so a tap's emulated hover cannot hold
+  open a note the reader closed. Set aside: notes inline under their label
+  on touch screens (the model note landed between the label and its switch
+  and needed the two-switch row rebuilt), and leaving plain focus.
+- **A second door to the Atlas on phones.** A fifth card in the close's
+  actions, phone only: The Record, Explore the Record, on the accent, the
+  site's own door among the four organisations'. The desktop keeps the
+  rail. Set aside: a link beside Back to top (too quiet for the one way
+  in), a fixed strip (costs the phone height on every screen of the Story).
+- **The way back from a record card.** Closing the card puts the sheet
+  back as the card found it: expanded if it was expanded, at the scroll
+  position it had, so a lookup's list and its back link are where the
+  reader left them. A sheet already at its peek stays there. Set aside: a
+  Back link in place of the × (loses the general close), one line of the
+  lookup kept in the peek (a third sheet height).
+- **iPad.** Between 641 and 900px both columns come down from 23.25rem to
+  20rem with 1.25rem insets, and the two rows sized to the wider column
+  wrap instead of clipping: the model switch and the view switch take a
+  row each, the agent chips run in two rows on one track. The strip of
+  map between the columns goes from 95 to about 180px on an iPad mini.
+  Set aside: a key column that starts folded to its search row (the map
+  first, the key on demand), and leaving it.
+- **A phone on its side.** Stays the desktop layout, scrolling under 760px
+  tall. Set aside: the sheet layout on short touch screens, a second
+  breakpoint the site has never had.
+- **The record node's deck card.** The body is cut from seven lines to
+  five on a phone: the years and the run count go (the stat pill under it
+  carries the count), the three verbs stay. Set aside: dropping the stat
+  where a CTA follows; a height cap on short screens, against the deck's
+  own rule.
+- **A loading state for the Atlas.** One line in the load error's own
+  card, centred on the map: Loading the record until the record lands,
+  Loading the hit grid while the grid does, a sentence if the grid fails.
+  A status role, so it is announced as well as seen. Set aside: rendering
+  the panel's head before the data; accepting the bare paper.
+- **The Story's key note on phones.** The first card carries the field's
+  encoding as one line under its stat, shown only where the key is hidden.
+  Set aside: a compact key in the top strip; recording the omission.
+- **The search box in the sheet.** On phones the lookup moves from the
+  foot of the sheet to under the transport and its chart, above the way
+  out; the desktop's column order is unchanged. Set aside: leaving it last.
+- **The locator pins.** Opening a card from a pin scrolls the card into
+  view when it is not already on the screen, on every layout that stacks
+  the cards under the map; closing from a pin leaves the reader where they
+  are; reduced motion gets an instant scroll. Set aside: pins as
+  decoration, with the chips alone selecting.
+
 ## 2026-09-09 · The phone pass after PRs #185 to #194 (PR #195)
 
 Six areas of both surfaces were walked on an iPhone 14, an iPhone SE, a
@@ -353,35 +419,6 @@ surfaces split into two stylesheets (`StorySkinV3.css`,
 
 ## Open questions
 
-- **The sheet's foot on phones.** HOW TO READ THIS heads a link: the guide
-  and the citation are hidden there, so a label, a rule and Read the Story
-  remain. Hide the label with the guide, or show the guide and citation now
-  that the sheet scrolls. Both rendered.
-- **The way back from a record card on a phone.** The card opens over the
-  sheet, the sheet drops to its peek, and the lookup's back link is in the
-  part of the sheet the peek hides. A back link on the card in place of
-  the ×, a × that re-expands the sheet, or one line of the lookup kept in
-  the peek.
-- **The notes on touch.** A tap opens a note and a tap elsewhere closes
-  it; there is no toggle and no signal that the tap did anything. Tap to
-  toggle (a state on the host), or the notes inline on touch screens.
-  Rendered inline for comparison.
-- **A phone on its side.** The desktop layout on a 390px-tall touch screen
-  now scrolls; whether it should be the sheet layout instead.
-- **iPad.** Two 316px columns on a 768px screen leave a 95px strip of map
-  between them. Narrower columns up to 900px, or a key column that starts
-  folded to its search row. Rendered narrower for comparison.
-- **A second door to the Atlas on phones.** The rail is hidden, so the
-  record node's CTA is the only way in. A link beside Back to top, an
-  Atlas card in the close's actions, or a fixed strip. Rendered as the
-  link.
-- **The record node's deck card.** 341px, half an iPhone SE screen. A
-  shorter body, no stat where a CTA follows, or a cap on short screens.
-- **A loading state for the Atlas.** Bare paper until the record lands,
-  about five seconds on a slow connection; the grid's 4.4 MB gives no sign
-  of itself either.
-- **The Story's key note on phones.** The key is hidden there, so the
-  encoding note added in PR #192 never reaches a phone reader.
 - **E4.** Whether to draw the Stellmans' exposure index as a third model,
   and with what caveats. Waiting on Jeanne Stellman's advice.
 - **Mission numbering.** The JEEEA 2004 paper's Figure 1 shows mission

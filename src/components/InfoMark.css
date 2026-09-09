@@ -48,7 +48,8 @@
 }
 
 .map-key-info button:hover,
-.map-key-info button:focus-visible {
+.map-key-info button:focus-visible,
+.map-key-info.is-open button {
   color: var(--ink);
 }
 
@@ -73,19 +74,20 @@
   top: calc(100% + 0.375rem);
 }
 
-.map-key-pop-host:has(.map-key-info:hover) > .map-key-info-pop,
-.map-key-pop-host:has(.map-key-info button:focus-visible) > .map-key-info-pop {
+.map-key-pop-host:has(.map-key-info button:focus-visible) > .map-key-info-pop,
+.map-key-pop-host:has(.map-key-info.is-open) > .map-key-info-pop {
   opacity: 1;
   visibility: visible;
 }
 
-/* On a touch screen a tap has no hover to keep the note open, and the browser
-   may or may not paint :focus-visible on a tapped button. Plain focus does
-   the job there: the tapped mark holds focus until the reader taps somewhere
-   else, which is also how the note closes. The same fence App.css uses to
-   retire the map's hover card on touch. */
-@media (hover: none) {
-  .map-key-pop-host:has(.map-key-info button:focus) > .map-key-info-pop {
+/* Hover opens the note only where a pointer can hover. A touch screen has no
+   hover, but Chromium keeps :hover on a tapped button until the next tap, and
+   that emulated hover would hold open a note the reader had just closed; on
+   touch the mark is a toggle (InfoMark.tsx sets `is-open`), which is also how
+   the note closes. The same fence App.css uses to retire the map's hover card
+   on touch, from the other side. */
+@media (hover: hover) {
+  .map-key-pop-host:has(.map-key-info:hover) > .map-key-info-pop {
     opacity: 1;
     visibility: visible;
   }

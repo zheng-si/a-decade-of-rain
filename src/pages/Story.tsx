@@ -1093,6 +1093,7 @@ export default function Story() {
                       <strong>{ev.stat.value}</strong> {ev.stat.label}
                     </p>
                   )}
+                  {ev.note && <p className="story-card-note">{ev.note}</p>}
                   {ev.quote && <StoryQuote quote={ev.quote} src={src} />}
                   {ev.cta && (
                     <Link className="story-card-cta" to={ev.cta.to}>

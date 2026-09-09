@@ -50,6 +50,20 @@ export const CLOSE_ACTIONS: CloseAction[] = [
   },
 ]
 
+/** The site's own door, for the phone. The rail that carries "Explore the
+ *  Record" on the desktop is hidden there, and the record node's CTA has
+ *  scrolled away by the time a reader reaches the close, so the Atlas had one
+ *  way in and it was fifteen thousand pixels back (the phone pass, PR #195).
+ *  A fifth card among the four organisations', on the accent so it reads as
+ *  ours; Story.css shows it on phones only. */
+export const CLOSE_ATLAS = {
+  role: 'The Record',
+  name: 'Explore the Record',
+  desc: 'Every spray run behind this story, drawn as it was flown. Search a place, play the decade, open any flight.',
+  action: 'Open the Atlas',
+  to: '/archive',
+}
+
 // The sources ledger, grouped for reading. Entries reference SOURCES ids
 // where one exists; photo credits are listed inline (they have no URL of
 // record beyond the Commons file pages).

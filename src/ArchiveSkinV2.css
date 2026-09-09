@@ -410,6 +410,21 @@
     bottom: calc(100% + 0.375rem);
   }
 
+  /* The foot. The guide and the citation are hidden on phones (App.css), and
+     the label that headed them goes with them: it promised instructions and
+     delivered a link (the phone pass, PR #195). The rule the label carried
+     moves to the link, so the way out still sits under a line. Three classes,
+     because the skin's own section-label rule sets display at two. */
+  .map-wrap .explorer-section-label.explorer-guide-label {
+    display: none;
+  }
+
+  .map-wrap .explorer-links {
+    margin-top: 0.875rem;
+    padding-top: 1.125rem;
+    border-top: 1px solid var(--rule);
+  }
+
   .map-wrap.inspect-open .archive-key {
     border-radius: var(--v2-radius) var(--v2-radius) 0 0;
   }
@@ -2157,4 +2172,40 @@
 .map-wrap .lookup-radii .lookup-chip.is-active,
 .map-wrap .lookup-unit button.is-active {
   border-radius: var(--v2-radius);
+}
+
+/* ── two columns on a tablet ─────────────────────────────────────────────────
+   Between the phone and 900px the two 23.25rem columns left a strip of map
+   between them narrower than either column: 95px on an iPad mini, with the
+   north of the country under the lookup. Both come down to 20rem with a
+   1.25rem inset, and the two rows that were sized to the wider column wrap
+   instead of clipping: the model switch and the view switch take a row each,
+   and the agent chips run in two rows on one track. Decided on the phone
+   pass's questions (PR #195), over a key column that starts folded. Last in
+   the file, after the switch rules: the chip and control rules above it set
+   `flex` at the same specificity, and this has to win by source order. */
+@media (min-width: 641px) and (max-width: 900px) {
+  .map-wrap .explorer-panel,
+  .map-wrap .archive-key {
+    width: min(20rem, calc(100vw - 3rem));
+    padding: 1.25rem;
+  }
+
+  .map-wrap .map-key-controls {
+    flex-wrap: wrap;
+    gap: 0.75rem 0.875rem;
+  }
+
+  .map-wrap .map-key-control.is-grow {
+    flex: 1 1 100%;
+  }
+
+  .map-wrap .archive-key-legend .explorer-agents {
+    flex-wrap: wrap;
+  }
+
+  /* No shrink, so the row breaks 3 and 2 rather than 4 and a lone Other. */
+  .map-wrap .archive-key-legend .explorer-agents .agent-chip {
+    flex: 1 0 30%;
+  }
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type CSSProperties , type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import type { AgentChoice } from './agentChoices'
 import { dayToDate, dateToDay, fmtGallons, type SprayDataset } from '../data/spray'
@@ -152,9 +152,69 @@ export default function Timeline({
   // keeps its one job either way: expanding the panel under an open card
   // simply stacks two full cards over the map, which is a reading the
   // design accepts (the reader asked for both).
+  //
+  // And when the card goes, the sheet comes back to where it was. The way
+  // back to a lookup's results lived in the part of the sheet the peek
+  // hides, so closing a record left the reader at the peek with the list
+  // and its back link out of sight (the phone pass, PR #195). What is put
+  // back is what the card displaced: the sheet's height and its scroll
+  // position at the moment the card opened. A sheet the reader had already
+  // collapsed stays collapsed, and a card opened from a dot on the map
+  // finds the sheet as it left it.
+  const panelRef = useRef<HTMLElement>(null)
+  const expandedRef = useRef(expanded)
+  expandedRef.current = expanded
+  // The scroll position is remembered from the sheet's own scroll events, not
+  // read when the card opens: by then the lookup has already folded its list
+  // to a back link, the sheet is shorter, and the browser has clamped the
+  // position to the shorter box (measured: 3689 read back as 414). The ref is
+  // written during render, so it is already true when the clamp's scroll
+  // event arrives, and that event is the one ignored.
+  const inspectOpenRef = useRef(inspectOpen)
+  inspectOpenRef.current = inspectOpen
+  const lastScrollRef = useRef(0)
   useEffect(() => {
-    if (inspectOpen) setExpanded(false)
+    const el = panelRef.current
+    if (!el) return
+    const onScroll = () => {
+      if (!inspectOpenRef.current) lastScrollRef.current = el.scrollTop
+    }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    return () => el.removeEventListener('scroll', onScroll)
+  }, [])
+  const restoreRef = useRef<{ expanded: boolean; scrollTop: number } | null>(null)
+  const pendingScrollRef = useRef<number | null>(null)
+  useEffect(() => {
+    if (inspectOpen) {
+      restoreRef.current = {
+        expanded: expandedRef.current,
+        scrollTop: lastScrollRef.current,
+      }
+      setExpanded(false)
+      return
+    }
+    const r = restoreRef.current
+    restoreRef.current = null
+    if (r?.expanded) {
+      pendingScrollRef.current = r.scrollTop
+      setExpanded(true)
+    }
   }, [inspectOpen])
+  // The scroll position waits for the lid: the panel's max-height eases open
+  // over 270ms, and a scrollTop set into a box still clamped to the peek is
+  // clamped with it. Once when the phase turns, once more at the end of the
+  // ramp.
+  useEffect(() => {
+    if (phase !== 'open' || pendingScrollRef.current == null) return
+    const top = pendingScrollRef.current
+    const apply = () => panelRef.current?.scrollTo({ top })
+    apply()
+    const id = window.setTimeout(() => {
+      apply()
+      pendingScrollRef.current = null
+    }, 300)
+    return () => window.clearTimeout(id)
+  }, [phase])
 
   // Memoised because the bar memo below depends on it: rebuilt every render,
   // the array would be a new reference sixty times a second and the memo that
@@ -310,6 +370,7 @@ export default function Timeline({
 
   return (
     <section
+      ref={panelRef}
       className={`explorer-panel${
         phase === 'peek'
           ? ' is-peek'
@@ -383,6 +444,16 @@ export default function Timeline({
         <h1 className="explorer-title">The Herbicide Atlas of Vietnam</h1>
         <p className="explorer-subtitle">U.S. military herbicide missions over South Vietnam</p>
       </header>
+
+      {/* The phone's place search, first under the identity block. It was the
+          last thing in the sheet, below the fold of the expanded sheet on
+          every phone (the phone pass, PR #195), and under the transport it
+          was still 156px below it once the key block came to the phone: the
+          block and the chart between them are taller than the sheet's first
+          screen. So it takes the place the desktop gives it, the top of the
+          column that answers WHERE, and the key and the transport follow.
+          Null on the desktop, where the lookup has a column of its own. */}
+      {lookupSlot}
 
       {/* The key reads before the controls, not after them: it says what the
           marks on the map ARE, and the transport and the filter below it are
@@ -578,9 +649,6 @@ export default function Timeline({
         <p className="explorer-links">
           <Link to="/">Read the Story</Link>
         </p>
-
-
-      {lookupSlot}
     </section>
   )
 }
