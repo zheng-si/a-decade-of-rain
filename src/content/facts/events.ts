@@ -94,7 +94,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
     // Labels led out to the open sea so they don't sit on the basemap's labels.
     crosses: [
       { lng: 107.83, lat: 14.65, label: 'Đắk Tô · test spray, Aug 1961', leader: 300 },
-      { lng: 106.82, lat: 10.97, label: 'Biên Hòa · first mission, Jan 1962', leader: 250 },
+      { lng: 106.82, lat: 10.97, label: 'Biên Hòa · first mission, Jan\u00A01962', leader: 250 },
     ],
     dek: 'Operation Ranch Hand, the decade of defoliation, starts small.',
     body: 'The first test spray runs on 10 August 1961 near Đắk Tô in the central highlands; the first official mission follows in January 1962 along Route 15 toward Biên Hòa. The aim: strip away the jungle canopy that hid supply lines and ambushes. Only 70 spray runs are recorded in 1962, the quiet start of a decade-long campaign.',

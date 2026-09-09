@@ -3570,7 +3570,10 @@
     padding: 1.5rem 1rem 1.375rem;
   }
   .method-open-grid .method-diagram {
-    max-width: calc(100% - 4.25rem);
+    /* 5.25, not 4.25: the label measures 146px at its 0.6875rem, not the
+       140 the reserve was set against, and at 375 wide the P of "Plastic"
+       sat 5px outside the card. */
+    max-width: calc(100% - 5.25rem);
   }
 }
 
