@@ -8,6 +8,32 @@ the change lives. Standing rules and open questions are at the foot.
 Dates are the day the decision landed on `master` unless noted. Pull
 request numbers refer to this repository.
 
+## 2026-09-09 · The hit counts' classes: seven, fixed (PR #196)
+
+**Decided.** The Hit Frequency model's count ramp has seven fixed classes,
+roughly doubling per step: 1, 2–3, 4–6, 7–12, 13–25, 26–50, 51 or more.
+The same seven in every distance band and for every agent, so one colour
+means one count wherever it appears; the ramp gains two light mixes and a
+second dark step.
+**Why.** The five classes of PR #190 (1–2, 3–5, 6–10, 11–20, 21+) were
+never cut on the table's distribution, and measured against it they fail
+at both ends of the distance row. Hits per cell, all agents: at 0.5 km
+the median is 2, the 99th percentile 14, and the top two classes hold 2%
+and 0% of the cells; at 5 km the median is 7, the 99th percentile 110,
+the maximum 329, and the top class holds 22% of the country's cells with
+21 to 329 hits in one colour. Zone D within 5 km was one flat dark field.
+With seven doubling steps every band uses at least five classes (0.5 km:
+42 / 32 / 18 / 7 / 1 / 0 / 0; 5 km: 16 / 17 / 16 / 17 / 17 / 10 / 7),
+Zone D at 5 km separates into three, and the key stays one key.
+**Set aside.** Five classes cut for each band on its own distribution
+(0.5 km 1 / 2 / 3–4 / 5–8 / 9+ … 5 km 1–4 / 5–12 / 13–25 / 26–60 / 61+).
+Each map used its full ramp and Cà Mau read best under it at 0.5 km, but
+the key changed under the reader with the band and hid that a count
+within 5 km is simply a larger number than one within 0.5 km. The five as
+shipped, for the record above. All three were drawn on one build behind a
+URL knob and compared at Zone D and Cà Mau, at 0.5 and 5 km, before the
+choice; the knob is retired with it.
+
 ## 2026-09-09 · The phone pass's questions, answered (PR #195)
 
 The nine questions the pass left open, and three smaller ones from its

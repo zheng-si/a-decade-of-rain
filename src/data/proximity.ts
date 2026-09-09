@@ -101,20 +101,40 @@ export function hitsAt(g: ProximityGrid, cell: number, groups: number[] | null):
 }
 
 /** Class breaks for the count ramp: the class of a count is the number of
- *  breaks it reaches. Fixed across bands so the same colour always means the
- *  same number of hits; at 5 km most of the sprayed country sits in the top
- *  class, which is a fact about 5 km and not a fault of the ramp. */
-export const HIT_BREAKS = [1, 3, 6, 11, 21]
+ *  breaks it reaches. Seven fixed classes, roughly doubling per step, the
+ *  same in every distance band so that one colour means one count wherever
+ *  it appears.
+ *
+ *  Chosen on 2026-09-09 (PR #196) over the five classes shipped in PR #190
+ *  (1–2, 3–5, 6–10, 11–20, 21+) and over five classes cut per band. On the
+ *  table's own distribution the five left the top two classes all but empty
+ *  at 0.5 km and put 22% of the country's cells, 21 to 329 hits, in one
+ *  colour at 5 km; per-band classes used every map's full ramp but changed
+ *  the key under the reader when the band changed. With this ladder every
+ *  band uses at least five of the seven: at 0.5 km the shares are 42 / 32 /
+ *  18 / 7 / 1 / 0 / 0, at 5 km 16 / 17 / 16 / 17 / 17 / 10 / 7. */
+export const HIT_BREAKS = [1, 2, 4, 7, 13, 26, 51]
 export function hitClass(n: number): number {
   let c = 0
   for (const b of HIT_BREAKS) if (n >= b) c++
   return c
 }
-export const HIT_CLASS_LABELS = ['1–2', '3–5', '6–10', '11–20', '21 or more']
+/** One label per class: "1", "2–3", "51+" (or "51 or more" in prose). */
+export function hitClassLabels(long = false): string[] {
+  return HIT_BREAKS.map((lo, k) => {
+    const next = HIT_BREAKS[k + 1]
+    if (next == null) return long ? `${lo} or more` : `${lo}+`
+    const hi = next - 1
+    return lo === hi ? `${lo}` : `${lo}–${hi}`
+  })
+}
 
-/** A five-step ramp from a base colour: four mixes towards white and the base
- *  itself darkened, so a selected agent's ramp is that agent's colour and the
- *  brand red is the ramp with nothing isolated. */
+/** A seven-step ramp from a base colour: four mixes towards white, the base
+ *  itself, and the base darkened twice, so a selected agent's ramp is that
+ *  agent's colour and the brand red is the ramp with nothing isolated. */
+const RAMP_STOPS: [to: 'w' | 'k', t: number][] = [
+  ['w', 0.82], ['w', 0.64], ['w', 0.46], ['w', 0.26], ['w', 0], ['k', 0.3], ['k', 0.55],
+]
 export function hitRamp(base: string): string[] {
   const h = base.replace('#', '')
   const n = parseInt(h.length === 3 ? h.replace(/(.)/g, '$1$1') : h, 16)
@@ -122,14 +142,16 @@ export function hitRamp(base: string): string[] {
   const mix = (t: number, to: number) => (c: number) => Math.round(c + (to - c) * t)
   const hex = (f: (c: number) => number) =>
     `#${[r, gg, b].map((c) => f(c).toString(16).padStart(2, '0')).join('')}`
-  return [hex(mix(0.78, 255)), hex(mix(0.56, 255)), hex(mix(0.3, 255)), hex(mix(0, 255)), hex(mix(0.35, 0))]
+  return RAMP_STOPS.map(([to, t]) => hex(mix(t, to === 'w' ? 255 : 0)))
 }
+
 
 const mercY = (lat: number) => Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360))
 const invMercY = (y: number) => ((2 * Math.atan(Math.exp(y)) - Math.PI / 2) * 180) / Math.PI
 
 /** Draw the grid for one band and one selection into a canvas, in Mercator
  *  rows. Returns the image and the four corners MapLibre needs, NW first. */
+
 export function renderProximity(
   g: ProximityGrid,
   band: number,
