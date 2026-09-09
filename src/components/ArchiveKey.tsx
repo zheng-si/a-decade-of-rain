@@ -200,7 +200,7 @@ export default function ArchiveKey({
 
   // ── the key's own note: the encoding, nothing else ───────────────────────
   const keyNote = onProximity
-    ? 'Colour is the number of hits within the chosen distance, in five classes.' +
+    ? 'Colour is the number of hits within the chosen distance, in seven classes.' +
       (filtered ? ' An isolated agent counts only its own paths.' : '')
     : (onTracks
         ? 'Width is gallons per kilometre. Each run fades from A, where spraying began. A run logged at one point is drawn as a point.'
@@ -294,11 +294,10 @@ export default function ArchiveKey({
   markRows.push(border)
   const recordRows = <>{markRows}</>
 
-  // The classes of the count ramp, one row each, for the band in force
-  // (proximity.ts owns the breaks and, while the ladder is being chosen, the
-  // knob that picks them).
-  const hitLabels = hitClassLabels(band).map((l) => (l === '1' ? '1 hit' : `${l} hits`))
-  const ramp = hitRamp(tint, hitLabels.length)
+  // The seven classes of the count ramp, one row each (proximity.ts owns
+  // the breaks; the same seven in every band).
+  const hitLabels = hitClassLabels().map((l) => (l === '1' ? '1 hit' : `${l} hits`))
+  const ramp = hitRamp(tint)
   const gridRows = (
     <>
       {hitLabels.map((label, i) => (
