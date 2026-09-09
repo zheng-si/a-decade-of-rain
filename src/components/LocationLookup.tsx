@@ -191,6 +191,12 @@ export default function LocationLookup({
   /** A number in the box is a mission number, not a place. The gazetteer
    *  holds no digits-only names, so the two kinds of query cannot collide. */
   const missionQ = useMemo(() => parseMissionQuery(query), [query])
+  /** A touch screen has no hover to offer, so the chart's idle line asks for
+   *  a tap instead. Read once: a device does not change its pointer. */
+  const noHover = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches,
+    [],
+  )
   const missionHit = missionQ != null && missions ? (missions.get(missionQ) ?? null) : null
   /** The largest mission number in the record, for the no-match line. Read
    *  off the index rather than typed: the number is the file's, not ours. */
@@ -693,7 +699,7 @@ export default function LocationLookup({
                             so the chart does not shift under the pointer. */}
                         <p className={`lookup-year-readout${hoverYear == null ? ' is-idle' : ''}`}>
                           {hoverYear == null ? (
-                            'Hover a year'
+                            noHover ? 'Tap a year' : 'Hover a year'
                           ) : (
                             <>
                               <strong>{YEAR_FROM + hoverYear}</strong>

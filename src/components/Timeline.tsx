@@ -56,12 +56,6 @@ interface TimelineProps {
   agentChoices: AgentChoice[]
   activeAgentKey: string
   volume: VolumeChart | null
-  /** The 3D state and its toggle, mirrored from the key panel. On a phone the
-   *  key panel is hidden, and with it the only way into the terrain view —
-   *  so the transport row carries a small 3D chip there (CSS keeps it off
-   *  desktop, where the key panel already owns this control). */
-  is3D?: boolean
-  onToggle3D?: () => void
   /** A record card is open (phone: it stacks on top of this sheet). Opening
    *  one auto-drops the panel to its peek; the handle still expands it, and
    *  an expanded panel under an open card reads as two stacked cards. */
@@ -110,8 +104,6 @@ export default function Timeline({
   agentChoices,
   activeAgentKey,
   volume,
-  is3D = false,
-  onToggle3D,
   inspectOpen = false,
   lookupSlot,
   keySlot,
@@ -425,16 +417,6 @@ export default function Timeline({
               </g>
             </svg>
           </button>
-          {onToggle3D && (
-            <button
-              className="transport-btn is-ghost sheet-3d"
-              aria-pressed={is3D}
-              aria-label={is3D ? 'Flatten the terrain' : 'Tilt the terrain into 3D'}
-              onClick={onToggle3D}
-            >
-              3D
-            </button>
-          )}
         </div>
         {/* The buttons sit beside a two-line readout: what is being counted
             and when, then the counts themselves. Heading and date share a
@@ -599,17 +581,6 @@ export default function Timeline({
 
 
       {lookupSlot}
-
-      {/* The phone's whole legend. The key panel — dot scale, compass, view
-          toggle — is hidden below 640px, which also took away any hint that
-          the dots can be opened. One line carries the two things a phone
-          reader cannot otherwise learn: what size encodes, and that a tap
-          answers with the record. Desktop CSS hides it; the key panel is the
-          legend there. */}
-      <p className="explorer-maplegend">
-        Dot size is a cell&apos;s gallons. Tap any dot to open its record.
-      </p>
-
     </section>
   )
 }

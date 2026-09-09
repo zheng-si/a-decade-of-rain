@@ -56,7 +56,24 @@ export interface RunInspect {
   fwac?: number
 }
 
-export type Inspect = CellInspect | RunInspect
+/** A cell of the Stellmans' hit grid, for a touch screen: the desktop reads
+ *  a cell's counts off a hover card, and a touch screen has no hover, so the
+ *  same numbers come as a card in the inspect stack. */
+export interface HitsInspect {
+  kind: 'hits'
+  coords: [number, number]
+  /** The band the map is coloured by, in km, and all four. */
+  band: number
+  bands: number[]
+  /** Hits within each band, in `bands` order, for the selection. */
+  hits: number[]
+  /** The count within `band` per agent group, when nothing is isolated. */
+  byAgent: { label: string; hits: number }[] | null
+  /** The isolated agent's name, when one is. */
+  agentLabel?: string
+}
+
+export type Inspect = CellInspect | RunInspect | HitsInspect
 
 // Imported and re-exported, not redefined: this card uses it, and MapView
 // imports it from here for the popups it builds, whose figures have to be the
@@ -137,7 +154,61 @@ export default function ArchiveInspect({
         </button>
       )}
 
-      {data.kind === 'cell' ? (
+      {data.kind === 'hits' ? (
+        <>
+          {/* The hover card's three lines, as a card: the band the map is
+              coloured by, the other three, and what the count is made of.
+              "Hits" because it is the authors' word: a spray-path leg
+              recorded within the distance of the cell's grid point. */}
+          <p className="inspect-kicker">Hits Within {data.band} km</p>
+          <p className="inspect-coords">{fmtCoords(data.coords)} · 1 km Cell</p>
+          <p className="inspect-figure">
+            <strong>{data.hits[data.bands.indexOf(data.band)].toLocaleString()}</strong>
+            <span className="inspect-figure-unit">
+              {data.hits[data.bands.indexOf(data.band)] === 1 ? 'Hit' : 'Hits'}
+              {data.agentLabel ? `, ${data.agentLabel}` : ''}
+            </span>
+          </p>
+          <p className="inspect-sub is-stats">
+            {data.bands.map((d, i) =>
+              d === data.band ? null : (
+                <span key={d} className="stat-pair">
+                  <strong>{data.hits[i].toLocaleString()}</strong> within {d} km
+                </span>
+              ),
+            )}
+          </p>
+          {data.byAgent && (
+            <>
+              <p className="inspect-section-label">By Agent</p>
+              <div className="inspect-groups">
+                {(() => {
+                  const max = Math.max(1, ...data.byAgent.map((a) => a.hits))
+                  return data.byAgent.map((a, gi) => {
+                    if (!a.hits) return null
+                    return (
+                      <div key={a.label} className="inspect-group-row">
+                        <span className="inspect-group-label">{a.label}</span>
+                        <span className="inspect-bar-track">
+                          <span
+                            className="inspect-bar"
+                            style={{ width: `${(a.hits / max) * 100}%`, background: groups[gi]?.color }}
+                          />
+                        </span>
+                        <span className="inspect-group-value">{a.hits.toLocaleString()}</span>
+                      </div>
+                    )
+                  })
+                })()}
+              </div>
+            </>
+          )}
+          <p className="inspect-coords is-span">
+            A hit is a spray-path leg recorded within the distance of the cell (Stellman and Stellman, 2004).
+            Proximity, not deposition.
+          </p>
+        </>
+      ) : data.kind === 'cell' ? (
         <>
           {/* The card's subject, not its geometry. '13 km Grid Cell' named the
               container and left the reader to infer the contents — and worse,
