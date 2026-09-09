@@ -200,7 +200,7 @@ export default function ArchiveKey({
 
   // ── the key's own note: the encoding, nothing else ───────────────────────
   const keyNote = onProximity
-    ? 'Colour is the number of hits within the chosen distance, in seven classes.' +
+    ? 'Colour is the number of hits within the chosen distance, in seven classes. Each class is about twice the hits of the one before.' +
       (filtered ? ' An isolated agent counts only its own paths.' : '')
     : (onTracks
         ? 'Width is gallons per kilometre. Each run fades from A, where spraying began. A run logged at one point is drawn as a point.'

@@ -198,6 +198,28 @@ before this was settled, in September 2026: the Archive's dots at their own
 size and enlarged, the same dots soft-edged, and the Stellmans' hit grid.
 They are recorded, with what they showed, in `docs/decisions.md`.
 
+**The Hit Frequency model, and its classes.** The Atlas's second model is
+the Stellmans' own (Stellman & Stellman, 2004), drawn from the
+Exposure_Master table hea-v ships: for every point of the 0.01° study
+grid, the number of recorded spray paths that passed within 0.5, 1, 2 or
+5 km of it, summed per cell and agent group by `scripts/build-proximity.mjs`
+with no transformation of ours. The counts are heavy-tailed at every
+distance (all agents, cells with at least one hit: median 2 at 0.5 km and
+7 at 5 km, 99th percentile 14 and 110, maximum 95 and 329), so the colour
+ramp uses seven fixed classes that double: 1, 2–3, 4–6, 7–12, 13–25,
+26–50, 51 or more. A geometric ladder is the classification for a count
+that spans two orders of magnitude, and a constant ratio makes each step
+the same perceived step; the ratio of two is the plainest one to state,
+and the key says it. The same seven in every band and for every agent, so
+one colour means one count wherever it appears. Measured on the table,
+every band uses at least five of the seven (0.5 km: 42 / 32 / 18 / 7 / 1 /
+0 / 0 per cent of cells; 5 km: 16 / 17 / 16 / 17 / 17 / 10 / 7). Equal
+intervals (1–5, 6–10, …) put 88% of the cells at 0.5 km in the first
+class; five classes ending at 21+ put 22% of the cells at 5 km, 21 to 329
+hits, in one colour; nine classes would spend two more tones on the 6% of
+cells above 50 at 5 km alone. The exact counts are on the cell's hover or
+tap, so the colour's job is rank, not readout.
+
 **Why tiers at all.** The median run is 11 km. Across the explorer's zoom range
 that line measures **7 px at the zoom floor and 291 px at the ceiling — a
 factor of 42**. Below roughly 15 px a line cannot be told from a dot, so
