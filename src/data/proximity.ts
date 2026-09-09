@@ -101,28 +101,67 @@ export function hitsAt(g: ProximityGrid, cell: number, groups: number[] | null):
 }
 
 /** Class breaks for the count ramp: the class of a count is the number of
- *  breaks it reaches. Fixed across bands so the same colour always means the
- *  same number of hits; at 5 km most of the sprayed country sits in the top
- *  class, which is a fact about 5 km and not a fault of the ramp. */
-export const HIT_BREAKS = [1, 3, 6, 11, 21]
-export function hitClass(n: number): number {
+ *  breaks it reaches.
+ *
+ *  Three ladders, behind a URL knob while the choice is open (September
+ *  2026): the five fixed classes as shipped, which the same colour meaning
+ *  the same count across bands buys at the price of an empty top at 0.5 km
+ *  and a top class holding 22% of the country's cells at 5 km (21 to 329
+ *  hits in one colour); `?hc=7`, one fixed seven-step ladder that roughly
+ *  doubles per step, so every band uses at least five of its classes; and
+ *  `?hc=b`, five classes cut for each band on its own distribution, where
+ *  the key changes with the band. Read once at load, like the Story's mark
+ *  knob before it; the chosen ladder replaces all three. */
+export type HitScheme = 'fixed5' | 'log7' | 'perband5'
+const hc = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('hc') : null
+export const HIT_SCHEME: HitScheme = hc === '7' ? 'log7' : hc === 'b' ? 'perband5' : 'fixed5'
+const FIXED5 = [1, 3, 6, 11, 21]
+const LOG7 = [1, 2, 4, 7, 13, 26, 51]
+const PERBAND5: Record<string, number[]> = {
+  '0.5': [1, 2, 3, 5, 9],
+  '1': [1, 2, 4, 7, 13],
+  '2': [1, 3, 6, 11, 26],
+  '5': [1, 5, 13, 26, 61],
+}
+/** The breaks in force for a band (km). */
+export function hitBreaks(band = 1): number[] {
+  if (HIT_SCHEME === 'log7') return LOG7
+  if (HIT_SCHEME === 'perband5') return PERBAND5[String(band)] ?? FIXED5
+  return FIXED5
+}
+export function hitClass(n: number, band = 1): number {
   let c = 0
-  for (const b of HIT_BREAKS) if (n >= b) c++
+  for (const b of hitBreaks(band)) if (n >= b) c++
   return c
 }
-export const HIT_CLASS_LABELS = ['1–2', '3–5', '6–10', '11–20', '21 or more']
+/** One label per class: "1", "2–3", "21+" (or "21 or more" in prose). */
+export function hitClassLabels(band = 1, long = false): string[] {
+  const br = hitBreaks(band)
+  return br.map((lo, k) => {
+    const next = br[k + 1]
+    if (next == null) return long ? `${lo} or more` : `${lo}+`
+    const hi = next - 1
+    return lo === hi ? `${lo}` : `${lo}–${hi}`
+  })
+}
 
-/** A five-step ramp from a base colour: four mixes towards white and the base
- *  itself darkened, so a selected agent's ramp is that agent's colour and the
- *  brand red is the ramp with nothing isolated. */
-export function hitRamp(base: string): string[] {
+/** A ramp from a base colour, one step per class: mixes towards white, the
+ *  base itself, and the base darkened, so a selected agent's ramp is that
+ *  agent's colour and the brand red is the ramp with nothing isolated. Five
+ *  steps as shipped; seven for the log ladder, two more mixes on the light
+ *  side and a second dark step. */
+const RAMP_STOPS: Record<number, [to: 'w' | 'k', t: number][]> = {
+  5: [['w', 0.78], ['w', 0.56], ['w', 0.3], ['w', 0], ['k', 0.35]],
+  7: [['w', 0.82], ['w', 0.64], ['w', 0.46], ['w', 0.26], ['w', 0], ['k', 0.3], ['k', 0.55]],
+}
+export function hitRamp(base: string, steps = hitBreaks(1).length): string[] {
   const h = base.replace('#', '')
   const n = parseInt(h.length === 3 ? h.replace(/(.)/g, '$1$1') : h, 16)
   const r = (n >> 16) & 255, gg = (n >> 8) & 255, b = n & 255
   const mix = (t: number, to: number) => (c: number) => Math.round(c + (to - c) * t)
   const hex = (f: (c: number) => number) =>
     `#${[r, gg, b].map((c) => f(c).toString(16).padStart(2, '0')).join('')}`
-  return [hex(mix(0.78, 255)), hex(mix(0.56, 255)), hex(mix(0.3, 255)), hex(mix(0, 255)), hex(mix(0.35, 0))]
+  return (RAMP_STOPS[steps] ?? RAMP_STOPS[5]).map(([to, t]) => hex(mix(t, to === 'w' ? 255 : 0)))
 }
 
 const mercY = (lat: number) => Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360))
@@ -158,7 +197,7 @@ export function renderProximity(
   for (let e = 0; e < g.cells; e++) {
     let n = 0
     for (const gi of gs) n += g.counts[gi][band][e]
-    cls[e] = n > 0 ? hitClass(n) - 1 : -1
+    cls[e] = n > 0 ? hitClass(n, g.bands[band]) - 1 : -1
   }
   // Row of cells for each pixel row, from the top of the image down.
   for (let py = 0; py < H; py++) {

@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import type maplibregl from 'maplibre-gl'
 import { TRACK_LAYER, TRACKS } from './trackLayers'
-import { hitRamp } from '../data/proximity'
+import { hitClassLabels, hitRamp } from '../data/proximity'
 import { InfoMark, InfoPop } from './InfoMark'
 // The key's shared furniture. Both surfaces render these classes, so the
 // stylesheet travels with the components rather than with either route.
@@ -53,8 +53,6 @@ interface Props {
   agents?: ReactNode
 }
 
-/** The five classes of the count ramp, matching hitRamp / HIT_CLASS_LABELS. */
-const HIT_LABELS = ['1–2 hits', '3–5 hits', '6–10 hits', '11–20 hits', '21+ hits']
 
 // ── the notes ─────────────────────────────────────────────────────────────
 const MODEL_LINE = {
@@ -296,10 +294,14 @@ export default function ArchiveKey({
   markRows.push(border)
   const recordRows = <>{markRows}</>
 
-  const ramp = hitRamp(tint)
+  // The classes of the count ramp, one row each, for the band in force
+  // (proximity.ts owns the breaks and, while the ladder is being chosen, the
+  // knob that picks them).
+  const hitLabels = hitClassLabels(band).map((l) => (l === '1' ? '1 hit' : `${l} hits`))
+  const ramp = hitRamp(tint, hitLabels.length)
   const gridRows = (
     <>
-      {HIT_LABELS.map((label, i) => (
+      {hitLabels.map((label, i) => (
         <li key={label}>
           <span className="key-swatch" aria-hidden="true">
             <span className="key-cell" style={{ background: ramp[i] }} />

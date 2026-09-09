@@ -61,6 +61,7 @@ import {
   cellAt,
   hitsAt,
   hitRamp,
+  HIT_SCHEME,
   renderProximity,
   type ProximityGrid,
 } from '../data/proximity'
@@ -477,6 +478,9 @@ function buildSearch(
   // means the one thing the console cannot do without is a reload that keeps
   // its gate. Costs a reader nothing: nobody without `?tune` ever sets it.
   if (tunerEnabled()) q.set('tune', '')
+  // The class-ladder knob rides along the same way while the ladder is being
+  // chosen (proximity.ts); the chosen ladder retires it.
+  if (HIT_SCHEME !== 'fixed5') q.set('hc', HIT_SCHEME === 'log7' ? '7' : 'b')
   if (Math.round(day) < dayMax) q.set('t', dayToDate(day).toISOString().slice(0, 10))
   if (agentKey !== 'all') q.set('agent', agentKey)
   if (map) {
