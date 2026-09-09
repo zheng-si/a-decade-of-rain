@@ -40,8 +40,10 @@
      · The bars, tracks, ramps and bands listed under rule 3 in §5. They are
        square because they are measurements, not because the skin has not
        reached them yet.
-     · .act2-chip::after — those `border` declarations are CSS triangles, the
-       speech-bubble tails on the map pins. Not strokes.
+     · .act2-chip::after and .map-dot-label::after — the pointers on the map
+       callouts, rotated squares in the callout's own fill with the callout's
+       radius on their outer corner (Story.css). The hairline on a dot label's
+       pointer is the label's own border continued, not a stroke of its own.
      · .map-key-compass-dial / -scale-bar borders — the instrument IS its line.
        .eco-scale-bar is the same case: its outline is drawn in --accent-line,
        the same colour as the unit-segment dividers inside it, so the outline is
@@ -599,9 +601,16 @@
   box-shadow: var(--v3-shadow);
 }
 
-.story .act2-chip,
 .story .story-stat {
   box-shadow: var(--v3-shadow-control);
+}
+
+/* The locator chip carries its pointer, and a box-shadow stops at the box:
+   the control recipe as a drop-shadow filter on the chip instead, which
+   wraps chip and pointer as one silhouette (Story.css, App.css). */
+.story .act2-chip {
+  box-shadow: none;
+  filter: drop-shadow(0 1px 1.5px rgba(40, 38, 30, 0.16)) drop-shadow(0 0 0.5px rgba(33, 53, 40, 0.22));
 }
 
 /* The revealed banner is a white surface on paper, which is the case the
@@ -613,7 +622,8 @@
 }
 
 .story .act2-pin:hover .act2-chip {
-  box-shadow: var(--v3-shadow-control);
+  box-shadow: none;
+  filter: drop-shadow(0 2px 3px rgba(40, 38, 30, 0.2)) drop-shadow(0 0 0.5px rgba(33, 53, 40, 0.22));
 }
 
 /* The narrative card floats over a photograph rather than over paper, so it

@@ -1461,14 +1461,24 @@
 .map-wrap .adr-popup .maplibregl-popup-content {
   padding: 0.375rem 0.5625rem 0.4375rem;
   border-radius: var(--v2-radius);
-  box-shadow: var(--v2-shadow-control);
+  background: var(--v2-panel);
+  /* No shadow of its own: the wrapper's filter carries the control shadow
+     and the stroke around box and tip together (App.css, "one silhouette").
+     A box-shadow here would stop at the box's edge and draw its ring across
+     the tip's base, which is what this replaces. */
+  box-shadow: none;
 }
 
-/* The rounded tip was a rotated square faking a radius on the callout. With
-   the callout square, the tip is just a rotated square — same trick, one less
-   reason for it. */
+.map-wrap .adr-popup {
+  filter: drop-shadow(0 1px 3px rgba(40, 38, 30, 0.1)) drop-shadow(0 0 0.5px rgba(33, 53, 40, 0.22));
+}
+
+/* The tip: the callout's own fill and, on its outer corner, the callout's
+   own radius (App.css sets it per anchor). It was squared off here on the
+   argument that a 2px box needs no rounded tip; seen at 3x, the sharp corner
+   was the one unrounded corner on the page. */
 .map-wrap .adr-popup .maplibregl-popup-tip {
-  border-radius: 0;
+  background: var(--v2-panel);
 }
 
 /* The locating block — coordinates, cell size, span. One step below the data

@@ -1283,11 +1283,31 @@
 }
 
 /* Hover tooltip: no border, so no seam where the tip meets the box; the
-   headline line is utility text (13px sans), per the serif-for-display rule. */
+   headline line is utility text (13px sans), per the serif-for-display rule.
+
+   ONE SILHOUETTE. A callout is a box and a tip, and the two used to be two
+   objects laid over each other: the box carried the shadow and the ring, the
+   tip carried neither, so the ring ran across the tip's base and the tip's
+   own edge showed inside the box (the same fault on the Story's dot labels
+   and the locator chips, fixed the same way). The shadow now belongs to the
+   wrapper as a `filter: drop-shadow`, which follows the union of box and tip
+   as one outline; box and tip share one opaque fill, so nothing compounds
+   where they overlap; the tip's outer corner takes the box's 2px radius. A
+   filter on the wrapper makes it a backdrop root, so the content's frosted
+   blur would have nothing to blur: the card is opaque paper instead, which
+   at 0.92 it nearly was. */
+.adr-hover {
+  filter: drop-shadow(0 1px 2px rgba(40, 38, 30, 0.14)) drop-shadow(0 0 0.5px rgba(33, 53, 40, 0.2));
+}
+
 .adr-hover .maplibregl-popup-content {
   border: none;
   position: relative;
   z-index: 1;
+  background: #fff;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
 }
 
 /* No-hover devices never fire mouseout, so the "hover" card a tap conjures
@@ -1312,10 +1332,9 @@
   width: 0.6875rem;
   height: 0.6875rem;
   border: none;
-  /* Must match .adr-popup .maplibregl-popup-content exactly — see the note
-     there. No backdrop-filter of its own: over the content its backdrop IS
-     the content, which would blur twice. */
-  background: rgba(255, 255, 255, 0.92);
+  /* The content's fill, exactly: the join disappears only if the two paint
+     the same opaque colour. */
+  background: #fff;
   transform: rotate(45deg);
   z-index: 2;
 }
