@@ -610,7 +610,9 @@
    wraps chip and pointer as one silhouette (Story.css, App.css). */
 .story .act2-chip {
   box-shadow: none;
-  filter: drop-shadow(0 1px 1.5px rgba(40, 38, 30, 0.16)) drop-shadow(0 0 0.5px rgba(33, 53, 40, 0.22));
+  /* The control recipe's own weights: the 0.07 contact shadow, and the
+     stroke as a half-pixel halo at the same tint. */
+  filter: drop-shadow(0 1px 1.5px rgba(40, 38, 30, 0.07)) drop-shadow(0 0 0.5px rgba(33, 53, 40, 0.08));
 }
 
 /* The revealed banner is a white surface on paper, which is the case the
@@ -623,7 +625,7 @@
 
 .story .act2-pin:hover .act2-chip {
   box-shadow: none;
-  filter: drop-shadow(0 2px 3px rgba(40, 38, 30, 0.2)) drop-shadow(0 0 0.5px rgba(33, 53, 40, 0.22));
+  filter: drop-shadow(0 1px 1.5px rgba(40, 38, 30, 0.07)) drop-shadow(0 0 0.5px rgba(33, 53, 40, 0.08));
 }
 
 /* The narrative card floats over a photograph rather than over paper, so it

@@ -169,18 +169,20 @@
   filter: drop-shadow(0 0.25rem 0.4375rem color-mix(in srgb, var(--accent-chip) 35%, transparent));
 }
 
-/* The pointer: a rotated square in the chip's fill, centred on the chip's
-   edge, its outer corner rounded to the chip's radius and its two outer
-   edges carrying the chip's hairline, so the outline runs round box and
-   pointer without a break. It was a CSS border triangle: sharp, unlined,
-   and laid over the chip's border. */
+/* The pointer: the outline first, the corners after. A rotated square in
+   the chip's fill, centred on the chip's border edge (an absolute child
+   measures from the padding box, so the border's 1px is added), its two
+   outer edges carrying the chip's hairline on round the tip, and only then
+   the tip's apex rounded to the chip's 2px. The square's diagonal is the
+   10px base the border triangle it replaces had, so the pointer is the size
+   it was: 7px a side, 10 across, 5 deep. */
 .map-dot-label::after {
   content: '';
   position: absolute;
-  top: 100%;
+  top: calc(100% + 1px);
   left: 50%;
-  width: 0.625rem;
-  height: 0.625rem;
+  width: 0.4375rem;
+  height: 0.4375rem;
   background: var(--accent-chip);
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-width: 0 1px 1px 0;
@@ -196,7 +198,7 @@
 
 .map-dot--below .map-dot-label::after {
   top: auto;
-  bottom: 100%;
+  bottom: calc(100% + 1px);
   border-width: 1px 0 0 1px;
   border-radius: 0;
   border-top-left-radius: 2px;
@@ -247,7 +249,7 @@
   .map-dot--leader .map-dot-label::after {
     display: block;
     top: auto;
-    bottom: 100%;
+    bottom: calc(100% + 1px);
     border-width: 1px 0 0 1px;
     border-radius: 0;
     border-top-left-radius: 2px;
@@ -2313,16 +2315,18 @@
 .act2-chip.is-right {
   left: calc(100% + 0.5rem);
 }
-/* The pointer: a rotated square in the chip's fill, centred on the edge that
-   faces the pin, its outer corner rounded to the chip's radius. It was a CSS
-   border triangle laid beside the chip, outside its shadow. */
+/* The pointer: the outline first, the apex rounded after. A rotated square
+   in the chip's fill, centred on the edge that faces the pin, so chip and
+   pointer are one shape under one shadow; its apex takes the chip's 2px. The
+   diagonal matches the 10px base of the border triangle it replaces, so the
+   pointer is the size it was. */
 .act2-chip.is-left::after,
 .act2-chip.is-right::after {
   content: '';
   position: absolute;
   top: 50%;
-  width: 0.625rem;
-  height: 0.625rem;
+  width: 0.46875rem;
+  height: 0.46875rem;
   background: #fff;
   transition: background 0.15s;
 }
