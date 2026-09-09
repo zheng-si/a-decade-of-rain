@@ -897,6 +897,14 @@
   color: var(--forest-text-soft);
 }
 
+/* The key's encoding, as one line on the card. The phone hides the Map Key
+   (below), and with it the note its (i) carries, so a phone reader was never
+   told what the field's colour is (the phone pass, PR #195). Hidden wherever
+   the key shows; the phone block turns it on. */
+.story-card-note {
+  display: none;
+}
+
 /* The handover node's outbound link. A filled bar rather than a text link:
    it is the one thing on any card that leaves the story, and it is the last
    card, so it should read as the door it is. */
@@ -1149,6 +1157,13 @@
   }
   .story-stat strong {
     font-size: 0.875rem;
+  }
+  .story-card-note {
+    display: block;
+    margin: 0.5rem 0 0;
+    font-size: 0.6875rem;
+    line-height: 1.4;
+    color: var(--forest-text-soft);
   }
 
   /* (The account block is hidden by the deck block above, from 1024 down —
@@ -3570,7 +3585,10 @@
     padding: 1.5rem 1rem 1.375rem;
   }
   .method-open-grid .method-diagram {
-    max-width: calc(100% - 4.25rem);
+    /* 5.25, not 4.25: the label measures 146px at its 0.6875rem, not the
+       140 the reserve was set against, and at 375 wide the P of "Plastic"
+       sat 5px outside the card. */
+    max-width: calc(100% - 5.25rem);
   }
 }
 
@@ -3914,6 +3932,38 @@
 }
 .close-action:hover .close-action-cta {
   color: #c4ecd3;
+}
+
+/* The fifth card, the phone's door back to the Atlas (CLOSE_ATLAS). The rail
+   that carries Explore the Record on the desktop is hidden under 640px, and
+   the record node's CTA has scrolled away by the close, so the Atlas had one
+   way in from a phone (the phone pass, PR #195). Hidden where the rail shows;
+   on the phone it spans the two-column row under the four organisations, on
+   the accent, so it reads as the site's own rather than a fifth organisation.
+   Three classes, because the skin paints .close-action's ground at two. */
+.close-action-atlas {
+  display: none;
+}
+.story .close-action.is-atlas {
+  background: var(--accent-deep);
+}
+.story .close-action.is-atlas:hover {
+  background: var(--accent);
+}
+.story .close-action.is-atlas .close-action-role,
+.story .close-action.is-atlas .close-action-desc,
+.story .close-action.is-atlas .close-action-cta {
+  color: rgba(255, 255, 255, 0.86);
+}
+.story .close-action.is-atlas .close-action-name,
+.story .close-action.is-atlas:hover .close-action-cta {
+  color: #fff;
+}
+@media (max-width: 640px) {
+  .close-action-atlas {
+    display: block;
+    grid-column: 1 / -1;
+  }
 }
 
 /* Sources ledger stays in the forest green, continuing the hero. */

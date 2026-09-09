@@ -385,6 +385,44 @@
     left: 0;
     width: 100%;
     border-radius: var(--v2-radius) var(--v2-radius) 0 0;
+    /* And the padding, for the same reason as the width: App.css's phone
+       padding read correctly and never ran against the 1.5rem above, so the
+       sheet carried 24px of empty paper above its handle and no room for the
+       home indicator under its foot. No top inset (the handle is the top),
+       1rem sides, the safe-area inset under the foot. */
+    padding: 0 1rem calc(0.875rem + env(safe-area-inset-bottom));
+  }
+
+  /* The grab handle is sticky, and it had no ground: the chart scrolled
+     through the chevron, and a chip half under the handle's 28px band gave
+     its tap to the handle. The sheet's own paper, so it reads as a bar and
+     what scrolls under it is under it. */
+  .map-wrap .sheet-toggle {
+    background: var(--v2-panel);
+  }
+
+  /* The lookup's note opens UPWARD in the sheet, whatever the desktop asked:
+     the radius row sits near the sheet's foot, and a note opening below it
+     landed outside the scroll box, 0px of it visible. The key block's own
+     notes keep their direction; they sit under the head, with room above. */
+  .map-wrap .explorer-panel .lookup .map-key-info-pop.is-below {
+    top: auto;
+    bottom: calc(100% + 0.375rem);
+  }
+
+  /* The foot. The guide and the citation are hidden on phones (App.css), and
+     the label that headed them goes with them: it promised instructions and
+     delivered a link (the phone pass, PR #195). The rule the label carried
+     moves to the link, so the way out still sits under a line. Three classes,
+     because the skin's own section-label rule sets display at two. */
+  .map-wrap .explorer-section-label.explorer-guide-label {
+    display: none;
+  }
+
+  .map-wrap .explorer-links {
+    margin-top: 0.875rem;
+    padding-top: 1.125rem;
+    border-top: 1px solid var(--rule);
   }
 
   .map-wrap.inspect-open .archive-key {
@@ -1511,6 +1549,13 @@
 .map-wrap .inspect-sub.is-stats .stat-pair {
   white-space: nowrap;
 }
+/* The hits card carries three pairs ("10 within 0.5 km"), not two short
+   words, and on a phone card they do not fit one line: the row wraps, the
+   pairs whole. */
+.map-wrap .archive-inspect.is-hits .inspect-sub.is-stats {
+  flex-wrap: wrap;
+  row-gap: 0.25rem;
+}
 
 /* Headings for the two breakdowns. Same 10px tier as the panel's own section
    labels, and each one takes over the rule that used to sit on top of the
@@ -1660,6 +1705,11 @@
      Headless renders hide scrollbars, which is how it went unseen. */
   right: 0;
   padding-right: 0;
+  /* The hit area the side padding used to give is taken on the LEFT instead,
+     inside the card, where nothing sits beside the ×: 26 by 28px under a
+     finger, the glyph still flush with the card's edge, nothing overhanging
+     the scroll box. */
+  padding-left: 0.75rem;
 }
 /* The list row above already names the record it opened; a card standing on
    its own has nothing else to say what it is, so it keeps its title — across
@@ -1745,6 +1795,8 @@
    against half a panel is measuring the panel. */
 .map-wrap .archive-key > .archive-inspect.is-cell .inspect-coords,
 .map-wrap .archive-key > .archive-inspect.is-cell .inspect-coords.is-span,
+.map-wrap .archive-key > .archive-inspect.is-hits .inspect-coords,
+.map-wrap .archive-key > .archive-inspect.is-hits .inspect-coords.is-span,
 .map-wrap .archive-key > .archive-inspect .inspect-section-label,
 .map-wrap .archive-key > .archive-inspect .inspect-groups,
 .map-wrap .archive-key > .archive-inspect .inspect-years,
@@ -2120,4 +2172,40 @@
 .map-wrap .lookup-radii .lookup-chip.is-active,
 .map-wrap .lookup-unit button.is-active {
   border-radius: var(--v2-radius);
+}
+
+/* ── two columns on a tablet ─────────────────────────────────────────────────
+   Between the phone and 900px the two 23.25rem columns left a strip of map
+   between them narrower than either column: 95px on an iPad mini, with the
+   north of the country under the lookup. Both come down to 20rem with a
+   1.25rem inset, and the two rows that were sized to the wider column wrap
+   instead of clipping: the model switch and the view switch take a row each,
+   and the agent chips run in two rows on one track. Decided on the phone
+   pass's questions (PR #195), over a key column that starts folded. Last in
+   the file, after the switch rules: the chip and control rules above it set
+   `flex` at the same specificity, and this has to win by source order. */
+@media (min-width: 641px) and (max-width: 900px) {
+  .map-wrap .explorer-panel,
+  .map-wrap .archive-key {
+    width: min(20rem, calc(100vw - 3rem));
+    padding: 1.25rem;
+  }
+
+  .map-wrap .map-key-controls {
+    flex-wrap: wrap;
+    gap: 0.75rem 0.875rem;
+  }
+
+  .map-wrap .map-key-control.is-grow {
+    flex: 1 1 100%;
+  }
+
+  .map-wrap .archive-key-legend .explorer-agents {
+    flex-wrap: wrap;
+  }
+
+  /* No shrink, so the row breaks 3 and 2 rather than 4 and a lone Other. */
+  .map-wrap .archive-key-legend .explorer-agents .agent-chip {
+    flex: 1 0 30%;
+  }
 }

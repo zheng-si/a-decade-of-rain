@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { ACTIONS, HOTSPOTS, type HotspotKey } from '../content/actions/hotspots'
 import { SOURCES } from '../content/sources'
 import ActionsMap from './ActionsMap'
@@ -17,6 +17,27 @@ export default function ActionsSection() {
   })
   const toggle = (key: HotspotKey) => setOpen((o) => ({ ...o, [key]: !o[key] }))
   const openKeys = HOTSPOTS.filter((h) => open[h.key]).map((h) => h.key)
+  // From the map, a pin's card can be off the screen: below 1100px the cards
+  // stack under the locator, and on a phone the card a pin flips sits about
+  // two screens down, so the tap changed nothing the reader could see (the
+  // phone pass, PR #195). Opening from a pin brings the card into view when
+  // it is not already there; closing from a pin leaves the reader where they
+  // are. Measured, not media-queried: wherever the card is on screen, nothing
+  // moves.
+  const cardRefs = useRef<Partial<Record<HotspotKey, HTMLLIElement | null>>>({})
+  const selectFromMap = (key: HotspotKey) => {
+    const opening = !open[key]
+    toggle(key)
+    if (!opening) return
+    requestAnimationFrame(() => {
+      const el = cardRefs.current[key]
+      if (!el) return
+      const r = el.getBoundingClientRect()
+      if (r.top >= 0 && r.bottom <= window.innerHeight) return
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' })
+    })
+  }
 
   return (
     <section className="story-fullscreen actions" id="sec-actions" aria-label={ACTIONS.title}>
@@ -35,6 +56,9 @@ export default function ActionsSection() {
               return (
                 <li
                   key={h.key}
+                  ref={(el) => {
+                    cardRefs.current[h.key] = el
+                  }}
                   className={`act2-card is-${s}${isOpen ? ' is-active' : ' is-photo'}`}
                   role="button"
                   tabIndex={0}
@@ -129,7 +153,7 @@ export default function ActionsSection() {
           </ul>
 
           <div className="act2-map">
-            <ActionsMap active={openKeys} onSelect={toggle} />
+            <ActionsMap active={openKeys} onSelect={selectFromMap} />
           </div>
         </div>
 

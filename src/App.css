@@ -604,9 +604,8 @@
   transition: width 0.1s linear;
 }
 
-/* The key's own block in the left panel: a rule above it, and the phone does
-   without it entirely (the one-line `.explorer-maplegend` is the phone's
-   legend, and a full key would cost the map half the sheet). */
+/* The key's own block in the left panel: a rule above it. On a phone it comes
+   along inside the scrolling sheet (below). */
 .archive-key-legend {
   margin-top: 0.875rem;
   padding-top: 0.875rem;
@@ -618,8 +617,18 @@
   border-top: 1px solid var(--rule);
 }
 
+/* The phone did without the block while the key was only a legend: a
+   one-line sentence stood in for it, and a full key would have cost the map
+   half the sheet. Then PR #190 moved the model switch, the agent chips and
+   the band row into the block, and hiding it hid the phone's only way to the
+   hit grid and its only naming of the four colours. The sheet scrolls, so
+   the block costs the map nothing in peek; it shows in the expanded sheet
+   and goes in the peek and its two glide frames, as everything but the
+   identity line and the transport does. */
 @media (max-width: 640px) {
-  .archive-key-legend {
+  .explorer-panel.is-peek .archive-key-legend,
+  .explorer-panel.is-collapsing .archive-key-legend,
+  .explorer-panel.is-opening .archive-key-legend {
     display: none;
   }
 }
@@ -803,18 +812,13 @@
   border-top: 1px solid #c6c9c2;
 }
 
-/* Desktop defaults for the two phone-only affordances. They render on every
+/* Desktop default for the one phone-only affordance. It renders on every
    viewport (the component does not branch on width) and the phone block below
-   turns them on — the same pattern as .explorer-dek in reverse. */
+   turns it on — the same pattern as .explorer-dek in reverse. The phone's 3D
+   chip and its one-line legend used to live here too; both stood in for the
+   key block while the phone did without it, and went when the block came to
+   the sheet (see .archive-key-legend). */
 .sheet-toggle {
-  display: none;
-}
-
-.sheet-3d {
-  display: none;
-}
-
-.explorer-maplegend {
   display: none;
 }
 
@@ -834,6 +838,10 @@
    the sheet gesture it now carries. */
 @media (max-width: 640px) {
   .explorer-panel {
+    /* The peek's height, measured once and used twice (below), so the
+       glide's clamp and the peek's lid cannot drift apart again: handle 28
+       + identity line 19.5 + transport 50.8 + the foot's 14 = 112px. */
+    --sheet-peek-h: 7rem;
     top: auto;
     bottom: 0;
     left: 0;
@@ -841,25 +849,28 @@
     max-height: 52vh;
     max-height: 52dvh;
     overflow-y: auto;
-    padding: 0 1rem calc(0.875rem + env(safe-area-inset-bottom));
+    /* No padding here: the skin's `.map-wrap .explorer-panel` states it at
+       two classes, so a one-class value in this file reads correctly and
+       never runs (ArchiveSkinV2.css's phone block, where it lives). */
     transition: max-height 0.25s ease;
   }
 
   .explorer-panel.is-peek {
-    max-height: 8.75rem;
+    max-height: var(--sheet-peek-h);
     overflow: hidden;
   }
 
   /* The glide between the two layouts (see the phase machine in Timeline):
-     FULL content, lid clamped to the peek's measured height (5.6875rem =
-     91px) so the box slides shut clipping its content instead of snapping
-     when the content vanishes. The peek layout lands only after the ride,
-     at the same height the clamp ends on — so the swap itself moves
-     nothing on a standard phone width. `is-opening` is the same box for
-     the two frames before an expand begins. */
+     FULL content, lid clamped to the peek's height so the box slides shut
+     clipping its content instead of snapping when the content vanishes. The
+     peek layout lands only after the ride, at the same height the clamp ends
+     on — so the swap itself moves nothing. The clamp used to carry its own
+     number (91px, the peek as first measured) and the peek grew past it, so
+     every collapse dipped 49px too far and bounced back. `is-opening` is the
+     same box for the two frames before an expand begins. */
   .explorer-panel.is-collapsing,
   .explorer-panel.is-opening {
-    max-height: 5.6875rem;
+    max-height: var(--sheet-peek-h);
     overflow: hidden;
   }
 
@@ -939,29 +950,16 @@
     display: none;
   }
 
-  .explorer-maplegend {
-    display: block;
-    margin: 0.625rem 0 0;
-    font-size: 0.6875rem;
-    line-height: 1.55;
-    color: var(--ink-faint);
-  }
-
   .explorer-chart svg {
     height: 4.5rem;
   }
 
   .explorer-agents {
     margin-top: 0.875rem;
-  }
-
-  /* The 3D chip joins the transport — the key panel that owns this control
-     on desktop is gone here. Text, not an icon: "3D" IS its own icon. */
-  .sheet-3d {
-    display: inline-flex;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+    /* The agent note under the chips is retired on the phone (below), and it
+       was what held the Map Key label off the chips: without it the label sat
+       8px under the row. The section rhythm the note used to pay. */
+    margin-bottom: 1rem;
   }
 
   /* Peek: one line of identity, the transport, nothing else. The section
@@ -986,7 +984,6 @@
   .explorer-panel.is-peek .explorer-axis,
   .explorer-panel.is-peek > .explorer-section-label,
   .explorer-panel.is-peek .explorer-agents,
-  .explorer-panel.is-peek .explorer-maplegend,
   .explorer-panel.is-peek .explorer-links {
     display: none;
   }
@@ -1444,7 +1441,12 @@
    all that is left to do. Same paper and hairline as the panels beside it.
    Rendered outside the `ready` gate, so it is reachable in exactly the state
    where nothing else is. */
-.map-load-error {
+/* The same card says the Atlas is on its way. Bare paper for five seconds on
+   a slow connection, and the grid's 4.4 MB arriving with no sign of itself,
+   were the phone pass's finding (PR #195); one line, gone the moment the
+   thing it announces is there. */
+.map-load-error,
+.map-load-status {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -1907,6 +1909,13 @@
   top: 1.5rem;
   left: 50%;
   transform: translateX(-50%);
+  /* An absolute box with only a left edge shrink-wraps into the half of the
+     map to its right: on a phone that is 195px, three lines of text and a
+     button broken in two. Take the content's own width, capped to the map
+     less a margin; the centring is unchanged, and on the laptop the box was
+     already at its content width, so nothing moves there. */
+  width: max-content;
+  max-width: calc(100% - 2rem);
   z-index: 6;
   display: flex;
   align-items: center;
@@ -1935,6 +1944,7 @@
   background: rgba(255, 255, 255, 0.14);
   color: inherit;
   cursor: pointer;
+  white-space: nowrap;
 }
 .map-pick-hint button:hover {
   background: rgba(255, 255, 255, 0.22);
@@ -1945,6 +1955,20 @@
 @media (max-width: 640px) {
   .map-pick-hint {
     top: 3rem;
+  }
+  /* The zoom hint's home is the foot of the MAP, and on a phone the foot of
+     the screen is the sheet: it sat over the transport, the 3D chip or the
+     search box at every sheet height. It rides the sheet's live height
+     (--panel-h, the measure the record card already rides) so it stands just
+     above the sheet in peek and expanded alike, and goes while a record card
+     is up: the card is the reader's answer, and a country-view hint has no
+     business over it. Three classes, so it beats the base `.is-zoom` pair. */
+  .map-wrap .map-pick-hint.is-zoom {
+    top: auto;
+    bottom: calc(var(--panel-h, 5.5rem) + 0.75rem);
+  }
+  .map-wrap.inspect-open .map-pick-hint.is-zoom {
+    display: none;
   }
 }
 
@@ -1964,6 +1988,60 @@
   .explorer-panel.is-collapsing .lookup,
   .explorer-panel.is-opening .lookup {
     display: none;
+  }
+
+  /* One scroller per surface. The list's 13.5rem cap is for the desktop
+     column, where it keeps the place column on the screen; inside the sheet,
+     which scrolls, it made a second touch scroller nested in the first, and a
+     nine-run mission lost its ninth row behind it. */
+  .lookup-list {
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* The one line of text on the phone under the 10px caps tier (9px at the
+     16px root). The desktop keeps its size. */
+  .lookup-year-axis {
+    font-size: 0.625rem;
+  }
+}
+
+/* Short screens in the desktop layout: a phone on its side, a small laptop.
+   The column is taller than the screen there (707px of panel against a
+   390px viewport once the key block sits in it), and it had no cap and no
+   scroll, so the transport, the chart and the foot were simply off the
+   screen. The same mechanism the phone sheet uses: cap to the viewport and
+   scroll inside. Fenced to short screens so a 900px-tall desktop is
+   untouched. */
+@media (min-width: 641px) and (max-height: 760px) {
+  .explorer-panel {
+    max-height: calc(100vh - 3rem);
+    max-height: calc(100dvh - 3rem);
+    overflow-y: auto;
+  }
+}
+
+/* Between phone and laptop widths the map's centre falls under the column's
+   right edge, and a hint centred on the map sat across the column. Centre it
+   in the strip the column leaves free: the column's outer edge is 24.75rem,
+   so the strip's centre is half of that past the map's. */
+@media (min-width: 641px) and (max-width: 1000px) {
+  .map-pick-hint {
+    left: calc(50% + 12.375rem);
+  }
+  /* And the zoom hint steps up off the scale bar and the credit, which share
+     the foot's strip at these widths. */
+  .map-pick-hint.is-zoom {
+    bottom: 3.5rem;
+  }
+}
+
+/* Up to 900px the columns are 20rem (ArchiveSkinV2.css, "two columns on a
+   tablet"), so the column's outer edge is 21.5rem and the strip's centre
+   moves in with it. */
+@media (min-width: 641px) and (max-width: 900px) {
+  .map-pick-hint {
+    left: calc(50% + 10.75rem);
   }
 }
 

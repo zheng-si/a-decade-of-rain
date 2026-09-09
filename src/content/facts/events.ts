@@ -70,6 +70,11 @@ export interface StoryEvent {
   /** An outbound link at the foot of the card (the handover to the Archive).
    *  A node with one is a destination as well as a beat. */
   cta?: { label: string; to: string }
+  /** One line under the stat saying how the map's marks are drawn, for the
+   *  phone, which hides the Map Key and with it the key's own note (the phone
+   *  pass, PR #195). Shown only where the key is hidden; the first node
+   *  carries it, where the field first appears. */
+  note?: string
 }
 
 export const FACTS_EVENTS: StoryEvent[] = [
@@ -94,7 +99,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
     // Labels led out to the open sea so they don't sit on the basemap's labels.
     crosses: [
       { lng: 107.83, lat: 14.65, label: 'Đắk Tô · test spray, Aug 1961', leader: 300 },
-      { lng: 106.82, lat: 10.97, label: 'Biên Hòa · first mission, Jan 1962', leader: 250 },
+      { lng: 106.82, lat: 10.97, label: 'Biên Hòa · first mission, Jan\u00A01962', leader: 250 },
     ],
     dek: 'Operation Ranch Hand, the decade of defoliation, starts small.',
     body: 'The first test spray runs on 10 August 1961 near Đắk Tô in the central highlands; the first official mission follows in January 1962 along Route 15 toward Biên Hòa. The aim: strip away the jungle canopy that hid supply lines and ambushes. Only 70 spray runs are recorded in 1962, the quiet start of a decade-long campaign.',
@@ -104,6 +109,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
       sourceId: 'usaf_ranchhand',
     },
     stat: { value: '70', label: 'spray runs recorded in 1962' },
+    note: 'The field is the gallons logged per 3\u00A0km cell up to the date shown, blurred. Darker is more; every agent shares one hue.',
   },
   {
     id: 'warzone-d',
@@ -237,7 +243,10 @@ export const FACTS_EVENTS: StoryEvent[] = [
     agent: 'all',
     tracks: true,
     dek: 'Every flight behind this map, drawn one line at a time.',
-    body: 'Everything you have read so far was a summary. Beneath it lies the HERBS tape, the U.S. military’s own flight log: 11,273 spray runs between 1961 and 1971, each one a chain of waypoints recorded by the crews. The Archive draws those runs as they were flown. You can filter by herbicide, move through the decade month by month, and trace any single flight back to the day it was logged.',
+    // Cut from seven lines to five on a phone (the phone pass, PR #195): the
+    // years and the run count go, the stat pill under it carries the count,
+    // and the three verbs stay.
+    body: 'Everything so far was a summary. Beneath it lies the HERBS tape, the U.S. military’s own flight log, every run a chain of waypoints recorded by the crews. The Archive draws them as they were flown: filter by herbicide, play the decade month by month, trace any flight to the day it was logged.',
     stat: { value: '11,273', label: 'spray runs on file' },
     cta: { label: 'Explore the Record', to: '/archive' },
   },

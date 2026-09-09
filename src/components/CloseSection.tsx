@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { CLOSE_ACTIONS, CLOSE_HEAD, COLOPHON, REF_GROUPS } from '../content/close'
+import { Link } from 'react-router-dom'
+import { CLOSE_ACTIONS, CLOSE_ATLAS, CLOSE_HEAD, COLOPHON, REF_GROUPS } from '../content/close'
 import { SOURCES } from '../content/sources'
 import Logo from './Logo'
 
@@ -137,6 +138,18 @@ export default function CloseSection() {
                 </a>
               </li>
             ))}
+            {/* The fifth card: the site's own door, phone only (Story.css).
+                An internal link, so the arrow points on rather than out. */}
+            <li className="close-action-atlas">
+              <Link className="close-action is-atlas" to={CLOSE_ATLAS.to}>
+                <p className="close-action-role">{CLOSE_ATLAS.role}</p>
+                <h3 className="close-action-name">{CLOSE_ATLAS.name}</h3>
+                <p className="close-action-desc">{CLOSE_ATLAS.desc}</p>
+                <p className="close-action-cta">
+                  {CLOSE_ATLAS.action} <span aria-hidden="true">→</span>
+                </p>
+              </Link>
+            </li>
           </ul>
         </div>
       </section>

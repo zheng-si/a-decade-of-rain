@@ -556,7 +556,18 @@ function fitPaddingFor(map: maplibregl.Map): Padding {
   if (!panel) return box
   const w = panel.getBoundingClientRect().width
   const canvas = map.getContainer().clientWidth
-  if (!w || !canvas || w > canvas * 0.5) return box
+  if (!w || !canvas) return box
+  // Below the phone breakpoint the panel is a sheet across the FOOT of the
+  // map, so the reservation moves to the bottom: its live height (peek or
+  // expanded, whatever it is at the moment of the fit), capped so a tall
+  // sheet on a short screen cannot ask for more map than there is. Without
+  // it a mission's runs were fitted to the whole canvas and two thirds of
+  // them landed under the sheet.
+  if (w > canvas * 0.5) {
+    const h = (panel as HTMLElement).offsetHeight
+    const canvasH = map.getContainer().clientHeight
+    return { ...box, bottom: Math.min(pad + h, Math.max(pad, canvasH - pad - 160)) }
+  }
   // 24px is the panel's own left offset; the rest is its width.
   return { ...box, left: pad + w + 24 }
 }
@@ -726,6 +737,8 @@ export default function MapView() {
   const [proximity, setProximity] = useState(false)
   const [band, setBand] = useState(1)
   const [proxReady, setProxReady] = useState(false)
+  /** The grid's fetch failed; the status line says so instead of waiting. */
+  const [proxFailed, setProxFailed] = useState(false)
   const proxRef = useRef<ProximityGrid | null>(null)
   const proxOnRef = useRef(false)
   proxOnRef.current = proximity
@@ -1103,7 +1116,7 @@ export default function MapView() {
         const pickLayers = () => [...hitLayers(), ...trackLayers()]
         /** The run under the pointer, or null. Also the one place that knows a
          *  run is only pickable where it is actually drawn. */
-        const trackAt = (pt: maplibregl.PointLike) => {
+        const trackAt = (pt: maplibregl.PointLike | [maplibregl.PointLike, maplibregl.PointLike]) => {
           const ids = pickLayers()
           if (!ids.length) return null
           // The playhead is a paint gate now, not a filter (see trackLayers),
@@ -1269,7 +1282,20 @@ export default function MapView() {
             }))
             return
           }
-          const t = trackAt(e.point)
+          // A finger is not a pointer. The strokes are a pixel wide at most
+          // zooms, and a tap had to land on the stroke itself: two blind
+          // sweeps of sixty taps opened nothing. On a coarse pointer the pick
+          // takes a 24px box around the tap (the floor the sheet's handle
+          // cites) and the first run in it the playhead has reached.
+          const coarse = window.matchMedia('(pointer: coarse)').matches
+          const t = trackAt(
+            coarse
+              ? [
+                  [e.point.x - 12, e.point.y - 12],
+                  [e.point.x + 12, e.point.y + 12],
+                ]
+              : e.point,
+          )
           if (t) {
             const p = t.properties as Record<string, number>
             const pick = readPick(t)
@@ -1330,6 +1356,39 @@ export default function MapView() {
           // subject.
           pinnedRunRef.current = null
           paintHover()
+          // Over the grid on a touch screen the tap is the reader's only
+          // question, and the hover card that answers it on a desktop is
+          // retired there (App.css, hover: none): the same numbers go into a
+          // card in the inspect stack instead. On a desktop the click stays
+          // inert, as the guide says ("Hover any cell").
+          if (proxOnRef.current && proxRef.current && window.matchMedia('(hover: none)').matches) {
+            const g = proxRef.current
+            const cell = cellAt(g, e.lngLat.lng, e.lngLat.lat)
+            const sel = proxGroupRef.current
+            const hits = cell >= 0 ? hitsAt(g, cell, sel == null ? null : [sel]) : null
+            if (!hits || !hits[3]) {
+              setInspect(null)
+              return
+            }
+            const bi = PROX_BANDS.indexOf(bandRef.current)
+            track('archive_record', { via: 'cell' })
+            setInspect({
+              kind: 'hits',
+              coords: [e.lngLat.lng, e.lngLat.lat],
+              band: PROX_BANDS[bi],
+              bands: PROX_BANDS,
+              hits,
+              byAgent:
+                sel == null
+                  ? g.groups.map((name, gi) => ({
+                      label: groupLabels[gi] ?? name,
+                      hits: hitsAt(g, cell, [gi])[bi],
+                    }))
+                  : null,
+              agentLabel: sel == null ? undefined : groupLabels[sel],
+            })
+            return
+          }
           const feats = map.queryRenderedFeatures(e.point, { layers: volLayers })
           if (!feats.length) {
             setInspect(null)
@@ -1775,13 +1834,17 @@ export default function MapView() {
   useEffect(() => {
     if (!proximity || proxRef.current) return
     let cancelled = false
+    setProxFailed(false)
     loadProximity()
       .then((g) => {
         if (cancelled) return
         proxRef.current = g
         setProxReady(true)
       })
-      .catch((e) => console.error('proximity grid failed to load', e))
+      .catch((e) => {
+        console.error('proximity grid failed to load', e)
+        if (!cancelled) setProxFailed(true)
+      })
     return () => {
       cancelled = true
     }
@@ -2268,12 +2331,22 @@ export default function MapView() {
       place: { name: pl.n, coarse, low: pl.c === 'low' },
     }))
     const map = mapRef.current
-    if (map)
+    if (map) {
+      // On a phone the sheet covers the foot of the map, so the place is
+      // eased to the centre of the map the reader can see, not of the
+      // canvas: the circle used to land with its top 8px showing above the
+      // sheet. An offset, not easeTo's padding, which maplibre keeps in the
+      // transform for every later move.
+      const panel = document.querySelector<HTMLElement>('.explorer-panel')
+      const sheet =
+        panel && panel.offsetWidth > map.getContainer().clientWidth * 0.5 ? panel.offsetHeight : 0
       map.easeTo({
         center: [pl.lng, pl.lat],
         zoom: Math.max(map.getZoom(), 8.6),
         duration: 700,
+        offset: [0, -Math.round(sheet / 2)],
       })
+    }
   }
 
   // Mirror the current view into the query string, debounced. During playback
@@ -2420,6 +2493,22 @@ export default function MapView() {
           The archive could not be loaded. Please try again.
         </p>
       )}
+      {/* Until the record lands there is nothing on the paper to say the
+          Atlas is coming: five seconds of bare paper on a slow connection,
+          and the grid's 4.4 MB arrived with no sign of itself either (the
+          phone pass, PR #195). One line in the load error's own card, gone
+          the moment the thing it announces is there; a status role, so it is
+          announced as well as seen. */}
+      {!ready && !loadError && (
+        <p className="map-load-status" role="status">
+          Loading the record…
+        </p>
+      )}
+      {ready && proximity && !proxReady && (
+        <p className="map-load-status" role="status">
+          {proxFailed ? 'The hit grid could not be loaded.' : 'Loading the hit grid…'}
+        </p>
+      )}
       {ready && (
         <aside className="archive-key" aria-label="Place">
           {/* The place column: what the reader asked, and the record they
@@ -2466,8 +2555,6 @@ export default function MapView() {
           agentChoices={choices}
           activeAgentKey={agentKey}
           volume={volume}
-          is3D={is3D}
-          onToggle3D={toggleView}
           inspectOpen={!!inspect}
           onScrub={(d) => {
             setPlaying(false)

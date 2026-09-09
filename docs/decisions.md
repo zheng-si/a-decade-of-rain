@@ -8,6 +8,152 @@ the change lives. Standing rules and open questions are at the foot.
 Dates are the day the decision landed on `master` unless noted. Pull
 request numbers refer to this repository.
 
+## 2026-09-09 · The phone pass's questions, answered (PR #195)
+
+The nine questions the pass left open, and three smaller ones from its
+findings, were put to the designer as options and decided the same
+morning. Each is recorded with what was set aside. The mocks that
+informed them were CSS injected on the branch's build, not code; the
+changes below are.
+
+- **The sheet's foot on phones.** The HOW TO READ THIS label goes with the
+  guide and the citation it headed; the rule it carried moves to the Read
+  the Story link, which stays as the way out. Set aside: showing the guide
+  and the citation on the phone now that the sheet scrolls, which would
+  have needed the guide's verbs rewritten for touch.
+- **The key block.** Stays whole in the expanded sheet, as shipped. Set
+  aside: chips only, the arrangement before PR #190, which keeps the model
+  switch and the hit grid off the phone.
+- **The notes on touch.** The (i) is a toggle on a touch screen: a tap
+  opens the note, a second tap on the mark or a tap anywhere else closes
+  it, Escape too, and the mark carries `aria-expanded`. The hover rule is
+  fenced to pointers that hover, so a tap's emulated hover cannot hold
+  open a note the reader closed. Set aside: notes inline under their label
+  on touch screens (the model note landed between the label and its switch
+  and needed the two-switch row rebuilt), and leaving plain focus.
+- **A second door to the Atlas on phones.** A fifth card in the close's
+  actions, phone only: The Record, Explore the Record, on the accent, the
+  site's own door among the four organisations'. The desktop keeps the
+  rail. Set aside: a link beside Back to top (too quiet for the one way
+  in), a fixed strip (costs the phone height on every screen of the Story).
+- **The way back from a record card.** Closing the card puts the sheet
+  back as the card found it: expanded if it was expanded, at the scroll
+  position it had, so a lookup's list and its back link are where the
+  reader left them. A sheet already at its peek stays there. Set aside: a
+  Back link in place of the × (loses the general close), one line of the
+  lookup kept in the peek (a third sheet height).
+- **iPad.** Between 641 and 900px both columns come down from 23.25rem to
+  20rem with 1.25rem insets, and the two rows sized to the wider column
+  wrap instead of clipping: the model switch and the view switch take a
+  row each, the agent chips run in two rows on one track. The strip of
+  map between the columns goes from 95 to about 180px on an iPad mini.
+  Set aside: a key column that starts folded to its search row (the map
+  first, the key on demand), and leaving it.
+- **A phone on its side.** Stays the desktop layout, scrolling under 760px
+  tall. Set aside: the sheet layout on short touch screens, a second
+  breakpoint the site has never had.
+- **The record node's deck card.** The body is cut from seven lines to
+  five on a phone: the years and the run count go (the stat pill under it
+  carries the count), the three verbs stay. Set aside: dropping the stat
+  where a CTA follows; a height cap on short screens, against the deck's
+  own rule.
+- **A loading state for the Atlas.** One line in the load error's own
+  card, centred on the map: Loading the record until the record lands,
+  Loading the hit grid while the grid does, a sentence if the grid fails.
+  A status role, so it is announced as well as seen. Set aside: rendering
+  the panel's head before the data; accepting the bare paper.
+- **The Story's key note on phones.** The first card carries the field's
+  encoding as one line under its stat, shown only where the key is hidden.
+  Set aside: a compact key in the top strip; recording the omission.
+- **The search box in the sheet.** On phones the lookup moves from the
+  foot of the sheet to under the transport and its chart, above the way
+  out; the desktop's column order is unchanged. Set aside: leaving it last.
+- **The locator pins.** Opening a card from a pin scrolls the card into
+  view when it is not already on the screen, on every layout that stacks
+  the cards under the map; closing from a pin leaves the reader where they
+  are; reduced motion gets an instant scroll. Set aside: pins as
+  decoration, with the chips alone selecting.
+
+## 2026-09-09 · The phone pass after PRs #185 to #194 (PR #195)
+
+Six areas of both surfaces were walked on an iPhone 14, an iPhone SE, a
+Pixel 7, a phone on its side and an iPad mini, in a headless harness with
+the record's own layers over a local paper ground (the tile hosts are out
+of reach there). 57 findings; every one that was fixed was reproduced a
+second time first. The fixes are fenced inside the 640px block, the
+`isPhone` branch or a pointer query, and the desktop states of both
+surfaces render pixel-identical before and after.
+
+### The key block comes to the phone
+**Decided.** The block under the title (model switch, Map View, model
+line, agent chips, band row, Map Key) shows in the phone's expanded sheet
+and goes in the peek and its two glide frames. The transport's phone-only
+3D chip and the one-line legend at the sheet's foot retire with it.
+**Why.** PR #190 moved the switches, the chips and the band row into the
+block, and the phone hid the block: the four colours went unnamed, the
+hit grid could be reached only by URL, and in grid mode the phone had no
+band row, no key and no notes. The sheet scrolls, so the block costs the
+map nothing in peek. The chip and the legend line existed because the
+block was hidden; the legend line was also wrong under the grid.
+**Set aside.** Chips only, outside the block, the arrangement before
+PR #190 plus a mode-aware legend line: it keeps the model switch off the
+phone, and one line cannot say what the key's rows and their (i) say.
+Rendered for comparison.
+
+### Touch has no hover
+**Decided.** The (i) is a 24px target and its note stays open on a tap,
+until the reader taps elsewhere (plain focus under `hover: none`). A tap
+on the grid opens a card with the cell's hits within each band and by
+agent. A finger picks a run through a 24px box around the tap. The
+lookup's idle line says "Tap a year" on a touch screen.
+**Why.** The house had already retired the hover card on touch
+(App.css, `hover: none`: "the tap's real answer is the inspect sheet");
+the grid's numbers and the notes were the two places that still lived
+only in a hover. The 24px is WCAG 2.5.8's floor, which the sheet's handle
+already cites. The strokes are a pixel wide at most zooms: two blind
+sweeps of sixty taps opened nothing.
+**Open.** Whether the notes should toggle on a tap (a state on the host)
+or sit inline on touch screens (below).
+
+### The camera reserves the sheet
+**Decided.** A fit reserves the sheet's live height at the bottom, the
+way the desktop reserves the column's width at the left; a place is
+eased with an offset of half that height.
+**Why.** A mission's runs were centred on the whole canvas and two thirds
+landed under the sheet; a place showed 8px of its circle. An offset, not
+`easeTo`'s padding, which maplibre keeps in the transform for every later
+move.
+
+### Hints take their width and ride the sheet
+**Decided.** Every map hint takes its content's width, capped to the map
+less a margin. On a phone the zoom hint rides the sheet's live height and
+goes while a card is up; between phone and laptop widths it centres in
+the strip the column leaves free.
+**Why.** An absolute box with only a left edge shrink-wraps into half the
+map: 195px on a phone, three lines and a button broken in two. The foot
+of the screen is the sheet on a phone.
+
+### Short screens scroll the column
+**Decided.** Under 760px tall the desktop column caps to the viewport and
+scrolls; between 641 and 1000px wide the zoom hint steps off the scale
+bar.
+**Why.** A phone on its side gets the desktop layout at 844 wide, and the
+column was 707px tall on a 390px screen with no scroll, the transport and
+the foot unreachable.
+**Open.** Whether short touch screens should get the sheet layout instead
+(a second breakpoint the site has never had), below.
+
+### Fixed on the way
+The sheet's phone padding never ran (the skin's two-class rule beat it):
+24px of paper above the handle, no safe-area inset. The collapse clamp
+was the peek as first measured (91px) against a peek of 140: one custom
+property, measured at 112, for both. The grab handle takes the sheet's
+paper. The results list stops being a scroller inside the scroller. The
+by-year axis comes up to the 10px tier on phones. The record card's ×
+takes its hit area on the left, inside the card. The Story's methods
+diagram reserves the room its longest label measures, and the pilot
+node's chip keeps "Jan 1962" together.
+
 ## 2026-09-08 · The Story keeps its heat field (PR #194)
 
 ### The field stays

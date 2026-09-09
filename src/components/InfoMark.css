@@ -25,12 +25,16 @@
 }
 
 /* No pill behind it. The Material glyph is already a ring, and a disc under a
-   ring is two circles saying one thing. */
+   ring is two circles saying one thing. The padding and the negative margin
+   cancel: the ring sits exactly where it sat, and the button around it is
+   24px each way, the floor a finger needs (the sheet's grab handle cites the
+   same number). */
 .map-key-info button {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
+  padding: 0.375rem;
+  margin: -0.375rem;
   border: none;
   background: none;
   color: var(--ink-faint);
@@ -44,7 +48,8 @@
 }
 
 .map-key-info button:hover,
-.map-key-info button:focus-visible {
+.map-key-info button:focus-visible,
+.map-key-info.is-open button {
   color: var(--ink);
 }
 
@@ -69,10 +74,23 @@
   top: calc(100% + 0.375rem);
 }
 
-.map-key-pop-host:has(.map-key-info:hover) > .map-key-info-pop,
-.map-key-pop-host:has(.map-key-info button:focus-visible) > .map-key-info-pop {
+.map-key-pop-host:has(.map-key-info button:focus-visible) > .map-key-info-pop,
+.map-key-pop-host:has(.map-key-info.is-open) > .map-key-info-pop {
   opacity: 1;
   visibility: visible;
+}
+
+/* Hover opens the note only where a pointer can hover. A touch screen has no
+   hover, but Chromium keeps :hover on a tapped button until the next tap, and
+   that emulated hover would hold open a note the reader had just closed; on
+   touch the mark is a toggle (InfoMark.tsx sets `is-open`), which is also how
+   the note closes. The same fence App.css uses to retire the map's hover card
+   on touch, from the other side. */
+@media (hover: hover) {
+  .map-key-pop-host:has(.map-key-info:hover) > .map-key-info-pop {
+    opacity: 1;
+    visibility: visible;
+  }
 }
 
 /* A label with its mark beside it. The mark is sized to the label's caps

@@ -3,10 +3,12 @@
 // three behind it: the model switch, the band row, the key's first row, the
 // lookup's radius. The panel opens on hover or keyboard focus and hangs off
 // the nearest `.map-key-pop-host`, so the mark can sit inside a label while
-// the note escapes the label's own box.
+// the note escapes the label's own box. On a touch screen the mark is a
+// toggle instead (see InfoMark below).
 //
 // The stylesheet travels with the component: both surfaces render these
 // classes, and each skin lays its own surface over the shared structure.
+import { useEffect, useMemo, useRef, useState } from 'react'
 import './InfoMark.css'
 
 interface Props {
@@ -27,9 +29,51 @@ const INFO_PATH =
 
 /** The mark. Place it inside the label or row it explains. */
 export function InfoMark({ id, label }: Pick<Props, 'id' | 'label'>) {
+  const ref = useRef<HTMLButtonElement>(null)
+  // On a touch screen the mark is a toggle: a tap opens the note, a second
+  // tap on the mark or a tap anywhere else closes it, Escape too, and the
+  // mark says which state it is in. Hover has no tap, and plain focus was
+  // tried in its place: it opened the note, but a second tap did nothing and
+  // the mark never changed, so a reader could not tell the tap had landed
+  // (the phone pass, PR #195). Read once: a pointer does not change kind
+  // mid-session often enough to watch for.
+  const touch = useMemo(
+    () => typeof window !== 'undefined' && window.matchMedia('(hover: none)').matches,
+    [],
+  )
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    if (!open) return
+    const host = ref.current?.closest('.map-key-pop-host')
+    const onDown = (e: PointerEvent) => {
+      if (host && e.target instanceof Node && host.contains(e.target)) return
+      setOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false)
+    }
+    document.addEventListener('pointerdown', onDown, true)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onDown, true)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [open])
   return (
-    <span className="map-key-info">
-      <button type="button" aria-label={label} aria-describedby={id}>
+    <span className={`map-key-info${open ? ' is-open' : ''}`}>
+      <button
+        ref={ref}
+        type="button"
+        aria-label={label}
+        aria-describedby={id}
+        aria-expanded={touch ? open : undefined}
+        onClick={touch ? () => setOpen((v) => !v) : undefined}
+        // With a pointer that hovers, the note shows on keyboard focus and
+        // nothing took it away; Escape gives the focus up, and the note with it.
+        onKeyDown={(e) => {
+          if (e.key === 'Escape' && !touch) e.currentTarget.blur()
+        }}
+      >
         <svg viewBox="0 -960 960 960" fill="currentColor" aria-hidden="true">
           <path d={INFO_PATH} />
         </svg>
