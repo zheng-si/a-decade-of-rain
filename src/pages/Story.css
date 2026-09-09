@@ -161,18 +161,33 @@
   border-radius: 0.25rem;
   /* The chip's own colour at 35%, said once. This was rgba(214, 51, 40, 0.35)
      -- the rgb of --accent-chip, retyped as a literal two lines below the
-     `background: var(--accent-chip)` it has to match. */
-  box-shadow: 0 0.25rem 0.875rem color-mix(in srgb, var(--accent-chip) 35%, transparent);
+     `background: var(--accent-chip)` it has to match.
+
+     A filter, not a box-shadow: the glow has to follow the chip AND its
+     pointer as one outline (App.css, "one silhouette"), and a box-shadow
+     stops at the box. */
+  filter: drop-shadow(0 0.25rem 0.4375rem color-mix(in srgb, var(--accent-chip) 35%, transparent));
 }
 
+/* The pointer: the outline first, the corners after. A rotated square in
+   the chip's fill, centred on the chip's border edge (an absolute child
+   measures from the padding box, so the border's 1px is added), its two
+   outer edges carrying the chip's hairline on round the tip, and only then
+   the tip's apex rounded to the chip's 2px. The square's diagonal is the
+   10px base the border triangle it replaces had, so the pointer is the size
+   it was: 7px a side, 10 across, 5 deep. */
 .map-dot-label::after {
   content: '';
   position: absolute;
-  top: 100%;
+  top: calc(100% + 1px);
   left: 50%;
-  transform: translateX(-50%);
-  border: 0.3125rem solid transparent;
-  border-top-color: var(--accent-chip);
+  width: 0.4375rem;
+  height: 0.4375rem;
+  background: var(--accent-chip);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-width: 0 1px 1px 0;
+  border-bottom-right-radius: 2px;
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 
 /* Chip hung BELOW the dot (pointer up) — used where something sits above. */
@@ -183,9 +198,11 @@
 
 .map-dot--below .map-dot-label::after {
   top: auto;
-  bottom: 100%;
-  border-top-color: transparent;
-  border-bottom-color: var(--accent-chip);
+  bottom: calc(100% + 1px);
+  border-width: 1px 0 0 1px;
+  border-radius: 0;
+  border-top-left-radius: 2px;
+  transform: translate(-50%, 50%) rotate(45deg);
 }
 
 /* Chip led out to the right on a hairline (--leader px) — parks it over open
@@ -232,9 +249,11 @@
   .map-dot--leader .map-dot-label::after {
     display: block;
     top: auto;
-    bottom: 100%;
-    border-top-color: transparent;
-    border-bottom-color: var(--accent-chip);
+    bottom: calc(100% + 1px);
+    border-width: 1px 0 0 1px;
+    border-radius: 0;
+    border-top-left-radius: 2px;
+    transform: translate(-50%, 50%) rotate(45deg);
   }
   /* The attribution strip is too wide for a phone on one line: let it wrap. */
   .story-hook-credit {
@@ -2275,11 +2294,13 @@
   color: var(--pin);
   background: #fff;
   border-radius: 0.25rem;
-  box-shadow: 0 1px 0.3125rem rgba(0, 0, 0, 0.22);
+  /* A filter, so the shadow wraps chip and pointer as one (App.css, "one
+     silhouette"). */
+  filter: drop-shadow(0 1px 2.5px rgba(0, 0, 0, 0.22));
   transition: background 0.15s, color 0.15s;
 }
 .act2-pin:hover .act2-chip {
-  box-shadow: 0 2px 0.4375rem rgba(0, 0, 0, 0.3);
+  filter: drop-shadow(0 2px 3.5px rgba(0, 0, 0, 0.3));
 }
 .act2-pin.is-active .act2-chip {
   background: var(--pin);
@@ -2294,29 +2315,33 @@
 .act2-chip.is-right {
   left: calc(100% + 0.5rem);
 }
+/* The pointer: the outline first, the apex rounded after. A rotated square
+   in the chip's fill, centred on the edge that faces the pin, so chip and
+   pointer are one shape under one shadow; its apex takes the chip's 2px. The
+   diagonal matches the 10px base of the border triangle it replaces, so the
+   pointer is the size it was. */
 .act2-chip.is-left::after,
 .act2-chip.is-right::after {
   content: '';
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
-  border: 0.3125rem solid transparent;
+  width: 0.46875rem;
+  height: 0.46875rem;
+  background: #fff;
+  transition: background 0.15s;
 }
 .act2-chip.is-left::after {
-  left: 100%;
-  border-left: 0.375rem solid #fff;
-  border-right: 0;
+  right: 0;
+  transform: translate(50%, -50%) rotate(45deg);
+  border-top-right-radius: 2px;
 }
 .act2-chip.is-right::after {
-  right: 100%;
-  border-right: 0.375rem solid #fff;
-  border-left: 0;
+  left: 0;
+  transform: translate(-50%, -50%) rotate(45deg);
+  border-bottom-left-radius: 2px;
 }
-.act2-pin.is-active .act2-chip.is-left::after {
-  border-left-color: var(--pin);
-}
-.act2-pin.is-active .act2-chip.is-right::after {
-  border-right-color: var(--pin);
+.act2-pin.is-active .act2-chip::after {
+  background: var(--pin);
 }
 
 /* All three base cards side by side; their orange volume bars share a
