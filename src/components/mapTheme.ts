@@ -5,6 +5,7 @@ import type maplibregl from 'maplibre-gl'
 import type { ExpressionSpecification } from 'maplibre-gl'
 import { mapConfig, LABEL_FONT, Z_NEAR, type MapTheme } from '../config/mapConfig'
 import type { AgentChoice } from './agentChoices'
+import { keepTierTiles } from './tileZoom'
 
 /** Resolve the map style: a URL, or the style JSON with a custom glyph endpoint
  *  swapped in when mapConfig.glyphsUrl is set. Shared by every map instance. */
@@ -298,6 +299,9 @@ export function addMilitaryRegions(
     beforeId,
   )
   map.addSource('military-region-labels', { type: 'geojson', data: mrLabelsGeo })
+  // The tags leave at Z_NEAR by layer maxzoom, which under tilt is applied
+  // tile by tile — see tileZoom.
+  keepTierTiles(map, 'military-region-labels')
   map.addLayer({
     id: 'mr-label',
     type: 'symbol',
