@@ -33,6 +33,7 @@ import type maplibregl from 'maplibre-gl'
 import type { TrackDataset } from '../data/tracks'
 import { Z_FAR, Z_NEAR } from '../config/mapConfig'
 import { firstLabelLayerId } from './mapTheme'
+import { keepTierTiles } from './tileZoom'
 
 export const TRACK_SOURCE = 'spray-tracks'
 export const TRACK_MARK_SOURCE = 'spray-track-marks'
@@ -770,6 +771,9 @@ export function addTrackLayers(
   })
   map.addSource(TRACK_MARK_SOURCE, { type: 'geojson', data: data.marks })
   map.addSource(TRACK_END_SOURCE, { type: 'geojson', data: data.ends })
+  // The near band's tiles at a zoom its layers exist for, however the map is
+  // tilted — see tileZoom.
+  keepTierTiles(map, TRACK_SOURCE, TRACK_MARK_SOURCE, TRACK_END_SOURCE)
 
   // Unsprayed tracks first, so a real spray line always draws over the record
   // of a pass that carried nothing.
@@ -882,6 +886,7 @@ export function addTrackLayers(
     data: { type: 'FeatureCollection', features: [] },
     lineMetrics: true,
   })
+  keepTierTiles(map, TRACK_DRAW_SOURCE)
   map.addLayer(
     {
       id: TRACK_DRAW_LAYER,
@@ -945,6 +950,7 @@ export function addTrackLayers(
     type: 'geojson',
     data: { type: 'FeatureCollection', features: [] },
   })
+  keepTierTiles(map, TRACK_HI_SOURCE)
   map.addLayer(
     {
       id: TRACK_HI_LAYER,

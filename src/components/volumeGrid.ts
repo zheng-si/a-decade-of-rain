@@ -9,6 +9,7 @@ import type { SprayDataset } from '../data/spray'
 import { mapConfig, LABEL_FONT, Z_FAR, Z_MID, Z_NEAR } from '../config/mapConfig'
 import { firstLabelLayerId, textSizeRamp } from './mapTheme'
 import { labelTierOf, LABEL_TIERS, type LayerLike } from './mapTaxonomy'
+import { keepTierTiles } from './tileZoom'
 
 export const VOL_COARSE_SOURCE = 'vol-coarse'
 export const VOL_FINE_SOURCE = 'vol-fine'
@@ -422,6 +423,9 @@ export function addVolumeLayers(map: maplibregl.Map, spraySource: string): strin
   const empty: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
   map.addSource(VOL_COARSE_SOURCE, { type: 'geojson', data: empty })
   map.addSource(VOL_FINE_SOURCE, { type: 'geojson', data: empty })
+  // Every tier's tiles at a zoom its layer exists for, however the map is
+  // tilted — see tileZoom.
+  keepTierTiles(map, VOL_COARSE_SOURCE, VOL_FINE_SOURCE, spraySource)
 
   // Insert beneath the basemap's first label layer so place names stay
   // legible over the data rather than the reverse (a plain addLayer with no
@@ -818,6 +822,7 @@ export function addVietnamLabel(map: maplibregl.Map) {
       ],
     } as GeoJSON.FeatureCollection,
   })
+  keepTierTiles(map, VN_LABEL_SOURCE)
   map.addLayer(
     {
       id: VN_LABEL_LAYER,
