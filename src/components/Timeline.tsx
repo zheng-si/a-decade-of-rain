@@ -512,7 +512,7 @@ export default function Timeline({
           {volume && (
             <span className="explorer-statline">
               <span className="stat-pair">
-                <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Spray Runs
+                <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Missions
               </span>
               <span className="stat-pair">
                 <strong style={statStyle}>{fmtGallons(gallons)}</strong> Gallons

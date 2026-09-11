@@ -232,7 +232,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
   {
     id: 'record',
     name: 'The Record',
-    period: 'The Archive',
+    period: 'The Atlas',
     // The story's own last date: the handover shows the whole record at once,
     // so the playhead sits where the reckoning left it.
     date: '1971-12-31',
@@ -246,7 +246,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
     // Cut from seven lines to five on a phone (the phone pass, PR #195): the
     // years and the run count go, the stat pill under it carries the count,
     // and the three verbs stay.
-    body: 'Everything so far was a summary. Beneath it lies the HERBS tape, the U.S. military’s own flight log, every run a chain of waypoints recorded by the crews. The Archive draws them as they were flown: filter by herbicide, play the decade month by month, trace any flight to the day it was logged.',
+    body: 'Everything so far was a summary. Beneath it lies the HERBS tape, the U.S. military’s own flight log, every run a chain of waypoints recorded by the crews. The Atlas draws them as they were flown: filter by herbicide, play the decade month by month, trace any flight to the day it was logged.',
     stat: { value: '11,273', label: 'spray runs on file' },
     cta: { label: 'Explore the Record', to: '/archive' },
   },
