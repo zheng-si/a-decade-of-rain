@@ -2037,6 +2037,24 @@
     max-height: calc(100vh - 3rem);
     max-height: calc(100dvh - 3rem);
     overflow-y: auto;
+    /* And say so. On macOS the platform scrollbar is an overlay that shows
+       only while scrolling, so a panel cut off 90px above its last link read
+       as complete on a 1366×768 laptop. The lookup list's thin bar, the
+       same colour and width, stays visible whenever there is more below. */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(33, 53, 40, 0.22) transparent;
+  }
+  .explorer-panel::-webkit-scrollbar {
+    width: 6px;
+  }
+  .explorer-panel::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .explorer-panel::-webkit-scrollbar-thumb {
+    background: rgba(33, 53, 40, 0.22);
+  }
+  .explorer-panel::-webkit-scrollbar-thumb:hover {
+    background: rgba(33, 53, 40, 0.34);
   }
 }
 
