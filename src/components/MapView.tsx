@@ -616,33 +616,69 @@ function applyView(map: maplibregl.Map, next: boolean, home: Home | null, animat
   }
 }
 
-/** Cumulative spray runs, track points and gallons up to `day`, restricted to
- *  `indices`.
+/** One entry per HERBS run — a Mission + Run pair — with the day it flew and
+ *  its agent, distinct across the drawn tracks and the single-point marks.
+ *  Built once per dataset: the counter below runs eleven times a second in
+ *  playback, and the 11,273 pairs never change under it. */
+const runIndexCache = new WeakMap<TrackDataset, { day: number; agent: number }[]>()
+function runIndex(tracks: TrackDataset) {
+  let idx = runIndexCache.get(tracks)
+  if (idx) return idx
+  const seen = new Set<string>()
+  idx = []
+  for (const fc of [tracks.lines, tracks.marks] as const) {
+    for (const f of fc.features) {
+      const p = f.properties
+      const key = `${p.mission}|${p.run}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      idx.push({ day: p.day, agent: p.agent })
+    }
+  }
+  runIndexCache.set(tracks, idx)
+  return idx
+}
+
+/** Cumulative spray runs and gallons up to `day`, restricted to `indices`.
  *
- *  HERBS records a spray run as a LINE — leg 1A, 1B, 1C … — and books the run's
- *  whole volume against 1A, so every later waypoint reads 0. That is why the
- *  gallons-bearing records double as the run count: one non-zero row per run.
+ *  The two numbers come from the two files they are true in. The gallons are
+ *  summed from the point record, where HERBS books a run's whole volume once,
+ *  against its first waypoint. The runs are counted from the track record,
+ *  which carries each row's Mission and Run numbers: a run is one Mission + Run
+ *  pair, whether it was drawn as a line or logged at a single grid reference,
+ *  and at the end of the decade there are 11,273 of them — the figure the
+ *  Story hands over with. Counting the point file's gallons-bearing rows
+ *  instead (8,360) gave the number of MISSIONS that logged a spray, under a
+ *  label that said runs; the Story and the Atlas disagreed for a reader who
+ *  had just read both.
  *
- *  It undercounts slightly, and knowingly: 2,913 of the source's 11,273 runs
- *  carry no volume anywhere, and with Mission/Run/Leg dropped by our ETL there
- *  is nothing in spray.json to group by, so those runs cannot be counted at
- *  all. Fixing that means re-running the ETL, not renaming a variable. */
-function cumulative(data: SprayDataset, day: number, indices: number[] | null) {
-  let missions = 0
-  let runs = 0
-  let gallons = 0
+ *  `runs` is null until the track record has landed, and the readout omits
+ *  the pair rather than show a number it would have to correct a second
+ *  later. */
+function cumulative(
+  data: SprayDataset,
+  tracks: TrackDataset | null,
+  day: number,
+  indices: number[] | null,
+) {
   const set = indices ? new Set(indices) : null
+  let gallons = 0
   for (const f of data.features.features) {
     const p = f.properties
     if (p.day > day) continue // features are day-sorted, but cheap enough to scan
     if (set && !set.has(p.agent)) continue
-    runs++
-    if (p.gallons > 0) {
-      missions++
-      gallons += p.gallons
+    if (p.gallons > 0) gallons += p.gallons
+  }
+  let runs: number | null = null
+  if (tracks) {
+    runs = 0
+    for (const r of runIndex(tracks)) {
+      if (r.day > day) continue
+      if (set && !set.has(r.agent)) continue
+      runs++
     }
   }
-  return { missions, runs, gallons }
+  return { runs, gallons }
 }
 
 /** True below the phone breakpoint — the one place layout is decided in JS.
@@ -751,7 +787,7 @@ export default function MapView() {
    *  hand-off once, which is the moment the hint's sentence comes true. */
   const [near, setNear] = useState(false)
   const [crossedOnce, setCrossedOnce] = useState(false)
-  const [stats, setStats] = useState({ missions: 0, runs: 0, gallons: 0 })
+  const [stats, setStats] = useState<{ runs: number | null; gallons: number }>({ runs: null, gallons: 0 })
   const [volume, setVolume] = useState<VolumeChart | null>(null)
   const [inspect, setInspect] = useState<Inspect | null>(null)
   const isPhone = useIsPhone()
@@ -1684,7 +1720,7 @@ export default function MapView() {
         groupHues,
       )
     }
-    if (dataRef.current) setStats(cumulative(dataRef.current, day, activeIndices))
+    if (dataRef.current) setStats(cumulative(dataRef.current, tracksRef.current, day, activeIndices))
   }, [ready, day, agentKey, activeIndices, choices, bounds.max, tracksReady, gridEpoch])
 
   // Spend the skipped bin the moment the grids become the visible tier again.
@@ -2550,7 +2586,7 @@ export default function MapView() {
           dayMax={bounds.max}
           playing={playing}
           dateLabel={monthLabel(day)}
-          missionCount={stats.missions}
+          runCount={stats.runs}
           gallons={stats.gallons}
           agentChoices={choices}
           activeAgentKey={agentKey}

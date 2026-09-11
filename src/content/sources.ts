@@ -80,7 +80,9 @@ export const SOURCES: Record<string, Source> = {
     id: 'usaid_danang',
     title: 'Dioxin Remediation at Danang Airport and Bien Hoa Airbase Area (fact sheet)',
     publisher: 'USAID',
-    url: 'https://2017-2020.usaid.gov/vietnam/documents/fact-sheet-dioxin-remediation-danang-airport-and-bien-hoa-airbase-area',
+    // USAID's own site went dark in 2025; this is the Internet Archive's copy
+    // of the page as it stood on 1 February 2025.
+    url: 'https://web.archive.org/web/20250201013955/https://2017-2020.usaid.gov/vietnam/documents/fact-sheet-dioxin-remediation-danang-airport-and-bien-hoa-airbase-area',
   },
   usembassy_bienhoa: {
     id: 'usembassy_bienhoa',

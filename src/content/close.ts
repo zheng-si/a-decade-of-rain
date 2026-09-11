@@ -30,7 +30,7 @@ export const CLOSE_ACTIONS: CloseAction[] = [
   {
     name: 'VAVA',
     role: 'Victims’ Association',
-    desc: 'The Vietnam Association for Victims of Agent Orange: 400,000 members, chapters in all 63 provinces, direct support to affected families.',
+    desc: 'The Vietnam Association for Victims of Agent Orange: 400,000 members, chapters in every province, direct support to affected families.',
     action: 'Donate',
     url: 'http://www.vava.org.vn/',
   },
@@ -105,7 +105,7 @@ export const COLOPHON = {
   lines: [
     'A story about what fell, what it broke, and what it takes to clean it up.',
     'Built with React, MapLibre GL and Scrollama.',
-    'Set in Playfair Display and Geist.',
+    'Set in Courier Prime and Geist.',
   ],
   credit: 'Designed and built by Si Zheng',
   email: 'zhengsi0709@gmail.com',

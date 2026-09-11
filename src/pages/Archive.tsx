@@ -8,7 +8,7 @@ import MapView from '../components/MapView'
 export default function Archive() {
   useEffect(() => {
     const prev = document.title
-    document.title = 'The Archive · A Decade of Rain'
+    document.title = 'The Herbicide Atlas · A Decade of Rain'
     return () => {
       document.title = prev
     }

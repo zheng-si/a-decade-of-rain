@@ -51,7 +51,8 @@ interface TimelineProps {
   dayMax: number
   playing: boolean
   dateLabel: string
-  missionCount: number
+  /** Runs flown up to the playhead, or null while the track record loads. */
+  runCount: number | null
   gallons: number
   agentChoices: AgentChoice[]
   activeAgentKey: string
@@ -99,7 +100,7 @@ export default function Timeline({
   dayMax,
   playing,
   dateLabel,
-  missionCount,
+  runCount,
   gallons,
   agentChoices,
   activeAgentKey,
@@ -511,9 +512,11 @@ export default function Timeline({
               between the label and its own figures. */}
           {volume && (
             <span className="explorer-statline">
-              <span className="stat-pair">
-                <strong style={statStyle}>{missionCount.toLocaleString()}</strong> Spray Runs
-              </span>
+              {runCount != null && (
+                <span className="stat-pair">
+                  <strong style={statStyle}>{runCount.toLocaleString()}</strong> Spray Runs
+                </span>
+              )}
               <span className="stat-pair">
                 <strong style={statStyle}>{fmtGallons(gallons)}</strong> Gallons
               </span>
