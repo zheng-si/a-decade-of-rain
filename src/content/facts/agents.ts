@@ -70,4 +70,10 @@ export const RAINBOW = {
   chartUnit: 'U.S. gallons',
   chartNote: 'Real spray volumes from the HERBS spray records (Stellman et al., 2003).',
   chartSourceId: 'stellman_2003',
+  fieldTitle: 'Each year as a field of drops',
+  fieldUnit: '144 drops a year',
+  fieldNoteVol:
+    'Volume: every field is measured against 1967, the heaviest year. 1961 is in the record with no volume against its name.',
+  fieldNoteShare:
+    'Share: every year gets the whole field, whatever it sprayed — which is the only way the early years, under 5% of the peak between them, can be read at all.',
 }

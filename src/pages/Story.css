@@ -1409,19 +1409,36 @@
 }
 
 /* ── the year typology ───────────────────────────────────────────────────
-   Eleven fields of 144 drops. auto-fit rather than a column count per
-   breakpoint, because the constraint is a MINIMUM CELL, not a layout: a drop
-   is 16 of a 280-unit viewBox, so a cell under ~150px renders it below 8.5px
-   and the shape stops being a drop and becomes a dot. At 150px the column
-   takes three across at 558 (the chart column at 1440), three at 591 (the
-   tablet, where the section is already one column) and two at 343 (the
-   phone) — and never a column so narrow that the mark it is built from
-   disappears. */
+   Eleven fields of 144 drops, standing under the chart rather than behind a
+   tab on it, and on the full measure rather than the chart's column.
+
+   Six across, two rows. auto-fit rather than a column count per breakpoint,
+   because the constraint is a MINIMUM CELL, not a layout: a drop is 13 of a
+   276-unit viewBox, so a cell under ~140px renders it below 6.6px and the
+   shape stops being a drop. In px, not rem, for the same reason the minimum
+   exists -- this is a physical size on glass, and the root scales to 13.6 on a
+   laptop, which would have quietly turned a 140px floor into 119.
+
+   140 gives six at 952 (the measure at 1440), three at 591 and two at 343. The
+   max-width caps it at six: the measure is 1120 at 1920, which would otherwise
+   take a seventh column and leave a row of seven over a row of four. */
+.rb-figure {
+  margin: 2.75rem 0 0;
+}
+.rb-figure-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0 0 0.875rem;
+}
 .rb-years {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(9.375rem, 1fr));
-  gap: 1.125rem 0.875rem;
-  margin: 0.25rem 0 0;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1.25rem 1rem;
+  max-width: 1030px;
+  margin: 0;
 }
 .rb-defs {
   position: absolute;
@@ -1448,18 +1465,6 @@
    reader has to interpret. */
 .rb-year-nil {
   font-style: italic;
-}
-/* The scale switch sits beside the mode switch, and is the only control that
-   appears in one mode and not the other. Where the row wraps it takes the
-   whole next line rather than hanging off the mode switch's right edge, so the
-   two switches never read as one four-way control. */
-.rb-scale {
-  margin-left: 0.5rem;
-}
-@media (max-width: 640px) {
-  .rb-scale {
-    margin-left: 0;
-  }
 }
 
 .rainbow-chart-note {

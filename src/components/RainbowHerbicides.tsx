@@ -57,10 +57,16 @@ function Biohazard() {
 // at this size; unrounded it is the only shape on the page with a point on it.
 const N = 12
 const CELLS = N * N
-const DW = 16
-const DH = 21
-const DGAP = 8
-const TIP = 0.12
+// Smaller and further apart than the sheet's option 3, because the field moved
+// out of the chart column and onto the full measure: six across instead of
+// four, so a cell is 145px at 1440 and its drops would have crowded at the old
+// 2:1 drop-to-air ratio. At 13 on a 24 pitch the field is a little over half
+// air, and the apex is rounded back a fifth of the height -- as far as it goes
+// before the shape stops being a drop.
+const DW = 13
+const DH = 17
+const DGAP = 11
+const TIP = 0.2
 /** Unfilled. Deliberately close to the paper: the field is a budget, not a mark. */
 const DROP_EMPTY = 'rgba(28, 43, 33, 0.07)'
 
@@ -161,20 +167,19 @@ function smooth(pts: [number, number][], perSeg = 14): [number, number][] {
 
 export default function RainbowHerbicides({ years, series }: Props) {
   const [sel, setSel] = useState<Sel>('all')
-  const [mode, setMode] = useState<'cum' | 'year'>('cum')
-  /** Typology only. Volume measures each year against the heaviest; Share gives
-   *  every year the whole field, which is the only way the three years that
-   *  were almost entirely one agent can be read at all. */
+  /** The typology's scale. Volume measures each year against the heaviest;
+   *  Share gives every year the whole field, which is the only way the three
+   *  years that were almost entirely one agent can be read at all. */
   const [scale, setScale] = useState<'vol' | 'share'>('vol')
 
-  // Cumulative mode: each series value is its running total up to that year.
-  const plot =
-    mode === 'cum'
-      ? series.map((s) => {
-          let run = 0
-          return { ...s, values: s.values.map((v) => (run += v)) }
-        })
-      : series
+  // The area chart is the running total, and only that now: its other mode
+  // was the same chart on a per-year axis, which is what the typology below
+  // does properly. A tab is a bad place for the better view — most readers
+  // never press it.
+  const plot = series.map((s) => {
+    let run = 0
+    return { ...s, values: s.values.map((v) => (run += v)) }
+  })
 
   const n = years.length
   const x = (i: number) => M.left + (n === 1 ? PW / 2 : (i / (n - 1)) * PW)
@@ -230,125 +235,48 @@ export default function RainbowHerbicides({ years, series }: Props) {
                 <figcaption className="rainbow-chart-title">
                   {RAINBOW.chartTitle} <span>· {RAINBOW.chartUnit}</span>
                 </figcaption>
-                <div className="rainbow-mode" role="tablist" aria-label="Chart mode">
-                  <button role="tab" aria-selected={mode === 'cum'} className={`rainbow-mode-btn${mode === 'cum' ? ' is-active' : ''}`} onClick={() => setMode('cum')}>
-                    Accumulation
-                  </button>
-                  <button role="tab" aria-selected={mode === 'year'} className={`rainbow-mode-btn${mode === 'year' ? ' is-active' : ''}`} onClick={() => setMode('year')}>
-                    Each year
-                  </button>
-                </div>
-                {mode === 'year' && (
-                  <div className="rainbow-mode rb-scale" role="tablist" aria-label="Scale">
-                    <button role="tab" aria-selected={scale === 'vol'} className={`rainbow-mode-btn${scale === 'vol' ? ' is-active' : ''}`} onClick={() => setScale('vol')}>
-                      Volume
-                    </button>
-                    <button role="tab" aria-selected={scale === 'share'} className={`rainbow-mode-btn${scale === 'share' ? ' is-active' : ''}`} onClick={() => setScale('share')}>
-                      Share
-                    </button>
-                  </div>
-                )}
               </div>
-              {mode === 'cum' ? (
-                <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={RAINBOW.chartTitle} className="rainbow-svg">
-                  <defs>
-                    {series.map((s) => (
-                      <linearGradient key={s.key} id={`rb-grad-${s.key}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={s.color} stopOpacity="0.95" />
-                        <stop offset="100%" stopColor={s.color} stopOpacity="0.55" />
-                      </linearGradient>
-                    ))}
-                    <linearGradient id="rb-grad-dim" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#cfcec6" stopOpacity="0.55" />
-                      <stop offset="100%" stopColor="#cfcec6" stopOpacity="0.28" />
+              <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={RAINBOW.chartTitle} className="rainbow-svg">
+                <defs>
+                  {series.map((s) => (
+                    <linearGradient key={s.key} id={`rb-grad-${s.key}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={s.color} stopOpacity="0.95" />
+                      <stop offset="100%" stopColor={s.color} stopOpacity="0.55" />
                     </linearGradient>
-                  </defs>
-                  {yTicks.map((t) => (
-                    <g key={t}>
-                      <line x1={M.left} x2={W - M.right} y1={y(t)} y2={y(t)} className="rainbow-grid-line" />
-                      <text x={M.left - 9} y={y(t)} className="rainbow-axis-label" textAnchor="end" dominantBaseline="middle">
-                        {fmtAxis(t)}
-                      </text>
-                    </g>
                   ))}
-                  <line x1={M.left} x2={M.left} y1={M.top} y2={BASE} className="rainbow-axis-line" />
-                  <line x1={M.left} x2={W - M.right} y1={BASE} y2={BASE} className="rainbow-axis-line" />
-                  {bands.map((b) => {
-                    const dim = sel !== 'all' && sel !== b.key
-                    return (
-                      <path
-                        key={b.key}
-                        d={b.d}
-                        fill={dim ? 'url(#rb-grad-dim)' : `url(#rb-grad-${b.key})`}
-                        className="rainbow-band"
-                        onClick={() => setSel(b.key)}
-                      />
-                    )
-                  })}
-                  {years.map((yr, i) => (
-                    <text key={yr} x={x(i)} y={H - 11} className="rainbow-axis-label" textAnchor="middle">
-                      {yr}
+                  <linearGradient id="rb-grad-dim" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#cfcec6" stopOpacity="0.55" />
+                    <stop offset="100%" stopColor="#cfcec6" stopOpacity="0.28" />
+                  </linearGradient>
+                </defs>
+                {yTicks.map((t) => (
+                  <g key={t}>
+                    <line x1={M.left} x2={W - M.right} y1={y(t)} y2={y(t)} className="rainbow-grid-line" />
+                    <text x={M.left - 9} y={y(t)} className="rainbow-axis-label" textAnchor="end" dominantBaseline="middle">
+                      {fmtAxis(t)}
                     </text>
-                  ))}
-                </svg>
-              ) : (
-                <div className="rb-years">
-                  {/* One path, 1,584 references to it. */}
-                  <svg width="0" height="0" aria-hidden="true" focusable="false" className="rb-defs">
-                    <defs>
-                      <path id="rb-drop" d={DROP_D} />
-                    </defs>
-                  </svg>
-                  {years.map((yr, i) => {
-                    const total = yearTotals[i]
-                    // Isolating an agent FILTERS rather than dims. The area chart dims
-                    // its other bands to contextGrey, and that cannot work inside a
-                    // field: measured on this ground, contextGrey sits 1.31:1 from the
-                    // unfilled drop, so a dimmed drop and an empty one are the same
-                    // mark. Every grey dark enough to separate from the empty tone
-                    // lands within 1.3:1 of Agent White, which is the one colour it
-                    // would then be beside. So there is no third grey: with an agent
-                    // chosen the field draws that agent alone, and the cell reads as
-                    // how much of the year was his.
-                    const shown = series.map((ser, k) => (selIdx < 0 || k === selIdx ? ser.values[i] : 0))
-                    const q = shown.reduce((x, y) => x + y, 0)
-                    const denom = scale === 'share' ? total : yearPeak
-                    const budget = q > 0 && denom > 0 ? Math.max(1, Math.round((q / denom) * CELLS)) : 0
-                    const counts = apportion(shown, budget)
-                    const seq: string[] = []
-                    counts.forEach((c, k) => {
-                      for (let z = 0; z < c; z++) seq.push(series[k].color)
-                    })
-                    const px = DW + DGAP
-                    const py = DH + DGAP
-                    return (
-                      <div className="rb-year" key={yr}>
-                        <svg
-                          viewBox={`0 0 ${N * px - DGAP} ${N * py - DGAP}`}
-                          className="rb-field"
-                          role="img"
-                          aria-label={`${yr}: ${total > 0 ? fmtGallons(total) + ' gallons' : 'no volume recorded'}`}
-                        >
-                          {Array.from({ length: CELLS }, (_, k) => (
-                            <use
-                              key={k}
-                              href="#rb-drop"
-                              // Filled from the bottom row up, the way a vessel fills.
-                              x={(k % N) * px}
-                              y={(N - 1 - Math.floor(k / N)) * py}
-                              fill={k < seq.length ? seq[k] : DROP_EMPTY}
-                            />
-                          ))}
-                        </svg>
-                        <p className="rb-year-lab">{yr}</p>
-                        <p className="rb-year-val">
-                          {total > 0 ? fmtGallons(q) : <span className="rb-year-nil">no volume recorded</span>}
-                        </p>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
+                  </g>
+                ))}
+                <line x1={M.left} x2={M.left} y1={M.top} y2={BASE} className="rainbow-axis-line" />
+                <line x1={M.left} x2={W - M.right} y1={BASE} y2={BASE} className="rainbow-axis-line" />
+                {bands.map((b) => {
+                  const dim = sel !== 'all' && sel !== b.key
+                  return (
+                    <path
+                      key={b.key}
+                      d={b.d}
+                      fill={dim ? 'url(#rb-grad-dim)' : `url(#rb-grad-${b.key})`}
+                      className="rainbow-band"
+                      onClick={() => setSel(b.key)}
+                    />
+                  )
+                })}
+                {years.map((yr, i) => (
+                  <text key={yr} x={x(i)} y={H - 11} className="rainbow-axis-label" textAnchor="middle">
+                    {yr}
+                  </text>
+                ))}
+              </svg>
               <div className="rainbow-switch" role="tablist" aria-label="Choose an agent">
                 <button
                   role="tab"
@@ -436,6 +364,86 @@ export default function RainbowHerbicides({ years, series }: Props) {
             </div>
           </aside>
         </div>
+
+        {/* The typology stands on its own below the chart rather than behind a
+            tab on it. It was the chart's second mode, and a tab is a bad place
+            for the better view: most readers never press it. It needs no legend
+            of its own either -- the chips above have already named the four, and
+            they drive this too. */}
+        <figure className="rb-figure">
+          <div className="rb-figure-top">
+            <figcaption className="rainbow-chart-title">
+              {RAINBOW.fieldTitle} <span>· {RAINBOW.fieldUnit}</span>
+            </figcaption>
+            <div className="rainbow-mode" role="tablist" aria-label="Scale">
+              <button role="tab" aria-selected={scale === 'vol'} className={`rainbow-mode-btn${scale === 'vol' ? ' is-active' : ''}`} onClick={() => setScale('vol')}>
+                Volume
+              </button>
+              <button role="tab" aria-selected={scale === 'share'} className={`rainbow-mode-btn${scale === 'share' ? ' is-active' : ''}`} onClick={() => setScale('share')}>
+                Share
+              </button>
+            </div>
+          </div>
+            <div className="rb-years">
+              {/* One path, 1,584 references to it. */}
+              <svg width="0" height="0" aria-hidden="true" focusable="false" className="rb-defs">
+                <defs>
+                  <path id="rb-drop" d={DROP_D} />
+                </defs>
+              </svg>
+              {years.map((yr, i) => {
+                const total = yearTotals[i]
+                // Isolating an agent FILTERS rather than dims. The area chart dims
+                // its other bands to contextGrey, and that cannot work inside a
+                // field: measured on this ground, contextGrey sits 1.31:1 from the
+                // unfilled drop, so a dimmed drop and an empty one are the same
+                // mark. Every grey dark enough to separate from the empty tone
+                // lands within 1.3:1 of Agent White, which is the one colour it
+                // would then be beside. So there is no third grey: with an agent
+                // chosen the field draws that agent alone, and the cell reads as
+                // how much of the year was his.
+                const shown = series.map((ser, k) => (selIdx < 0 || k === selIdx ? ser.values[i] : 0))
+                const q = shown.reduce((x, y) => x + y, 0)
+                const denom = scale === 'share' ? total : yearPeak
+                const budget = q > 0 && denom > 0 ? Math.max(1, Math.round((q / denom) * CELLS)) : 0
+                const counts = apportion(shown, budget)
+                const seq: string[] = []
+                counts.forEach((c, k) => {
+                  for (let z = 0; z < c; z++) seq.push(series[k].color)
+                })
+                const px = DW + DGAP
+                const py = DH + DGAP
+                return (
+                  <div className="rb-year" key={yr}>
+                    <svg
+                      viewBox={`0 0 ${N * px - DGAP} ${N * py - DGAP}`}
+                      className="rb-field"
+                      role="img"
+                      aria-label={`${yr}: ${total > 0 ? fmtGallons(total) + ' gallons' : 'no volume recorded'}`}
+                    >
+                      {Array.from({ length: CELLS }, (_, k) => (
+                        <use
+                          key={k}
+                          href="#rb-drop"
+                          // Filled from the bottom row up, the way a vessel fills.
+                          x={(k % N) * px}
+                          y={(N - 1 - Math.floor(k / N)) * py}
+                          fill={k < seq.length ? seq[k] : DROP_EMPTY}
+                        />
+                      ))}
+                    </svg>
+                    <p className="rb-year-lab">{yr}</p>
+                    <p className="rb-year-val">
+                      {total > 0 ? fmtGallons(q) : <span className="rb-year-nil">no volume recorded</span>}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+          <p className="rainbow-chart-note">
+            {scale === 'vol' ? RAINBOW.fieldNoteVol : RAINBOW.fieldNoteShare}
+          </p>
+        </figure>
       </div>
     </section>
   )
