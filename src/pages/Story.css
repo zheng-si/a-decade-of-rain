@@ -3948,6 +3948,36 @@
   grid-column: 1 / -1;
 }
 
+/* …except on hover, where it fills with the accent. At rest it is a peer of
+   the four; under the pointer it admits it is the site's own. The accent
+   arrives only as an answer to the reader, never as a claim made at them,
+   which is what the fixed slab got wrong.
+
+   Every colour goes to solid white with it: the four's own muted tiers read
+   at 3.6:1 over --accent-deep, and the call is 11px. White is 4.98:1 there.
+   Colour joins the card's existing background/transform transition so the
+   fill and the type cross over together instead of the type snapping. */
+.story .close-action.is-atlas:hover,
+.story .close-action.is-atlas:focus-visible {
+  background: var(--accent-deep);
+}
+.story .close-action.is-atlas .close-action-role,
+.story .close-action.is-atlas .close-action-name,
+.story .close-action.is-atlas .close-action-desc,
+.story .close-action.is-atlas .close-action-cta {
+  transition: color 0.2s;
+}
+.story .close-action.is-atlas:hover .close-action-role,
+.story .close-action.is-atlas:hover .close-action-name,
+.story .close-action.is-atlas:hover .close-action-desc,
+.story .close-action.is-atlas:hover .close-action-cta,
+.story .close-action.is-atlas:focus-visible .close-action-role,
+.story .close-action.is-atlas:focus-visible .close-action-name,
+.story .close-action.is-atlas:focus-visible .close-action-desc,
+.story .close-action.is-atlas:focus-visible .close-action-cta {
+  color: #fff;
+}
+
 /* Above the phone the door spans the row, and a column of left-hugging text
    in a 952px band leaves half of it empty. Lay it out as the row it is: the
    label, the name and the line under it on the left, the call on the right,
