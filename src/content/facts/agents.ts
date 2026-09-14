@@ -6,7 +6,7 @@
 
 export interface AgentInfo {
   /** Matches mapConfig.agents[].key and the chart series key. */
-  key: 'O' | 'W' | 'B' | 'P' | 'other'
+  key: 'O' | 'W' | 'B' | 'other'
   /** Drum-band name. */
   name: string
   /** One-line purpose (from the Figma card). */
@@ -52,26 +52,13 @@ export const AGENTS: AgentInfo[] = [
     sourceIds: ['va_basics'],
   },
   {
-    key: 'P',
-    name: 'Agent Purple',
-    tagline: 'The first defoliant, replaced by Agent Orange from 1965',
-    makeup: 'The same two herbicides as Agent Orange, 2,4-D and 2,4,5-T, in an earlier ester formulation.',
-    use: 'The opening agent of the programme. It is 2.6% of everything sprayed, and 93 to 100% of every year before 1965: the record begins on Purple, not on Orange.',
-    legacy:
-      'Made with an earlier process, it carried far higher dioxin levels than Agent Orange itself: a small sprayed volume with an outsized toxic footprint.',
-    sourceIds: ['aspen_whatis', 'stellman_2003'],
-  },
-  {
     key: 'other',
-    // Named for what is actually in the HERBS record. The card this replaces
-    // read "Agents Purple, Pink and Green" -- Purple is its own card now, and
-    // Green appears nowhere in the dataset's agent table.
-    name: 'Agent Pink and the unnamed',
-    tagline: 'Trial formulations, and runs the log left without an agent',
-    makeup: 'Agent Pink and the trial defoliants Dinoxol and Trinoxol, plus runs recorded with no agent given.',
-    use: 'Pink was sprayed in the early trials and Dinoxol and Trinoxol on a handful of runs. Most of this band is not a substance at all: it is runs the record does not name.',
+    name: 'Agents Purple, Pink and Green',
+    tagline: 'The early defoliants, used before Agent Orange took over',
+    makeup: 'Other 2,4,5-T formulations (Purple, Pink, Green).',
+    use: 'The first-generation agents of the early 1960s, largely replaced by Agent Orange from 1965.',
     legacy:
-      'Pink shared Purple’s dioxin problem in a far smaller volume. The rest is a gap in the record: 1.2% of the total, and almost all of that unnamed.',
+      'Made with an earlier process, several of these carried far higher dioxin levels than Agent Orange itself: a small sprayed volume with an outsized toxic footprint.',
     sourceIds: ['aspen_whatis', 'stellman_2003'],
   },
 ]

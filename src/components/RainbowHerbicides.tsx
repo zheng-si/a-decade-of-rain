@@ -21,15 +21,10 @@ type Sel = 'all' | AgentInfo['key']
 
 // Agent colours nudged where needed to pass AA as small text on the forest card
 // (the chart colours themselves are fine as large fills / big numbers).
-const TEXT_SAFE: Record<AgentInfo['key'], string> = { O: '#ef7d1a', W: '#a9adb3', B: '#5aa6e0', P: '#b28cd6', other: '#c9b89f' }
+const TEXT_SAFE: Record<AgentInfo['key'], string> = { O: '#ef7d1a', W: '#a9adb3', B: '#5aa6e0', other: '#b28cd6' }
 // Darkened agent colours that stay visible on the white card (the icon). The
 // "White" herbicide has no vivid hue, so it takes a neutral slate.
-const PAPER_SAFE: Record<AgentInfo['key'], string> = { O: '#b8560b', W: '#6b6f68', B: '#2872b3', P: '#7d52b0', other: '#7a6752' }
-
-// The unselected card's heading names how many agents there are. It said
-// "four" as a literal until Purple was pulled out of "Other" and there were
-// five, so it counts them instead.
-const COUNT_WORD = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine']
+const PAPER_SAFE: Record<AgentInfo['key'], string> = { O: '#b8560b', W: '#6b6f68', B: '#2872b3', other: '#7d52b0' }
 
 function Biohazard() {
   return (
@@ -203,7 +198,6 @@ export default function RainbowHerbicides({ years, series }: Props) {
                 <button
                   role="tab"
                   aria-selected={sel === 'all'}
-                  aria-label="All agents"
                   className={`rainbow-chip${sel === 'all' ? ' is-active' : ''}`}
                   onClick={() => setSel('all')}
                 >
@@ -211,11 +205,7 @@ export default function RainbowHerbicides({ years, series }: Props) {
                     className="rainbow-chip-dot"
                     style={{ background: `linear-gradient(135deg, ${series.map((s) => s.color).join(', ')})` }}
                   />
-                  {/* "All", not "All agents": the Archive's identical switch has
-                      always said it, and this one is a word longer for no gain
-                      in a row that cannot wrap. The full phrase stays for a
-                      screen reader, which has no width to run out of. */}
-                  <span aria-hidden="true">All</span>
+                  All agents
                 </button>
                 {series.map((s) => (
                   <button
@@ -241,7 +231,7 @@ export default function RainbowHerbicides({ years, series }: Props) {
               <div className="rainbow-card-head">
                 <Biohazard />
                 <div>
-                  <h3 className="rainbow-card-name">{active ? active.name : `All ${COUNT_WORD[series.length] ?? series.length} agents`}</h3>
+                  <h3 className="rainbow-card-name">{active ? active.name : 'All four agents'}</h3>
                   <p className="rainbow-card-tag">{active ? active.tagline : 'The rainbow herbicides, together'}</p>
                 </div>
               </div>

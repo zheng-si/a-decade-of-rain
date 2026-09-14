@@ -31,7 +31,7 @@
 // in MapView, and delete public/data/spray-tracks.json with its build script.
 import type maplibregl from 'maplibre-gl'
 import type { TrackDataset } from '../data/tracks'
-import { mapConfig, Z_FAR, Z_NEAR } from '../config/mapConfig'
+import { Z_FAR, Z_NEAR } from '../config/mapConfig'
 import { firstLabelLayerId } from './mapTheme'
 import { keepTierTiles } from './tileZoom'
 
@@ -270,14 +270,8 @@ let paintState = {
 
 /** One sprayed-track layer per agent group, for the state where every run
  *  keeps its own colour. They stand empty whenever an agent is isolated: there
- *  the question is "this agent against the rest", and two colours answer it.
- *
- *  Derived from mapConfig.agents rather than written out, because the index
- *  into these arrays IS the group index. Four ids were hardcoded here while the
- *  group count lived in the config, so splitting Agent Purple out of "Other"
- *  would have given group 4 no layer to draw into and dropped its runs from the
- *  by-agent state in silence. */
-export const TRACK_HUE_LAYERS = mapConfig.agents.map((_, i) => `spray-track-h${i}`)
+ *  the question is "this agent against the rest", and two colours answer it. */
+export const TRACK_HUE_LAYERS = ['spray-track-h0', 'spray-track-h1', 'spray-track-h2', 'spray-track-h3']
 
 /** The drawing layer's own twins, one per agent.
  *
@@ -289,7 +283,12 @@ export const TRACK_HUE_LAYERS = mapConfig.agents.map((_, i) => `spray-track-h${i
  *  was given to the agent. Every run therefore wiped in red before settling
  *  into its own hue, and late in a play-through, with steps arriving on top of
  *  a dense field, the red is most of what is on screen. */
-export const TRACK_DRAW_HUE_LAYERS = mapConfig.agents.map((_, i) => `spray-track-draw-h${i}`)
+export const TRACK_DRAW_HUE_LAYERS = [
+  'spray-track-draw-h0',
+  'spray-track-draw-h1',
+  'spray-track-draw-h2',
+  'spray-track-draw-h3',
+]
 
 /** #rrggbb → rgba(), for the gradient stops. MapLibre needs a colour string
  *  with the alpha baked in; line-opacity multiplies on top of it. */

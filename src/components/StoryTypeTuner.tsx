@@ -31,7 +31,7 @@ const ROWS: { sel: string; label: string; where: string }[] = [
   { sel: '.story-rail-mark span', label: 'A Decade of Rain', where: 'rail' },
   { sel: '.story-dek', label: 'Operation Ranch Hand…', where: 'act card' },
   { sel: '.story-quote p', label: '“Only we can prevent forests.”', where: 'act card' },
-  { sel: '.rainbow-card-name', label: 'All five agents', where: 'agents' },
+  { sel: '.rainbow-card-name', label: 'All four agents', where: 'agents' },
   { sel: '.rainbow-stat strong', label: '19.5M', where: 'agents' },
   { sel: '.eco-headline strong', label: '24%', where: 'vegetation' },
   { sel: '.wall-value', label: '3.1M ha', where: 'photo wall' },
