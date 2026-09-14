@@ -67,9 +67,6 @@ export interface StoryEvent {
   /** Draw the individual spray runs instead of the heat field. Only the
    *  handover node uses this — see addStoryTracks in mapTheme.ts. */
   tracks?: boolean
-  /** An outbound link at the foot of the card (the handover to the Archive).
-   *  A node with one is a destination as well as a beat. */
-  cta?: { label: string; to: string }
   /** One line under the stat saying how the map's marks are drawn, for the
    *  phone, which hides the Map Key and with it the key's own note (the phone
    *  pass, PR #195). Shown only where the key is hidden; the first node
@@ -247,7 +244,9 @@ export const FACTS_EVENTS: StoryEvent[] = [
     // years and the run count go, the stat pill under it carries the count,
     // and the three verbs stay.
     body: 'Everything so far was a summary. Beneath it lies the HERBS tape, the U.S. military’s own flight log, every run a chain of waypoints recorded by the crews. The Atlas draws them as they were flown: filter by herbicide, play the decade month by month, trace any flight to the day it was logged.',
+    // No button out of here. The rail carries the Atlas the whole way down and
+    // the Take Action row ends on a door to it; a third exit at the halfway
+    // mark only asked the reader to leave before the consequences.
     stat: { value: '11,273', label: 'spray runs on file' },
-    cta: { label: 'Explore the Record', to: '/archive' },
   },
 ]

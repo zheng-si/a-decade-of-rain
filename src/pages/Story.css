@@ -924,39 +924,6 @@
   display: none;
 }
 
-/* The handover node's outbound link. A filled bar rather than a text link:
-   it is the one thing on any card that leaves the story, and it is the last
-   card, so it should read as the door it is. */
-.story-card-cta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin: 1.125rem 0 0;
-  padding: 0.6875rem 0.875rem;
-  background: var(--accent-deep);
-  color: #fff;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: var(--track-tight);
-  text-decoration: none;
-  transition: background 0.15s;
-}
-.story-card-cta:hover {
-  background: var(--accent);
-}
-.story-card-cta span {
-  transition: transform 0.15s;
-}
-.story-card-cta:hover span {
-  transform: translateX(3px);
-}
-@media (prefers-reduced-motion: reduce) {
-  .story-card-cta span {
-    transition: none;
-  }
-}
-
 .story-quote {
   margin: 1rem 0 0;
   padding: 0.75rem 0 0;
