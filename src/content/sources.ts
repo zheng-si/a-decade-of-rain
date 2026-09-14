@@ -15,6 +15,18 @@ export const SOURCES: Record<string, Source> = {
     publisher: 'W. A. Buckingham · U.S. Air Force Office of History',
     url: 'https://www.govinfo.gov/app/details/GOVPUB-D301-PURL-LPS48689',
   },
+  ao_act_1991: {
+    id: 'ao_act_1991',
+    title: 'Agent Orange Act of 1991 (Public Law 102-4, 105 Stat. 11)',
+    publisher: '102nd Congress · U.S. Government Publishing Office',
+    url: 'https://www.govinfo.gov/app/details/STATUTE-105/STATUTE-105-Pg11',
+  },
+  va_conditions: {
+    id: 'va_conditions',
+    title: 'Veterans’ Diseases Associated with Agent Orange',
+    publisher: 'U.S. Dept. of Veterans Affairs',
+    url: 'https://www.publichealth.va.gov/exposures/agentorange/conditions/',
+  },
   va_news: {
     id: 'va_news',
     title: '10 Things Every Veteran Should Know About Agent Orange',

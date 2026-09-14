@@ -138,8 +138,9 @@ export default function CloseSection() {
                 </a>
               </li>
             ))}
-            {/* The fifth card: the site's own door, phone only (Story.css).
-                An internal link, so the arrow points on rather than out. */}
+            {/* Not a fifth card but the row's handover to the Atlas — a rule
+                and a line of type at every width (Story.css). An internal
+                link, so the arrow points on rather than out. */}
             <li className="close-action-atlas">
               <Link className="close-action is-atlas" to={CLOSE_ATLAS.to}>
                 <p className="close-action-role">{CLOSE_ATLAS.role}</p>

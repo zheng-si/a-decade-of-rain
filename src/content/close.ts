@@ -35,11 +35,11 @@ export const CLOSE_ACTIONS: CloseAction[] = [
     url: 'http://www.vava.org.vn/',
   },
   {
-    name: 'VAORRC',
-    role: 'U.S. Relief Campaign',
-    desc: 'The Vietnam Agent Orange Relief & Responsibility Campaign; tax-deductible giving via Veterans For Peace.',
-    action: 'Donate (U.S.)',
-    url: 'https://www.vn-agentorange.org/',
+    name: 'Vietnam Veterans of America',
+    role: 'Veterans’ Association',
+    desc: 'The veterans’ own membership organisation: it campaigned for the presumptions behind today’s claims, and guides veterans and their families through the VA process.',
+    action: 'Get involved',
+    url: 'https://vva.org/what-we-do/outreach-programs/agent-orange/',
   },
   {
     name: 'War Legacies Project',
@@ -85,7 +85,7 @@ export const REF_GROUPS: RefGroup[] = [
   },
   {
     title: 'Reports and Fact Sheets',
-    sourceIds: ['usaf_ranchhand', 'usaid_danang', 'usembassy_bienhoa', 'undp_hotspots', 'va_basics', 'aspen_whatis', 'aspen_bienhoa'],
+    sourceIds: ['usaf_ranchhand', 'usaid_danang', 'usembassy_bienhoa', 'undp_hotspots', 'va_basics', 'va_conditions', 'ao_act_1991', 'aspen_whatis', 'aspen_bienhoa'],
   },
   {
     title: 'News and Features',

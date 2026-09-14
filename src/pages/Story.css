@@ -924,39 +924,6 @@
   display: none;
 }
 
-/* The handover node's outbound link. A filled bar rather than a text link:
-   it is the one thing on any card that leaves the story, and it is the last
-   card, so it should read as the door it is. */
-.story-card-cta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin: 1.125rem 0 0;
-  padding: 0.6875rem 0.875rem;
-  background: var(--accent-deep);
-  color: #fff;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: var(--track-tight);
-  text-decoration: none;
-  transition: background 0.15s;
-}
-.story-card-cta:hover {
-  background: var(--accent);
-}
-.story-card-cta span {
-  transition: transform 0.15s;
-}
-.story-card-cta:hover span {
-  transform: translateX(3px);
-}
-@media (prefers-reduced-motion: reduce) {
-  .story-card-cta span {
-    transition: none;
-  }
-}
-
 .story-quote {
   margin: 1rem 0 0;
   padding: 0.75rem 0 0;
@@ -2077,6 +2044,11 @@
   font-size: 0.8125rem;
   line-height: var(--type-body-lh);
   opacity: 0.86;
+}
+/* A wall can cite more than one source: the body wall's second paragraph
+   rests on VA, not on the Vietnamese figures' source. */
+.wall-srcs {
+  margin: 0;
 }
 .wall-src {
   font-size: 0.6875rem;
@@ -3901,7 +3873,11 @@
 }
 
 /* Wordmark-style action cards: no logos (licensing + visual consistency);
-   the organisation name set large carries the identity. */
+   the organisation name set large carries the identity.
+
+   Four, and four is the number the grid wants: five left a hole at the
+   bottom right of every two-column layout, and squeezed the desktop cards
+   to 182px. */
 .close-actions {
   list-style: none;
   margin: 0;
@@ -3959,38 +3935,81 @@
   color: #c4ecd3;
 }
 
-/* The fifth card, the phone's door back to the Atlas (CLOSE_ATLAS). The rail
-   that carries Explore the Record on the desktop is hidden under 640px, and
-   the record node's CTA has scrolled away by the close, so the Atlas had one
-   way in from a phone (the phone pass, PR #195). Hidden where the rail shows;
-   on the phone it spans the two-column row under the four organisations, on
-   the accent, so it reads as the site's own rather than a fifth organisation.
-   Three classes, because the skin paints .close-action's ground at two. */
+/* The door back to the Atlas (CLOSE_ATLAS), under the four organisations.
+
+   It takes the card exactly — ground, edge, shadow, type colours, the lot —
+   and is set apart only by spanning the row. Two earlier tries said the
+   difference louder than it needed saying: an accent slab that shouted over
+   the four things it was meant to come after, then an edged-and-unfilled
+   inversion of them. Nothing here overrides .close-action, so the card and
+   the V3 skin carry it and it cannot drift from its neighbours. */
 .close-action-atlas {
-  display: none;
-}
-.story .close-action.is-atlas {
-  background: var(--accent-deep);
-}
-.story .close-action.is-atlas:hover {
-  background: var(--accent);
-}
-.story .close-action.is-atlas .close-action-role,
-.story .close-action.is-atlas .close-action-desc,
-.story .close-action.is-atlas .close-action-cta {
-  color: rgba(255, 255, 255, 0.86);
-}
-.story .close-action.is-atlas .close-action-name,
-.story .close-action.is-atlas:hover .close-action-cta {
-  color: #fff;
-}
-@media (max-width: 640px) {
-  .close-action-atlas {
-    display: block;
-    grid-column: 1 / -1;
-  }
+  display: block;
+  grid-column: 1 / -1;
 }
 
+/* …except on hover, where it fills with the accent. At rest it is a peer of
+   the four; under the pointer it admits it is the site's own. The accent
+   arrives only as an answer to the reader, never as a claim made at them,
+   which is what the fixed slab got wrong.
+
+   Every colour goes to solid white with it: the four's own muted tiers read
+   at 3.6:1 over --accent-deep, and the call is 11px. White is 4.98:1 there.
+   Colour joins the card's existing background/transform transition so the
+   fill and the type cross over together instead of the type snapping. */
+.story .close-action.is-atlas:hover,
+.story .close-action.is-atlas:focus-visible {
+  background: var(--accent-deep);
+}
+.story .close-action.is-atlas .close-action-role,
+.story .close-action.is-atlas .close-action-name,
+.story .close-action.is-atlas .close-action-desc,
+.story .close-action.is-atlas .close-action-cta {
+  transition: color 0.2s;
+}
+.story .close-action.is-atlas:hover .close-action-role,
+.story .close-action.is-atlas:hover .close-action-name,
+.story .close-action.is-atlas:hover .close-action-desc,
+.story .close-action.is-atlas:hover .close-action-cta,
+.story .close-action.is-atlas:focus-visible .close-action-role,
+.story .close-action.is-atlas:focus-visible .close-action-name,
+.story .close-action.is-atlas:focus-visible .close-action-desc,
+.story .close-action.is-atlas:focus-visible .close-action-cta {
+  color: #fff;
+}
+
+/* Above the phone the door spans the row, and a column of left-hugging text
+   in a 952px band leaves half of it empty. Lay it out as the row it is: the
+   label, the name and the line under it on the left, the call on the right,
+   all on one baseline band. The only thing the four do not need. */
+@media (min-width: 641px) {
+  .story .close-action.is-atlas {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'role  cta'
+      'name  cta'
+      'desc  cta';
+    align-items: center;
+    column-gap: 2rem;
+  }
+  .story .close-action.is-atlas .close-action-role {
+    grid-area: role;
+    margin-bottom: 0.375rem;
+  }
+  .story .close-action.is-atlas .close-action-name {
+    grid-area: name;
+  }
+  .story .close-action.is-atlas .close-action-desc {
+    grid-area: desc;
+    margin-bottom: 0;
+  }
+  .story .close-action.is-atlas .close-action-cta {
+    grid-area: cta;
+    margin: 0;
+    white-space: nowrap;
+  }
+}
 /* Sources ledger stays in the forest green, continuing the hero. */
 .close-sources {
   background: linear-gradient(180deg, #12271a 0%, #16311f 48%, #21432f 100%);
@@ -4100,6 +4119,16 @@
     grid-template-columns: repeat(2, 1fr);
   }
   .close-refs {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* One column on the phone. Two columns of 166px ran these descriptions to
+   eight lines apiece and broke "Vietnam Veterans of America" across two;
+   full width brings them back to three or four, which is what they are on
+   every other screen. Below the 900px rule so it wins where both match. */
+@media (max-width: 640px) {
+  .close-actions {
     grid-template-columns: 1fr;
   }
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { WALLS, type ConsequenceWall } from '../content/interlude/consequences'
 import { SOURCES } from '../content/sources'
 
@@ -6,7 +6,7 @@ import { SOURCES } from '../content/sources'
 // by default behind a single consent toggle — reveal only on the reader's say-so.
 function Wall({ w }: { w: ConsequenceWall }) {
   const [revealed, setRevealed] = useState(false)
-  const src = w.sourceId ? SOURCES[w.sourceId] : undefined
+  const srcs = (w.sourceIds ?? []).map((id) => SOURCES[id]).filter(Boolean)
   const blurred = Boolean(w.sensitive && !revealed)
 
   return (
@@ -26,10 +26,18 @@ function Wall({ w }: { w: ConsequenceWall }) {
             </ul>
           )}
           <p className="wall-lede">{w.lede}</p>
-          {src && (
-            <a className="wall-src" href={src.url} target="_blank" rel="noreferrer">
-              {src.publisher}
-            </a>
+          {w.lede2 && <p className="wall-lede">{w.lede2}</p>}
+          {srcs.length > 0 && (
+            <p className="wall-srcs">
+              {srcs.map((s, i) => (
+                <Fragment key={s.id}>
+                  {i > 0 && <span aria-hidden="true"> · </span>}
+                  <a className="wall-src" href={s.url} target="_blank" rel="noreferrer">
+                    {s.publisher}
+                  </a>
+                </Fragment>
+              ))}
+            </p>
           )}
 
           {w.sensitive && (
