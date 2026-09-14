@@ -3937,67 +3937,21 @@
 
 /* The door back to the Atlas (CLOSE_ATLAS), under the four organisations.
 
-   Not a fifth card. The four are outside bodies a reader can go and support;
-   this one is the site's own second half, and dressing it as a peer of theirs
-   was the wrong claim twice over — first as a phone-only card (the phone pass,
-   PR #195), then as an accent slab spanning the row, which shouted over the
-   four things it was meant to come after.
-
-   So it inverts them instead of outshouting them: the four are filled and
-   unedged, this one is edged and unfilled. Same geometry, opposite treatment,
-   no colour on either side of it — it spans the row, which is difference
-   enough. Three classes throughout, because the V3 skin paints
-   .close-action's ground, border and shadow at two. */
+   It takes the card exactly — ground, edge, shadow, type colours, the lot —
+   and is set apart only by spanning the row. Two earlier tries said the
+   difference louder than it needed saying: an accent slab that shouted over
+   the four things it was meant to come after, then an edged-and-unfilled
+   inversion of them. Nothing here overrides .close-action, so the card and
+   the V3 skin carry it and it cannot drift from its neighbours. */
 .close-action-atlas {
   display: block;
   grid-column: 1 / -1;
-}
-.story .close-action.is-atlas {
-  /* The cards' own inset, so the door's label starts on the same vertical as
-     the first card's and the call ends on the last card's right edge. Less
-     the border, which the cards do not carry — the skin takes theirs off. */
-  padding: 1.125rem calc(1rem - 1px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  background: none;
-  box-shadow: none;
-}
-.story .close-action.is-atlas:hover {
-  border-color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.05);
-}
-.story .close-action.is-atlas .close-action-role {
-  color: var(--forest-text-soft);
-}
-.story .close-action.is-atlas .close-action-name {
-  color: #fff;
-}
-.story .close-action.is-atlas .close-action-desc {
-  color: rgba(255, 255, 255, 0.78);
-}
-/* White rather than the accent on either state. --accent-bright is tuned for
-   the darker Sources green: this far up the epilogue gradient it measures
-   3.2:1 at 11.05px, under the 4.5 that size needs. */
-.story .close-action.is-atlas .close-action-cta,
-.story .close-action.is-atlas:hover .close-action-cta {
-  color: #fff;
-}
-.story .close-action.is-atlas .close-action-cta span {
-  display: inline-block;
-  transition: transform 0.15s;
-}
-.story .close-action.is-atlas:hover .close-action-cta span {
-  transform: translateX(3px);
-}
-@media (prefers-reduced-motion: reduce) {
-  .story .close-action.is-atlas .close-action-cta span {
-    transition: none;
-  }
 }
 
 /* Above the phone the door spans the row, and a column of left-hugging text
    in a 952px band leaves half of it empty. Lay it out as the row it is: the
    label, the name and the line under it on the left, the call on the right,
-   all on one baseline band. */
+   all on one baseline band. The only thing the four do not need. */
 @media (min-width: 641px) {
   .story .close-action.is-atlas {
     display: grid;
@@ -4023,7 +3977,6 @@
   .story .close-action.is-atlas .close-action-cta {
     grid-area: cta;
     margin: 0;
-    font-size: 0.8125rem;
     white-space: nowrap;
   }
 }
