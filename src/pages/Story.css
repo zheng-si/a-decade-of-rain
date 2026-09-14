@@ -1413,11 +1413,11 @@
    tab on it, and on the full measure rather than the chart's column.
 
    Six across, two rows. auto-fit rather than a column count per breakpoint,
-   because the constraint is a MINIMUM CELL, not a layout: a drop is 13 of a
-   276-unit viewBox, so a cell under ~140px renders it below 6.6px and the
-   shape stops being a drop. In px, not rem, for the same reason the minimum
-   exists -- this is a physical size on glass, and the root scales to 13.6 on a
-   laptop, which would have quietly turned a 140px floor into 119.
+   because the constraint is a MINIMUM CELL, not a layout: a drop is 100 of an
+   1846-unit field, so a cell under ~140px renders it below 7.6px and the shape
+   stops being a drop. In px, not rem, for the same reason the minimum exists --
+   this is a physical size on glass, and the root scales to 13.6 on a laptop,
+   which would have quietly turned a 140px floor into 119.
 
    140 gives six at 952 (the measure at 1440), three at 591 and two at 343. The
    max-width caps it at six: the measure is 1120 at 1920, which would otherwise

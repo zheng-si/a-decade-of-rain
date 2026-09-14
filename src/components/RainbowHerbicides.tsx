@@ -50,53 +50,72 @@ function Biohazard() {
 // 0.4477% Other of 1967 rounds away, at 64 so does the 0.60% Blue of 1966 and
 // 1971 disappears from absolute mode entirely. Measured on the HERBS record,
 // not assumed.
-//
-// The drop's geometry is option 3 of six, picked on a built sheet at the width
-// a cell actually gets: 16 x 21 on a 24 x 29 pitch, so half the field is air,
-// and the apex rounded back 12% of the height. The sharp cusp read as a spike
-// at this size; unrounded it is the only shape on the page with a point on it.
 const N = 12
 const CELLS = N * N
-// Smaller and further apart than the sheet's option 3, because the field moved
-// out of the chart column and onto the full measure: six across instead of
-// four, so a cell is 145px at 1440 and its drops would have crowded at the old
-// 2:1 drop-to-air ratio. At 13 on a 24 pitch the field is a little over half
-// air, and the apex is rounded back a fifth of the height -- as far as it goes
-// before the shape stops being a drop.
-const DW = 13
-const DH = 17
-const DGAP = 11
-const TIP = 0.2
+
+/** The drop: a straight-flanked compass drop, authored rather than generated.
+ *
+ *  Four radii and two lines, every junction tangent-continuous. Apex arc r=6
+ *  centred (50,6); base circle r=50 centred (50,80); hip arcs r=30 centred
+ *  (70,80) and (30,80), placed 20 from the base centre so they are internally
+ *  tangent to it exactly at the equator; the flanks are the common external
+ *  tangents of the apex and hip circles, 33.4 degrees from vertical.
+ *
+ *  Chosen over ten parametric variants and eleven more drawn from six shape
+ *  traditions, on sheets that showed every candidate BOTH large and at the ~8px
+ *  it actually ships at. At that size only three things survive — the aspect
+ *  ratio, whether the apex carries any ink at all, and top-to-bottom asymmetry.
+ *  This one has a real apex where the construction it replaces had a blunt nub,
+ *  and the lowest ink of the three finalists (66.05% of its box, rasterised),
+ *  which is what keeps four herbicide colours apart in a full field.
+ *
+ *  It also retires a defect in that construction. Its apex rounding was a
+ *  quadratic THROUGH the nominal apex, so the drawn shape never reached the top
+ *  of its own box: at the shipped rounding the curve's highest point sat 7.9%
+ *  down, the drop rendered 8.02px where the parameters said 8.7, and changing
+ *  the rounding silently changed the effective aspect ratio too. This path
+ *  fills its box exactly — measured bbox 0,0,100,130 — so the numbers below
+ *  mean what they say. */
+const DROP_D =
+  'M 50 0 A 6 6 0 0 1 55.01 2.70 L 95.05 63.50 A 30 30 0 0 1 100 80 ' +
+  'A 50 50 0 0 1 50 130 A 50 50 0 0 1 0 80 A 30 30 0 0 1 4.95 63.50 ' +
+  'L 44.99 2.70 A 6 6 0 0 1 50 0 Z'
+const DW = 100
+const DH = 130
+
+/** How much of the grid pitch the drop's width takes; the rest is air.
+ *
+ *  63% was picked on a built sheet of six densities crossed with three
+ *  silhouettes, every field rendered at the 147px cell the figure really gets.
+ *  Under 58% the field reads empty. At 75% the filled rows fuse into a block and
+ *  the field stops being countable, which is the one thing it is for. The three
+ *  finalists were within 3 points of each other on ink, so the density reads the
+ *  same whichever had won — that was checked before this number was picked.
+ *
+ *  The geometry stays in the drop's own 100-unit space and the GRID is scaled
+ *  into it, never the other way round: rescaling the path means a regex over its
+ *  numbers, which also hits the arc flags and silently invalidates every path. */
+const DENSITY = 0.63
+const PITCH_X = DW / DENSITY
+const PITCH_Y = DH + (PITCH_X - DW)
+const FIELD_W = (N - 1) * PITCH_X + DW
+const FIELD_H = (N - 1) * PITCH_Y + DH
+
 /** Unfilled. Deliberately close to the paper: the field is a budget, not a mark. */
 const DROP_EMPTY = 'rgba(28, 43, 33, 0.07)'
 
-/** A teardrop: a circular bulb with sides tangent to it from an apex above,
- *  and the apex corner rounded back by `round` of the height. */
-function dropPath(w: number, h: number, round: number): string {
-  const cx = w / 2
-  const R = w / 2
-  const cy = h - R
-  if (cy <= R) return `M ${cx} ${h - R} m ${-R} 0 a ${R} ${R} 0 1 0 ${2 * R} 0 a ${R} ${R} 0 1 0 ${-2 * R} 0 Z`
-  const beta = Math.acos(R / cy)
-  const rx = cx + R * Math.cos(-Math.PI / 2 + beta)
-  const ry = cy + R * Math.sin(-Math.PI / 2 + beta)
-  const lx = cx + R * Math.cos(-Math.PI / 2 - beta)
-  const ly = cy + R * Math.sin(-Math.PI / 2 - beta)
-  const seg = Math.hypot(rx - cx, ry)
-  const k = Math.min(round * h, seg * 0.85)
-  const f = (a: number, b: number) => `${a.toFixed(2)} ${b.toFixed(2)}`
-  if (k <= 0.05) return `M ${f(cx, 0)} L ${f(rx, ry)} A ${R} ${R} 0 1 1 ${f(lx, ly)} Z`
-  const ax = cx + ((rx - cx) * k) / seg
-  const ay = (ry * k) / seg
-  const bx = cx + ((lx - cx) * k) / seg
-  const by = (ly * k) / seg
-  return `M ${f(ax, ay)} L ${f(rx, ry)} A ${R} ${R} 0 1 1 ${f(lx, ly)} L ${f(bx, by)} Q ${f(cx, 0)} ${f(ax, ay)} Z`
-}
-const DROP_D = dropPath(DW, DH, TIP)
-
 /** Largest remainder, with one guarantee on top of it: a group that sprayed
- *  never rounds to nothing. At 144 that guarantee never has to fire — it is
- *  here so a later change to N cannot silently delete a number. */
+ *  never rounds to nothing.
+ *
+ *  In Share mode, where the budget is the whole 144, that guarantee never has
+ *  to fire — it is there so a later change to N cannot silently delete a
+ *  number. In Volume mode it does fire, and it wins against the budget: 1971's
+ *  volume is worth one drop but it sprayed three agents, so it draws three.
+ *  Measured across the decade that is four extra drops out of 1,584, all of
+ *  them in the two years already reading as "almost nothing", and the number
+ *  under each cell carries the true figure. The trade is deliberate: a reader
+ *  miscounting a 3-drop cell as a 1-drop cell costs nothing, and an agent that
+ *  sprayed being invisible costs the claim the figure is making. */
 function apportion(vals: number[], budget: number): number[] {
   const total = vals.reduce((a, b) => a + b, 0)
   const out = vals.map(() => 0)
@@ -411,12 +430,10 @@ export default function RainbowHerbicides({ years, series }: Props) {
                 counts.forEach((c, k) => {
                   for (let z = 0; z < c; z++) seq.push(series[k].color)
                 })
-                const px = DW + DGAP
-                const py = DH + DGAP
                 return (
                   <div className="rb-year" key={yr}>
                     <svg
-                      viewBox={`0 0 ${N * px - DGAP} ${N * py - DGAP}`}
+                      viewBox={`0 0 ${FIELD_W.toFixed(1)} ${FIELD_H.toFixed(1)}`}
                       className="rb-field"
                       role="img"
                       aria-label={`${yr}: ${total > 0 ? fmtGallons(total) + ' gallons' : 'no volume recorded'}`}
@@ -426,8 +443,8 @@ export default function RainbowHerbicides({ years, series }: Props) {
                           key={k}
                           href="#rb-drop"
                           // Filled from the bottom row up, the way a vessel fills.
-                          x={(k % N) * px}
-                          y={(N - 1 - Math.floor(k / N)) * py}
+                          x={((k % N) * PITCH_X).toFixed(1)}
+                          y={((N - 1 - Math.floor(k / N)) * PITCH_Y).toFixed(1)}
                           fill={k < seq.length ? seq[k] : DROP_EMPTY}
                         />
                       ))}
