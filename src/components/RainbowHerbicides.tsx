@@ -36,6 +36,83 @@ function Biohazard() {
   )
 }
 
+// ── the year typology: a field of drops ───────────────────────────────────
+//
+// "Each year" used to be the same stacked area on a per-year axis, and on an
+// absolute axis a small year has no area: 1962-64 are 0.8-4.4% of the peak, so
+// the three years that were almost entirely one agent were a line at the foot
+// of the plot saying nothing. A field per year fixes that, because SHARE mode
+// gives every year the same field whatever its volume.
+//
+// 144 is not a round number chosen for looks. It is the smallest field where
+// absolute mode still gives every volume-bearing year at least one drop AND a
+// largest-remainder split loses no group that actually sprayed: at 100 the
+// 0.4477% Other of 1967 rounds away, at 64 so does the 0.60% Blue of 1966 and
+// 1971 disappears from absolute mode entirely. Measured on the HERBS record,
+// not assumed.
+//
+// The drop's geometry is option 3 of six, picked on a built sheet at the width
+// a cell actually gets: 16 x 21 on a 24 x 29 pitch, so half the field is air,
+// and the apex rounded back 12% of the height. The sharp cusp read as a spike
+// at this size; unrounded it is the only shape on the page with a point on it.
+const N = 12
+const CELLS = N * N
+const DW = 16
+const DH = 21
+const DGAP = 8
+const TIP = 0.12
+/** Unfilled. Deliberately close to the paper: the field is a budget, not a mark. */
+const DROP_EMPTY = 'rgba(28, 43, 33, 0.07)'
+
+/** A teardrop: a circular bulb with sides tangent to it from an apex above,
+ *  and the apex corner rounded back by `round` of the height. */
+function dropPath(w: number, h: number, round: number): string {
+  const cx = w / 2
+  const R = w / 2
+  const cy = h - R
+  if (cy <= R) return `M ${cx} ${h - R} m ${-R} 0 a ${R} ${R} 0 1 0 ${2 * R} 0 a ${R} ${R} 0 1 0 ${-2 * R} 0 Z`
+  const beta = Math.acos(R / cy)
+  const rx = cx + R * Math.cos(-Math.PI / 2 + beta)
+  const ry = cy + R * Math.sin(-Math.PI / 2 + beta)
+  const lx = cx + R * Math.cos(-Math.PI / 2 - beta)
+  const ly = cy + R * Math.sin(-Math.PI / 2 - beta)
+  const seg = Math.hypot(rx - cx, ry)
+  const k = Math.min(round * h, seg * 0.85)
+  const f = (a: number, b: number) => `${a.toFixed(2)} ${b.toFixed(2)}`
+  if (k <= 0.05) return `M ${f(cx, 0)} L ${f(rx, ry)} A ${R} ${R} 0 1 1 ${f(lx, ly)} Z`
+  const ax = cx + ((rx - cx) * k) / seg
+  const ay = (ry * k) / seg
+  const bx = cx + ((lx - cx) * k) / seg
+  const by = (ly * k) / seg
+  return `M ${f(ax, ay)} L ${f(rx, ry)} A ${R} ${R} 0 1 1 ${f(lx, ly)} L ${f(bx, by)} Q ${f(cx, 0)} ${f(ax, ay)} Z`
+}
+const DROP_D = dropPath(DW, DH, TIP)
+
+/** Largest remainder, with one guarantee on top of it: a group that sprayed
+ *  never rounds to nothing. At 144 that guarantee never has to fire — it is
+ *  here so a later change to N cannot silently delete a number. */
+function apportion(vals: number[], budget: number): number[] {
+  const total = vals.reduce((a, b) => a + b, 0)
+  const out = vals.map(() => 0)
+  if (!total || !budget) return out
+  const raw = vals.map((v) => (v / total) * budget)
+  raw.forEach((r, i) => (out[i] = Math.floor(r)))
+  vals.forEach((v, i) => {
+    if (v > 0 && out[i] === 0) out[i] = 1
+  })
+  const order = raw.map((_, i) => i).sort((a, b) => ((raw[b] % 1) - (raw[a] % 1)))
+  let d = budget - out.reduce((a, b) => a + b, 0)
+  for (let i = 0; d > 0 && i < 999; i++, d--) out[order[i % order.length]]++
+  for (let i = 0; d < 0 && i < 999; i++) {
+    const j = order[order.length - 1 - (i % order.length)]
+    if (out[j] > 1) {
+      out[j]--
+      d++
+    }
+  }
+  return out
+}
+
 // ── stacked-area geometry ─────────────────────────────────────────────────
 const W = 640
 const H = 360
@@ -85,6 +162,10 @@ function smooth(pts: [number, number][], perSeg = 14): [number, number][] {
 export default function RainbowHerbicides({ years, series }: Props) {
   const [sel, setSel] = useState<Sel>('all')
   const [mode, setMode] = useState<'cum' | 'year'>('cum')
+  /** Typology only. Volume measures each year against the heaviest; Share gives
+   *  every year the whole field, which is the only way the three years that
+   *  were almost entirely one agent can be read at all. */
+  const [scale, setScale] = useState<'vol' | 'share'>('vol')
 
   // Cumulative mode: each series value is its running total up to that year.
   const plot =
@@ -122,6 +203,12 @@ export default function RainbowHerbicides({ years, series }: Props) {
   const yTicks: number[] = []
   for (let t = 0; t <= yMax + 1; t += yStep) yTicks.push(t)
 
+  // Per-year totals from the record itself, and the heaviest of them, which is
+  // what Volume mode measures against.
+  const yearTotals = years.map((_, i) => series.reduce((a, ser) => a + ser.values[i], 0))
+  const yearPeak = Math.max(...yearTotals, 1)
+  const selIdx = sel === 'all' ? -1 : series.findIndex((ser) => ser.key === sel)
+
   const grandTotal = series.reduce((s, x2) => s + x2.total, 0)
   const active = sel === 'all' ? null : AGENTS.find((a) => a.key === sel) ?? null
   const activeSeries = sel === 'all' ? null : series.find((s) => s.key === sel)
@@ -151,49 +238,117 @@ export default function RainbowHerbicides({ years, series }: Props) {
                     Each year
                   </button>
                 </div>
+                {mode === 'year' && (
+                  <div className="rainbow-mode rb-scale" role="tablist" aria-label="Scale">
+                    <button role="tab" aria-selected={scale === 'vol'} className={`rainbow-mode-btn${scale === 'vol' ? ' is-active' : ''}`} onClick={() => setScale('vol')}>
+                      Volume
+                    </button>
+                    <button role="tab" aria-selected={scale === 'share'} className={`rainbow-mode-btn${scale === 'share' ? ' is-active' : ''}`} onClick={() => setScale('share')}>
+                      Share
+                    </button>
+                  </div>
+                )}
               </div>
-              <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={RAINBOW.chartTitle} className="rainbow-svg">
-                <defs>
-                  {series.map((s) => (
-                    <linearGradient key={s.key} id={`rb-grad-${s.key}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={s.color} stopOpacity="0.95" />
-                      <stop offset="100%" stopColor={s.color} stopOpacity="0.55" />
+              {mode === 'cum' ? (
+                <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={RAINBOW.chartTitle} className="rainbow-svg">
+                  <defs>
+                    {series.map((s) => (
+                      <linearGradient key={s.key} id={`rb-grad-${s.key}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={s.color} stopOpacity="0.95" />
+                        <stop offset="100%" stopColor={s.color} stopOpacity="0.55" />
+                      </linearGradient>
+                    ))}
+                    <linearGradient id="rb-grad-dim" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#cfcec6" stopOpacity="0.55" />
+                      <stop offset="100%" stopColor="#cfcec6" stopOpacity="0.28" />
                     </linearGradient>
+                  </defs>
+                  {yTicks.map((t) => (
+                    <g key={t}>
+                      <line x1={M.left} x2={W - M.right} y1={y(t)} y2={y(t)} className="rainbow-grid-line" />
+                      <text x={M.left - 9} y={y(t)} className="rainbow-axis-label" textAnchor="end" dominantBaseline="middle">
+                        {fmtAxis(t)}
+                      </text>
+                    </g>
                   ))}
-                  <linearGradient id="rb-grad-dim" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#cfcec6" stopOpacity="0.55" />
-                    <stop offset="100%" stopColor="#cfcec6" stopOpacity="0.28" />
-                  </linearGradient>
-                </defs>
-                {yTicks.map((t) => (
-                  <g key={t}>
-                    <line x1={M.left} x2={W - M.right} y1={y(t)} y2={y(t)} className="rainbow-grid-line" />
-                    <text x={M.left - 9} y={y(t)} className="rainbow-axis-label" textAnchor="end" dominantBaseline="middle">
-                      {fmtAxis(t)}
+                  <line x1={M.left} x2={M.left} y1={M.top} y2={BASE} className="rainbow-axis-line" />
+                  <line x1={M.left} x2={W - M.right} y1={BASE} y2={BASE} className="rainbow-axis-line" />
+                  {bands.map((b) => {
+                    const dim = sel !== 'all' && sel !== b.key
+                    return (
+                      <path
+                        key={b.key}
+                        d={b.d}
+                        fill={dim ? 'url(#rb-grad-dim)' : `url(#rb-grad-${b.key})`}
+                        className="rainbow-band"
+                        onClick={() => setSel(b.key)}
+                      />
+                    )
+                  })}
+                  {years.map((yr, i) => (
+                    <text key={yr} x={x(i)} y={H - 11} className="rainbow-axis-label" textAnchor="middle">
+                      {yr}
                     </text>
-                  </g>
-                ))}
-                <line x1={M.left} x2={M.left} y1={M.top} y2={BASE} className="rainbow-axis-line" />
-                <line x1={M.left} x2={W - M.right} y1={BASE} y2={BASE} className="rainbow-axis-line" />
-                {bands.map((b) => {
-                  const dim = sel !== 'all' && sel !== b.key
-                  return (
-                    <path
-                      key={b.key}
-                      d={b.d}
-                      fill={dim ? 'url(#rb-grad-dim)' : `url(#rb-grad-${b.key})`}
-                      className="rainbow-band"
-                      onClick={() => setSel(b.key)}
-                    />
-                  )
-                })}
-                {years.map((yr, i) => (
-                  <text key={yr} x={x(i)} y={H - 11} className="rainbow-axis-label" textAnchor="middle">
-                    {yr}
-                  </text>
-                ))}
-              </svg>
-
+                  ))}
+                </svg>
+              ) : (
+                <div className="rb-years">
+                  {/* One path, 1,584 references to it. */}
+                  <svg width="0" height="0" aria-hidden="true" focusable="false" className="rb-defs">
+                    <defs>
+                      <path id="rb-drop" d={DROP_D} />
+                    </defs>
+                  </svg>
+                  {years.map((yr, i) => {
+                    const total = yearTotals[i]
+                    // Isolating an agent FILTERS rather than dims. The area chart dims
+                    // its other bands to contextGrey, and that cannot work inside a
+                    // field: measured on this ground, contextGrey sits 1.31:1 from the
+                    // unfilled drop, so a dimmed drop and an empty one are the same
+                    // mark. Every grey dark enough to separate from the empty tone
+                    // lands within 1.3:1 of Agent White, which is the one colour it
+                    // would then be beside. So there is no third grey: with an agent
+                    // chosen the field draws that agent alone, and the cell reads as
+                    // how much of the year was his.
+                    const shown = series.map((ser, k) => (selIdx < 0 || k === selIdx ? ser.values[i] : 0))
+                    const q = shown.reduce((x, y) => x + y, 0)
+                    const denom = scale === 'share' ? total : yearPeak
+                    const budget = q > 0 && denom > 0 ? Math.max(1, Math.round((q / denom) * CELLS)) : 0
+                    const counts = apportion(shown, budget)
+                    const seq: string[] = []
+                    counts.forEach((c, k) => {
+                      for (let z = 0; z < c; z++) seq.push(series[k].color)
+                    })
+                    const px = DW + DGAP
+                    const py = DH + DGAP
+                    return (
+                      <div className="rb-year" key={yr}>
+                        <svg
+                          viewBox={`0 0 ${N * px - DGAP} ${N * py - DGAP}`}
+                          className="rb-field"
+                          role="img"
+                          aria-label={`${yr}: ${total > 0 ? fmtGallons(total) + ' gallons' : 'no volume recorded'}`}
+                        >
+                          {Array.from({ length: CELLS }, (_, k) => (
+                            <use
+                              key={k}
+                              href="#rb-drop"
+                              // Filled from the bottom row up, the way a vessel fills.
+                              x={(k % N) * px}
+                              y={(N - 1 - Math.floor(k / N)) * py}
+                              fill={k < seq.length ? seq[k] : DROP_EMPTY}
+                            />
+                          ))}
+                        </svg>
+                        <p className="rb-year-lab">{yr}</p>
+                        <p className="rb-year-val">
+                          {total > 0 ? fmtGallons(q) : <span className="rb-year-nil">no volume recorded</span>}
+                        </p>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
               <div className="rainbow-switch" role="tablist" aria-label="Choose an agent">
                 <button
                   role="tab"
