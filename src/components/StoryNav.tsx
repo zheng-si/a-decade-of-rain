@@ -136,7 +136,9 @@ export default function StoryNav() {
           <ul>
             <li>
               <Link className="story-rail-link story-rail-out" to="/archive">
-                <span className="story-rail-label">Explore the Record</span>
+                <span className="story-rail-label">
+                  Explore the Record<span aria-hidden="true">{'\u00A0'}→</span>
+                </span>
               </Link>
             </li>
           </ul>

@@ -3976,7 +3976,8 @@
    the accent, so it reads as the site's own rather than a fifth organisation.
    Three classes, because the skin paints .close-action's ground at two. */
 .close-action-atlas {
-  display: none;
+  display: block;
+  grid-column: 1 / -1;
 }
 .story .close-action.is-atlas {
   background: var(--accent-deep);
@@ -3993,13 +3994,40 @@
 .story .close-action.is-atlas:hover .close-action-cta {
   color: #fff;
 }
-@media (max-width: 640px) {
-  .close-action-atlas {
-    display: block;
-    grid-column: 1 / -1;
+
+/* Above the phone the door spans the row, and a column of left-hugging text
+   in a 952px bar leaves half of it empty. Lay it out as the row it is: the
+   label, the name and the line under it on the left, the call on the right,
+   all on one baseline band. */
+@media (min-width: 641px) {
+  .story .close-action.is-atlas {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      'role  cta'
+      'name  cta'
+      'desc  cta';
+    align-items: center;
+    column-gap: 2rem;
+  }
+  .story .close-action.is-atlas .close-action-role {
+    grid-area: role;
+    margin-bottom: 0.375rem;
+  }
+  .story .close-action.is-atlas .close-action-name {
+    grid-area: name;
+  }
+  .story .close-action.is-atlas .close-action-desc {
+    grid-area: desc;
+    margin-bottom: 0;
+  }
+  .story .close-action.is-atlas .close-action-cta {
+    grid-area: cta;
+    margin: 0;
+    font-size: 0.8125rem;
+    white-space: nowrap;
   }
 }
-
 /* Sources ledger stays in the forest green, continuing the hero. */
 .close-sources {
   background: linear-gradient(180deg, #12271a 0%, #16311f 48%, #21432f 100%);
