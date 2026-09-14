@@ -7,10 +7,20 @@
 // Creative-Commons via Wikimedia Commons — no copyrighted press images. The
 // land wall is all U.S. Gov PD; the body wall is CC/Commons documentary work.
 // Verify each file's exact license line on Commons before launch.
+//
+// The land wall's second frame is the one American face in the piece: two
+// soldiers of the 184th Chemical Company filling a spray tank by hose, one of
+// them shirtless against the drum. Everywhere else the United States is an
+// actor — "the United States sprayed" — and the men who handled the stuff are
+// nowhere. NARA 111-CCV-151-CC68012, SP4 James L. Ensign, 20 March 1970,
+// public domain as a work of the U.S. Army.
 
 import land1 from '../../assets/consequences/land-1.webp'
 import land3 from '../../assets/consequences/land-3.webp'
-import land4 from '../../assets/consequences/land-4.webp'
+// The three-ship formation frame (land-4.webp) is retired but kept on disk:
+// it said the same thing as the hero, and the wall had no person in it. Swap
+// it back by restoring this import and the photo entry below.
+import landCrew from '../../assets/consequences/land-crew.webp'
 import body1 from '../../assets/consequences/body-1.webp'
 import body2 from '../../assets/consequences/body-2.webp'
 import body3 from '../../assets/consequences/body-3.webp'
@@ -57,7 +67,7 @@ export const WALLS: ConsequenceWall[] = [
     sourceId: 'stellman_2003',
     photos: [
       { src: land1, alt: 'A C-123 aircraft spraying defoliant over dense forest', caption: 'A U.S. Air Force C-123 lays a swath of defoliant over triple-canopy forest.', credit: 'U.S. Air Force' },
-      { src: land4, alt: 'Three aircraft spraying herbicide in formation', caption: 'Three UC-123s lay parallel swaths of herbicide in a single pass.', credit: 'U.S. Air Force' },
+      { src: landCrew, alt: 'Two U.S. soldiers filling a helicopter spray tank from a drum of defoliant, one of them bare-chested', caption: 'SP4 Garry Miller and SP4 Frank W. Davis of the 184th Chemical Company fill a helicopter spray tank at Phước Vĩnh, March 1970: 55 gallons of defoliant, 55 of diesel.', credit: 'SP4 James L. Ensign · U.S. Army, NARA' },
       { src: land3, alt: 'Aerial view of sprayed mangrove forest, 1968', caption: 'Aerial view of mangrove sprayed in the Rừng Sác, Military Region III, 1968.', credit: 'RANCH HAND Collection, Vietnam Archive, Texas Tech University' },
     ],
   },

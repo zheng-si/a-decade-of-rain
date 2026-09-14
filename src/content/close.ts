@@ -92,7 +92,7 @@ export const REF_GROUPS: RefGroup[] = [
   },
   {
     title: 'Reports and Fact Sheets',
-    sourceIds: ['usaf_ranchhand', 'usaid_danang', 'usembassy_bienhoa', 'undp_hotspots', 'va_basics', 'aspen_whatis', 'aspen_bienhoa'],
+    sourceIds: ['usaf_ranchhand', 'usaid_danang', 'usembassy_bienhoa', 'undp_hotspots', 'va_basics', 'va_conditions', 'ao_act_1991', 'aspen_whatis', 'aspen_bienhoa'],
   },
   {
     title: 'News and Features',
