@@ -3908,15 +3908,15 @@
 /* Wordmark-style action cards: no logos (licensing + visual consistency);
    the organisation name set large carries the identity.
 
-   Five columns since the veterans' association joined the row: the people
-   this reached are on both sides of it, and so are the organisations that
-   serve them. */
+   Four, and four is the number the grid wants: five left a hole at the
+   bottom right of every two-column layout, and squeezed the desktop cards
+   to 182px. */
 .close-actions {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 0.75rem;
 }
 .close-action {
@@ -4109,6 +4109,16 @@
     grid-template-columns: repeat(2, 1fr);
   }
   .close-refs {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* One column on the phone. Two columns of 166px ran these descriptions to
+   eight lines apiece and broke "Vietnam Veterans of America" across two;
+   full width brings them back to three or four, which is what they are on
+   every other screen. Below the 900px rule so it wins where both match. */
+@media (max-width: 640px) {
+  .close-actions {
     grid-template-columns: 1fr;
   }
 }

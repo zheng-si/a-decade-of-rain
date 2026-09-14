@@ -37,16 +37,9 @@ export const CLOSE_ACTIONS: CloseAction[] = [
   {
     name: 'Vietnam Veterans of America',
     role: 'Veterans’ Association',
-    desc: 'The veterans’ own membership organisation: it campaigned for the presumptions that made these illnesses claimable, and guides veterans and their families through the VA claims process.',
+    desc: 'The veterans’ own membership organisation: it campaigned for the presumptions behind today’s claims, and guides veterans and their families through the VA process.',
     action: 'Get involved',
     url: 'https://vva.org/what-we-do/outreach-programs/agent-orange/',
-  },
-  {
-    name: 'VAORRC',
-    role: 'U.S. Relief Campaign',
-    desc: 'The Vietnam Agent Orange Relief & Responsibility Campaign; tax-deductible giving via Veterans For Peace.',
-    action: 'Donate (U.S.)',
-    url: 'https://www.vn-agentorange.org/',
   },
   {
     name: 'War Legacies Project',
