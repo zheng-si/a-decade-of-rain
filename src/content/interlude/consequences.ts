@@ -45,7 +45,10 @@ export interface ConsequenceWall {
   /** A few secondary figures shown beneath the headline number. */
   stats?: WallStat[]
   lede: string
-  sourceId?: string
+  /** An optional second paragraph under the lede. */
+  lede2?: string
+  /** Cited under the lede, in order. */
+  sourceIds?: string[]
   /** Blur the photos by default behind a consent notice. */
   sensitive?: boolean
   warning?: string
@@ -64,7 +67,7 @@ export const WALLS: ConsequenceWall[] = [
       { value: '50+\u00A0yrs', label: 'and the worst-hit land is still bare' },
     ],
     lede: 'The herbicides broke down in weeks, but the forests did not come back. Half a century on, the worst-hit mangroves and hillsides still have not recovered.',
-    sourceId: 'stellman_2003',
+    sourceIds: ['stellman_2003'],
     photos: [
       { src: land1, alt: 'A C-123 aircraft spraying defoliant over dense forest', caption: 'A U.S. Air Force C-123 lays a swath of defoliant over triple-canopy forest.', credit: 'U.S. Air Force' },
       { src: landCrew, alt: 'Two U.S. soldiers filling a helicopter spray tank from a drum of defoliant, one of them bare-chested', caption: 'SP4 Garry Miller and SP4 Frank W. Davis of the 184th Chemical Company fill a helicopter spray tank at Phước Vĩnh, March 1970: 55 gallons of defoliant, 55 of diesel.', credit: 'SP4 James L. Ensign · U.S. Army, NARA' },
@@ -80,10 +83,17 @@ export const WALLS: ConsequenceWall[] = [
       { value: '3M', label: 'Vietnamese with Agent Orange–linked illness' },
       { value: '4', label: 'generations affected, and counting' },
       { value: '7–11\u00A0yrs', label: 'dioxin’s half-life in the human body' },
-      { value: '30\u00A0yrs', label: 'before the U.S. recognised its own veterans’ claims' },
     ],
-    lede: 'Dioxin lingers in the body for years and crosses into the next generation. It made no distinction between the people it fell on and the crews who sprayed it: Vietnam is counting a fourth generation, and the United States took until 1991 to recognise the first.',
-    sourceId: 'aspen_whatis',
+    lede: 'Dioxin lingers in the body for years and crosses into the next generation. The toll is now counted across a second, third and fourth generation.',
+    // A second paragraph rather than a clause folded into the first: American
+    // exposure is a different fact from the dioxin's persistence, and the two
+    // do not belong in one sentence. Plain, and dated: VA had run an Agent
+    // Orange registry since 1978 and had already service-connected chloracne,
+    // then non-Hodgkin's lymphoma and soft tissue sarcoma in 1990, so 1991 is
+    // the first LAW to presume a group of conditions, not the first
+    // recognition of anything.
+    lede2: 'U.S. service members were exposed as well, among them the crews who loaded and sprayed the herbicides. The Agent Orange Act of 1991 was the first law to presume a group of illnesses service-connected for Vietnam veterans; the list has grown since, and the Department of Veterans Affairs compensates eligible veterans for the conditions on it.',
+    sourceIds: ['aspen_whatis', 'va_conditions'],
     sensitive: true,
     warning: 'These photographs show people living with dioxin-linked injury and disability. They are blurred by default; reveal them only if you wish.',
     photos: [

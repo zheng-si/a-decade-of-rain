@@ -28,7 +28,7 @@ export const AGENTS: AgentInfo[] = [
     makeup: 'A 50/50 mix of the herbicides 2,4-D and 2,4,5-T (as butoxyethanol esters).',
     use: 'The workhorse defoliant, stripping the triple-canopy forest and mangrove that hid trails, camps and supply lines. Roughly 60% of all herbicide sprayed in Vietnam.',
     legacy:
-      'Its manufacture left a trace of the dioxin TCDD, one of the most toxic compounds known. That contaminant, not the herbicide itself, is what still poisons soil and people half a century on: the people it fell on, and the crews who flew it.',
+      'Its manufacture left a trace of the dioxin TCDD, one of the most toxic compounds known. That contaminant, not the herbicide itself, is what still poisons soil and people half a century on.',
     sourceIds: ['va_basics', 'aspen_whatis'],
   },
   {

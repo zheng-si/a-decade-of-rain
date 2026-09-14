@@ -37,7 +37,7 @@ export const CLOSE_ACTIONS: CloseAction[] = [
   {
     name: 'Vietnam Veterans of America',
     role: 'Veterans’ Association',
-    desc: 'The veterans’ own organisation: three decades pressing for Agent Orange illnesses to be recognised, and helping their children and grandchildren file claims.',
+    desc: 'The veterans’ own membership organisation: it campaigned for the presumptions that made these illnesses claimable, and guides veterans and their families through the VA claims process.',
     action: 'Get involved',
     url: 'https://vva.org/what-we-do/outreach-programs/agent-orange/',
   },

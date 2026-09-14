@@ -2078,6 +2078,11 @@
   line-height: var(--type-body-lh);
   opacity: 0.86;
 }
+/* A wall can cite more than one source: the body wall's second paragraph
+   rests on VA, not on the Vietnamese figures' source. */
+.wall-srcs {
+  margin: 0;
+}
 .wall-src {
   font-size: 0.6875rem;
   color: var(--on-photo-soft);
