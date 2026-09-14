@@ -3943,49 +3943,44 @@
    PR #195), then as an accent slab spanning the row, which shouted over the
    four things it was meant to come after.
 
-   So it drops the card: a rule across the grid, the name set larger, the call
-   on the right. It reads as a handover rather than a button, and it aligns to
-   the grid rather than to the cards' inset, which is what says it sits outside
-   their system. Three classes throughout, because the skin paints
+   So it inverts them instead of outshouting them: the four are filled and
+   unedged, this one is edged and unfilled. Same geometry, opposite treatment,
+   no colour on either side of it — it spans the row, which is difference
+   enough. Three classes throughout, because the V3 skin paints
    .close-action's ground, border and shadow at two. */
 .close-action-atlas {
   display: block;
   grid-column: 1 / -1;
-  margin-top: 0.75rem;
 }
 .story .close-action.is-atlas {
-  padding: 1.375rem 0 0.25rem;
-  border: 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 0;
+  /* The cards' own inset, so the door's label starts on the same vertical as
+     the first card's and the call ends on the last card's right edge. Less
+     the border, which the cards do not carry — the skin takes theirs off. */
+  padding: 1.125rem calc(1rem - 1px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   background: none;
   box-shadow: none;
 }
 .story .close-action.is-atlas:hover {
-  border-top-color: rgba(255, 255, 255, 0.55);
-  background: none;
-  /* No box to lift. */
-  transform: none;
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.05);
 }
 .story .close-action.is-atlas .close-action-role {
   color: var(--forest-text-soft);
 }
 .story .close-action.is-atlas .close-action-name {
-  font-size: 1.375rem;
   color: #fff;
 }
 .story .close-action.is-atlas .close-action-desc {
   color: rgba(255, 255, 255, 0.78);
 }
-/* White rather than the accent. With no box around it the call is already the
-   brightest thing in the row, and --accent-bright is tuned for the darker
-   Sources green: this far up the epilogue gradient it measures 3.2:1, under
-   the 4.5 this size needs. White is 9.6:1 on the same ground. */
+/* White rather than the accent on either state. --accent-bright is tuned for
+   the darker Sources green: this far up the epilogue gradient it measures
+   3.2:1 at 11.05px, under the 4.5 that size needs. */
 .story .close-action.is-atlas .close-action-cta,
 .story .close-action.is-atlas:hover .close-action-cta {
   color: #fff;
 }
-/* The affordance the box used to carry. */
 .story .close-action.is-atlas .close-action-cta span {
   display: inline-block;
   transition: transform 0.15s;
