@@ -3901,13 +3901,17 @@
 }
 
 /* Wordmark-style action cards: no logos (licensing + visual consistency);
-   the organisation name set large carries the identity. */
+   the organisation name set large carries the identity.
+
+   Five columns since the veterans' association joined the row: the people
+   this reached are on both sides of it, and so are the organisations that
+   serve them. */
 .close-actions {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 0.75rem;
 }
 .close-action {

@@ -35,6 +35,13 @@ export const CLOSE_ACTIONS: CloseAction[] = [
     url: 'http://www.vava.org.vn/',
   },
   {
+    name: 'Vietnam Veterans of America',
+    role: 'Veterans’ Association',
+    desc: 'The veterans’ own organisation: three decades pressing for Agent Orange illnesses to be recognised, and helping their children and grandchildren file claims.',
+    action: 'Get involved',
+    url: 'https://vva.org/what-we-do/outreach-programs/agent-orange/',
+  },
+  {
     name: 'VAORRC',
     role: 'U.S. Relief Campaign',
     desc: 'The Vietnam Agent Orange Relief & Responsibility Campaign; tax-deductible giving via Veterans For Peace.',

@@ -206,7 +206,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
       { name: 'Sài Gòn', lng: 106.7, lat: 10.78 },
     ],
     dek: 'Spraying stops; the poison stays at the bases.',
-    body: 'Ranch Hand winds down and ends in 1971. But the dioxin concentrates where the drums were stored and loaded: the air bases. Biên Hòa remains the single largest reservoir of contamination, the focus of remediation that continues to this day.',
+    body: 'Ranch Hand winds down and ends in 1971. But the dioxin concentrates where the drums were stored, mixed and loaded: the air bases, the ground the American crews worked on every day. Biên Hòa remains the single largest reservoir of contamination, the focus of remediation that continues to this day.',
     quote: {
       text: 'the largest remaining dioxin hotspot in Vietnam and, arguably, in the entire world.',
       speaker: 'On Biên Hòa Air Base',
