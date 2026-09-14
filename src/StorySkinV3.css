@@ -765,6 +765,27 @@
     padding-left: clamp(0.3125rem, 2.1vw, 0.75rem);
     padding-right: clamp(0.3125rem, 2.1vw, 0.75rem);
   }
+
+  /* Six chips, not five. Splitting Agent Purple out of "Other" added one, and
+     the clamp above had already spent what a narrow phone has to give:
+     measured 18px of horizontal page scroll at 390, 38 at 360 and 66 at 320.
+     Shortening "All agents" to "All" (the Archive's own wording) pays for one
+     phone and not the other two, so below 400 the switch stops being a row.
+
+     Three by two, not a reflow. The nowrap above exists because five chips
+     breaking into two RAGGED rows read as two groups; a grid of equal columns
+     does not -- it is still one control, and each chip gets ~94px at 320 where
+     a single shrunk row would have left 47. The seams still fall between
+     neighbours, so the form is unchanged; only its wrapping is. */
+  .story .rainbow-switch {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+  }
+  .story .rainbow-chip {
+    justify-content: center;
+    min-width: 0;
+  }
 }
 
 /* The seam: inset from top and bottom so it divides rather than outlines, and

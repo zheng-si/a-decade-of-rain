@@ -317,7 +317,16 @@ export const mapConfig: MapConfig = {
     // apart from the neutral context grey (dim in volumeGrid.ts) on the map.
     { key: 'W', label: 'White', codes: ['W'], color: '#8c9cb1' },
     { key: 'B', label: 'Blue', codes: ['B'], color: '#2b99ee' },
-    { key: 'other', label: 'Other', codes: ['P', 'U', 'K', 'D', 'T'], color: '#b781ea' },
+    // Purple is its own agent, not part of the residue. It is only 2.6% of the
+    // decade, but 93-100% of 1962-64: the record opens on Purple, and folding
+    // it into "Other" made the first three years a grey sliver that said
+    // nothing. It keeps the hue the combined band already had, since Purple was
+    // 68% of that band's volume.
+    { key: 'P', label: 'Purple', codes: ['P'], color: '#b781ea' },
+    // What is left is 1.2%, and almost all of it is runs the log did not name.
+    // A warm neutral, so it recedes and cannot be read as a fifth named agent:
+    // the free zone in a palette of orange, slate, blue and violet.
+    { key: 'other', label: 'Other', codes: ['U', 'K', 'D', 'T'], color: '#9a8b79' },
   ],
 
   heatmap: {
