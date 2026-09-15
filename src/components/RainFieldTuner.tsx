@@ -129,6 +129,37 @@ function Num({
   )
 }
 
+/** A boolean row. At module scope for the same reason Num is. */
+function Flag({
+  geom,
+  set,
+  k,
+  label,
+  note,
+}: {
+  geom: FieldGeom
+  set: (p: Partial<FieldGeom>) => void
+  k: keyof FieldGeom
+  label: string
+  note?: string
+}) {
+  const on = geom[k] as boolean
+  const moved = on !== FIELD_DEFAULTS[k]
+  return (
+    <div className="rft-dial">
+      <span className="rft-k">{label}</span>
+      <button
+        className={`rft-flag${on ? ' is-on' : ''}${moved ? ' is-set' : ''}`}
+        aria-pressed={on}
+        onClick={() => set({ [k]: !on } as Partial<FieldGeom>)}
+      >
+        {on ? 'on' : 'off'}
+      </button>
+      <span className="rft-u">{note}</span>
+    </div>
+  )
+}
+
 const n1 = (v: number) => Math.round(v * 10) / 10
 const n2 = (v: number) => Math.round(v * 100) / 100
 
@@ -188,7 +219,10 @@ export default function RainFieldTuner({ geom, onChange, built, years, series }:
       return acc + (apportion(vals, budget).reduce((a, b) => a + b, 0) - budget)
     }, 0)
 
+    const empties = years.filter((_, i) => yearTotals[i] <= 0)
+
     return {
+      empties,
       cells,
       peak,
       peakYear,
@@ -221,6 +255,12 @@ export default function RainFieldTuner({ geom, onChange, built, years, series }:
       `// field         ${built.cols} x ${built.rows} = ${facts.cells} marks, viewBox ${built.fieldW.toFixed(1)} x ${built.fieldH.toFixed(1)}`,
       `// cell gap      ${geom.gridGapY} / ${geom.gridGapX}rem = ${n1(geom.gridGapY * root)} / ${n1(geom.gridGapX * root)}px here`,
       `// unit          1 mark = ${geom.gallons.toLocaleString()} gallons`,
+      `// fields drawn  ${years.length - (geom.hideEmpty ? facts.empties.length : 0)} of ${years.length}${
+        geom.hideEmpty && facts.empties.length ? ` (${facts.empties.join(', ')} hidden)` : ''
+      }`,
+      geom.hideEmpty !== FIELD_DEFAULTS.hideEmpty
+        ? '// NOTE: hideEmpty also drops RAINBOW.fieldNoteNil from the caption -- the\n//       sentence about 1961 only shows while there is a 1961 to point at.'
+        : '',
       `// peak          ${facts.peakYear} fills ${facts.peakDrops} of ${facts.cells} (${facts.peakPct}%)`,
       `// overflow      ${facts.over ? `${facts.over} year(s) EXCEED the field` : 'none'}`,
       `// volume loses  ${facts.volLost.length ? facts.volLost.join(', ') + ' (drawn at the floor of one)' : 'nothing'}`,
@@ -293,6 +333,13 @@ export default function RainFieldTuner({ geom, onChange, built, years, series }:
           <p className="rft-hint">
             {built.cols} × {built.rows} = <b>{facts.cells}</b> marks
           </p>
+          <Flag
+            geom={geom}
+            set={set}
+            k="hideEmpty"
+            label="hide empty"
+            note={facts.empties.length ? `drops ${facts.empties.join(', ')}` : 'nothing to drop'}
+          />
           <Num geom={geom} set={set} k="gapX" label="gap x" step={2} min={0} max={300} unit="% of w" />
           <Num geom={geom} set={set} k="gapY" label="gap y" step={2} min={0} max={300} unit="% of h" />
           <p className="rft-hint">
@@ -343,6 +390,11 @@ export default function RainFieldTuner({ geom, onChange, built, years, series }:
           <dt>share loses</dt>
           <dd className={facts.shareLost.length ? 'is-bad' : 'is-ok'}>
             {facts.shareLost.length ? facts.shareLost.join(' · ') : 'nothing'}
+          </dd>
+          <dt>fields drawn</dt>
+          <dd className={geom.hideEmpty && facts.empties.length ? 'is-warn' : undefined}>
+            {years.length - (geom.hideEmpty ? facts.empties.length : 0)} of {years.length}
+            {geom.hideEmpty && facts.empties.length ? ` — ${facts.empties.join(', ')} hidden` : ''}
           </dd>
           <dt>floor cost</dt>
           <dd>

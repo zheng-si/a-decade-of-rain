@@ -35,6 +35,20 @@ export interface FieldGeom {
   // ── the field ───────────────────────────────────────────────────────────
   cols: number
   rows: number
+  /** Drop years that carry no volume from the grid entirely.
+   *
+   *  Written as a RULE rather than as "hide 1961", because a hardcoded year
+   *  would be a claim about the data that the data could stop honouring. It
+   *  currently catches exactly 1961, which is in the record with six spray
+   *  points and no volume against any of them.
+   *
+   *  Off by default, and the default is the argued position: an empty field
+   *  says the year is in the record and empty, where a missing field says
+   *  nothing at all and a reader counting 1962 as the first year of the war's
+   *  spraying would be wrong. But an empty 12 x 12 is also a large object that
+   *  earns its space only if the reader reads the caption under it, so this is
+   *  a real choice rather than a settled one. */
+  hideEmpty: boolean
   /** Space between marks WITHIN one year's field, as a percentage of the
    *  mark's own width (gapX) and height (gapY). The shipped 58.73/45.18 is the
    *  63% density that was chosen on a built sheet: pitch = W / 0.63, so the
@@ -79,6 +93,7 @@ export const FIELD_DEFAULTS: FieldGeom = {
   corner: 20,
   cols: 12,
   rows: 12,
+  hideEmpty: false,
   gapX: 58.7302,
   gapY: 45.1771,
   cellMin: 140,

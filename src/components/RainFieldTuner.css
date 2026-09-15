@@ -83,8 +83,12 @@
 }
 
 .rft-k {
-  width: 4.25rem;
+  /* 4.75, not 4.25: "hide empty" wrapped to two lines at the narrower width and
+     squeezed the control beside it to a clipped half-word. nowrap so the next
+     label that grows fails visibly rather than quietly. */
+  width: 4.75rem;
   flex: none;
+  white-space: nowrap;
   color: #9aa79d;
 }
 
@@ -275,4 +279,28 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 11px;
   cursor: pointer;
+}
+
+/* A boolean reads as a word, not a checkbox: the panel is monospace and a
+   native control in here would be the only thing borrowing the OS's look. */
+.rft-flag {
+  width: 3.5rem;
+  flex: none;
+  padding: 0.125rem 0.25rem;
+  border: 1px solid rgba(232, 236, 231, 0.14);
+  background: rgba(232, 236, 231, 0.05);
+  color: #6f7d74;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+}
+
+.rft-flag.is-on {
+  color: #101a14;
+  background: #e8ece7;
+  border-color: #e8ece7;
+}
+
+.rft-flag.is-set {
+  box-shadow: inset 0 0 0 1px #ffd27a;
 }

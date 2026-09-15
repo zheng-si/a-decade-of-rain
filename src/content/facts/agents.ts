@@ -81,7 +81,12 @@ export const RAINBOW = {
   fieldUnitVol: 'one drop = 40,000 U.S. gallons',
   fieldUnitShare: '144 drops = the whole year',
   fieldNoteVol:
-    'Volume: a drop is 40,000 U.S. gallons, so every field is the same measure — 1967 fills 127 of its 144, and 1971 does not fill one. An agent that sprayed never rounds away to nothing, so the lightest years carry a drop apiece. 1961 is in the record with no volume against its name.',
+    'Volume: a drop is 40,000 U.S. gallons, so every field is the same measure — 1967 fills 127 of its 144, and 1971 does not fill one. An agent that sprayed never rounds away to nothing, so the lightest years carry a drop apiece.',
+  // Split off the Volume note rather than written into it, because it names a
+  // field the reader can point at -- and the figure can be set to drop the
+  // years that carry no volume. A sentence about 1961 under a grid with no
+  // 1961 in it is worse than no sentence.
+  fieldNoteNil: ' 1961 is in the record with no volume against its name.',
   fieldNoteShare:
     'Share: every year gets the whole field, whatever it sprayed — which is the only way the early years, each under 5% of the peak, can be read at all.',
 }

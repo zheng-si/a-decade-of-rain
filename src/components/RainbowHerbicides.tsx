@@ -269,8 +269,13 @@ export default function RainbowHerbicides({ years, series }: Props) {
     })
     return { yr, total, q, seq }
   })
+  // A year with no volume can be dropped from the grid. Filtered on the year's
+  // OWN total rather than on `q`, so an agent filter never deletes a year: with
+  // Orange alone 1961-64 and 1971 all come to zero, and losing five of eleven
+  // fields on a chip press would be a different figure, not a filtered one.
+  const kept = geom.hideEmpty ? rows.filter((r) => r.total > 0) : rows
   // Ties break chronologically, so equal years never shuffle between renders.
-  const ordered = order === 'time' ? rows : rows.slice().sort((a, b) => b.q - a.q || a.yr - b.yr)
+  const ordered = order === 'time' ? kept : kept.slice().sort((a, b) => b.q - a.q || a.yr - b.yr)
 
   return (
     <section className="story-fullscreen rainbow" aria-label={RAINBOW.title}>
@@ -566,7 +571,11 @@ export default function RainbowHerbicides({ years, series }: Props) {
               </div>
             ))}
           </div>
-          <p className="rainbow-chart-note">{scale === 'vol' ? RAINBOW.fieldNoteVol : RAINBOW.fieldNoteShare}</p>
+          <p className="rainbow-chart-note">
+            {scale === 'vol' ? RAINBOW.fieldNoteVol : RAINBOW.fieldNoteShare}
+            {/* Only while there is a 1961 on screen to point at. */}
+            {scale === 'vol' && !geom.hideEmpty && RAINBOW.fieldNoteNil}
+          </p>
           {FIELD_TUNE_GATE && (
             <Suspense fallback={null}>
               <RainFieldTuner geom={geom} onChange={setGeom} built={F} years={years} series={series} />
