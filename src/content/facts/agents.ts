@@ -93,11 +93,19 @@ export const RAINBOW = {
   // here that is NOT a function is a fact about the record rather than about
   // the drawing, and does not move when the geometry does.
   fieldHeading: 'The mixture changed',
-  // No dek. It said the unit a third time -- after the unit line that sits
-  // directly above the grid and the note that sits directly below it -- and
-  // its other job, telling the reader what they are looking at, is the unit
-  // line's first four words. Two paragraphs saying the same thing is what made
-  // the figure tall.
+  // The dek makes the CLAIM; the note under the grid explains the READING.
+  // They said the same thing once, which is what got the dek deleted: both
+  // opened on the unit, and the unit belongs to neither -- it is on the line
+  // directly above the grid. So this one states no unit and no mechanics. It
+  // is the argument the heading asserts, in the order the eye meets the fields,
+  // and every clause is a fact about the record rather than about the drawing,
+  // which is why it is a plain string and does not move when the geometry does.
+  //
+  // Each clause checked against the per-year composition: 1962-64 are 93.4%,
+  // 100% and 98.2% Other; Orange is the largest share of every year from 1965
+  // (74.2, 76.3, 65.0, 46.9, 70.5, 56.9) and 0% of 1971.
+  fieldDek:
+    'The volume swells and collapses inside a decade, and so does the mixture. The early years are almost entirely the first-generation defoliants. Orange leads every year from 1965 to 1970, and by 1971 it is absent from the record.',
   fieldTitle: 'Each year as a field of drops',
   fieldUnitVol: (n: FieldNums) => `one drop = ${n.gal} U.S. gallons`,
   fieldUnitShare: (n: FieldNums) => `${n.cells} drops = the whole year`,

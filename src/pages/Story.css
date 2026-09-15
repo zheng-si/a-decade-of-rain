@@ -1451,6 +1451,17 @@
 .rb-title {
   max-width: 38.75rem;
 }
+/* rem, where the field's cell minimum is px. Opposite reasons, both right:
+   that one is a physical size on glass and must not scale with the root, this
+   one is a MEASURE and must, because the type shrinks with the root too. */
+.rb-dek {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
 /* Three labelled groups, each a LABEL ABOVE ITS CONTROL — the form the Map
    View switch uses on both surfaces, and the one Si asked this to match. The
    label sat inline before, which reads as a caption beside a button rather

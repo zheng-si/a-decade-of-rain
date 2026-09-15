@@ -449,6 +449,7 @@ export default function RainbowHerbicides({ years, series }: Props) {
                 reader hearing the outline should meet it at the same level a
                 reader seeing the page does. */}
             <h2 className="rb-title">{RAINBOW.fieldHeading}</h2>
+            <p className="rb-dek">{RAINBOW.fieldDek}</p>
           </figcaption>
 
           <div className="rb-controls">

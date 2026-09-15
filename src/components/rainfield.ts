@@ -45,27 +45,29 @@ export interface FieldGeom {
    *  currently catches exactly 1961, which is in the record with six spray
    *  points -- waypoint rows, not missions -- and no volume against any of them.
    *
-   *  ON, which is Si's call and reverses the default this shipped with. The
-   *  argument against: an empty field says the year is in the record and empty,
-   *  where a missing field says nothing at all, and a reader counting 1962 as
-   *  the first year of the spraying is wrong. The argument that won: an empty
-   *  16 x 16 is a large object that earns its space only if the caption under
-   *  it is read, and it is the first thing the eye meets in the figure. The
-   *  fact is not lost: the note under the grid says it in words whether or not
-   *  the field is drawn, and the Atlas has those six points on the map. */
+   *  OFF. It was briefly on, and the argument for turning it on was that an
+   *  empty 16 x 16 is a large object which is also the first thing the eye
+   *  meets. What brought it back: an empty field says the year is in the record
+   *  and carrying nothing, where a missing field says nothing at all, and a
+   *  reader counting 1962 as the first year of the spraying is wrong. Four
+   *  columns made the fields small enough that the empty one costs a quarter of
+   *  one row rather than a screen.
+   *
+   *  The note under the grid carries the fact in words either way, and is
+   *  worded for which. */
   hideEmpty: boolean
   /** Space between marks WITHIN one year's field, as a percentage of the
-   *  mark's own width (gapX) and height (gapY). 60/48 is a density of 62.5% of
-   *  the pitch across, which is where the built density sheet put the floor:
-   *  under about 58% the field reads empty, and at 75% the filled rows fuse
-   *  into a block and the field stops being countable, which is the one thing
-   *  it is for.
+   *  mark's own width (gapX) and height (gapY). 68/48 is a density of 59.5% of
+   *  the pitch across, close to the floor the built density sheet found: under
+   *  about 58% the field reads empty, and at 75% the filled rows fuse into a
+   *  block and the field stops being countable, which is the one thing it is
+   *  for. 59.5 is inside that window with about 1.5 points of room below it.
    *
    *  The two are percentages of DIFFERENT lengths, so equal numbers do not mean
-   *  a square lattice. At aspect 1.2 these give 60.0 across and 57.6 down (48%
-   *  of the 120-tall box) -- 4% tighter vertically, which is deliberate: the
-   *  drop is taller than it is wide and a lattice that matches its proportion
-   *  reads more even than one that is literally square. */
+   *  a square lattice. At aspect 1.2 these give 68.0 across and 57.6 down (48%
+   *  of the 120-tall box), so the lattice is noticeably wider than it is tall.
+   *  That is the dialled look, not a slip: the drop is taller than it is wide,
+   *  and spreading it horizontally keeps the columns legible as columns. */
   gapX: number
   gapY: number
 
@@ -76,12 +78,12 @@ export interface FieldGeom {
    *  PX, NOT REM, and that is not an oversight: the root font-size is this
    *  project's density dial and drops to 13.6px between 641 and 1600 wide, so
    *  a rem floor meant as a physical size on glass would quietly become 85% of
-   *  itself on a laptop — a 180px floor turning into 153.
+   *  itself on a laptop, a 150px floor turning into 128.
    *
-   *  180 buys the mark its size back at 16 x 16: it renders 8.0px across, above
-   *  the ~7.6 below which the silhouette stops being a drop and becomes a dot.
-   *  It costs a column at every width, and on a phone it costs the second
-   *  column outright -- one field per row below about 400 wide. */
+   *  It is a ceiling as much as a floor now: the grid also guarantees four
+   *  columns (see .rb-years), so this only binds where four columns would leave
+   *  MORE room than 150px. Above that crossover it decides how many years sit
+   *  across; below it, four is the answer whatever this says. */
   cellMin: number
   /** Gaps BETWEEN year cells, in REM — where cellMin above is px, and the
    *  difference is deliberate. cellMin is a physical floor on the mark's size
@@ -118,12 +120,12 @@ export const FIELD_DEFAULTS: FieldGeom = {
   corner: 0,
   cols: 16,
   rows: 16,
-  hideEmpty: true,
-  gapX: 60,
+  hideEmpty: false,
+  gapX: 68,
   gapY: 48,
-  cellMin: 180,
+  cellMin: 150,
   gridGapX: 2,
-  gridGapY: 2,
+  gridGapY: 1.5,
   maxWidth: 1200,
   gallons: 20000,
 }
