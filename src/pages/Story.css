@@ -1180,7 +1180,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8vh 6vw 8vh calc(6vw + var(--nav-w));
+  /* 12vh, up from 8. The vertical padding only reaches the sections that need
+     it, which is why this is a targeted change rather than a blunt one: with
+     min-height:100vh and align-items:center, a section whose content is SHORTER
+     than the viewport opens at `50vh - content/2`, independent of the padding,
+     because every vh added to the padding takes one off the half-slack. Only a
+     section whose content exceeds the viewport opens exactly on the padding,
+     and those are the ones that were reading tight -- Rainbow is 1791px at
+     1440x900 and was opening on 72px flat.
+
+     The size comes off the page rather than off a feeling. The Rainbow to
+     Ecosystems boundary measured 170px at 1440x900 against a page median of
+     233, and 212 against 296 at 1920x1080. Four more vh a side takes it to 216
+     and 259, so the tight boundaries close most of the gap to the median.
+
+     Not all of it, and the reason is worth keeping: a boundary only gains from
+     the sections that are actually tall. This one gained ONE side's worth (+46
+     at 900, +47 at 1080, against 4vh of 36 and 43) because Rainbow exceeds the
+     viewport and Ecosystems does not, so only Rainbow's bottom padding moved.
+     A first pass through this comment predicted 2 x 4vh and was wrong; the
+     numbers above are measured. */
+  padding: 12vh 6vw 12vh calc(6vw + var(--nav-w));
   background: rgb(var(--paper));
   pointer-events: auto;
 }
@@ -1444,14 +1464,21 @@
    median 233; at 1920x1080, 126 / 187 / 212 / 260 / 296 / 315 / 380 / 461,
    median 296. The old 16vh gave 144 and 173, about 62% of those medians.
 
-   20vh gives 180 and 216. That is pinned to the ADJACENT boundary, the one the
-   eye actually compares against -- Rainbow to Ecosystems, measured at 170 and
-   212 -- rather than to the page median. Matching the median (26vh) would make
-   a break INSIDE a section larger than the break that ends it, which inverts
-   the hierarchy however section-tier the heading is. Still vh, not rem, so it
-   keeps tracking the padding that produces the real thing. */
+   It is pinned to the ADJACENT boundary, the one the eye actually compares
+   against, since Rainbow to Ecosystems is the next thing down the page. A break
+   INSIDE a section must not be larger than the break that ends it, however
+   section-tier the heading is.
+
+   That boundary moved when .story-fullscreen went from 8vh of padding to 12, so
+   this moved with it: 20vh to 24vh, tracking a boundary measured at 216 and
+   259. 24vh renders 216 and 259 too, which is the point -- it is the same break
+   rather than a nearby one. 27vh was tried first, from a predicted boundary of
+   242/298 that the page did not produce, and it inverted the very hierarchy
+   this comment exists to protect: 243 inside the section against 216 ending it.
+   Still vh, not rem, so it keeps following the padding that produces the real
+   thing rather than freezing a number measured at one viewport height. */
 .rb-figure {
-  margin: 20vh 0 0;
+  margin: 24vh 0 0;
 }
 /* The figure's own head. It borrowed the section's title and the chart's
    controls while it lived behind the chart's tab; standing on its own it has
