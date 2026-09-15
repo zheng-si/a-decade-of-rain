@@ -2,6 +2,24 @@
    scroll over it (Kontinentalist pattern). */
 .story {
   --nav-w: 6.25rem;
+
+  /* PROTOTYPE: one number for the page's vertical rhythm.
+     --section-open is what you see when you land on a section: the drop from
+     its top edge to its title. --section-close is half of it, so a boundary
+     between two sections is always open + close = 1.5 x open, and there is
+     exactly one number to dial.
+
+     px interpolated on viewport WIDTH, not vh and not rem. Not vh because the
+     relationship between two sections does not change when you make the window
+     taller, and because mobile browser chrome resizes the viewport mid-scroll.
+     Not rem because this project's root drops to 13.6px between 641 and 1600,
+     so a rem meant as a physical size silently shrinks 15% on a laptop.
+
+     Fitted through 140px at 375 and 216px at 1440, which is what the page
+     renders today at 1440x900; 250px at 1920. */
+  --section-open: clamp(140px, 113px + 7.14vw, 250px);
+  --section-close: calc(var(--section-open) / 2);
+  --section-gap: calc(var(--section-open) + var(--section-close)); /* the boundary */
   position: relative;
   background: rgb(var(--paper));
 }
@@ -1187,57 +1205,40 @@
   }
 }
 
-/* ── full-screen interlude figures (cover the sticky map on scroll) ─────────
-   An opaque, ≥100vh section in the scroll flow. It re-enables pointer events
-   (the .story-scroll overlay disables them) so the chart is interactive. */
+/* ── editorial sections (cover the sticky map on scroll) ───────────────────
+   An opaque section in the scroll flow, as tall as its own content. It
+   re-enables pointer events (the .story-scroll overlay disables them) so the
+   figures inside are interactive. */
+/* Where the background changes, the boundary splits down the middle instead of
+   being carried entirely by the section below. A colour edge has to have air on
+   BOTH sides: half the gap in the old colour, half in the new. Paper meeting
+   paper needs no such thing, which is why only the posters get this. */
+.story-fullscreen:has(+ .interlude-wall) {
+  padding-bottom: calc(var(--section-gap) / 2);
+}
+.interlude-wall,
+.interlude-wall + .story-fullscreen {
+  padding-top: calc(var(--section-gap) / 2);
+}
+
 .story-fullscreen {
   position: relative;
   z-index: 3;
-  min-height: 100vh;
   display: flex;
-  align-items: center;
+  /* flex-start, not center, and no min-height. That pair was the whole source
+     of the page's uneven rhythm: with min-height:100vh and align-items:center a
+     section SHORTER than the viewport ignored the padding entirely and opened at
+     `50vh - content/2`, so the gap was a function of how much content the
+     section happened to have. Short section, big gap -- backwards, and invisible
+     in the CSS. .close-hero has 431px of content and was opening on 288 against
+     the 216 written here.
+
+     Content-driven now: every section is its own height, pins to the padding,
+     and every boundary is open + close regardless of what is inside it. The
+     posters below opt out, because a poster is not a paragraph. */
+  align-items: flex-start;
   justify-content: center;
-  /* Asymmetric on purpose: 24vh of opening over 12vh of close. It was 8 a side,
-     then 12, and now the two halves have parted because they are not the same
-     thing.
-
-     The opening is what you land on. Where a paper section follows the map or a
-     wall, the two meet at a hard colour edge, and the drop from that edge to the
-     title was a single padding -- 108px at 1440x900, 130 at 1920x1080 -- which
-     reads as a crop rather than an entrance. 24vh renders 216 and 259, which is
-     deliberately the same measure as .rb-figure's break further down: a
-     section's entrance and the big break inside it are one size rather than two
-     near-misses. Where two paper sections meet there is no edge to see, and the
-     opening simply adds to the close below it.
-
-     Which is why the close stays at 12vh. A boundary is a close plus an opening,
-     so raising both raises every boundary twice over. Measured, not reasoned:
-     24/12 puts the Rainbow to Ecosystems boundary at 324 and 389, inside the
-     range the page already ran, whose widest boundaries were past 340 at 900 and
-     past 460 at 1080, and costs 540px of scroll at 1440x900, 619 at 1920x1080.
-     24/24 puts that same boundary at 432 and 518 -- wider than anything else on
-     the page.
-
-     Then watch the second-order effect, because it is most of what this rule
-     does now. With min-height:100vh and align-items:center, a section SHORTER
-     than the viewport used to split its slack and open at `50vh - content/2`,
-     independent of the padding; that is why raising the old symmetric padding
-     only ever reached the tall sections. At 24vh most of them no longer have
-     slack to split -- they exceed 100vh and pin to the padding instead -- so the
-     boundaries between paper sections stopped scattering and landed on 36vh
-     together. Boundary by boundary at 1440x900: Rainbow to Ecosystems 216 ->
-     324, Actions to Alternatives 258 -> 324, Alternatives to Methods 228 -> 324.
-     .close-hero is the one section still short enough to have slack, at 432px of
-     content, so it goes on centring: 288 above, 180 below.
-
-     Two sections opt out further down, both because they are compositions rather
-     than pages of text. .timeline-sec keeps its own 4vh/5vh, since the whole arc
-     has to sit inside one viewport; the price is that Methods to Timeline is now
-     the tightest boundary between two paper sections, 229 against the 324 the
-     others share, because Timeline keeps its short opening while Methods lost the
-     centring slack that used to pad it. .interlude-wall keeps a symmetric 12vh so
-     that its frame stays even. */
-  padding: 24vh 6vw 12vh calc(6vw + var(--nav-w));
+  padding: var(--section-open) 6vw var(--section-close) calc(6vw + var(--nav-w));
   background: rgb(var(--paper));
   pointer-events: auto;
 }
@@ -1509,16 +1510,14 @@
    242/298 that the page never produced, and it inverted exactly that: 243 inside
    the section against 216 ending it.
 
-   24vh now reads against the section's OPENING rather than its ending, because
-   .story-fullscreen went asymmetric. 24vh of top padding renders 216 at 1440x900
-   and 259 at 1920x1080, the same two numbers this margin renders, so the
-   entrance to the section and the break inside it are one measure. The boundary
-   that ends the section is a close plus an opening, 36vh, measuring 324 and 389
-   -- above both, so the hierarchy now has headroom instead of sitting on the
-   line. Still vh, not rem, so it keeps following the padding that produces the
-   real thing rather than freezing a number read at one viewport height. */
+   It is --section-open now, which is the same measure the section opens on: the
+   entrance to a section and the big break inside it are one size rather than two
+   near-misses. The boundary that ENDS the section is --section-gap, an open plus
+   a close, which is 1.5x this by construction -- so the hierarchy holds by
+   arithmetic rather than by two numbers that happen to be in the right order,
+   and it keeps holding at whatever value the token is dialled to. */
 .rb-figure {
-  margin: 24vh 0 0;
+  margin: var(--section-open) 0 0;
 }
 /* The figure's own head. It borrowed the section's title and the chart's
    controls while it lived behind the chart's tab; standing on its own it has
@@ -2279,15 +2278,20 @@
 }
 
 /* ── Interlude · The Consequences — two full-page photo walls ──────────────── */
-/* Symmetric padding, against .story-fullscreen's 24vh/12vh above. A section
-   opens on a title and can afford to be top-heavy; a wall opens on a
-   composition. Its figures read off the TOP edge the photos share and its lede
-   sits on the BOTTOM edge (see .wall-lead), so the frame around it has to be
-   even. At 24/12 it tips: 227 above against 120 below on the first wall, 216
-   against 108 on the second, which also stops holding inside one viewport
-   (900 -> 916) -- and holding one viewport is the one thing a wall is for. */
+/* The two posters, and the only sections that still hold a whole screen. A
+   paragraph is as tall as its words; a poster is a composition, and this one is
+   built on the top edge the photos share and the bottom edge the lede sits on,
+   so it keeps min-height and keeps centring. Its frame is symmetric at half the
+   boundary, and the paper section on either side puts the other half against it,
+   so the colour edge falls in the middle of the gap rather than against the type
+   on one side of it. The cost of keeping the screen is that the wall's leftover
+   slack lands in that gap too: 336 and 335 at 1440x900 against the 324 every
+   other boundary shares. Dropping min-height would make all nine identical and
+   is one line away, at the price of a poster that no longer fills a screen. */
 .interlude-wall {
-  padding-top: 12vh;
+  min-height: 100svh;
+  align-items: center;
+  padding-block: calc(var(--section-gap) / 2);
   color: #fff;
   overflow: hidden;
 }
@@ -4113,16 +4117,12 @@
   color: var(--on-photo);
 }
 
-/* Dense section: trim the fullscreen padding so the whole arc sits
-   within one viewport. Holding 4vh while .story-fullscreen opened up to 24 is
-   what makes Methods to Timeline the tightest boundary between two paper
-   sections -- 229 at 1440x900 against the 324 the rest of them share -- and it
-   is still the right trade, because the alternative is an arc that does not
-   fit. */
-.timeline-sec {
-  padding-top: 4vh;
-  padding-bottom: 5vh;
-}
+/* PROTOTYPE: this section's 4vh/5vh override is gone. It existed so the whole
+   arc would sit inside one viewport back when every section was min-height:100vh;
+   nothing forces that now, and it was the last place on the page still setting
+   its own rhythm -- it made Methods to Timeline 229 against everyone else's 324.
+   The cost is that landing on Timeline from the nav no longer shows the whole
+   arc: 324 of opening plus 648 of content is 972 against a 900px viewport. */
 .timeline-sec .fs-note {
   margin-top: 1.375rem;
 }

@@ -56,7 +56,7 @@ export default function EcosystemsFigure() {
   const displayPct = useCountUp(headPct)
 
   return (
-    <section className="story-fullscreen ecosystems" aria-label={ECOSYSTEMS.title}>
+    <section id="sec-ecosystems" className="story-fullscreen ecosystems" aria-label={ECOSYSTEMS.title}>
       <div className="fs-inner">
         <header className="fs-head">
           <h2 className="fs-title">{ECOSYSTEMS.title}</h2>

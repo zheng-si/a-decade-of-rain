@@ -294,7 +294,7 @@ export default function RainbowHerbicides({ years, series }: Props) {
   const ordered = order === 'time' ? kept : kept.slice().sort((a, b) => b.q - a.q || a.yr - b.yr)
 
   return (
-    <section className="story-fullscreen rainbow" aria-label={RAINBOW.title}>
+    <section id="sec-rainbow" className="story-fullscreen rainbow" aria-label={RAINBOW.title}>
       <div className="fs-inner">
         <header className="fs-head">
           <h2 className="fs-title">{RAINBOW.title}</h2>
