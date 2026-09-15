@@ -63,6 +63,18 @@ export const AGENTS: AgentInfo[] = [
   },
 ]
 
+/** What the figure measures about itself, handed to the copy above so a caption
+ *  can never disagree with the grid it sits under. */
+export interface FieldNums {
+  /** Gallons per mark, already grouped: "20,000". */
+  gal: string
+  /** Marks in one year's field. */
+  cells: number
+  peakYear: number
+  /** Marks the peak year fills, as the figure actually draws it. */
+  peakFill: number
+}
+
 export const RAINBOW = {
   title: 'The Rainbow Herbicides',
   dek: 'Ranch Hand sprayed a family of defoliants, each known by the colour banded on its drum. Together they came to nearly 20 million gallons, yet they were far from equal, in volume and in what they left behind.',
@@ -71,22 +83,27 @@ export const RAINBOW = {
   chartNote: 'Real spray volumes from the HERBS spray records (Stellman et al., 2003).',
   chartSourceId: 'stellman_2003',
   // The year typology, which stands on its own under the chart and carries its
-  // own heading, dek and unit line. The unit changes with the scale, so there
-  // are two of it: in Volume a drop is a fixed quantity of herbicide, in Share
-  // the field itself is the unit.
+  // own heading, dek and unit line.
+  //
+  // FUNCTIONS, not strings, for every line that states a number. These used to
+  // be literals -- "one drop = 40,000 U.S. gallons", "1967 fills 127 of its
+  // 144" -- and the moment the field's geometry moved they were quietly false
+  // while still reading as authoritative. The figure now hands them its own
+  // arithmetic, so a caption cannot disagree with the grid above it. Anything
+  // here that is NOT a function is a fact about the record rather than about
+  // the drawing, and does not move when the geometry does.
   fieldHeading: 'The mixture changed',
-  fieldDek:
-    'Every year of the record as a field of drops — one drop to 40,000 gallons, or the whole field to the whole year. The volume swells and collapses inside a decade, and what the drops are made of changes with it.',
+  fieldDek: (n: FieldNums) =>
+    `Every year of the record as a field of drops \u2014 one drop to ${n.gal} gallons, or the whole field to the whole year. The volume swells and collapses inside a decade, and what the drops are made of changes with it.`,
   fieldTitle: 'Each year as a field of drops',
-  fieldUnitVol: 'one drop = 40,000 U.S. gallons',
-  fieldUnitShare: '144 drops = the whole year',
-  fieldNoteVol:
-    'Volume: a drop is 40,000 U.S. gallons, so every field is the same measure — 1967 fills 127 of its 144, and 1971 does not fill one. An agent that sprayed never rounds away to nothing, so the lightest years carry a drop apiece.',
-  // Split off the Volume note rather than written into it, because it names a
-  // field the reader can point at -- and the figure can be set to drop the
-  // years that carry no volume. A sentence about 1961 under a grid with no
-  // 1961 in it is worse than no sentence.
-  fieldNoteNil: ' 1961 is in the record with no volume against its name.',
+  fieldUnitVol: (n: FieldNums) => `one drop = ${n.gal} U.S. gallons`,
+  fieldUnitShare: (n: FieldNums) => `${n.cells} drops = the whole year`,
+  fieldNoteVol: (n: FieldNums) =>
+    `Volume: a drop is ${n.gal} U.S. gallons, so every field is the same measure \u2014 ${n.peakYear} fills ${n.peakFill} of its ${n.cells}. An agent that sprayed never rounds away to nothing, so a year worth barely one drop still carries one for each agent in it.`,
+  // 1962, 1963 and 1964 are 0.79%, 1.77% and 4.39% of the peak. A fact about
+  // the record, so it is a string.
   fieldNoteShare:
-    'Share: every year gets the whole field, whatever it sprayed — which is the only way the early years, each under 5% of the peak, can be read at all.',
+    'Share: every year gets the whole field, whatever it sprayed \u2014 which is the only way the early years, each under 5% of the peak, can be read at all.',
+  // Shown only while the field is drawing the years that carry no volume.
+  fieldNoteNil: ' 1961 is in the record with no volume against its name.',
 }

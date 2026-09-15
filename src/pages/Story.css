@@ -1409,19 +1409,22 @@
 }
 
 /* ── the year typology ───────────────────────────────────────────────────
-   Eleven fields of 144 drops, standing under the chart rather than behind a
-   tab on it, and on the full measure rather than the chart's column.
+   Ten fields of 256 drops (1961 carries no volume and is not drawn), standing
+   under the chart rather than behind a tab on it, and on the full measure
+   rather than the chart's column.
 
-   Six across, two rows. auto-fit rather than a column count per breakpoint,
-   because the constraint is a MINIMUM CELL, not a layout: a drop is 100 of an
-   1846-unit field, so a cell under ~140px renders it below 7.6px and the shape
-   stops being a drop. In px, not rem, for the same reason the minimum exists --
-   this is a physical size on glass, and the root scales to 13.6 on a laptop,
-   which would have quietly turned a 140px floor into 119.
+   auto-fit rather than a column count per breakpoint, because the constraint is
+   a MINIMUM CELL, not a layout: a drop is 100 of a 2500-unit field, so a cell
+   under ~180px renders it below 7.6px and the shape stops being a drop. In px,
+   not rem, for the same reason the minimum exists -- this is a physical size on
+   glass, and the root scales to 13.6 on a laptop, which would quietly turn a
+   180px floor into 153.
 
-   140 gives six at 952 (the measure at 1440), three at 591 and two at 343. The
-   max-width caps it at six: the measure is 1120 at 1920, which would otherwise
-   take a seventh column and leave a row of seven over a row of four. */
+   180 with a 2rem gutter gives five across at 1120 (the measure at 1728, two
+   rows of five), four at 952, two at 591 and ONE at 343 -- the phone gets a
+   single field per row, which is the price of the bigger mark and is paid in
+   scroll. The max-width is above the 70rem container at every width, so it is a
+   guard rather than a live cap. */
 .rb-figure {
   margin: 2.75rem 0 0;
 }
@@ -1528,9 +1531,9 @@
      field passes them down as custom properties so the dev tuner can move them
      live. These fallbacks are what ships; the var() is never set in a reader's
      browser. Keep the two in step -- the fallback is the real default. */
-  grid-template-columns: repeat(auto-fit, minmax(var(--rb-cell-min, 140px), 1fr));
-  gap: var(--rb-gap-y, 1.25rem) var(--rb-gap-x, 1rem);
-  max-width: var(--rb-max, 1030px);
+  grid-template-columns: repeat(auto-fit, minmax(var(--rb-cell-min, 180px), 1fr));
+  gap: var(--rb-gap-y, 2rem) var(--rb-gap-x, 2rem);
+  max-width: var(--rb-max, 1200px);
   margin: 0;
 }
 .rb-defs {

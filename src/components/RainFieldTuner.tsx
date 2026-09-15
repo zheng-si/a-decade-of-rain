@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { AgentSeries } from './RainbowHerbicides'
-import { densityOf, FIELD_DEFAULTS, gapOf, type BuiltField, type FieldGeom, type Shape } from './rainfield'
+import { densityOf, FIELD_DEFAULTS, type BuiltField, type FieldGeom, type Shape } from './rainfield'
 import './RainFieldTuner.css'
 
 /**
@@ -183,8 +183,8 @@ export default function RainFieldTuner({ geom, onChange, built, years, series }:
     // Volume: how full the heaviest year is, and whether anything overflows.
     const volFills = yearTotals.map((q) => (q > 0 ? Math.max(1, Math.round(q / geom.gallons)) : 0))
     const over = volFills.filter((v) => v > cells).length
-    // A year with volume that cannot be drawn at all is the failure the 144 was
-    // originally chosen to avoid.
+    // A year with volume that cannot be drawn at all is the failure the field
+    // size exists to avoid.
     const volLost = years.filter((_, i) => yearTotals[i] > 0 && Math.round(yearTotals[i] / geom.gallons) < 1)
 
     // Share: an agent that sprayed and rounds away to nothing. The figure's
@@ -234,7 +234,9 @@ export default function RainFieldTuner({ geom, onChange, built, years, series }:
       tight,
       tightestRound,
       floorExtra,
-      totalMarks: cells * years.length,
+      // Marks the figure actually DRAWS, so the floor cost is a fraction of
+      // something on screen. It counted every year including the hidden ones.
+      totalMarks: cells * (years.length - (geom.hideEmpty ? empties.length : 0)),
     }
   }, [built.cells, geom.gallons, years, series])
 
@@ -344,8 +346,11 @@ export default function RainFieldTuner({ geom, onChange, built, years, series }:
           <Num geom={geom} set={set} k="gapY" label="gap y" step={2} min={0} max={300} unit="% of h" />
           <p className="rft-hint">
             density {n2(densityOf(geom.gapX) * 100)}% across ·{' '}
-            <button className="rft-link" onClick={() => set({ gapX: n2(gapOf(0.63)), gapY: n2(gapOf(0.63) / geom.aspect) })}>
-              lock to 63%
+            <button
+              className="rft-link"
+              onClick={() => set({ gapX: FIELD_DEFAULTS.gapX, gapY: FIELD_DEFAULTS.gapY })}
+            >
+              back to {n2(densityOf(FIELD_DEFAULTS.gapX) * 100)}%
             </button>
           </p>
         </section>

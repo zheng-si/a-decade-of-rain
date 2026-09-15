@@ -10,10 +10,13 @@
  * rebuild that exact path from four numbers, so the tuner and the shipped page
  * are the same geometry rather than two that have to be kept in step.
  *
- * VERIFIED: at the defaults below, buildDrop() reproduces the shipped path
- * point for point — tangent points (55.01, 2.70) and (95.05, 63.50), equator
- * (100, 80), flank 33.37 degrees from vertical against the 33.4 that was
- * measured. The path is regenerated, not remembered.
+ * VERIFIED against the parameters the authored path was drawn at — aspect 1.30,
+ * apex 6, hip 30 — where buildDrop() reproduces it point for point: tangents
+ * (55.01, 2.70) and (95.05, 63.50), equator (100, 80), flank 33.37 degrees from
+ * vertical against the 33.4 that was measured. The path is regenerated, not
+ * remembered. That check is about the GENERATOR, so it stands whatever the
+ * defaults below are dialled to; re-run it against those three numbers, not
+ * against whatever is current, if the construction is ever touched.
  */
 
 export type Shape = 'drop' | 'circle' | 'square'
@@ -42,18 +45,27 @@ export interface FieldGeom {
    *  currently catches exactly 1961, which is in the record with six spray
    *  points and no volume against any of them.
    *
-   *  Off by default, and the default is the argued position: an empty field
-   *  says the year is in the record and empty, where a missing field says
-   *  nothing at all and a reader counting 1962 as the first year of the war's
-   *  spraying would be wrong. But an empty 12 x 12 is also a large object that
-   *  earns its space only if the reader reads the caption under it, so this is
-   *  a real choice rather than a settled one. */
+   *  ON, which is Si's call and reverses the default this shipped with. The
+   *  argument against: an empty field says the year is in the record and empty,
+   *  where a missing field says nothing at all, and a reader counting 1962 as
+   *  the first year of the spraying is wrong. The argument that won: an empty
+   *  16 x 16 is a large object that earns its space only if the caption under
+   *  it is read, and it is the first thing the eye meets in the figure. The
+   *  fact is not lost -- it is in the section's prose and in the Atlas, where
+   *  1961's six missions are on the map. */
   hideEmpty: boolean
   /** Space between marks WITHIN one year's field, as a percentage of the
-   *  mark's own width (gapX) and height (gapY). The shipped 58.73/45.18 is the
-   *  63% density that was chosen on a built sheet: pitch = W / 0.63, so the
-   *  gap is W * (1/0.63 - 1) = 58.7% of W, and the same absolute gap on the
-   *  Y axis is 58.7/1.30 = 45.2% of the taller H. */
+   *  mark's own width (gapX) and height (gapY). 60/48 is a density of 62.5% of
+   *  the pitch across, which is where the built density sheet put the floor:
+   *  under about 58% the field reads empty, and at 75% the filled rows fuse
+   *  into a block and the field stops being countable, which is the one thing
+   *  it is for.
+   *
+   *  The two are percentages of DIFFERENT lengths, so equal numbers do not mean
+   *  a square lattice. At aspect 1.2 these give 60.0 across and 57.6 down (48%
+   *  of the 120-tall box) -- 4% tighter vertically, which is deliberate: the
+   *  drop is taller than it is wide and a lattice that matches its proportion
+   *  reads more even than one that is literally square. */
   gapX: number
   gapY: number
 
@@ -64,7 +76,12 @@ export interface FieldGeom {
    *  PX, NOT REM, and that is not an oversight: the root font-size is this
    *  project's density dial and drops to 13.6px between 641 and 1600 wide, so
    *  a rem floor meant as a physical size on glass would quietly become 85% of
-   *  itself on a laptop — a 140px floor turning into 119. */
+   *  itself on a laptop — a 180px floor turning into 153.
+   *
+   *  180 buys the mark its size back at 16 x 16: it renders 8.0px across, above
+   *  the ~7.6 below which the silhouette stops being a drop and becomes a dot.
+   *  It costs a column at every width, and on a phone it costs the second
+   *  column outright -- one field per row below about 400 wide. */
   cellMin: number
   /** Gaps BETWEEN year cells, in REM — where cellMin above is px, and the
    *  difference is deliberate. cellMin is a physical floor on the mark's size
@@ -79,7 +96,15 @@ export interface FieldGeom {
 
   // ── the unit ────────────────────────────────────────────────────────────
   /** U.S. gallons per mark in Volume mode. Tied to cols x rows: the peak year
-   *  must still fit the field. */
+   *  must still fit the field.
+   *
+   *  At 20,000 and 256 cells, 1967 draws 255 -- the field is one mark short of
+   *  full, which is the image, and there is almost no headroom left. Math.min
+   *  still caps it, and nothing reachable overflows (Share is a proportion of
+   *  the year, and an agent filter only ever reduces the quantity), so the cap
+   *  is unreachable rather than load-bearing. It would become load-bearing only
+   *  if the HERBS totals were ever revised upward by more than 0.2%, and a
+   *  revised record should be re-dialled rather than silently clamped. */
   gallons: number
 }
 
@@ -87,20 +112,20 @@ export interface FieldGeom {
  *  see the PR for the sheets each came off. */
 export const FIELD_DEFAULTS: FieldGeom = {
   shape: 'drop',
-  aspect: 1.3,
-  apex: 6,
-  hip: 30,
-  corner: 20,
-  cols: 12,
-  rows: 12,
-  hideEmpty: false,
-  gapX: 58.7302,
-  gapY: 45.1771,
-  cellMin: 140,
-  gridGapX: 1,
-  gridGapY: 1.25,
-  maxWidth: 1030,
-  gallons: 40000,
+  aspect: 1.2,
+  apex: 13,
+  hip: 22,
+  corner: 0,
+  cols: 16,
+  rows: 16,
+  hideEmpty: true,
+  gapX: 60,
+  gapY: 48,
+  cellMin: 180,
+  gridGapX: 2,
+  gridGapY: 2,
+  maxWidth: 1200,
+  gallons: 20000,
 }
 
 /** The mark's own coordinate space. The grid is scaled INTO this, never the
@@ -279,8 +304,6 @@ export function buildField(g: FieldGeom): BuiltField {
   }
 }
 
-/** The gap the shipped density implies, so the tuner can show both the number
- *  a designer sets (a gap) and the number the last round was argued in (a
- *  density: the mark's width as a fraction of the pitch). */
+/** The gap a designer sets, read back as the number the density rounds were
+ *  argued in: the mark's width as a fraction of the pitch. */
 export const densityOf = (gapX: number) => 1 / (1 + gapX / 100)
-export const gapOf = (density: number) => (1 / density - 1) * 100

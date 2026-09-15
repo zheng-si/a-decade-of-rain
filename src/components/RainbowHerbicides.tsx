@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react'
-import { AGENTS, RAINBOW, type AgentInfo } from '../content/facts/agents'
+import { AGENTS, RAINBOW, type AgentInfo, type FieldNums } from '../content/facts/agents'
 import { SOURCES } from '../content/sources'
 import { fmtGallons } from '../data/spray'
 import { BIOHAZARD } from './biohazard'
@@ -62,13 +62,16 @@ function Biohazard() {
 // gives every year the same field whatever its volume.
 //
 // The geometry itself lives in rainfield.ts, as parameters rather than as a
-// literal path, so the tuner and the shipped page cannot drift apart. 144 is
-// not a round number chosen for looks: it is the smallest field where absolute
-// mode still gives every volume-bearing year at least one drop AND a
-// largest-remainder split loses no group that actually sprayed. At 100 the
-// 0.4477% Other of 1967 rounds away, at 64 so does the 0.60% Blue of 1966 and
-// 1971 disappears from absolute mode entirely. Measured on the HERBS record,
-// not assumed.
+// literal path, so the tuner and the shipped page cannot drift apart.
+//
+// 16 x 16 = 256 is not a round number chosen for looks. Two constraints meet
+// in it. Below about 144 a largest-remainder split starts losing groups that
+// actually sprayed -- at 100 the 0.4477% Other of 1967 rounds away, at 64 so
+// does the 0.60% Blue of 1966 -- so 256 is comfortably clear of that floor and
+// the tuner confirms it loses nothing. Above it the mark runs out of room: the
+// field is drawn at a cell of 180px, which puts the drop at 8.0px across, and
+// below about 7.6 the silhouette stops being a drop. 24 x 24 was measured at
+// 5.2px and was a field of dots.
 
 /** Unfilled. Deliberately close to the paper: the field is a budget, not a mark. */
 const DROP_EMPTY = 'rgba(28, 43, 33, 0.07)'
@@ -76,16 +79,16 @@ const DROP_EMPTY = 'rgba(28, 43, 33, 0.07)'
 /** Largest remainder, with one guarantee on top of it: a group that sprayed
  *  never rounds to nothing.
  *
- *  In Share mode, where the budget is the whole 144, that guarantee never has
- *  to fire — it is there so a later change to N cannot silently delete a
- *  number. In Volume mode it does fire, and it wins against the budget: 1971's
- *  volume is worth one drop but it sprayed three agents, so it draws three.
- *  Measured across the decade that is three extra drops out of 1,584 -- one at
- *  1962 and two at 1971, both years already reading as "almost nothing" -- and
- *  the number under each cell carries the true figure. (It said four until the
- *  field tuner recomputed it live from the record and disagreed; the tuner is
- *  right, and the same three come out under the per-peak denominator this unit
- *  replaced, so the number was never four.) The trade is deliberate: a reader
+ *  In Share mode, where the budget is the whole field, that guarantee never
+ *  has to fire — it is there so a later change to the grid cannot silently
+ *  delete a number. In Volume mode it does fire, and it wins against the
+ *  budget: 1971's 29,068 gallons is worth 1.45 drops but it sprayed three
+ *  agents, so it draws three.
+ *  Measured across the decade at the current unit that is two extra drops out
+ *  of 2,560, both of them at 1971, the one year already reading as "almost
+ *  nothing" -- and the number under each cell carries the true figure. Read
+ *  off the rendered page rather than reasoned about; the tuner recomputes it
+ *  on every change, and it has already caught this number being wrong once. The trade is deliberate: a reader
  *  miscounting a 3-drop cell as a 1-drop cell costs nothing, and an agent that
  *  sprayed being invisible costs the claim the figure is making. */
 function apportion(vals: number[], budget: number): number[] {
@@ -274,6 +277,19 @@ export default function RainbowHerbicides({ years, series }: Props) {
   // Orange alone 1961-64 and 1971 all come to zero, and losing five of eleven
   // fields on a chip press would be a different figure, not a filtered one.
   const kept = geom.hideEmpty ? rows.filter((r) => r.total > 0) : rows
+  // What the captions are allowed to say about this figure. Derived here and
+  // passed down, so a line of copy cannot state a unit or a fill the grid above
+  // it does not have -- which is exactly what happened while these were
+  // literals. The peak is the UNFILTERED one: it describes the figure's scale,
+  // not the current selection.
+  const peakGal = Math.max(...yearTotals, 0)
+  const nums: FieldNums = {
+    gal: geom.gallons.toLocaleString('en-US'),
+    cells: F.cells,
+    peakYear: years[yearTotals.indexOf(peakGal)],
+    peakFill: peakGal > 0 ? Math.min(F.cells, Math.max(1, Math.round(peakGal / geom.gallons))) : 0,
+  }
+
   // Ties break chronologically, so equal years never shuffle between renders.
   const ordered = order === 'time' ? kept : kept.slice().sort((a, b) => b.q - a.q || a.yr - b.yr)
 
@@ -430,7 +446,7 @@ export default function RainbowHerbicides({ years, series }: Props) {
         <figure className="rb-figure">
           <figcaption className="rb-head">
             <h3 className="rb-title">{RAINBOW.fieldHeading}</h3>
-            <p className="rb-dek">{RAINBOW.fieldDek}</p>
+            <p className="rb-dek">{RAINBOW.fieldDek(nums)}</p>
           </figcaption>
 
           <div className="rb-controls">
@@ -524,7 +540,8 @@ export default function RainbowHerbicides({ years, series }: Props) {
           </div>
 
           <p className="rb-unit">
-            {RAINBOW.fieldTitle} <span>· {scale === 'vol' ? RAINBOW.fieldUnitVol : RAINBOW.fieldUnitShare}</span>
+            {RAINBOW.fieldTitle}{' '}
+            <span>· {scale === 'vol' ? RAINBOW.fieldUnitVol(nums) : RAINBOW.fieldUnitShare(nums)}</span>
           </p>
 
           {/* The four grid numbers ride as custom properties so the tuner can
@@ -539,7 +556,7 @@ export default function RainbowHerbicides({ years, series }: Props) {
               ['--rb-max' as string]: `${geom.maxWidth}px`,
             }}
           >
-            {/* One path, 1,584 references to it. */}
+            {/* One path, referenced once per mark in every field. */}
             <svg width="0" height="0" aria-hidden="true" focusable="false" className="rb-defs">
               <defs>
                 <path id="rb-drop" d={F.d} />
@@ -572,7 +589,7 @@ export default function RainbowHerbicides({ years, series }: Props) {
             ))}
           </div>
           <p className="rainbow-chart-note">
-            {scale === 'vol' ? RAINBOW.fieldNoteVol : RAINBOW.fieldNoteShare}
+            {scale === 'vol' ? RAINBOW.fieldNoteVol(nums) : RAINBOW.fieldNoteShare}
             {/* Only while there is a 1961 on screen to point at. */}
             {scale === 'vol' && !geom.hideEmpty && RAINBOW.fieldNoteNil}
           </p>
