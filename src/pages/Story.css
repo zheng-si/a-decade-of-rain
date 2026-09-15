@@ -1524,9 +1524,13 @@
 }
 .rb-years {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1.25rem 1rem;
-  max-width: 1030px;
+  /* The four numbers here are also FIELD_DEFAULTS in rainfield.ts, and the
+     field passes them down as custom properties so the dev tuner can move them
+     live. These fallbacks are what ships; the var() is never set in a reader's
+     browser. Keep the two in step -- the fallback is the real default. */
+  grid-template-columns: repeat(auto-fit, minmax(var(--rb-cell-min, 140px), 1fr));
+  gap: var(--rb-gap-y, 1.25rem) var(--rb-gap-x, 1rem);
+  max-width: var(--rb-max, 1030px);
   margin: 0;
 }
 .rb-defs {

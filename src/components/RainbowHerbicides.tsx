@@ -1,8 +1,25 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { AGENTS, RAINBOW, type AgentInfo } from '../content/facts/agents'
 import { SOURCES } from '../content/sources'
 import { fmtGallons } from '../data/spray'
 import { BIOHAZARD } from './biohazard'
+import { buildField, FIELD_DEFAULTS, type FieldGeom } from './rainfield'
+
+/** Lazy, so the tuner's code never reaches a reader. Gated exactly as the
+ *  Story's type tuner is: on in dev, and on anywhere with `?tune` in the query
+ *  string — which is what lets the geometry be dialled on a deploy preview
+ *  rather than only on a machine with the repo checked out. Latched at import
+ *  for the same reason that one is: whether a dev tool appears should not
+ *  depend on when a render happened to run. */
+const RainFieldTuner = lazy(() => import('./RainFieldTuner'))
+const FIELD_TUNE_GATE: boolean = (() => {
+  if (import.meta.env.DEV) return true
+  try {
+    return new URLSearchParams(window.location.search).has('tune')
+  } catch {
+    return false
+  }
+})()
 
 export interface AgentSeries {
   key: AgentInfo['key']
@@ -44,83 +61,17 @@ function Biohazard() {
 // of the plot saying nothing. A field per year fixes that, because SHARE mode
 // gives every year the same field whatever its volume.
 //
-// 144 is not a round number chosen for looks. It is the smallest field where
-// absolute mode still gives every volume-bearing year at least one drop AND a
-// largest-remainder split loses no group that actually sprayed: at 100 the
+// The geometry itself lives in rainfield.ts, as parameters rather than as a
+// literal path, so the tuner and the shipped page cannot drift apart. 144 is
+// not a round number chosen for looks: it is the smallest field where absolute
+// mode still gives every volume-bearing year at least one drop AND a
+// largest-remainder split loses no group that actually sprayed. At 100 the
 // 0.4477% Other of 1967 rounds away, at 64 so does the 0.60% Blue of 1966 and
 // 1971 disappears from absolute mode entirely. Measured on the HERBS record,
 // not assumed.
-const N = 12
-const CELLS = N * N
-
-/** The drop: a straight-flanked compass drop, authored rather than generated.
- *
- *  Four radii and two lines, every junction tangent-continuous. Apex arc r=6
- *  centred (50,6); base circle r=50 centred (50,80); hip arcs r=30 centred
- *  (70,80) and (30,80), placed 20 from the base centre so they are internally
- *  tangent to it exactly at the equator; the flanks are the common external
- *  tangents of the apex and hip circles, 33.4 degrees from vertical.
- *
- *  Chosen over ten parametric variants and eleven more drawn from six shape
- *  traditions, on sheets that showed every candidate BOTH large and at the ~8px
- *  it actually ships at. At that size only three things survive — the aspect
- *  ratio, whether the apex carries any ink at all, and top-to-bottom asymmetry.
- *  This one has a real apex where the construction it replaces had a blunt nub,
- *  and the lowest ink of the three finalists (66.05% of its box, rasterised),
- *  which is what keeps four herbicide colours apart in a full field.
- *
- *  It also retires a defect in that construction. Its apex rounding was a
- *  quadratic THROUGH the nominal apex, so the drawn shape never reached the top
- *  of its own box: at the shipped rounding the curve's highest point sat 7.9%
- *  down, the drop rendered 8.02px where the parameters said 8.7, and changing
- *  the rounding silently changed the effective aspect ratio too. This path
- *  fills its box exactly — measured bbox 0,0,100,130 — so the numbers below
- *  mean what they say. */
-const DROP_D =
-  'M 50 0 A 6 6 0 0 1 55.01 2.70 L 95.05 63.50 A 30 30 0 0 1 100 80 ' +
-  'A 50 50 0 0 1 50 130 A 50 50 0 0 1 0 80 A 30 30 0 0 1 4.95 63.50 ' +
-  'L 44.99 2.70 A 6 6 0 0 1 50 0 Z'
-const DW = 100
-const DH = 130
-
-/** How much of the grid pitch the drop's width takes; the rest is air.
- *
- *  63% was picked on a built sheet of six densities crossed with three
- *  silhouettes, every field rendered at the 147px cell the figure really gets.
- *  Under 58% the field reads empty. At 75% the filled rows fuse into a block and
- *  the field stops being countable, which is the one thing it is for. The three
- *  finalists were within 3 points of each other on ink, so the density reads the
- *  same whichever had won — that was checked before this number was picked.
- *
- *  The geometry stays in the drop's own 100-unit space and the GRID is scaled
- *  into it, never the other way round: rescaling the path means a regex over its
- *  numbers, which also hits the arc flags and silently invalidates every path. */
-const DENSITY = 0.63
-const PITCH_X = DW / DENSITY
-const PITCH_Y = DH + (PITCH_X - DW)
-const FIELD_W = (N - 1) * PITCH_X + DW
-const FIELD_H = (N - 1) * PITCH_Y + DH
 
 /** Unfilled. Deliberately close to the paper: the field is a budget, not a mark. */
 const DROP_EMPTY = 'rgba(28, 43, 33, 0.07)'
-
-/** Volume mode's unit: one drop, 40,000 U.S. gallons.
- *
- *  It replaces a denominator. Volume used to measure each year against 1967,
- *  which made the peak a full 144 by definition and the unit a different
- *  quantity in every reading of the figure -- "a drop" meant 35,359 gallons
- *  here and something else the moment the filter changed. A fixed unit makes
- *  the count itself the number: 127 drops is 5.1 million gallons wherever you
- *  see it, so two fields can be compared by eye without the reader holding a
- *  ratio in their head.
- *
- *  40,000 against the record: the peak year comes to 127.3 drops, 88% of the
- *  144, so the field is nearly full where the decade is heaviest and has real
- *  headroom above it. 36,000 is the tightest round unit that still fits (141
- *  of 144); 35,000 overflows at 145. The floor below the cap is the one that
- *  matters -- a fixed unit is only worth having if no year can exceed the
- *  field -- and Math.min holds it whatever a later filter does. */
-const DROP_GALLONS = 40000
 
 /** Largest remainder, with one guarantee on top of it: a group that sprayed
  *  never rounds to nothing.
@@ -129,9 +80,12 @@ const DROP_GALLONS = 40000
  *  to fire — it is there so a later change to N cannot silently delete a
  *  number. In Volume mode it does fire, and it wins against the budget: 1971's
  *  volume is worth one drop but it sprayed three agents, so it draws three.
- *  Measured across the decade that is four extra drops out of 1,584, all of
- *  them in the two years already reading as "almost nothing", and the number
- *  under each cell carries the true figure. The trade is deliberate: a reader
+ *  Measured across the decade that is three extra drops out of 1,584 -- one at
+ *  1962 and two at 1971, both years already reading as "almost nothing" -- and
+ *  the number under each cell carries the true figure. (It said four until the
+ *  field tuner recomputed it live from the record and disagreed; the tuner is
+ *  right, and the same three come out under the per-peak denominator this unit
+ *  replaced, so the number was never four.) The trade is deliberate: a reader
  *  miscounting a 3-drop cell as a 1-drop cell costs nothing, and an agent that
  *  sprayed being invisible costs the claim the figure is making. */
 function apportion(vals: number[], budget: number): number[] {
@@ -222,6 +176,12 @@ export default function RainbowHerbicides({ years, series }: Props) {
    *  visibly does nothing, while ranking by volume reads the mixture of the
    *  heaviest years left to right, which is the question that mode is for. */
   const [order, setOrder] = useState<'time' | 'heavy'>('time')
+  /** The field's geometry. A plain state whose initial value is the shipped
+   *  constant, so with the tuner gated off this is a value that is set once and
+   *  never written again — the render is identical to reading the constants
+   *  directly. */
+  const [geom, setGeom] = useState<FieldGeom>(FIELD_DEFAULTS)
+  const F = buildField(geom)
 
   const allPicked = picks.size === AGENTS.length
   /** A plain toggle, with one guard: the last agent cannot be turned off. An
@@ -273,7 +233,7 @@ export default function RainbowHerbicides({ years, series }: Props) {
   for (let t = 0; t <= yMax + 1; t += yStep) yTicks.push(t)
 
   // Per-year totals from the record itself. Volume mode no longer measures
-  // against the heaviest of them -- see DROP_GALLONS.
+  // against the heaviest of them -- see `gallons` in rainfield.ts.
   const yearTotals = years.map((_, i) => series.reduce((a, ser) => a + ser.values[i], 0))
 
   const grandTotal = series.reduce((s, x2) => s + x2.total, 0)
@@ -299,9 +259,9 @@ export default function RainbowHerbicides({ years, series }: Props) {
       q > 0
         ? scale === 'share'
           ? total > 0
-            ? Math.max(1, Math.round((q / total) * CELLS))
+            ? Math.max(1, Math.round((q / total) * F.cells))
             : 0
-          : Math.min(CELLS, Math.max(1, Math.round(q / DROP_GALLONS)))
+          : Math.min(F.cells, Math.max(1, Math.round(q / geom.gallons)))
         : 0
     const seq: string[] = []
     apportion(shown, budget).forEach((c, k) => {
@@ -562,28 +522,39 @@ export default function RainbowHerbicides({ years, series }: Props) {
             {RAINBOW.fieldTitle} <span>· {scale === 'vol' ? RAINBOW.fieldUnitVol : RAINBOW.fieldUnitShare}</span>
           </p>
 
-          <div className="rb-years">
+          {/* The four grid numbers ride as custom properties so the tuner can
+              move them live; Story.css carries the same values as fallbacks, so
+              nothing here changes what the page does. */}
+          <div
+            className="rb-years"
+            style={{
+              ['--rb-cell-min' as string]: `${geom.cellMin}px`,
+              ['--rb-gap-x' as string]: `${geom.gridGapX}rem`,
+              ['--rb-gap-y' as string]: `${geom.gridGapY}rem`,
+              ['--rb-max' as string]: `${geom.maxWidth}px`,
+            }}
+          >
             {/* One path, 1,584 references to it. */}
             <svg width="0" height="0" aria-hidden="true" focusable="false" className="rb-defs">
               <defs>
-                <path id="rb-drop" d={DROP_D} />
+                <path id="rb-drop" d={F.d} />
               </defs>
             </svg>
             {ordered.map(({ yr, total, q, seq }) => (
               <div className="rb-year" key={yr}>
                 <svg
-                  viewBox={`0 0 ${FIELD_W.toFixed(1)} ${FIELD_H.toFixed(1)}`}
+                  viewBox={`0 0 ${F.fieldW.toFixed(1)} ${F.fieldH.toFixed(1)}`}
                   className="rb-field"
                   role="img"
                   aria-label={`${yr}: ${total > 0 ? fmtGallons(q) + ' gallons' : 'no volume recorded'}`}
                 >
-                  {Array.from({ length: CELLS }, (_, k) => (
+                  {Array.from({ length: F.cells }, (_, k) => (
                     <use
                       key={k}
                       href="#rb-drop"
                       // Filled from the bottom row up, the way a vessel fills.
-                      x={((k % N) * PITCH_X).toFixed(1)}
-                      y={((N - 1 - Math.floor(k / N)) * PITCH_Y).toFixed(1)}
+                      x={((k % F.cols) * F.pitchX).toFixed(1)}
+                      y={((F.rows - 1 - Math.floor(k / F.cols)) * F.pitchY).toFixed(1)}
                       fill={k < seq.length ? seq[k] : DROP_EMPTY}
                     />
                   ))}
@@ -596,6 +567,11 @@ export default function RainbowHerbicides({ years, series }: Props) {
             ))}
           </div>
           <p className="rainbow-chart-note">{scale === 'vol' ? RAINBOW.fieldNoteVol : RAINBOW.fieldNoteShare}</p>
+          {FIELD_TUNE_GATE && (
+            <Suspense fallback={null}>
+              <RainFieldTuner geom={geom} onChange={setGeom} built={F} years={years} series={series} />
+            </Suspense>
+          )}
         </figure>
       </div>
     </section>

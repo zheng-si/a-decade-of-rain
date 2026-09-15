@@ -1,0 +1,278 @@
+/* The field's dial. Deliberately NOT in the page's own visual language, for
+   the same reason the type tuner is not: it is a tool sitting on top of the
+   work and it should never be mistaken for part of it in a screenshot. Same
+   mono type, same flat dark ground, the opposite corner so the two can be open
+   at once without covering each other. */
+
+.rft {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  width: 20rem;
+  max-height: calc(100vh - 2rem);
+  background: #101a14;
+  color: #e8ece7;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  box-shadow: 0 10px 40px rgba(16, 26, 20, 0.4);
+}
+
+.rft-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid rgba(232, 236, 231, 0.14);
+}
+
+.rft-head strong {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.rft-head button {
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0 0.25rem;
+  cursor: pointer;
+}
+
+.rft-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.rft-note {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  color: #9aa79d;
+  border-bottom: 1px solid rgba(232, 236, 231, 0.08);
+}
+
+.rft section {
+  padding: 0.5rem 0.75rem 0.625rem;
+  border-bottom: 1px solid rgba(232, 236, 231, 0.08);
+}
+
+.rft h4 {
+  margin: 0 0 0.375rem;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7e8c83;
+}
+
+/* One row per parameter: name, minus, an editable value, plus, and what the
+   number means. The value is an input rather than a readout because a designer
+   settling on 1.42 should not have to press + eight times to reach it. */
+.rft-dial {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.1875rem;
+}
+
+.rft-k {
+  width: 4.25rem;
+  flex: none;
+  color: #9aa79d;
+}
+
+.rft-dial > button {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+  border: 1px solid rgba(232, 236, 231, 0.2);
+  background: none;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rft-dial > button:hover {
+  background: rgba(232, 236, 231, 0.12);
+}
+
+.rft-val {
+  width: 3.5rem;
+  flex: none;
+  padding: 0.125rem 0.25rem;
+  border: 1px solid rgba(232, 236, 231, 0.14);
+  background: rgba(232, 236, 231, 0.05);
+  color: inherit;
+  font: inherit;
+  text-align: center;
+}
+
+/* A value that has moved off the shipped default is marked, because the one
+   question this panel has to answer from its own face is what did I change. */
+.rft-val.is-set {
+  color: #ffd27a;
+  border-color: rgba(255, 210, 122, 0.45);
+}
+
+.rft-u {
+  color: #6f7d74;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rft-seg,
+.rft-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1875rem;
+  margin-bottom: 0.375rem;
+}
+
+.rft-seg button,
+.rft-presets button {
+  flex: 1 0 auto;
+  padding: 0.1875rem 0.375rem;
+  border: 1px solid rgba(232, 236, 231, 0.2);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.rft-seg button.is-on {
+  background: #e8ece7;
+  color: #101a14;
+  border-color: #e8ece7;
+}
+
+.rft-presets button {
+  flex: 0 0 auto;
+  color: #9aa79d;
+}
+
+.rft-seg button:hover,
+.rft-presets button:hover {
+  background: rgba(232, 236, 231, 0.12);
+}
+
+.rft-hint {
+  margin: 0.25rem 0 0;
+  color: #7e8c83;
+}
+
+.rft-hint b {
+  color: #e8ece7;
+}
+
+.rft-link {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: #8fc7a6;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.rft-bad {
+  margin: 0.375rem 0 0;
+  color: #ff9d8f;
+}
+
+/* The consequences block. It is the reason this panel exists rather than a set
+   of sliders: the field's numbers are not free, and a setting that silently
+   drops a year or an agent should say so here before it ships.
+
+   Which is also why it sits OUTSIDE the scrolling body, pinned above the
+   buttons: it answers the question you ask while you are dialling, and a
+   reading you have to scroll to find is a reading you stop checking. */
+.rft-facts {
+  flex: none;
+  background: rgba(232, 236, 231, 0.04);
+  border-top: 1px solid rgba(232, 236, 231, 0.14);
+}
+.rft-facts dl {
+  display: grid;
+  grid-template-columns: 5.25rem 1fr;
+  gap: 0.125rem 0.5rem;
+  margin: 0;
+}
+
+.rft-facts dt {
+  color: #7e8c83;
+}
+
+.rft-facts dd {
+  margin: 0;
+}
+
+.rft-facts dd.is-ok {
+  color: #8fc7a6;
+}
+
+.rft-facts dd.is-warn {
+  color: #ffd27a;
+}
+
+.rft-facts dd.is-bad {
+  color: #ff9d8f;
+}
+
+.rft-foot {
+  display: flex;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid rgba(232, 236, 231, 0.14);
+}
+
+.rft-foot button {
+  flex: 1;
+  padding: 0.3125rem;
+  border: 1px solid rgba(232, 236, 231, 0.24);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.rft-foot button.is-primary {
+  background: #e8ece7;
+  color: #101a14;
+  border-color: #e8ece7;
+}
+
+.rft-out {
+  margin: 0;
+  max-height: 7rem;
+  overflow: auto;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid rgba(232, 236, 231, 0.14);
+  color: #9aa79d;
+  font: inherit;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.rft-reopen {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 9999;
+  padding: 0.375rem 0.625rem;
+  background: #101a14;
+  color: #e8ece7;
+  border: none;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  cursor: pointer;
+}
