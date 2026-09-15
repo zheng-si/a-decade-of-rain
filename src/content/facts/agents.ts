@@ -70,10 +70,18 @@ export const RAINBOW = {
   chartUnit: 'U.S. gallons',
   chartNote: 'Real spray volumes from the HERBS spray records (Stellman et al., 2003).',
   chartSourceId: 'stellman_2003',
+  // The year typology, which stands on its own under the chart and carries its
+  // own heading, dek and unit line. The unit changes with the scale, so there
+  // are two of it: in Volume a drop is a fixed quantity of herbicide, in Share
+  // the field itself is the unit.
+  fieldHeading: 'The mixture changed',
+  fieldDek:
+    'Every year of the record as a field of drops — one drop to 40,000 gallons, or the whole field to the whole year. The volume swells and collapses inside a decade, and what the drops are made of changes with it.',
   fieldTitle: 'Each year as a field of drops',
-  fieldUnit: '144 drops a year',
+  fieldUnitVol: 'one drop = 40,000 U.S. gallons',
+  fieldUnitShare: '144 drops = the whole year',
   fieldNoteVol:
-    'Volume: every field is measured against 1967, the heaviest year. 1961 is in the record with no volume against its name.',
+    'Volume: a drop is 40,000 U.S. gallons, so every field is the same measure — 1967 fills 127 of its 144, and 1971 does not fill one. An agent that sprayed never rounds away to nothing, so the lightest years carry a drop apiece. 1961 is in the record with no volume against its name.',
   fieldNoteShare:
-    'Share: every year gets the whole field, whatever it sprayed — which is the only way the early years, under 5% of the peak between them, can be read at all.',
+    'Share: every year gets the whole field, whatever it sprayed — which is the only way the early years, each under 5% of the peak, can be read at all.',
 }

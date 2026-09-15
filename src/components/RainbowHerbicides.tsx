@@ -104,6 +104,24 @@ const FIELD_H = (N - 1) * PITCH_Y + DH
 /** Unfilled. Deliberately close to the paper: the field is a budget, not a mark. */
 const DROP_EMPTY = 'rgba(28, 43, 33, 0.07)'
 
+/** Volume mode's unit: one drop, 40,000 U.S. gallons.
+ *
+ *  It replaces a denominator. Volume used to measure each year against 1967,
+ *  which made the peak a full 144 by definition and the unit a different
+ *  quantity in every reading of the figure -- "a drop" meant 35,359 gallons
+ *  here and something else the moment the filter changed. A fixed unit makes
+ *  the count itself the number: 127 drops is 5.1 million gallons wherever you
+ *  see it, so two fields can be compared by eye without the reader holding a
+ *  ratio in their head.
+ *
+ *  40,000 against the record: the peak year comes to 127.3 drops, 88% of the
+ *  144, so the field is nearly full where the decade is heaviest and has real
+ *  headroom above it. 36,000 is the tightest round unit that still fits (141
+ *  of 144); 35,000 overflows at 145. The floor below the cap is the one that
+ *  matters -- a fixed unit is only worth having if no year can exceed the
+ *  field -- and Math.min holds it whatever a later filter does. */
+const DROP_GALLONS = 40000
+
 /** Largest remainder, with one guarantee on top of it: a group that sprayed
  *  never rounds to nothing.
  *
@@ -186,10 +204,37 @@ function smooth(pts: [number, number][], perSeg = 14): [number, number][] {
 
 export default function RainbowHerbicides({ years, series }: Props) {
   const [sel, setSel] = useState<Sel>('all')
-  /** The typology's scale. Volume measures each year against the heaviest;
-   *  Share gives every year the whole field, which is the only way the three
-   *  years that were almost entirely one agent can be read at all. */
+  /** The typology's scale. Volume counts drops of a fixed size; Share gives
+   *  every year the whole field, which is the only way the three years that
+   *  were almost entirely one agent can be read at all. */
   const [scale, setScale] = useState<'vol' | 'share'>('vol')
+  /** The typology's own agent filter, which is a SET rather than the chart's
+   *  one-of-five. The two figures ask different questions of the same four
+   *  agents: the chart is a stack, where isolating one band against the others
+   *  is the whole gesture, and the typology is a composition, where the reading
+   *  that pays is a pair -- Orange against Other across 1965, White beside Blue
+   *  across 1968. That is not expressible as a single selection, so the field
+   *  stopped borrowing the chart's. */
+  const [picks, setPicks] = useState<Set<AgentInfo['key']>>(() => new Set(AGENTS.map((a) => a.key)))
+  /** Chronological, or the heaviest year first. "Heaviest" always ranks by
+   *  gallons of the SELECTED agents, in both scales: in Share mode the fields
+   *  are all the same size, so ranking them by size would be a control that
+   *  visibly does nothing, while ranking by volume reads the mixture of the
+   *  heaviest years left to right, which is the question that mode is for. */
+  const [order, setOrder] = useState<'time' | 'heavy'>('time')
+
+  const allPicked = picks.size === AGENTS.length
+  /** A plain toggle, with one guard: the last agent cannot be turned off. An
+   *  empty field is a dead state no reader wants, and silently snapping back to
+   *  all four would move three chips on a click aimed at one. "All" is the way
+   *  back, and it is one button. */
+  const togglePick = (k: AgentInfo['key']) =>
+    setPicks((prev) => {
+      const next = new Set(prev)
+      if (!next.has(k)) next.add(k)
+      else if (next.size > 1) next.delete(k)
+      return next
+    })
 
   // The area chart is the running total, and only that now: its other mode
   // was the same chart on a per-year axis, which is what the typology below
@@ -227,11 +272,9 @@ export default function RainbowHerbicides({ years, series }: Props) {
   const yTicks: number[] = []
   for (let t = 0; t <= yMax + 1; t += yStep) yTicks.push(t)
 
-  // Per-year totals from the record itself, and the heaviest of them, which is
-  // what Volume mode measures against.
+  // Per-year totals from the record itself. Volume mode no longer measures
+  // against the heaviest of them -- see DROP_GALLONS.
   const yearTotals = years.map((_, i) => series.reduce((a, ser) => a + ser.values[i], 0))
-  const yearPeak = Math.max(...yearTotals, 1)
-  const selIdx = sel === 'all' ? -1 : series.findIndex((ser) => ser.key === sel)
 
   const grandTotal = series.reduce((s, x2) => s + x2.total, 0)
   const active = sel === 'all' ? null : AGENTS.find((a) => a.key === sel) ?? null
@@ -239,6 +282,35 @@ export default function RainbowHerbicides({ years, series }: Props) {
   const cardColor = activeSeries?.color ?? 'var(--accent)'
   const cardText = active ? TEXT_SAFE[active.key] : 'var(--accent-bright)'
   const cardInk = active ? PAPER_SAFE[active.key] : 'var(--accent-deep)'
+
+  // The typology's rows. Isolating an agent FILTERS rather than dims. The area
+  // chart dims its other bands to contextGrey, and that cannot work inside a
+  // field: measured on this ground, contextGrey sits 1.31:1 from the unfilled
+  // drop, so a dimmed drop and an empty one are the same mark. Every grey dark
+  // enough to separate from the empty tone lands within 1.3:1 of Agent White,
+  // which is the one colour it would then be beside. So there is no third grey:
+  // the field draws the chosen agents alone, and the cell reads as how much of
+  // the year was theirs.
+  const rows = years.map((yr, i) => {
+    const total = yearTotals[i]
+    const shown = series.map((ser) => (picks.has(ser.key) ? ser.values[i] : 0))
+    const q = shown.reduce((a, b) => a + b, 0)
+    const budget =
+      q > 0
+        ? scale === 'share'
+          ? total > 0
+            ? Math.max(1, Math.round((q / total) * CELLS))
+            : 0
+          : Math.min(CELLS, Math.max(1, Math.round(q / DROP_GALLONS)))
+        : 0
+    const seq: string[] = []
+    apportion(shown, budget).forEach((c, k) => {
+      for (let z = 0; z < c; z++) seq.push(series[k].color)
+    })
+    return { yr, total, q, seq }
+  })
+  // Ties break chronologically, so equal years never shuffle between renders.
+  const ordered = order === 'time' ? rows : rows.slice().sort((a, b) => b.q - a.q || a.yr - b.yr)
 
   return (
     <section className="story-fullscreen rainbow" aria-label={RAINBOW.title}>
@@ -386,80 +458,144 @@ export default function RainbowHerbicides({ years, series }: Props) {
 
         {/* The typology stands on its own below the chart rather than behind a
             tab on it. It was the chart's second mode, and a tab is a bad place
-            for the better view: most readers never press it. It needs no legend
-            of its own either -- the chips above have already named the four, and
-            they drive this too. */}
+            for the better view: most readers never press it. Standing on its
+            own it needs the things a figure needs -- a heading that makes a
+            claim, a unit, and controls that are its own rather than the
+            chart's. */}
         <figure className="rb-figure">
-          <div className="rb-figure-top">
-            <figcaption className="rainbow-chart-title">
-              {RAINBOW.fieldTitle} <span>· {RAINBOW.fieldUnit}</span>
-            </figcaption>
-            <div className="rainbow-mode" role="tablist" aria-label="Scale">
-              <button role="tab" aria-selected={scale === 'vol'} className={`rainbow-mode-btn${scale === 'vol' ? ' is-active' : ''}`} onClick={() => setScale('vol')}>
-                Volume
-              </button>
-              <button role="tab" aria-selected={scale === 'share'} className={`rainbow-mode-btn${scale === 'share' ? ' is-active' : ''}`} onClick={() => setScale('share')}>
-                Share
-              </button>
+          <figcaption className="rb-head">
+            <h3 className="rb-title">{RAINBOW.fieldHeading}</h3>
+            <p className="rb-dek">{RAINBOW.fieldDek}</p>
+          </figcaption>
+
+          <div className="rb-controls">
+            <div className="rb-ctl">
+              <span className="rb-ctl-lab" id="rb-lab-agents">
+                Agents
+              </span>
+              {/* wrap, where the chart's row above is pinned nowrap. That row is
+                  a segmented control and a segmented control cannot reflow; these
+                  are independent toggles, each complete on its own line, so
+                  wrapping costs nothing and buys the phone widths. */}
+              <div className="rb-chips" role="group" aria-labelledby="rb-lab-agents">
+                <button
+                  type="button"
+                  aria-pressed={allPicked}
+                  className={`rainbow-chip${allPicked ? ' is-active' : ''}`}
+                  onClick={() => setPicks(new Set(AGENTS.map((a) => a.key)))}
+                >
+                  <span
+                    className="rainbow-chip-dot"
+                    style={{ background: `linear-gradient(135deg, ${series.map((x2) => x2.color).join(', ')})` }}
+                  />
+                  All
+                </button>
+                {series.map((s2) => {
+                  const on = picks.has(s2.key)
+                  return (
+                    <button
+                      key={s2.key}
+                      type="button"
+                      aria-pressed={on}
+                      className={`rainbow-chip${on ? ' is-active' : ''}`}
+                      style={on ? { background: s2.color, borderColor: s2.color } : undefined}
+                      onClick={() => togglePick(s2.key)}
+                    >
+                      <span className="rainbow-chip-dot" style={{ background: s2.color }} />
+                      {s2.name.replace(/^Agents? /, '')}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+
+            <div className="rb-ctl">
+              <span className="rb-ctl-lab" id="rb-lab-scale">
+                Scale
+              </span>
+              <div className="rainbow-mode" role="group" aria-labelledby="rb-lab-scale">
+                <button
+                  type="button"
+                  aria-pressed={scale === 'vol'}
+                  className={`rainbow-mode-btn${scale === 'vol' ? ' is-active' : ''}`}
+                  onClick={() => setScale('vol')}
+                >
+                  Volume
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={scale === 'share'}
+                  className={`rainbow-mode-btn${scale === 'share' ? ' is-active' : ''}`}
+                  onClick={() => setScale('share')}
+                >
+                  Share
+                </button>
+              </div>
+            </div>
+
+            <div className="rb-ctl">
+              <span className="rb-ctl-lab" id="rb-lab-order">
+                Order
+              </span>
+              <div className="rainbow-mode" role="group" aria-labelledby="rb-lab-order">
+                <button
+                  type="button"
+                  aria-pressed={order === 'time'}
+                  className={`rainbow-mode-btn${order === 'time' ? ' is-active' : ''}`}
+                  onClick={() => setOrder('time')}
+                >
+                  Chronological
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={order === 'heavy'}
+                  className={`rainbow-mode-btn${order === 'heavy' ? ' is-active' : ''}`}
+                  onClick={() => setOrder('heavy')}
+                >
+                  Heaviest first
+                </button>
+              </div>
             </div>
           </div>
-            <div className="rb-years">
-              {/* One path, 1,584 references to it. */}
-              <svg width="0" height="0" aria-hidden="true" focusable="false" className="rb-defs">
-                <defs>
-                  <path id="rb-drop" d={DROP_D} />
-                </defs>
-              </svg>
-              {years.map((yr, i) => {
-                const total = yearTotals[i]
-                // Isolating an agent FILTERS rather than dims. The area chart dims
-                // its other bands to contextGrey, and that cannot work inside a
-                // field: measured on this ground, contextGrey sits 1.31:1 from the
-                // unfilled drop, so a dimmed drop and an empty one are the same
-                // mark. Every grey dark enough to separate from the empty tone
-                // lands within 1.3:1 of Agent White, which is the one colour it
-                // would then be beside. So there is no third grey: with an agent
-                // chosen the field draws that agent alone, and the cell reads as
-                // how much of the year was his.
-                const shown = series.map((ser, k) => (selIdx < 0 || k === selIdx ? ser.values[i] : 0))
-                const q = shown.reduce((x, y) => x + y, 0)
-                const denom = scale === 'share' ? total : yearPeak
-                const budget = q > 0 && denom > 0 ? Math.max(1, Math.round((q / denom) * CELLS)) : 0
-                const counts = apportion(shown, budget)
-                const seq: string[] = []
-                counts.forEach((c, k) => {
-                  for (let z = 0; z < c; z++) seq.push(series[k].color)
-                })
-                return (
-                  <div className="rb-year" key={yr}>
-                    <svg
-                      viewBox={`0 0 ${FIELD_W.toFixed(1)} ${FIELD_H.toFixed(1)}`}
-                      className="rb-field"
-                      role="img"
-                      aria-label={`${yr}: ${total > 0 ? fmtGallons(total) + ' gallons' : 'no volume recorded'}`}
-                    >
-                      {Array.from({ length: CELLS }, (_, k) => (
-                        <use
-                          key={k}
-                          href="#rb-drop"
-                          // Filled from the bottom row up, the way a vessel fills.
-                          x={((k % N) * PITCH_X).toFixed(1)}
-                          y={((N - 1 - Math.floor(k / N)) * PITCH_Y).toFixed(1)}
-                          fill={k < seq.length ? seq[k] : DROP_EMPTY}
-                        />
-                      ))}
-                    </svg>
-                    <p className="rb-year-lab">{yr}</p>
-                    <p className="rb-year-val">
-                      {total > 0 ? fmtGallons(q) : <span className="rb-year-nil">no volume recorded</span>}
-                    </p>
-                  </div>
-                )
-              })}
-            </div>
-          <p className="rainbow-chart-note">
-            {scale === 'vol' ? RAINBOW.fieldNoteVol : RAINBOW.fieldNoteShare}
+
+          <p className="rb-unit">
+            {RAINBOW.fieldTitle} <span>· {scale === 'vol' ? RAINBOW.fieldUnitVol : RAINBOW.fieldUnitShare}</span>
           </p>
+
+          <div className="rb-years">
+            {/* One path, 1,584 references to it. */}
+            <svg width="0" height="0" aria-hidden="true" focusable="false" className="rb-defs">
+              <defs>
+                <path id="rb-drop" d={DROP_D} />
+              </defs>
+            </svg>
+            {ordered.map(({ yr, total, q, seq }) => (
+              <div className="rb-year" key={yr}>
+                <svg
+                  viewBox={`0 0 ${FIELD_W.toFixed(1)} ${FIELD_H.toFixed(1)}`}
+                  className="rb-field"
+                  role="img"
+                  aria-label={`${yr}: ${total > 0 ? fmtGallons(q) + ' gallons' : 'no volume recorded'}`}
+                >
+                  {Array.from({ length: CELLS }, (_, k) => (
+                    <use
+                      key={k}
+                      href="#rb-drop"
+                      // Filled from the bottom row up, the way a vessel fills.
+                      x={((k % N) * PITCH_X).toFixed(1)}
+                      y={((N - 1 - Math.floor(k / N)) * PITCH_Y).toFixed(1)}
+                      fill={k < seq.length ? seq[k] : DROP_EMPTY}
+                    />
+                  ))}
+                </svg>
+                <p className="rb-year-lab">{yr}</p>
+                <p className="rb-year-val">
+                  {total > 0 ? fmtGallons(q) : <span className="rb-year-nil">no volume recorded</span>}
+                </p>
+              </div>
+            ))}
+          </div>
+          <p className="rainbow-chart-note">{scale === 'vol' ? RAINBOW.fieldNoteVol : RAINBOW.fieldNoteShare}</p>
         </figure>
       </div>
     </section>
