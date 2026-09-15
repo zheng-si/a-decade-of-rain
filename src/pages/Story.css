@@ -300,9 +300,26 @@
   /* Hidden behind the banner: slid fully left until the story starts. */
   transform: translateX(-100%);
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Top stop equals the banner wash / rain (--accent #ff5449) so the rail
-     reads as the same orange, then deepens to the crimson foot. */
-  background: linear-gradient(180deg, #ff5449 0%, #e0463a 40%, #c5372a 72%, #a52c1e 100%);
+  /* One notch darker than it was, and the notch is a contrast fix as much as a
+     tonal one. The ramp used to open on --accent #ff5449 so the rail read as
+     the same orange as the banner wash and the rain. That tie put white text
+     on 3.25:1 at the wordmark and 3.72 at ACT 1, against the 4.5 normal text
+     needs, and the wordmark and the act headings are exactly what sits in that
+     band. The whole upper half of the rail was failing and nobody had measured
+     it.
+
+     Every stop drops by the same OKLCH lightness, 0.09, which moves the ramp
+     perceptually evenly instead of skewing its hue the way equal hex
+     subtraction would. 0.09 is not a round number picked for looks: stepping
+     the ramp down in 0.02s, it is the first step at which white text clears
+     4.5 at the top of the rail, which is where the wordmark sits.
+
+     Two costs, both named to Si before the choice. The literal tie to --accent
+     is gone, so the rail is the same family as the banner and no longer the
+     same hex. And unlike the next step down, this top stop is a derived value
+     rather than an existing token -- --accent-chip #d63328 sits one step
+     further and was built and shown as an option; it read too dark. */
+  background: linear-gradient(180deg, #de322c 0%, #c0231d 40%, #a50f08 72%, #870200 100%);
   /* Crisp divider between the rail and the year/volume ruler to its right:
      a white hairline (reads on the crimson) plus a soft shadow (reads on the
      pale ruler). */
@@ -1180,7 +1197,27 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8vh 6vw 8vh calc(6vw + var(--nav-w));
+  /* 12vh, up from 8. The vertical padding only reaches the sections that need
+     it, which is why this is a targeted change rather than a blunt one: with
+     min-height:100vh and align-items:center, a section whose content is SHORTER
+     than the viewport opens at `50vh - content/2`, independent of the padding,
+     because every vh added to the padding takes one off the half-slack. Only a
+     section whose content exceeds the viewport opens exactly on the padding,
+     and those are the ones that were reading tight -- Rainbow is 1791px at
+     1440x900 and was opening on 72px flat.
+
+     The size comes off the page rather than off a feeling. The Rainbow to
+     Ecosystems boundary measured 170px at 1440x900 against a page median of
+     233, and 212 against 296 at 1920x1080. Four more vh a side takes it to 216
+     and 259, so the tight boundaries close most of the gap to the median.
+
+     Not all of it, and the reason is worth keeping: a boundary only gains from
+     the sections that are actually tall. This one gained ONE side's worth (+46
+     at 900, +47 at 1080, against 4vh of 36 and 43) because Rainbow exceeds the
+     viewport and Ecosystems does not, so only Rainbow's bottom padding moved.
+     A first pass through this comment predicted 2 x 4vh and was wrong; the
+     numbers above are measured. */
+  padding: 12vh 6vw 12vh calc(6vw + var(--nav-w));
   background: rgb(var(--paper));
   pointer-events: auto;
 }
@@ -1198,7 +1235,12 @@
   max-width: 38.75rem; /* title measure only — the dek has its own rule below */
 }
 
-.fs-title {
+/* .rb-title shares the rule rather than copying its values. The year typology's
+   heading is a PEER of the section title, not a sub-heading, so the two have to
+   be the same thing — and a copy would drift the first time one of them is
+   tuned. */
+.fs-title,
+.rb-title {
   margin: 0 0 0.875rem;
   font-family: var(--font-serif);
   text-transform: uppercase;
@@ -1280,6 +1322,10 @@
   justify-content: space-between;
   gap: 0.75rem;
   margin: 0 0 0.5rem;
+  /* The typology adds a second switch to this row, and title + two switches
+     does not fit a phone: measured 35px of horizontal page scroll at 390.
+     Wrapping is the whole fix — the row has always had the space above 640. */
+  flex-wrap: wrap;
 }
 
 .rainbow-chart-title {
@@ -1402,6 +1448,228 @@
   height: 0.5rem;
   border-radius: 50%;
   flex: none;
+}
+
+/* ── the year typology ───────────────────────────────────────────────────
+   Ten fields of 256 drops (1961 carries no volume and is not drawn), standing
+   under the chart rather than behind a tab on it, and on the full measure
+   rather than the chart's column.
+
+   auto-fit rather than a column count per breakpoint, because the constraint is
+   a MINIMUM CELL, not a layout: a drop is 100 of a 2500-unit field, so a cell
+   under ~180px renders it below 7.6px and the shape stops being a drop. In px,
+   not rem, for the same reason the minimum exists -- this is a physical size on
+   glass, and the root scales to 13.6 on a laptop, which would quietly turn a
+   180px floor into 153.
+
+   180 with a 2rem gutter gives five across at 1120 (the measure at 1728, two
+   rows of five), four at 952, two at 591 and ONE at 343 -- the phone gets a
+   single field per row, which is the price of the bigger mark and is paid in
+   scroll. The max-width is above the 70rem container at every width, so it is a
+   guard rather than a live cap. */
+/* 20vh. It was 16, derived as "8vh of padding from each of two sections", and
+   that reasoning was right about the MECHANISM and wrong about the number.
+   .story-fullscreen is also min-height:100vh with align-items:center, so a
+   section whose content is shorter than the viewport splits the slack above and
+   below it -- which means 16vh is the FLOOR of the inter-section gap, not the
+   typical one. This figure sits inside a section that is 1900px tall and has no
+   slack to give, so it was landing on that floor while everything around it
+   landed well above it.
+
+   Measured across every section boundary on the page rather than reasoned
+   about. At 1440x900 the gaps run 98 / 150 / 170 / 203 / 233 / 241 / 306 / 364,
+   median 233; at 1920x1080, 126 / 187 / 212 / 260 / 296 / 315 / 380 / 461,
+   median 296. The old 16vh gave 144 and 173, about 62% of those medians.
+
+   It is pinned to the ADJACENT boundary, the one the eye actually compares
+   against, since Rainbow to Ecosystems is the next thing down the page. A break
+   INSIDE a section must not be larger than the break that ends it, however
+   section-tier the heading is.
+
+   That boundary moved when .story-fullscreen went from 8vh of padding to 12, so
+   this moved with it: 20vh to 24vh, tracking a boundary measured at 216 and
+   259. 24vh renders 216 and 259 too, which is the point -- it is the same break
+   rather than a nearby one. 27vh was tried first, from a predicted boundary of
+   242/298 that the page did not produce, and it inverted the very hierarchy
+   this comment exists to protect: 243 inside the section against 216 ending it.
+   Still vh, not rem, so it keeps following the padding that produces the real
+   thing rather than freezing a number measured at one viewport height. */
+.rb-figure {
+  margin: 24vh 0 0;
+}
+/* The figure's own head. It borrowed the section's title and the chart's
+   controls while it lived behind the chart's tab; standing on its own it has
+   both of its own, and the heading is a claim rather than a label -- the
+   section title above already says what the subject is.
+
+   Its type comes from the .fs-title rule above; only the measure differs, and
+   only because this one sits over a full-measure grid rather than over a
+   half-measure dek. */
+.rb-head {
+  margin: 0 0 2.125rem; /* .fs-head's, so the head block sits like a section's */
+}
+.rb-title {
+  max-width: 38.75rem;
+}
+/* rem, where the field's cell minimum is px. Opposite reasons, both right:
+   that one is a physical size on glass and must not scale with the root, this
+   one is a MEASURE and must, because the type shrinks with the root too. */
+.rb-dek {
+  margin: 0;
+  max-width: 34rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+/* Three labelled groups, each a LABEL ABOVE ITS CONTROL — the form the Map
+   View switch uses on both surfaces, and the one Si asked this to match. The
+   label sat inline before, which reads as a caption beside a button rather
+   than as the name of a group, and gave the three groups no shared baseline.
+
+   Measured off `.map-key-view-label` as the Story renders it, so these are the
+   same label rather than a similar one: 0.625rem, 600, --track-caps, uppercase,
+   full --ink, 0.5rem down to its control. The control tracks already agreed:
+   .rainbow-mode, .eco-sort and .map-key-view all carry the same 2px padding,
+   2px radius and 6% forest track.
+
+   Two of those were wrong rather than merely different. The tracking was a
+   hardcoded 0.07em, a fourth value on a ladder that has three (--track-tight
+   0.02, --track-caps 0.06, --track-caps-wide 0.1); it is on the token now. And
+   the colour was --ink-faint, which is the NOTES tier -- App.css states the
+   rule as "ink = titles and labels, soft = content, faint = notes" and names
+   MAP VIEW as the ink exemplar. `.lookup-row-label` was corrected the same way
+   for the same reason: a caps label in faint reads as disabled beside the
+   controls it names. */
+.rb-controls {
+  display: flex;
+  flex-wrap: wrap;
+  /* flex-start, not center: the groups are stacks now, so they hang from one
+     line rather than sitting on one. */
+  align-items: flex-start;
+  gap: 1.25rem 1.75rem;
+  margin: 0 0 1.25rem;
+}
+.rb-ctl {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+.rb-ctl-lab {
+  display: block;
+  margin: 0 0 0.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: var(--track-caps);
+  text-transform: uppercase;
+  color: var(--ink);
+}
+/* wrap, where .rainbow-switch above is pinned nowrap, and the difference is
+   real rather than an inconsistency: that row is a segmented control, which
+   cannot reflow without becoming two rows of buttons sharing a hairline.
+   These are independent toggles -- each one is a whole control on its own
+   line -- and one of the five is "Purple, Pink and Green". */
+.rb-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4375rem;
+  min-width: 0;
+}
+
+/* The unit, directly above the grid it applies to, because it changes with
+   the scale: a drop is a fixed quantity in Volume and the field is the unit
+   in Share. */
+.rb-unit {
+  margin: 0 0 0.875rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.rb-unit span {
+  color: var(--ink-faint);
+  font-weight: 400;
+}
+/* The shared note rule carries no measure, which was fine while this figure's
+   note was one line and the chart's column capped it at 558. The figure runs
+   the full 952 and its note grew to three sentences: uncapped that is ~190
+   characters on one line of 11px text. Same reasoning as .rb-dek, one tier
+   tighter because the type is smaller. */
+.rb-figure .rainbow-chart-note {
+  max-width: 44rem;
+}
+.rb-years {
+  display: grid;
+  /* The four numbers here are also FIELD_DEFAULTS in rainfield.ts, and the
+     field passes them down as custom properties so the dev tuner can move them
+     live. These fallbacks are what ships; the var() is never set in a reader's
+     browser. Keep the two in step -- the fallback is the real default. */
+  /* NEVER FEWER THAN FOUR YEARS ACROSS, at any width. The track floor is the
+     cell minimum OR the widest a quarter of the row can be, whichever is
+     smaller, so the floor can never demand more room than four columns have.
+
+     Why that yields exactly four and not five: when the floor is (100% - 3g)/4,
+     five tracks would need 5(100% - 3g)/4 + 4g = 1.25 x 100% + 0.25g, which is
+     wider than the row for any non-negative gap. So four fit and five cannot.
+     Above the crossover the min() picks --rb-cell-min instead and auto-fit
+     packs as many as fit, which is five at 1120 and four at 952. */
+  /* One derived gutter, used by BOTH the track floor and the gap. They have to
+     agree: the floor subtracts three gutters to size a quarter of the row, so a
+     narrower gap than the one it subtracted leaves room for a fifth track. That
+     is not hypothetical -- overriding column-gap alone put five columns at 320.
+     It is declared here rather than taken straight from --rb-gap-x because the
+     figure sets that one INLINE, and an inline custom property cannot be beaten
+     by a media query. */
+  --rb-gx: var(--rb-gap-x, 2rem);
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(min(var(--rb-cell-min, 180px), calc((100% - 3 * var(--rb-gx)) / 4)), 1fr)
+  );
+  gap: var(--rb-gap-y, 2rem) var(--rb-gx);
+  max-width: var(--rb-max, 1200px);
+  margin: 0;
+}
+/* Four columns spend three gutters. At 2rem that is 96px of a 282px row at
+   320 -- a third of the measure, taken from the marks, which are the thing the
+   reader is here for. Below the phone breakpoint the gutter drops to 0.75rem,
+   which buys the mark back about a quarter of its width (2.47 -> 3.07px at 390,
+   1.86 -> 2.46 at 320). The row gap stays generous: it separates one YEAR from
+   the next and is what keeps the fields from reading as one block. */
+@media (max-width: 640px) {
+  .rb-years {
+    /* A FRACTION of the dialled gutter, not a fixed number, so the tuner still
+       drives this width instead of the phone quietly ignoring it. */
+    --rb-gx: calc(var(--rb-gap-x, 2rem) * 0.375);
+  }
+}
+
+.rb-defs {
+  position: absolute;
+}
+.rb-field {
+  display: block;
+  width: 100%;
+}
+.rb-year-lab {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: var(--track-tight);
+}
+.rb-year-val {
+  margin: 0.0625rem 0 0;
+  font-size: 0.6875rem;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+/* 1961 is in the record and carries no volume. It is not a zero to be drawn;
+   it is a gap, and it says so in words rather than as an empty field the
+   reader has to interpret. */
+.rb-year-nil {
+  font-style: italic;
 }
 
 .rainbow-chart-note {
