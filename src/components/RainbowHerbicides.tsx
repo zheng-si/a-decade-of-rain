@@ -445,7 +445,10 @@ export default function RainbowHerbicides({ years, series }: Props) {
             chart's. */}
         <figure className="rb-figure">
           <figcaption className="rb-head">
-            <h3 className="rb-title">{RAINBOW.fieldHeading}</h3>
+            {/* h2, not h3: it is a peer of the section title above it, and a
+                reader hearing the outline should meet it at the same level a
+                reader seeing the page does. */}
+            <h2 className="rb-title">{RAINBOW.fieldHeading}</h2>
             <p className="rb-dek">{RAINBOW.fieldDek(nums)}</p>
           </figcaption>
 
@@ -590,8 +593,10 @@ export default function RainbowHerbicides({ years, series }: Props) {
           </div>
           <p className="rainbow-chart-note">
             {scale === 'vol' ? RAINBOW.fieldNoteVol(nums) : RAINBOW.fieldNoteShare}
-            {/* Only while there is a 1961 on screen to point at. */}
-            {scale === 'vol' && !geom.hideEmpty && RAINBOW.fieldNoteNil}
+            {/* In both scales, and whether or not 1961 has a field: the whole
+                point is that the year is in the record carrying nothing, and
+                hiding its field is exactly when that needs saying in words. */}
+            {RAINBOW.fieldNoteNil(geom.hideEmpty)}
           </p>
           {FIELD_TUNE_GATE && (
             <Suspense fallback={null}>

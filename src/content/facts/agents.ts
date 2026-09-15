@@ -104,6 +104,16 @@ export const RAINBOW = {
   // the record, so it is a string.
   fieldNoteShare:
     'Share: every year gets the whole field, whatever it sprayed \u2014 which is the only way the early years, each under 5% of the peak, can be read at all.',
-  // Shown only while the field is drawing the years that carry no volume.
-  fieldNoteNil: ' 1961 is in the record with no volume against its name.',
+  // Always shown, in both scales, and worded for whether 1961 has a field or
+  // not. A year that is in the record and carries nothing is a fact about the
+  // record; hiding its field removed the only place that fact was visible, so
+  // it moves into the prose instead of disappearing with the grid.
+  //
+  // "Spray points", not missions: a HERBS row is a waypoint record (24,604 of
+  // them resolve into 9,141 missions, see src/data/README.md), so six rows are
+  // six points on a track, not six sorties.
+  fieldNoteNil: (hidden: boolean) =>
+    hidden
+      ? ' 1961 has no field here, which is the record rather than an omission: it carries six spray points and no volume against any of them.'
+      : ' 1961 is in the record as six spray points with no volume against any of them.',
 }

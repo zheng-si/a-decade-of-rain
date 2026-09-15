@@ -43,7 +43,7 @@ export interface FieldGeom {
    *  Written as a RULE rather than as "hide 1961", because a hardcoded year
    *  would be a claim about the data that the data could stop honouring. It
    *  currently catches exactly 1961, which is in the record with six spray
-   *  points and no volume against any of them.
+   *  points -- waypoint rows, not missions -- and no volume against any of them.
    *
    *  ON, which is Si's call and reverses the default this shipped with. The
    *  argument against: an empty field says the year is in the record and empty,
@@ -51,8 +51,8 @@ export interface FieldGeom {
    *  the first year of the spraying is wrong. The argument that won: an empty
    *  16 x 16 is a large object that earns its space only if the caption under
    *  it is read, and it is the first thing the eye meets in the figure. The
-   *  fact is not lost -- it is in the section's prose and in the Atlas, where
-   *  1961's six missions are on the map. */
+   *  fact is not lost: the note under the grid says it in words whether or not
+   *  the field is drawn, and the Atlas has those six points on the map. */
   hideEmpty: boolean
   /** Space between marks WITHIN one year's field, as a percentage of the
    *  mark's own width (gapX) and height (gapY). 60/48 is a density of 62.5% of
