@@ -1430,12 +1430,28 @@
    single field per row, which is the price of the bigger mark and is paid in
    scroll. The max-width is above the 70rem container at every width, so it is a
    guard rather than a live cap. */
-/* 16vh, which is exactly what separates two sections: .story-fullscreen pads
-   8vh top and bottom, so consecutive sections meet with 16vh between their
-   contents. In vh rather than rem for the same reason that padding is -- match
-   the mechanism, not a number measured off one viewport height. */
+/* 20vh. It was 16, derived as "8vh of padding from each of two sections", and
+   that reasoning was right about the MECHANISM and wrong about the number.
+   .story-fullscreen is also min-height:100vh with align-items:center, so a
+   section whose content is shorter than the viewport splits the slack above and
+   below it -- which means 16vh is the FLOOR of the inter-section gap, not the
+   typical one. This figure sits inside a section that is 1900px tall and has no
+   slack to give, so it was landing on that floor while everything around it
+   landed well above it.
+
+   Measured across every section boundary on the page rather than reasoned
+   about. At 1440x900 the gaps run 98 / 150 / 170 / 203 / 233 / 241 / 306 / 364,
+   median 233; at 1920x1080, 126 / 187 / 212 / 260 / 296 / 315 / 380 / 461,
+   median 296. The old 16vh gave 144 and 173, about 62% of those medians.
+
+   20vh gives 180 and 216. That is pinned to the ADJACENT boundary, the one the
+   eye actually compares against -- Rainbow to Ecosystems, measured at 170 and
+   212 -- rather than to the page median. Matching the median (26vh) would make
+   a break INSIDE a section larger than the break that ends it, which inverts
+   the hierarchy however section-tier the heading is. Still vh, not rem, so it
+   keeps tracking the padding that produces the real thing. */
 .rb-figure {
-  margin: 16vh 0 0;
+  margin: 20vh 0 0;
 }
 /* The figure's own head. It borrowed the section's title and the chart's
    controls while it lived behind the chart's tab; standing on its own it has
