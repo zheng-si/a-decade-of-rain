@@ -303,21 +303,23 @@
   /* One notch darker than it was, and the notch is a contrast fix as much as a
      tonal one. The ramp used to open on --accent #ff5449 so the rail read as
      the same orange as the banner wash and the rain. That tie put white text
-     on 3.25:1 at the wordmark and 3.72 at ACT 1, both under the 4.5 that normal
-     text needs -- the whole upper half of the rail failed, and the wordmark and
-     the act headings are exactly what sits there.
+     on 3.25:1 at the wordmark and 3.72 at ACT 1, against the 4.5 normal text
+     needs, and the wordmark and the act headings are exactly what sits in that
+     band. The whole upper half of the rail was failing and nobody had measured
+     it.
 
-     The top stop is now --accent-chip #d63328, which is not an invented colour:
-     App.css defines it as "CHIP FILL behind white text · 4.8:1", so this keeps
-     the change inside the accent family rather than beside it. The lower stops
-     drop by the same OKLCH lightness, which moves the whole ramp perceptually
-     evenly instead of skewing its hue the way equal hex subtraction would.
+     Every stop drops by the same OKLCH lightness, 0.09, which moves the ramp
+     perceptually evenly instead of skewing its hue the way equal hex
+     subtraction would. 0.09 is not a round number picked for looks: stepping
+     the ramp down in 0.02s, it is the first step at which white text clears
+     4.5 at the top of the rail, which is where the wordmark sits.
 
-     Measured on the rendered rail: wordmark 4.93:1, ACT 1 5.63, INTERLUDE 6.30,
-     ACT 2 6.90. Five options were built from the live rail and Si chose this
-     one; the cost, named at the time, is that the literal tie to --accent is
-     gone. The family is the same, the exact hex is not. */
-  background: linear-gradient(180deg, #d63328 0%, #bb2519 40%, #a01409 72%, #840500 100%);
+     Two costs, both named to Si before the choice. The literal tie to --accent
+     is gone, so the rail is the same family as the banner and no longer the
+     same hex. And unlike the next step down, this top stop is a derived value
+     rather than an existing token -- --accent-chip #d63328 sits one step
+     further and was built and shown as an option; it read too dark. */
+  background: linear-gradient(180deg, #de322c 0%, #c0231d 40%, #a50f08 72%, #870200 100%);
   /* Crisp divider between the rail and the year/volume ruler to its right:
      a white hairline (reads on the crimson) plus a soft shadow (reads on the
      pale ruler). */
