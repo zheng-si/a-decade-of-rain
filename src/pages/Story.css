@@ -300,9 +300,24 @@
   /* Hidden behind the banner: slid fully left until the story starts. */
   transform: translateX(-100%);
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Top stop equals the banner wash / rain (--accent #ff5449) so the rail
-     reads as the same orange, then deepens to the crimson foot. */
-  background: linear-gradient(180deg, #ff5449 0%, #e0463a 40%, #c5372a 72%, #a52c1e 100%);
+  /* One notch darker than it was, and the notch is a contrast fix as much as a
+     tonal one. The ramp used to open on --accent #ff5449 so the rail read as
+     the same orange as the banner wash and the rain. That tie put white text
+     on 3.25:1 at the wordmark and 3.72 at ACT 1, both under the 4.5 that normal
+     text needs -- the whole upper half of the rail failed, and the wordmark and
+     the act headings are exactly what sits there.
+
+     The top stop is now --accent-chip #d63328, which is not an invented colour:
+     App.css defines it as "CHIP FILL behind white text · 4.8:1", so this keeps
+     the change inside the accent family rather than beside it. The lower stops
+     drop by the same OKLCH lightness, which moves the whole ramp perceptually
+     evenly instead of skewing its hue the way equal hex subtraction would.
+
+     Measured on the rendered rail: wordmark 4.93:1, ACT 1 5.63, INTERLUDE 6.30,
+     ACT 2 6.90. Five options were built from the live rail and Si chose this
+     one; the cost, named at the time, is that the literal tie to --accent is
+     gone. The family is the same, the exact hex is not. */
+  background: linear-gradient(180deg, #d63328 0%, #bb2519 40%, #a01409 72%, #840500 100%);
   /* Crisp divider between the rail and the year/volume ruler to its right:
      a white hairline (reads on the crimson) plus a soft shadow (reads on the
      pale ruler). */
