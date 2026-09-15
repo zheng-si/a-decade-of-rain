@@ -93,17 +93,20 @@ export const RAINBOW = {
   // here that is NOT a function is a fact about the record rather than about
   // the drawing, and does not move when the geometry does.
   fieldHeading: 'The mixture changed',
-  fieldDek: (n: FieldNums) =>
-    `Every year of the record as a field of drops \u2014 one drop to ${n.gal} gallons, or the whole field to the whole year. The volume swells and collapses inside a decade, and what the drops are made of changes with it.`,
+  // No dek. It said the unit a third time -- after the unit line that sits
+  // directly above the grid and the note that sits directly below it -- and
+  // its other job, telling the reader what they are looking at, is the unit
+  // line's first four words. Two paragraphs saying the same thing is what made
+  // the figure tall.
   fieldTitle: 'Each year as a field of drops',
   fieldUnitVol: (n: FieldNums) => `one drop = ${n.gal} U.S. gallons`,
   fieldUnitShare: (n: FieldNums) => `${n.cells} drops = the whole year`,
   fieldNoteVol: (n: FieldNums) =>
-    `Volume: a drop is ${n.gal} U.S. gallons, so every field is the same measure \u2014 ${n.peakYear} fills ${n.peakFill} of its ${n.cells}. An agent that sprayed never rounds away to nothing, so a year worth barely one drop still carries one for each agent in it.`,
+    `Volume: every field is the same measure, so ${n.peakYear} fills ${n.peakFill} of its ${n.cells}. An agent that sprayed never rounds away to nothing, so a year worth barely one drop still carries one for each agent in it.`,
   // 1962, 1963 and 1964 are 0.79%, 1.77% and 4.39% of the peak. A fact about
   // the record, so it is a string.
   fieldNoteShare:
-    'Share: every year gets the whole field, whatever it sprayed \u2014 which is the only way the early years, each under 5% of the peak, can be read at all.',
+    'Share: every year gets the whole field, whatever it sprayed. It is the only way the early years, each under 5% of the peak, can be read at all.',
   // Always shown, in both scales, and worded for whether 1961 has a field or
   // not. A year that is in the record and carries nothing is a fact about the
   // record; hiding its field removed the only place that fact was visible, so
