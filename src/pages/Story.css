@@ -2,6 +2,24 @@
    scroll over it (Kontinentalist pattern). */
 .story {
   --nav-w: 6.25rem;
+
+  /* PROTOTYPE: one number for the page's vertical rhythm.
+     --section-open is what you see when you land on a section: the drop from
+     its top edge to its title. --section-close is half of it, so a boundary
+     between two sections is always open + close = 1.5 x open, and there is
+     exactly one number to dial.
+
+     px interpolated on viewport WIDTH, not vh and not rem. Not vh because the
+     relationship between two sections does not change when you make the window
+     taller, and because mobile browser chrome resizes the viewport mid-scroll.
+     Not rem because this project's root drops to 13.6px between 641 and 1600,
+     so a rem meant as a physical size silently shrinks 15% on a laptop.
+
+     Fitted through 140px at 375 and 216px at 1440, which is what the page
+     renders today at 1440x900; 250px at 1920. */
+  --section-open: clamp(140px, 113px + 7.14vw, 250px);
+  --section-close: calc(var(--section-open) / 2);
+  --section-gap: calc(var(--section-open) + var(--section-close)); /* the boundary */
   position: relative;
   background: rgb(var(--paper));
 }
@@ -1187,37 +1205,40 @@
   }
 }
 
-/* ── full-screen interlude figures (cover the sticky map on scroll) ─────────
-   An opaque, ≥100vh section in the scroll flow. It re-enables pointer events
-   (the .story-scroll overlay disables them) so the chart is interactive. */
+/* ── editorial sections (cover the sticky map on scroll) ───────────────────
+   An opaque section in the scroll flow, as tall as its own content. It
+   re-enables pointer events (the .story-scroll overlay disables them) so the
+   figures inside are interactive. */
+/* Where the background changes, the boundary splits down the middle instead of
+   being carried entirely by the section below. A colour edge has to have air on
+   BOTH sides: half the gap in the old colour, half in the new. Paper meeting
+   paper needs no such thing, which is why only the posters get this. */
+.story-fullscreen:has(+ .interlude-wall) {
+  padding-bottom: calc(var(--section-gap) / 2);
+}
+.interlude-wall,
+.interlude-wall + .story-fullscreen {
+  padding-top: calc(var(--section-gap) / 2);
+}
+
 .story-fullscreen {
   position: relative;
   z-index: 3;
-  min-height: 100vh;
   display: flex;
-  align-items: center;
+  /* flex-start, not center, and no min-height. That pair was the whole source
+     of the page's uneven rhythm: with min-height:100vh and align-items:center a
+     section SHORTER than the viewport ignored the padding entirely and opened at
+     `50vh - content/2`, so the gap was a function of how much content the
+     section happened to have. Short section, big gap -- backwards, and invisible
+     in the CSS. .close-hero has 431px of content and was opening on 288 against
+     the 216 written here.
+
+     Content-driven now: every section is its own height, pins to the padding,
+     and every boundary is open + close regardless of what is inside it. The
+     posters below opt out, because a poster is not a paragraph. */
+  align-items: flex-start;
   justify-content: center;
-  /* 12vh, up from 8. The vertical padding only reaches the sections that need
-     it, which is why this is a targeted change rather than a blunt one: with
-     min-height:100vh and align-items:center, a section whose content is SHORTER
-     than the viewport opens at `50vh - content/2`, independent of the padding,
-     because every vh added to the padding takes one off the half-slack. Only a
-     section whose content exceeds the viewport opens exactly on the padding,
-     and those are the ones that were reading tight -- Rainbow is 1791px at
-     1440x900 and was opening on 72px flat.
-
-     The size comes off the page rather than off a feeling. The Rainbow to
-     Ecosystems boundary measured 170px at 1440x900 against a page median of
-     233, and 212 against 296 at 1920x1080. Four more vh a side takes it to 216
-     and 259, so the tight boundaries close most of the gap to the median.
-
-     Not all of it, and the reason is worth keeping: a boundary only gains from
-     the sections that are actually tall. This one gained ONE side's worth (+46
-     at 900, +47 at 1080, against 4vh of 36 and 43) because Rainbow exceeds the
-     viewport and Ecosystems does not, so only Rainbow's bottom padding moved.
-     A first pass through this comment predicted 2 x 4vh and was wrong; the
-     numbers above are measured. */
-  padding: 12vh 6vw 12vh calc(6vw + var(--nav-w));
+  padding: var(--section-open) 6vw var(--section-close) calc(6vw + var(--nav-w));
   background: rgb(var(--paper));
   pointer-events: auto;
 }
@@ -1476,26 +1497,27 @@
    slack to give, so it was landing on that floor while everything around it
    landed well above it.
 
-   Measured across every section boundary on the page rather than reasoned
-   about. At 1440x900 the gaps run 98 / 150 / 170 / 203 / 233 / 241 / 306 / 364,
-   median 233; at 1920x1080, 126 / 187 / 212 / 260 / 296 / 315 / 380 / 461,
-   median 296. The old 16vh gave 144 and 173, about 62% of those medians.
+   Measured across every section boundary rather than reasoned about. Under the
+   8vh padding of the time those gaps ran 98 / 150 / 170 / 203 / 233 / 241 / 306
+   / 364 at 1440x900, median 233, and 126 / 187 / 212 / 260 / 296 / 315 / 380 /
+   461 at 1920x1080, median 296; 16vh gave 144 and 173, about 62% of those. That
+   paragraph is history -- .story-fullscreen has moved twice since, and the same
+   gaps now run to a median of 324 and 389 -- but the method is the point.
 
-   It is pinned to the ADJACENT boundary, the one the eye actually compares
-   against, since Rainbow to Ecosystems is the next thing down the page. A break
-   INSIDE a section must not be larger than the break that ends it, however
-   section-tier the heading is.
+   The constraint this has to satisfy is one-sided: a break INSIDE a section must
+   not be larger than the break that ENDS it, however section-tier the heading
+   is. 27vh was tried once, off a predicted Rainbow-to-Ecosystems boundary of
+   242/298 that the page never produced, and it inverted exactly that: 243 inside
+   the section against 216 ending it.
 
-   That boundary moved when .story-fullscreen went from 8vh of padding to 12, so
-   this moved with it: 20vh to 24vh, tracking a boundary measured at 216 and
-   259. 24vh renders 216 and 259 too, which is the point -- it is the same break
-   rather than a nearby one. 27vh was tried first, from a predicted boundary of
-   242/298 that the page did not produce, and it inverted the very hierarchy
-   this comment exists to protect: 243 inside the section against 216 ending it.
-   Still vh, not rem, so it keeps following the padding that produces the real
-   thing rather than freezing a number measured at one viewport height. */
+   It is --section-open now, which is the same measure the section opens on: the
+   entrance to a section and the big break inside it are one size rather than two
+   near-misses. The boundary that ENDS the section is --section-gap, an open plus
+   a close, which is 1.5x this by construction -- so the hierarchy holds by
+   arithmetic rather than by two numbers that happen to be in the right order,
+   and it keeps holding at whatever value the token is dialled to. */
 .rb-figure {
-  margin: 24vh 0 0;
+  margin: var(--section-open) 0 0;
 }
 /* The figure's own head. It borrowed the section's title and the chart's
    controls while it lived behind the chart's tab; standing on its own it has
@@ -2256,7 +2278,20 @@
 }
 
 /* ── Interlude · The Consequences — two full-page photo walls ──────────────── */
+/* The two posters, and the only sections that still hold a whole screen. A
+   paragraph is as tall as its words; a poster is a composition, and this one is
+   built on the top edge the photos share and the bottom edge the lede sits on,
+   so it keeps min-height and keeps centring. Its frame is symmetric at half the
+   boundary, and the paper section on either side puts the other half against it,
+   so the colour edge falls in the middle of the gap rather than against the type
+   on one side of it. The cost of keeping the screen is that the wall's leftover
+   slack lands in that gap too: 336 and 335 at 1440x900 against the 324 every
+   other boundary shares. Dropping min-height would make all nine identical and
+   is one line away, at the price of a poster that no longer fills a screen. */
 .interlude-wall {
+  min-height: 100svh;
+  align-items: center;
+  padding-block: calc(var(--section-gap) / 2);
   color: #fff;
   overflow: hidden;
 }
@@ -3008,7 +3043,12 @@
 .alt-chart {
   --alt-gutter-l: 4rem;
   --alt-gutter-r: 5.5rem;
-  margin: 0 0 1.25rem;
+  /* No bottom margin: this figure is the last thing in .fs-inner, so anything
+     here is trailing space that the section's own close then adds to. It carried
+     1.25rem, 17px at 1440x900, which is the smaller half of what pushed the
+     Alternatives to Methods boundary to 453 against the 324 its neighbours share.
+     The other 112 is under .alt-verdicts below. */
+  margin: 0;
 }
 
 /* Header arrow: text above a grey-to-red gradient line with a red head. */
@@ -3274,12 +3314,31 @@
   display: flex;
   gap: 0.625rem;
   margin: 0.875rem 0 0;
-  /* reserve the tallest verdict's height so the reveal never re-centres the section */
-  min-height: 7.375rem;
   align-items: flex-start;
 }
+/* display:none, not a reserved-and-hidden block. This used to be
+   `visibility: hidden` over `min-height: 7.375rem`, holding the tallest verdict's
+   height so that a reveal could not re-centre the section. The cost was 112px of
+   invisible space hanging under the button, and because it sat at the section's
+   very bottom edge it was added to the boundary below rather than absorbed: with
+   .alt-chart's trailing 17px above, Alternatives to Methods measured 453 against
+   the 324 its neighbours share. A hole every reader saw, whether or not they ever
+   pressed the button.
+
+   The reserve is also no longer buying anything. This section's content exceeds
+   its content box, so it pins to .story-fullscreen's padding rather than centring
+   in the slack, and a reveal only grows it downwards. Measured with and without
+   the reserve at 1440x900, 1920x1080 and 768x1024: the button does not move by a
+   pixel in any of the four states. Below 641px the verdicts are display:none
+   already.
+
+   The two cannot both be had -- the hidden state genuinely needs 112 fewer pixels
+   than the shown one, so any reserve is a hole. Where the section is short enough
+   to centre again, above roughly 972px of viewport at this width, a reveal shifts
+   its content up by half the growth; that is a 56px move on a click, against a
+   permanent hole on every visit. */
 .alt-verdicts.is-hidden {
-  visibility: hidden;
+  display: none;
 }
 .alt-verdict {
   flex: 1;
@@ -4058,12 +4117,12 @@
   color: var(--on-photo);
 }
 
-/* Dense section: trim the fullscreen padding so the whole arc sits
-   within one viewport. */
-.timeline-sec {
-  padding-top: 4vh;
-  padding-bottom: 5vh;
-}
+/* PROTOTYPE: this section's 4vh/5vh override is gone. It existed so the whole
+   arc would sit inside one viewport back when every section was min-height:100vh;
+   nothing forces that now, and it was the last place on the page still setting
+   its own rhythm -- it made Methods to Timeline 229 against everyone else's 324.
+   The cost is that landing on Timeline from the nav no longer shows the whole
+   arc: 324 of opening plus 648 of content is 972 against a 900px viewport. */
 .timeline-sec .fs-note {
   margin-top: 1.375rem;
 }

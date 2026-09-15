@@ -238,7 +238,10 @@ export default function RainFieldTuner({ geom, onChange, built, years, series }:
       // something on screen. It counted every year including the hidden ones.
       totalMarks: cells * (years.length - (geom.hideEmpty ? empties.length : 0)),
     }
-  }, [built.cells, geom.gallons, years, series])
+    // geom.hideEmpty is in here because totalMarks reads it: without it the
+    // floor-cost denominator went stale the moment the switch was thrown, which
+    // is the one number this block exists to get right.
+  }, [built.cells, geom.gallons, geom.hideEmpty, years, series])
 
   const copyText = useMemo(() => {
     const root = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
@@ -272,7 +275,7 @@ export default function RainFieldTuner({ geom, onChange, built, years, series }:
     ]
       .filter(Boolean)
       .join('\n')
-  }, [geom, built, facts])
+  }, [years.length, geom, built, facts])
 
   if (!open) {
     return createPortal(

@@ -193,8 +193,11 @@ export default function AlternativesSection() {
               {revealed ? ALTS.revealBanner : ALTS.revealLabel}
             </button>
 
-            {/* Always in the layout so toggling doesn't re-centre the section;
-                hidden (not removed) until revealed. */}
+            {/* Removed from the layout until revealed, not hidden in place. It
+                used to hold its height so a reveal could not re-centre the
+                section; that reserve left a hole under the button that widened
+                the boundary below it, and the section pins to its padding now
+                rather than centring, so nothing moves. See .alt-verdicts. */}
             <div className={`alt-verdicts${revealed ? '' : ' is-hidden'}`} aria-hidden={!revealed}>
               {ALTERNATIVES.map((a) => (
                 <div key={a.key} className={`alt-verdict${a.retained ? ' is-kept' : ' is-cut'}`}>

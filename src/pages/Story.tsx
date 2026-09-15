@@ -1102,14 +1102,8 @@ export default function Story() {
 
         {/* Summary figures — the two full-screen breakdowns close Act I,
             after the reckoning node. */}
-        {agentSeries && (
-          <div id="sec-rainbow">
-            <RainbowHerbicides years={agentSeries.years} series={agentSeries.series} />
-          </div>
-        )}
-        <div id="sec-ecosystems">
-          <EcosystemsFigure />
-        </div>
+        {agentSeries && <RainbowHerbicides years={agentSeries.years} series={agentSeries.series} />}
+        <EcosystemsFigure />
 
         {/* Interlude + Act II. Skeleton editorial sections; details to be
             refined. Each renders its own id'd .story-fullscreen. */}
