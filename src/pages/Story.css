@@ -1197,27 +1197,47 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  /* 12vh, up from 8. The vertical padding only reaches the sections that need
-     it, which is why this is a targeted change rather than a blunt one: with
-     min-height:100vh and align-items:center, a section whose content is SHORTER
-     than the viewport opens at `50vh - content/2`, independent of the padding,
-     because every vh added to the padding takes one off the half-slack. Only a
-     section whose content exceeds the viewport opens exactly on the padding,
-     and those are the ones that were reading tight -- Rainbow is 1791px at
-     1440x900 and was opening on 72px flat.
+  /* Asymmetric on purpose: 24vh of opening over 12vh of close. It was 8 a side,
+     then 12, and now the two halves have parted because they are not the same
+     thing.
 
-     The size comes off the page rather than off a feeling. The Rainbow to
-     Ecosystems boundary measured 170px at 1440x900 against a page median of
-     233, and 212 against 296 at 1920x1080. Four more vh a side takes it to 216
-     and 259, so the tight boundaries close most of the gap to the median.
+     The opening is what you land on. Where a paper section follows the map or a
+     wall, the two meet at a hard colour edge, and the drop from that edge to the
+     title was a single padding -- 108px at 1440x900, 130 at 1920x1080 -- which
+     reads as a crop rather than an entrance. 24vh renders 216 and 259, which is
+     deliberately the same measure as .rb-figure's break further down: a
+     section's entrance and the big break inside it are one size rather than two
+     near-misses. Where two paper sections meet there is no edge to see, and the
+     opening simply adds to the close below it.
 
-     Not all of it, and the reason is worth keeping: a boundary only gains from
-     the sections that are actually tall. This one gained ONE side's worth (+46
-     at 900, +47 at 1080, against 4vh of 36 and 43) because Rainbow exceeds the
-     viewport and Ecosystems does not, so only Rainbow's bottom padding moved.
-     A first pass through this comment predicted 2 x 4vh and was wrong; the
-     numbers above are measured. */
-  padding: 12vh 6vw 12vh calc(6vw + var(--nav-w));
+     Which is why the close stays at 12vh. A boundary is a close plus an opening,
+     so raising both raises every boundary twice over. Measured, not reasoned:
+     24/12 puts the Rainbow to Ecosystems boundary at 324 and 389, inside the
+     range the page already ran, whose widest boundaries were past 340 at 900 and
+     past 460 at 1080, and costs 540px of scroll at 1440x900, 619 at 1920x1080.
+     24/24 puts that same boundary at 432 and 518 -- wider than anything else on
+     the page.
+
+     Then watch the second-order effect, because it is most of what this rule
+     does now. With min-height:100vh and align-items:center, a section SHORTER
+     than the viewport used to split its slack and open at `50vh - content/2`,
+     independent of the padding; that is why raising the old symmetric padding
+     only ever reached the tall sections. At 24vh most of them no longer have
+     slack to split -- they exceed 100vh and pin to the padding instead -- so the
+     boundaries between paper sections stopped scattering and landed on 36vh
+     together. Boundary by boundary at 1440x900: Rainbow to Ecosystems 216 ->
+     324, Actions to Alternatives 258 -> 324, Alternatives to Methods 228 -> 324.
+     .close-hero is the one section still short enough to have slack, at 432px of
+     content, so it goes on centring: 288 above, 180 below.
+
+     Two sections opt out further down, both because they are compositions rather
+     than pages of text. .timeline-sec keeps its own 4vh/5vh, since the whole arc
+     has to sit inside one viewport; the price is that Methods to Timeline is now
+     the tightest boundary between two paper sections, 229 against the 324 the
+     others share, because Timeline keeps its short opening while Methods lost the
+     centring slack that used to pad it. .interlude-wall keeps a symmetric 12vh so
+     that its frame stays even. */
+  padding: 24vh 6vw 12vh calc(6vw + var(--nav-w));
   background: rgb(var(--paper));
   pointer-events: auto;
 }
@@ -1476,24 +1496,27 @@
    slack to give, so it was landing on that floor while everything around it
    landed well above it.
 
-   Measured across every section boundary on the page rather than reasoned
-   about. At 1440x900 the gaps run 98 / 150 / 170 / 203 / 233 / 241 / 306 / 364,
-   median 233; at 1920x1080, 126 / 187 / 212 / 260 / 296 / 315 / 380 / 461,
-   median 296. The old 16vh gave 144 and 173, about 62% of those medians.
+   Measured across every section boundary rather than reasoned about. Under the
+   8vh padding of the time those gaps ran 98 / 150 / 170 / 203 / 233 / 241 / 306
+   / 364 at 1440x900, median 233, and 126 / 187 / 212 / 260 / 296 / 315 / 380 /
+   461 at 1920x1080, median 296; 16vh gave 144 and 173, about 62% of those. That
+   paragraph is history -- .story-fullscreen has moved twice since, and the same
+   gaps now run to a median of 324 and 389 -- but the method is the point.
 
-   It is pinned to the ADJACENT boundary, the one the eye actually compares
-   against, since Rainbow to Ecosystems is the next thing down the page. A break
-   INSIDE a section must not be larger than the break that ends it, however
-   section-tier the heading is.
+   The constraint this has to satisfy is one-sided: a break INSIDE a section must
+   not be larger than the break that ENDS it, however section-tier the heading
+   is. 27vh was tried once, off a predicted Rainbow-to-Ecosystems boundary of
+   242/298 that the page never produced, and it inverted exactly that: 243 inside
+   the section against 216 ending it.
 
-   That boundary moved when .story-fullscreen went from 8vh of padding to 12, so
-   this moved with it: 20vh to 24vh, tracking a boundary measured at 216 and
-   259. 24vh renders 216 and 259 too, which is the point -- it is the same break
-   rather than a nearby one. 27vh was tried first, from a predicted boundary of
-   242/298 that the page did not produce, and it inverted the very hierarchy
-   this comment exists to protect: 243 inside the section against 216 ending it.
-   Still vh, not rem, so it keeps following the padding that produces the real
-   thing rather than freezing a number measured at one viewport height. */
+   24vh now reads against the section's OPENING rather than its ending, because
+   .story-fullscreen went asymmetric. 24vh of top padding renders 216 at 1440x900
+   and 259 at 1920x1080, the same two numbers this margin renders, so the
+   entrance to the section and the break inside it are one measure. The boundary
+   that ends the section is a close plus an opening, 36vh, measuring 324 and 389
+   -- above both, so the hierarchy now has headroom instead of sitting on the
+   line. Still vh, not rem, so it keeps following the padding that produces the
+   real thing rather than freezing a number read at one viewport height. */
 .rb-figure {
   margin: 24vh 0 0;
 }
@@ -2256,7 +2279,15 @@
 }
 
 /* ── Interlude · The Consequences — two full-page photo walls ──────────────── */
+/* Symmetric padding, against .story-fullscreen's 24vh/12vh above. A section
+   opens on a title and can afford to be top-heavy; a wall opens on a
+   composition. Its figures read off the TOP edge the photos share and its lede
+   sits on the BOTTOM edge (see .wall-lead), so the frame around it has to be
+   even. At 24/12 it tips: 227 above against 120 below on the first wall, 216
+   against 108 on the second, which also stops holding inside one viewport
+   (900 -> 916) -- and holding one viewport is the one thing a wall is for. */
 .interlude-wall {
+  padding-top: 12vh;
   color: #fff;
   overflow: hidden;
 }
@@ -4059,7 +4090,11 @@
 }
 
 /* Dense section: trim the fullscreen padding so the whole arc sits
-   within one viewport. */
+   within one viewport. Holding 4vh while .story-fullscreen opened up to 24 is
+   what makes Methods to Timeline the tightest boundary between two paper
+   sections -- 229 at 1440x900 against the 324 the rest of them share -- and it
+   is still the right trade, because the alternative is an arc that does not
+   fit. */
 .timeline-sec {
   padding-top: 4vh;
   padding-bottom: 5vh;
