@@ -3039,7 +3039,12 @@
 .alt-chart {
   --alt-gutter-l: 4rem;
   --alt-gutter-r: 5.5rem;
-  margin: 0 0 1.25rem;
+  /* No bottom margin: this figure is the last thing in .fs-inner, so anything
+     here is trailing space that the section's own close then adds to. It carried
+     1.25rem, 17px at 1440x900, which is the smaller half of what pushed the
+     Alternatives to Methods boundary to 453 against the 324 its neighbours share.
+     The other 112 is under .alt-verdicts below. */
+  margin: 0;
 }
 
 /* Header arrow: text above a grey-to-red gradient line with a red head. */
@@ -3305,12 +3310,31 @@
   display: flex;
   gap: 0.625rem;
   margin: 0.875rem 0 0;
-  /* reserve the tallest verdict's height so the reveal never re-centres the section */
-  min-height: 7.375rem;
   align-items: flex-start;
 }
+/* display:none, not a reserved-and-hidden block. This used to be
+   `visibility: hidden` over `min-height: 7.375rem`, holding the tallest verdict's
+   height so that a reveal could not re-centre the section. The cost was 112px of
+   invisible space hanging under the button, and because it sat at the section's
+   very bottom edge it was added to the boundary below rather than absorbed: with
+   .alt-chart's trailing 17px above, Alternatives to Methods measured 453 against
+   the 324 its neighbours share. A hole every reader saw, whether or not they ever
+   pressed the button.
+
+   The reserve is also no longer buying anything. This section's content exceeds
+   its content box, so it pins to .story-fullscreen's padding rather than centring
+   in the slack, and a reveal only grows it downwards. Measured with and without
+   the reserve at 1440x900, 1920x1080 and 768x1024: the button does not move by a
+   pixel in any of the four states. Below 641px the verdicts are display:none
+   already.
+
+   The two cannot both be had -- the hidden state genuinely needs 112 fewer pixels
+   than the shown one, so any reserve is a hole. Where the section is short enough
+   to centre again, above roughly 972px of viewport at this width, a reveal shifts
+   its content up by half the growth; that is a 56px move on a click, against a
+   permanent hole on every visit. */
 .alt-verdicts.is-hidden {
-  visibility: hidden;
+  display: none;
 }
 .alt-verdict {
   flex: 1;
