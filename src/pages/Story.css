@@ -857,6 +857,80 @@
   pointer-events: none;
 }
 
+/* ── card sketches ────────────────────────────────────────────────────────
+   One line drawing per card, drawn on when the card goes active (CardSketch).
+   The SVGs are stroke-only on currentColor; the line WIDTH is set here, in
+   screen pixels with non-scaling-stroke, so a 600-unit drawing shown at 300px
+   keeps the same 1.1px line as one shown at 420 -- uniform weight by
+   construction rather than by care. */
+.story-art {
+  color: var(--forest-text-soft);
+  line-height: 0;
+}
+.story-art svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.story-art path {
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1.1px;
+}
+
+/* PROTOTYPE: four placements, picked with ?art=top|inset|foot|side, desktop
+   only. The tablet and phone cards are fixed captions over the map with no
+   room to give, so the sketch is hidden there whatever the placement. */
+@media (min-width: 1025px) {
+  .story-card[data-art='top'] .story-art {
+    margin: 0 0 1rem;
+  }
+
+  .story-card[data-art='foot'] {
+    display: flex;
+    flex-direction: column;
+  }
+  .story-card[data-art='foot'] .story-art {
+    order: 1;
+    margin: 1rem 0 0;
+  }
+  .story-card[data-art='foot'] .story-quote {
+    order: 2;
+  }
+
+  .story-card[data-art='inset'] .story-art {
+    float: right;
+    width: 42%;
+    margin: 0.125rem 0 0.5rem 1rem;
+  }
+  .story-card[data-art='inset']::after {
+    content: '';
+    display: block;
+    clear: both;
+  }
+
+  .story-card[data-art='side'] {
+    width: min(42rem, 84vw);
+    display: grid;
+    grid-template-columns: 5fr 7fr;
+    column-gap: 1.375rem;
+    align-items: start;
+  }
+  .story-card[data-art='side'] > * {
+    grid-column: 2;
+  }
+  .story-card[data-art='side'] .story-art {
+    grid-column: 1;
+    grid-row: 1 / span 8;
+    margin: 0.25rem 0 0;
+  }
+}
+@media (max-width: 1024px) {
+  .story-art {
+    display: none;
+  }
+}
+
 /* Solid dark-forest card — stands clearly off the pale map. */
 .story-card {
   pointer-events: auto;

@@ -47,6 +47,9 @@ import './Story.css'
 import '../StorySkinV3.css'
 // Geist @font-face declarations (shared with the Archive spike).
 import '../fontsGeist.css'
+import CardSketch from '../components/CardSketch'
+/* PROTOTYPE: where the card's sketch sits -- top | inset | foot | side. */
+const ART_VARIANT = new URLSearchParams(window.location.search).get('art') || 'top'
 
 /** The type dial for the nineteen places Courier handed back to Geist, lazy so
  *  a reader never downloads it, and gated the same way the Archive's console
@@ -1081,8 +1084,10 @@ export default function Story() {
               <section className="story-step" data-index={i} id={NAV_ANCHOR[ev.id]}>
                 <article
                   className={`story-card${i === active ? ' is-active' : ''}`}
+                  data-art={ART_VARIANT}
                   style={{ '--card-i': i } as React.CSSProperties}
                 >
+                  <CardSketch id={ev.id} active={i === active} />
                   <p className="story-eyebrow">{ev.period}</p>
                   <h2 className="story-name">{ev.name}</h2>
                   <p className="story-dek">{ev.dek}</p>
