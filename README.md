@@ -3,14 +3,19 @@
 Two pages drawn from one record: the HERBS file of U.S. military herbicide
 missions over South Vietnam, 1961 to 1971.
 
-- **A Decade of Rain** ([adecadeofrain.sizheng.me](https://adecadeofrain.sizheng.me)):
+- **A Decade of Rain** ([rain.sizheng.me](https://rain.sizheng.me)):
   a scroll-driven narrative in eight nodes, from the 1961 test sprays to the
   1971 reckoning, over a single heat field that fills in as the reader scrolls.
-- **The Herbicide Atlas of Vietnam** ([/archive](https://adecadeofrain.sizheng.me/archive)):
+- **The Herbicide Atlas of Vietnam** ([/archive](https://rain.sizheng.me/archive)):
   an explorer of the same record. A playable decade, three zoom-dependent
   encodings of the volume, an agent filter, and a lookup that returns the
   individual runs within a radius of a place or the runs of a HERBS mission
   number (`?m=4493`).
+
+The version submitted to the IDA on 14 September 2026 stays as it was at
+[adecadeofrain.sizheng.me](https://adecadeofrain.sizheng.me), served from the
+`ida` branch; everything since, the story-card illustrations first, is at
+rain.sizheng.me from master.
 
 Both are static pages: no backend, no accounts, no analytics.
 
