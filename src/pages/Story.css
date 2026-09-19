@@ -890,24 +890,27 @@
    1.0625 -> 1, body 0.8125 (as it was), account 1.0625 -> 1 with its
    attribution run in. Tallest card 526px at 1440x900, 497 at 1280x720, with
    the deks cut to one line each (events.ts). The deck (<= 1024px) keeps its
-   own sizes. */
+   own sizes.
+
+   Then the three lines took the Atlas's own identity block, at Si's ask:
+   ArchiveSkinV2.css, `.map-wrap .explorer-eyebrow`, `-title`, `-subtitle`,
+   parameter for parameter. Geist Medium throughout; the year 0.8125rem in
+   caps tracked 0.06em, the title 1.125rem sentence case at -0.01em, the dek
+   0.8125rem; 0.3125rem between the three and 0.875rem down to the body, as
+   the Atlas steps from its subtitle to its dek. Only the colours translate,
+   paper to forest: --accent-deep -> --accent-bright, --ink -> --forest-text.
+   The leadings are the Atlas's --v2-lead-ui / -display / -body, written as
+   the numbers they are (1.35 / 1.3 / 1.55) because that skin is the map's,
+   not this page's. Tallest card 521px at 1440x900, 492 at 1280x720. */
 .story-eyebrow {
-  /* The year and the title make one heading; the year sits close on it. */
-  margin: 0 0 0.25rem;
-  font-family: var(--font-serif);
+  /* The year: the Atlas's eyebrow, the panel's caps tier. */
+  margin: 0 0 0.3125rem;
+  font-family: var(--font-sans);
   text-transform: uppercase;
-  font-size: 1.375rem;
-  font-weight: 400;
-  /* Stated rather than inherited. This rule declared no line-height, so it fell
-     to `normal` — Playfair's own metrics, which compute to 1.324 here. That was
-     fine while nothing had to match it, and not fine the moment the Archive's
-     identity block was asked to line up with this one: the Archive declared
-     1.05, and the same two lines at the same size sat 4.3px apart on the two
-     surfaces. Writing it down is what makes it copyable. `normal` and not a
-     number, because the number is the FACE's, not ours — pin it to 1.32 and it
-     stops tracking Playfair if the display face is ever changed again. */
-  line-height: normal;
-  letter-spacing: normal;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: var(--track-caps);
+  line-height: 1.35;
   color: var(--accent-bright);
 }
 
@@ -938,21 +941,24 @@
 }
 
 .story-name {
-  margin: 0 0 0.5rem;
-  font-family: var(--font-serif);
-  text-transform: uppercase;
-  font-weight: 400;
-  font-size: 1.375rem;
-  line-height: 1.16;
+  /* The title: the Atlas's title. */
+  margin: 0 0 0.3125rem;
+  font-family: var(--font-sans);
+  text-transform: none;
+  font-weight: 500;
+  font-size: 1.125rem;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
   color: var(--forest-text);
 }
 
 .story-dek {
-  margin: 0 0 0.625rem;
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: 1rem;
-  line-height: 1.35;
+  /* The dek: the Atlas's subtitle, and the Atlas's step down to its dek. */
+  margin: 0 0 0.875rem;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 0.8125rem;
+  line-height: 1.55;
   color: var(--forest-text);
 }
 

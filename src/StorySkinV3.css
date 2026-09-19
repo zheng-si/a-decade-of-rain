@@ -351,15 +351,13 @@
   letter-spacing: 0.05em;
 }
 
-.story .story-dek,
 .story .story-quote p {
-  /* The act card's prose, both of it. These were already Regular and already
-     sentence case; they were only ever too big for a proportional face, and
-     went one step down to 0.9375rem. With the illustration on the card and
-     the rest of its type re-set around it (Story.css, "CARD TYPE"), the dek
-     at 12.75px fell into caption size and stopped separating from the body;
-     1rem is where it reads as a dek again. This rule, not Story.css, is what
-     sets the size: the skin outranks it. */
+  /* The account. It was Regular and sentence case already, and only ever too
+     big for a proportional face: one step down to 0.9375rem, then back up to
+     1rem when the card's type was re-set around the illustration (Story.css,
+     "CARD TYPE"). The dek used to share this rule, and the rule outranked
+     Story.css; it left when the card took the Atlas's identity type, whose
+     dek is 0.8125rem, and Story.css sets it now. */
   font-size: 1rem;
 }
 
