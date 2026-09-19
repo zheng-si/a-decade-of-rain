@@ -5,7 +5,8 @@ import './StoryCardTuner.css'
 /**
  * A spacing dial for the story card: the picture, the year, the title, the
  * dek, the body, the stat pill and the account, and the six gaps between them,
- * with the four texts' size, face, weight and opacity beside.
+ * with the four texts' size, face, weight, opacity, colour, tracking and
+ * case beside.
  *
  * The gaps are shown as the eye reads them, INK TO INK -- the lowest pixel of
  * the last line above to the highest pixel of the first line below -- not as
@@ -119,7 +120,35 @@ const FACES: { v: Face; label: string; token: string; weights: number[] }[] = [
 ]
 const faceOf = (family: string): Face => (/geist/i.test(family) ? 'geist' : 'courier')
 
-type Text = { size: number; face: Face; weight: number; opacity: number }
+/* The three colours the card's texts ship in, by token: the ivory of the
+   title and the dek, the soft sage of the body, the coral of the year. A
+   text's colour is recognised by what it computes to, so one set by any
+   route still lands on its button, and one that is none of these shows as
+   the rgb it is. */
+const COLOURS: { label: string; token: string }[] = [
+  { label: 'text', token: 'var(--forest-text)' },
+  { label: 'soft', token: 'var(--forest-text-soft)' },
+  { label: 'accent', token: 'var(--accent-bright)' },
+]
+
+const CASES = [
+  { v: 'uppercase', label: 'ALL CAPS' },
+  { v: 'capitalize', label: 'Initial Cap' },
+  { v: 'none', label: 'natural' },
+] as const
+type Case = (typeof CASES)[number]['v']
+
+type Text = {
+  size: number
+  face: Face
+  weight: number
+  opacity: number
+  /** A token from COLOURS, or the computed rgb when the text is in none of them. */
+  color: string
+  /** In em: a proportion of the size, so the size dial beside it cannot undo it. */
+  track: number
+  tcase: Case
+}
 
 const STYLE_ID = 'story-card-tuner'
 
@@ -174,7 +203,13 @@ function reach(el: Element, text: string): { up: number; down: number } {
   const cs = getComputedStyle(el)
   ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
   const t =
-    cs.textTransform === 'uppercase' ? text.toUpperCase() : cs.textTransform === 'lowercase' ? text.toLowerCase() : text
+    cs.textTransform === 'uppercase'
+      ? text.toUpperCase()
+      : cs.textTransform === 'lowercase'
+        ? text.toLowerCase()
+        : cs.textTransform === 'capitalize'
+          ? text.replace(/(^|\s)(\S)/g, (_, gap: string, c: string) => gap + c.toUpperCase())
+          : text
   const m = ctx.measureText(t)
   return { up: m.actualBoundingBoxAscent, down: m.actualBoundingBoxDescent }
 }
@@ -207,7 +242,18 @@ function measureCard(): Reading | null {
   return { card: card.querySelector('.story-name')?.textContent ?? '', gaps }
 }
 
-/** What the CSS ships: the margins and sizes as rendered on the first card. */
+/** What a colour token computes to inside the card, as the browser writes
+ *  it, for matching against a text's computed colour. */
+function resolveColour(card: Element, token: string): string {
+  const probe = document.createElement('span')
+  probe.style.color = token
+  card.appendChild(probe)
+  const c = getComputedStyle(probe).color
+  probe.remove()
+  return c
+}
+
+/** What the CSS ships: the margins and the texts as rendered on the first card. */
 function measureBase(): { gaps: Record<string, number>; texts: Record<string, Text> } | null {
   const card = document.querySelector('.story-card')
   if (!card) return null
@@ -219,15 +265,22 @@ function measureBase(): { gaps: Record<string, number>; texts: Record<string, Te
     gaps[g.key] = Math.round(parseFloat(g.prop === 'margin-top' ? cs.marginTop : cs.marginBottom) * 100) / 100
   }
   const texts: Record<string, Text> = {}
+  const colours = COLOURS.map((c) => ({ token: c.token, rgb: resolveColour(card, c.token) }))
   for (const t of TEXTS) {
     const el = card.querySelector(t.sel)
     if (!el) continue
     const cs = getComputedStyle(el)
+    const size = Math.round(parseFloat(cs.fontSize) * 100) / 100
+    // `letterSpacing` comes back as px or the keyword; it is kept in em.
+    const lsPx = cs.letterSpacing === 'normal' ? 0 : parseFloat(cs.letterSpacing) || 0
     texts[t.key] = {
-      size: Math.round(parseFloat(cs.fontSize) * 100) / 100,
+      size,
       face: faceOf(cs.fontFamily),
       weight: parseInt(cs.fontWeight, 10) || 400,
       opacity: Math.round(parseFloat(cs.opacity) * 100) / 100,
+      color: colours.find((c) => c.rgb === cs.color)?.token ?? cs.color,
+      track: size ? Math.round((lsPx / size) * 1000) / 1000 : 0,
+      tcase: CASES.find((k) => k.v === cs.textTransform)?.v ?? 'none',
     }
   }
   return { gaps, texts }
@@ -285,6 +338,10 @@ export default function StoryCardTuner() {
       if (e.face != null) decls.push(`font-family:${FACES.find((f) => f.v === e.face)!.token}`)
       if (e.weight != null) decls.push(`font-weight:${e.weight}`)
       if (e.opacity != null) decls.push(`opacity:${e.opacity}`)
+      if (e.color != null) decls.push(`color:${e.color}`)
+      // 0 is a real answer here: it is how tracking comes off a text.
+      if (e.track != null) decls.push(`letter-spacing:${e.track}em`)
+      if (e.tcase != null) decls.push(`text-transform:${e.tcase}`)
       if (decls.length) rules.push(`.story ${t.sel}{${decls.join(';')}}`)
     }
     styleRef.current.textContent = rules.length ? `@media ${DESKTOP}{${rules.join('')}}` : ''
@@ -383,6 +440,9 @@ export default function StoryCardTuner() {
       }
       if (e.weight != null) decls.push(`font-weight: ${b ? `${b.weight} -> ` : ''}${e.weight}`)
       if (e.opacity != null) decls.push(`opacity: ${b ? `${b.opacity} -> ` : ''}${e.opacity}`)
+      if (e.color != null) decls.push(`color: ${b ? `${b.color} -> ` : ''}${e.color}`)
+      if (e.track != null) decls.push(`letter-spacing: ${b ? `${b.track}em -> ` : ''}${e.track}em`)
+      if (e.tcase != null) decls.push(`text-transform: ${b ? `${b.tcase} -> ` : ''}${e.tcase}`)
       lines.push(`.story ${t.sel} { ${decls.join('; ')}; }   /* ${t.label}${e.size != null ? `, ${e.size}px` : ''} */`)
     }
     return [
@@ -412,7 +472,8 @@ export default function StoryCardTuner() {
       <p className="stt-note">
         The big number is the gap as read, ink to ink (or to a box edge: the picture&apos;s frame, the stat pill, the
         rule). The small one is the margin that makes it, which is what ships. Each step moves the margin 1px. Sizes
-        step 0.5px, opacity 0.05; the faces and weights are the ones the page has. Only what you touch is written.
+        step 0.5px, opacity 0.05, tracking 0.005em; the faces, weights and colours are the ones the page has (soft is
+        the body&apos;s). Only what you touch is written.
       </p>
 
       <p className="sct-card">
@@ -556,6 +617,61 @@ export default function StoryCardTuner() {
                 >
                   +
                 </button>
+              </div>
+              <div className="stt-dial">
+                <span className="stt-dial-k">colour</span>
+                <div className="stt-seg">
+                  {COLOURS.map((c) => (
+                    <button
+                      key={c.token}
+                      className={v && v.color === c.token ? 'is-on' : undefined}
+                      disabled={!v}
+                      onClick={() => setText(t.key, { color: c.token })}
+                    >
+                      <i className="sct-swatch" style={{ background: c.token }} />
+                      {c.label}
+                    </button>
+                  ))}
+                </div>
+                {v && !COLOURS.some((c) => c.token === v.color) && <span className="sct-sub">{v.color}</span>}
+              </div>
+              <div className="stt-dial">
+                <span className="stt-dial-k">track</span>
+                <button
+                  onClick={() =>
+                    v && setText(t.key, { track: Math.max(-0.1, Math.round((v.track - 0.005) * 1000) / 1000) })
+                  }
+                  disabled={!v}
+                  aria-label="Tighter tracking"
+                >
+                  −
+                </button>
+                <span className={`sct-big${e.track != null ? ' is-set' : ''}`}>{v ? `${v.track}em` : '—'}</span>
+                <button
+                  onClick={() =>
+                    v && setText(t.key, { track: Math.min(1, Math.round((v.track + 0.005) * 1000) / 1000) })
+                  }
+                  disabled={!v}
+                  aria-label="Looser tracking"
+                >
+                  +
+                </button>
+                <span className="sct-sub">{v ? `${Math.round(v.track * v.size * 100) / 100}px` : ''}</span>
+              </div>
+              <div className="stt-dial">
+                <span className="stt-dial-k">case</span>
+                <div className="stt-seg">
+                  {CASES.map((k) => (
+                    <button
+                      key={k.v}
+                      className={v && v.tcase === k.v ? 'is-on' : undefined}
+                      disabled={!v}
+                      onClick={() => setText(t.key, { tcase: k.v })}
+                    >
+                      {k.label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </li>
           )

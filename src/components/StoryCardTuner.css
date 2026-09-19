@@ -80,3 +80,22 @@
 .sct-sub.is-set {
   color: #ff9d3d;
 }
+
+/* Seven dials to a text row now, and the longest keys (opacity, colour) ran
+   into their controls at the type tuner's column width; this panel has the
+   room to give them. */
+.sct .stt-dial-k {
+  width: 2.875rem;
+}
+
+/* The colour buttons carry a dot of the colour they name; the name alone
+   (text, soft, accent) says which token, the dot says what it looks like. */
+.sct-swatch {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-right: 0.25rem;
+  border-radius: 50%;
+  vertical-align: -1px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.25);
+}
