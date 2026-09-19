@@ -1,0 +1,78 @@
+/* The story card's spacing dial. Same tool language as StoryTypeTuner (it
+   borrows that sheet's classes) and the opposite corner, so both can be up
+   at once. */
+
+.sct {
+  top: auto;
+  bottom: 1rem;
+  width: 21rem;
+  max-height: calc(100vh - 2rem);
+  z-index: 10000;
+}
+
+.sct-reopen {
+  top: auto;
+  bottom: 1rem;
+  z-index: 10000;
+}
+
+.sct-card {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  color: #b9c4bc;
+  font-size: 10px;
+  border-bottom: 1px solid rgba(232, 236, 231, 0.09);
+}
+
+.sct-card strong {
+  color: #e8ece7;
+  font-weight: 600;
+}
+
+.sct-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sct-list li {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid rgba(232, 236, 231, 0.07);
+}
+
+.sct-list li.is-moved {
+  background: rgba(255, 157, 61, 0.06);
+}
+
+.sct-h {
+  list-style: none;
+  margin: 0.5rem 0.75rem 0.125rem;
+  color: #7f8d83;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* The big number is the gap as read, ink to ink; the small one under it is
+   the margin that makes it, which is what goes into the CSS. */
+.sct-big {
+  min-width: 3.75rem;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.sct-big.is-set {
+  color: #ff9d3d;
+}
+
+.sct-sub {
+  margin-left: 0.25rem;
+  color: #7f8d83;
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}

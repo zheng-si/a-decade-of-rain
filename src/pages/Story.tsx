@@ -57,6 +57,7 @@ import '../fontsGeist.css'
  *  comes straight back into the entry. Four lines of duplication is what makes
  *  the split real. */
 const StoryTypeTuner = lazy(() => import('../components/StoryTypeTuner'))
+const StoryCardTuner = lazy(() => import('../components/StoryCardTuner'))
 
 /** Latched at import. The Story does not rewrite its own query string the way
  *  the Archive does, so this is less load-bearing here than there — but it is
@@ -1121,6 +1122,7 @@ export default function Story() {
       {TYPE_TUNE_GATE && (
         <Suspense fallback={null}>
           <StoryTypeTuner />
+          <StoryCardTuner />
         </Suspense>
       )}
     </div>
