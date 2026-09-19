@@ -185,8 +185,8 @@ export const FACTS_EVENTS: StoryEvent[] = [
       { name: 'Huế', lng: 107.58, lat: 16.46 },
       { name: 'A Lưới', lng: 107.28, lat: 16.22 },
     ],
-    dek: 'The Ho Chi Minh Trail ran through it.',
-    body: 'Some 224 spray runs cross the A Sầu / A Lưới valley between 1965 and 1970, parts of it sprayed as many as eleven times. Decades later, soil around the former A So air base still held nearly 900\u00A0ppt of dioxin, one of the country’s enduring hotspots. Residents have told the Pulitzer Center that for years after the spraying, no rice would grow.',
+    dek: 'For years after, no rice would grow.',
+    body: 'The valley was a corridor of the Ho Chi Minh Trail, and the spraying followed the Trail: some 224 runs cross A Sầu / A Lưới between 1965 and 1970, parts of it as many as eleven times. Decades later, soil around the former A So air base still held nearly 900\u00A0ppt of dioxin, one of the country’s enduring hotspots. Residents have told the Pulitzer Center that for years after the spraying, no rice would grow.',
     stat: { value: '11', label: 'times sprayed, in places' },
   },
   {
