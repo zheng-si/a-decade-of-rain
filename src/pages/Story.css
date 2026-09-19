@@ -879,21 +879,23 @@
    -- dots, pulse rings, heat, rain -- and gives text on a forest surface its
    own tuned tone for exactly this reason: #ff5449 on --forest measures 4.12:1
    and fails AA, while --accent-bright measures 5.15. The card year is text. */
-/* CARD TYPE, one step down from the page's tiers. The card carries a 3:2
-   illustration at its top now (.story-art), some 200px of the 300 it is
-   wide, and at the page sizes the tallest card (Peak, with its two-line
-   title and an account) ran 599px on a 1280x720 screen: 83% of it. Eyebrow
-   1.5 -> 1.125rem, title 1.5 -> 1.25, dek 1.0625 -> 0.9375, body 0.8125 ->
-   0.75, account 1.0625 -> 0.9375 with its attribution run in; measured
-   below at six viewports. The deck (<= 1024px) keeps its own sizes. */
+/* CARD TYPE. The card carries a 3:2 illustration at its top (.story-art),
+   some 200px of the 300 it is wide, and at the page's own sizes the tallest
+   card ran 599px on a 1280x720 screen, 83% of it. A first pass took every
+   size down 15% and that read wrong: the dek fell into caption size and
+   stopped separating from the body, and the year and title, one face in two
+   colours, went from one tier to almost-but-not. So: year and title stay one
+   tier, a step down from the page's 1.5rem; the dek and body keep the sizes
+   they can be read at. Eyebrow 1.5 -> 1.375rem, title 1.5 -> 1.375, dek
+   1.0625 -> 1, body 0.8125 (as it was), account 1.0625 -> 1 with its
+   attribution run in. Tallest card 538px at 1440x900, 509 at 1280x720. The
+   deck (<= 1024px) keeps its own sizes. */
 .story-eyebrow {
-  /* Ink to ink, the year sits 12px above the title; the title 12 above the
-     dek; the dek 16 above the body. The margins are what those need once
-     the lines' own leading is counted. */
-  margin: 0 0 0.15rem;
+  /* The year and the title make one heading; the year sits close on it. */
+  margin: 0 0 0.25rem;
   font-family: var(--font-serif);
   text-transform: uppercase;
-  font-size: 1.125rem;
+  font-size: 1.375rem;
   font-weight: 400;
   /* Stated rather than inherited. This rule declared no line-height, so it fell
      to `normal` — Playfair's own metrics, which compute to 1.324 here. That was
@@ -935,12 +937,12 @@
 }
 
 .story-name {
-  margin: 0 0 0.09375rem;
+  margin: 0 0 0.5rem;
   font-family: var(--font-serif);
   text-transform: uppercase;
   font-weight: 400;
-  font-size: 1.25rem;
-  line-height: 1.18;
+  font-size: 1.375rem;
+  line-height: 1.16;
   color: var(--forest-text);
 }
 
@@ -948,7 +950,7 @@
   margin: 0 0 0.625rem;
   font-family: var(--font-serif);
   font-weight: 400;
-  font-size: 0.9375rem;
+  font-size: 1rem;
   line-height: 1.35;
   color: var(--forest-text);
 }
@@ -956,7 +958,7 @@
 .story-body {
   margin: 0;
   font-weight: 300;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--forest-text-soft);
 }
@@ -981,7 +983,7 @@
 .story-quote p {
   margin: 0;
   font-family: var(--font-serif);
-  font-size: 0.9375rem;
+  font-size: 1rem;
   line-height: 1.35;
   color: var(--forest-text);
 }
