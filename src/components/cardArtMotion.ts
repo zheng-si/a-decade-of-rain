@@ -43,11 +43,20 @@ function el<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Attrs, parent: 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 const clamp = (t: number) => Math.max(0, Math.min(1, t))
 
-const ORANGE = '#E9954B'
-/* The liquid on 06: the colour of the band on the drums it comes out of,
-   sampled from the picture (#e84c30 across a third of the bands' pixels),
-   not the lighter spray orange, which read as a different substance. */
+/* The liquid on the ground: the residue on 03 and 04, the pool on 06. The
+   colour of the band on the drums it comes out of, sampled from the picture
+   (#e84c30 across a third of the bands' pixels), because the pool sits
+   beside those drums. */
 const LIQUID = '#e84c30'
+
+/* The spray in the air, on 03 and 05: the site's accent, the orange the map
+   draws every run in (--accent in App.css), read off the page so the two
+   never drift apart. The drawn package had its own lighter orange (#E9954B)
+   for it, which was no orange the site has. */
+function sprayColour(): string {
+  const v = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()
+  return v || '#ff5449'
+}
 
 /* Spray fans: start x,y (the boom) to end x,y, three per aircraft. 01's run
    up and to the right, behind an aircraft flying to the lower left. */
@@ -188,10 +197,11 @@ export function mountMotion(svg: SVGSVGElement, id: string, parts: Parts = {}): 
     for (const m of motions) m(t)
   }
   residue(svg, id)
+  const spray = sprayColour()
 
   if (SPRAY[id]) {
     /* 01 sprays in ivory: the first test runs were not Agent Orange. */
-    const color = id === 'begins' ? '#e8ece6' : ORANGE
+    const color = id === 'begins' ? '#e8ece6' : spray
     const halfWidth = id === 'peak' ? 6.8 : 6.2
     SPRAY[id].forEach((a, i) => {
       const p = el('polygon', { fill: color }, svg)
@@ -225,7 +235,7 @@ export function mountMotion(svg: SVGSVGElement, id: string, parts: Parts = {}): 
        picture (the rectangle at 125,20 of 155x125), carried with its anchor
        at 210,85 -- where it sat in that picture -- from the lower right to
        there. Three trails grow behind it. The base picture has no aircraft. */
-    const trailGroup = el('g', { fill: ORANGE }, svg)
+    const trailGroup = el('g', { fill: spray }, svg)
     const trails = [0, 1, 2].map(() => el('polygon', {}, trailGroup))
     const plane = el('g', {}, svg)
     if (parts['a-sau-plane']) {
