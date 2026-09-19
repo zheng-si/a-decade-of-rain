@@ -122,9 +122,10 @@ const ROWS: [number, number][][] = [
   [[768, 711]],
 ]
 
-/* The residue on 03 and 04: an illustrative orange accent on the dead
-   vegetation and the ground beside it (and, on 04, three patches of
-   water). Static, under everything that moves. */
+/* The residue on 03 and 04: an illustrative accent on the dead vegetation
+   and the ground beside it (and, on 04, three patches of water), in the
+   liquid's colour rather than the spray's: what settled, not what fell.
+   Static, under everything that moves. */
 const RESIDUE: Record<string, { ground: [number, number, number, number][]; branches: string[]; water: string[] }> = {
   peak: {
     ground: [
@@ -167,7 +168,7 @@ const RESIDUE: Record<string, { ground: [number, number, number, number][]; bran
 function residue(svg: SVGSVGElement, id: string) {
   const r = RESIDUE[id]
   if (!r) return
-  const marks = el('g', { fill: ORANGE, stroke: ORANGE, 'stroke-linecap': 'round' }, svg)
+  const marks = el('g', { fill: LIQUID, stroke: LIQUID, 'stroke-linecap': 'round' }, svg)
   for (const [x, y, rx, ry] of r.ground) {
     el(
       'ellipse',
@@ -176,7 +177,7 @@ function residue(svg: SVGSVGElement, id: string) {
     )
   }
   for (const d of r.branches) el('path', { d, fill: 'none', 'stroke-width': 6, 'stroke-opacity': 0.58 }, marks)
-  for (const d of r.water) el('path', { d, fill: ORANGE, 'fill-opacity': 0.32, stroke: 'none' }, marks)
+  for (const d of r.water) el('path', { d, fill: LIQUID, 'fill-opacity': 0.32, stroke: 'none' }, marks)
 }
 
 let clipSeq = 0
