@@ -76,3 +76,7 @@
   font-size: 9px;
   font-variant-numeric: tabular-nums;
 }
+
+.sct-sub.is-set {
+  color: #ff9d3d;
+}

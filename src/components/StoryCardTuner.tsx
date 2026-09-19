@@ -5,7 +5,7 @@ import './StoryCardTuner.css'
 /**
  * A spacing dial for the story card: the picture, the year, the title, the
  * dek, the body, the stat pill and the account, and the six gaps between them,
- * with the four text sizes beside.
+ * with the four texts' size, face, weight and opacity beside.
  *
  * The gaps are shown as the eye reads them, INK TO INK -- the lowest pixel of
  * the last line above to the highest pixel of the first line below -- not as
@@ -102,12 +102,24 @@ const GAPS: Gap[] = [
   },
 ]
 
-const SIZES = [
+const TEXTS = [
   { key: 'eyebrow', label: 'year', sel: '.story-eyebrow' },
   { key: 'name', label: 'title', sel: '.story-name' },
   { key: 'dek', label: 'dek', sel: '.story-dek' },
   { key: 'body', label: 'body', sel: '.story-body' },
 ]
+
+/* The two faces the page has, by the token that names them, so what the
+   panel writes is what ships. Courier Prime comes in 400 and 700, Geist in
+   300 to 600; every weight listed is a real file, no faux bold. */
+type Face = 'courier' | 'geist'
+const FACES: { v: Face; label: string; token: string; weights: number[] }[] = [
+  { v: 'courier', label: 'Courier', token: 'var(--font-serif)', weights: [400, 700] },
+  { v: 'geist', label: 'Geist', token: 'var(--font-sans)', weights: [300, 400, 500, 600] },
+]
+const faceOf = (family: string): Face => (/geist/i.test(family) ? 'geist' : 'courier')
+
+type Text = { size: number; face: Face; weight: number; opacity: number }
 
 const STYLE_ID = 'story-card-tuner'
 
@@ -196,7 +208,7 @@ function measureCard(): Reading | null {
 }
 
 /** What the CSS ships: the margins and sizes as rendered on the first card. */
-function measureBase(): { gaps: Record<string, number>; sizes: Record<string, number> } | null {
+function measureBase(): { gaps: Record<string, number>; texts: Record<string, Text> } | null {
   const card = document.querySelector('.story-card')
   if (!card) return null
   const gaps: Record<string, number> = {}
@@ -206,12 +218,19 @@ function measureBase(): { gaps: Record<string, number>; sizes: Record<string, nu
     const cs = getComputedStyle(el)
     gaps[g.key] = Math.round(parseFloat(g.prop === 'margin-top' ? cs.marginTop : cs.marginBottom) * 100) / 100
   }
-  const sizes: Record<string, number> = {}
-  for (const s of SIZES) {
-    const el = card.querySelector(s.sel)
-    if (el) sizes[s.key] = Math.round(parseFloat(getComputedStyle(el).fontSize) * 100) / 100
+  const texts: Record<string, Text> = {}
+  for (const t of TEXTS) {
+    const el = card.querySelector(t.sel)
+    if (!el) continue
+    const cs = getComputedStyle(el)
+    texts[t.key] = {
+      size: Math.round(parseFloat(cs.fontSize) * 100) / 100,
+      face: faceOf(cs.fontFamily),
+      weight: parseInt(cs.fontWeight, 10) || 400,
+      opacity: Math.round(parseFloat(cs.opacity) * 100) / 100,
+    }
   }
-  return { gaps, sizes }
+  return { gaps, texts }
 }
 
 const rootPx = () => parseFloat(getComputedStyle(document.documentElement).fontSize) || 16
@@ -222,7 +241,7 @@ export default function StoryCardTuner() {
   const [base, setBase] = useState<ReturnType<typeof measureBase>>(null)
   /** Only what the reader has touched, in px. */
   const [gapEdit, setGapEdit] = useState<Record<string, number>>({})
-  const [sizeEdit, setSizeEdit] = useState<Record<string, number>>({})
+  const [textEdit, setTextEdit] = useState<Record<string, Partial<Text>>>({})
   const [reading, setReading] = useState<Reading | null>(null)
   const [copied, setCopied] = useState(false)
   const styleRef = useRef<HTMLStyleElement | null>(null)
@@ -258,9 +277,18 @@ export default function StoryCardTuner() {
     if (!styleRef.current) return
     const rules: string[] = []
     for (const g of GAPS) if (gapEdit[g.key] != null) rules.push(`.story ${g.sel}{${g.prop}:${gapEdit[g.key]}px}`)
-    for (const s of SIZES) if (sizeEdit[s.key] != null) rules.push(`.story ${s.sel}{font-size:${sizeEdit[s.key]}px}`)
+    for (const t of TEXTS) {
+      const e = textEdit[t.key]
+      if (!e) continue
+      const decls: string[] = []
+      if (e.size != null) decls.push(`font-size:${e.size}px`)
+      if (e.face != null) decls.push(`font-family:${FACES.find((f) => f.v === e.face)!.token}`)
+      if (e.weight != null) decls.push(`font-weight:${e.weight}`)
+      if (e.opacity != null) decls.push(`opacity:${e.opacity}`)
+      if (decls.length) rules.push(`.story ${t.sel}{${decls.join(';')}}`)
+    }
     styleRef.current.textContent = rules.length ? `@media ${DESKTOP}{${rules.join('')}}` : ''
-  }, [gapEdit, sizeEdit])
+  }, [gapEdit, textEdit])
 
   /* Read the active card after every dial, on scroll (the active card
      changes) and on resize (the root size changes), once the fonts are in. */
@@ -291,10 +319,13 @@ export default function StoryCardTuner() {
       mo.disconnect()
       if (raf) cancelAnimationFrame(raf)
     }
-  }, [open, gapEdit, sizeEdit])
+  }, [open, gapEdit, textEdit])
 
   const touchedGaps = useMemo(() => GAPS.filter((g) => gapEdit[g.key] != null), [gapEdit])
-  const touchedSizes = useMemo(() => SIZES.filter((s) => sizeEdit[s.key] != null), [sizeEdit])
+  const touchedTexts = useMemo(
+    () => TEXTS.filter((t) => Object.values(textEdit[t.key] ?? {}).some((v) => v != null)),
+    [textEdit],
+  )
 
   /** Dialling a value back to what the page shipped with unsets it, so the
    *  hand-off lists only real changes. */
@@ -308,21 +339,29 @@ export default function StoryCardTuner() {
     })
     setCopied(false)
   }
-  const setSize = (key: string, px: number) => {
-    setSizeEdit((s) => {
-      const v = Math.round(Math.max(6, px) * 100) / 100
+  /** One property of one text row. A value dialled back to the base is
+   *  unset; a row with nothing set left drops out of the hand-off. */
+  const setText = (key: string, patch: Partial<Text>) => {
+    setTextEdit((s) => {
+      const b = base?.texts[key]
+      const merged: Partial<Text> = { ...s[key], ...patch }
+      if (b) for (const k of Object.keys(merged) as (keyof Text)[]) if (merged[k] === b[k]) delete merged[k]
       const next = { ...s }
-      if (base && v === base.sizes[key]) delete next[key]
-      else next[key] = v
+      if (Object.keys(merged).length) next[key] = merged
+      else delete next[key]
       return next
     })
     setCopied(false)
   }
   const curGap = (key: string) => gapEdit[key] ?? base?.gaps[key] ?? null
-  const curSize = (key: string) => sizeEdit[key] ?? base?.sizes[key] ?? null
+  const curText = (key: string): Text | null => {
+    const b = base?.texts[key]
+    if (!b) return null
+    return { ...b, ...textEdit[key] }
+  }
 
   const copyText = useMemo(() => {
-    if (!touchedGaps.length && !touchedSizes.length) return '// nothing changed yet'
+    if (!touchedGaps.length && !touchedTexts.length) return '// nothing changed yet'
     const root = rootPx()
     const lines: string[] = []
     for (const g of touchedGaps) {
@@ -333,19 +372,25 @@ export default function StoryCardTuner() {
         `.story ${g.sel} { ${g.prop}: ${from != null ? `${rem(from)}rem -> ` : ''}${rem(to)}rem; }   /* ${g.label}${read != null ? `, reads ${read}px` : ''} */`,
       )
     }
-    for (const s of touchedSizes) {
-      const from = base?.sizes[s.key]
-      const to = sizeEdit[s.key]
-      lines.push(
-        `.story ${s.sel} { font-size: ${from != null ? `${rem(from)}rem -> ` : ''}${rem(to)}rem; }   /* ${s.label}, ${to}px */`,
-      )
+    for (const t of touchedTexts) {
+      const b = base?.texts[t.key]
+      const e = textEdit[t.key]
+      const decls: string[] = []
+      if (e.size != null) decls.push(`font-size: ${b ? `${rem(b.size)}rem -> ` : ''}${rem(e.size)}rem`)
+      if (e.face != null) {
+        const tok = (f: Face) => FACES.find((x) => x.v === f)!.token
+        decls.push(`font-family: ${b ? `${tok(b.face)} -> ` : ''}${tok(e.face)}`)
+      }
+      if (e.weight != null) decls.push(`font-weight: ${b ? `${b.weight} -> ` : ''}${e.weight}`)
+      if (e.opacity != null) decls.push(`opacity: ${b ? `${b.opacity} -> ` : ''}${e.opacity}`)
+      lines.push(`.story ${t.sel} { ${decls.join('; ')}; }   /* ${t.label}${e.size != null ? `, ${e.size}px` : ''} */`)
     }
     return [
       '// src/pages/Story.css — the story card, desktop (>= 1025px)',
       `// dialled at ${Math.round(window.innerWidth)}px wide, 1rem = ${root}px, read on "${reading?.card ?? ''}"`,
       ...lines,
     ].join('\n')
-  }, [touchedGaps, touchedSizes, gapEdit, sizeEdit, base, reading])
+  }, [touchedGaps, touchedTexts, gapEdit, textEdit, base, reading])
 
   if (!open) {
     return (
@@ -367,7 +412,7 @@ export default function StoryCardTuner() {
       <p className="stt-note">
         The big number is the gap as read, ink to ink (or to a box edge: the picture&apos;s frame, the stat pill, the
         rule). The small one is the margin that makes it, which is what ships. Each step moves the margin 1px. Sizes
-        step 0.5px. Only what you touch is written.
+        step 0.5px, opacity 0.05; the faces and weights are the ones the page has. Only what you touch is written.
       </p>
 
       <p className="sct-card">
@@ -416,21 +461,23 @@ export default function StoryCardTuner() {
           )
         })}
 
-        <li className="sct-h">sizes</li>
-        {SIZES.map((s) => {
-          const v = curSize(s.key)
-          const set = sizeEdit[s.key] != null
+        <li className="sct-h">text</li>
+        {TEXTS.map((t) => {
+          const v = curText(t.key)
+          const e = textEdit[t.key] ?? {}
+          const set = Object.values(e).some((x) => x != null)
+          const weights = FACES.find((f) => f.v === v?.face)?.weights ?? []
           return (
-            <li key={s.key} className={set ? 'is-moved' : undefined}>
+            <li key={t.key} className={set ? 'is-moved' : undefined}>
               <div className="stt-row-name">
-                <span className="stt-label">{s.label}</span>
+                <span className="stt-label">{t.label}</span>
                 {set && (
                   <button
                     className="stt-undo"
                     onClick={() => {
-                      setSizeEdit((e) => {
-                        const n = { ...e }
-                        delete n[s.key]
+                      setTextEdit((s) => {
+                        const n = { ...s }
+                        delete n[t.key]
                         return n
                       })
                       setCopied(false)
@@ -443,14 +490,72 @@ export default function StoryCardTuner() {
               </div>
               <div className="stt-dial">
                 <span className="stt-dial-k">size</span>
-                <button onClick={() => v != null && setSize(s.key, v - 0.5)} disabled={v == null} aria-label="Smaller">
+                <button
+                  onClick={() => v && setText(t.key, { size: Math.max(6, v.size - 0.5) })}
+                  disabled={!v}
+                  aria-label="Smaller"
+                >
                   −
                 </button>
-                <span className={`sct-big${set ? ' is-set' : ''}`}>{v != null ? `${v}px` : '—'}</span>
-                <button onClick={() => v != null && setSize(s.key, v + 0.5)} disabled={v == null} aria-label="Larger">
+                <span className={`sct-big${e.size != null ? ' is-set' : ''}`}>{v ? `${v.size}px` : '—'}</span>
+                <button onClick={() => v && setText(t.key, { size: v.size + 0.5 })} disabled={!v} aria-label="Larger">
                   +
                 </button>
-                <span className="sct-sub">{v != null ? `${rem(v)}rem` : ''}</span>
+                <span className="sct-sub">{v ? `${rem(v.size)}rem` : ''}</span>
+              </div>
+              <div className="stt-dial">
+                <span className="stt-dial-k">face</span>
+                <div className="stt-seg">
+                  {FACES.map((f) => (
+                    <button
+                      key={f.v}
+                      className={v && v.face === f.v ? 'is-on' : undefined}
+                      disabled={!v}
+                      onClick={() => setText(t.key, { face: f.v })}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+                {e.face != null && <span className="sct-sub is-set">set</span>}
+              </div>
+              <div className="stt-dial">
+                <span className="stt-dial-k">weight</span>
+                <div className="stt-seg">
+                  {weights.map((w) => (
+                    <button
+                      key={w}
+                      className={v && v.weight === w ? 'is-on' : undefined}
+                      disabled={!v}
+                      onClick={() => setText(t.key, { weight: w })}
+                    >
+                      {w}
+                    </button>
+                  ))}
+                </div>
+                {v && !weights.includes(v.weight) && <span className="sct-sub">{v.weight}, not in this face</span>}
+              </div>
+              <div className="stt-dial">
+                <span className="stt-dial-k">opacity</span>
+                <button
+                  onClick={() =>
+                    v && setText(t.key, { opacity: Math.max(0.3, Math.round((v.opacity - 0.05) * 100) / 100) })
+                  }
+                  disabled={!v}
+                  aria-label="Fainter"
+                >
+                  −
+                </button>
+                <span className={`sct-big${e.opacity != null ? ' is-set' : ''}`}>{v ? v.opacity : '—'}</span>
+                <button
+                  onClick={() =>
+                    v && setText(t.key, { opacity: Math.min(1, Math.round((v.opacity + 0.05) * 100) / 100) })
+                  }
+                  disabled={!v}
+                  aria-label="Stronger"
+                >
+                  +
+                </button>
               </div>
             </li>
           )
@@ -461,7 +566,7 @@ export default function StoryCardTuner() {
         <button
           onClick={() => {
             setGapEdit({})
-            setSizeEdit({})
+            setTextEdit({})
             setCopied(false)
           }}
         >
@@ -474,7 +579,7 @@ export default function StoryCardTuner() {
             setCopied(true)
           }}
         >
-          {copied ? 'Copied' : `Copy ${touchedGaps.length + touchedSizes.length || ''}`}
+          {copied ? 'Copied' : `Copy ${touchedGaps.length + touchedTexts.length || ''}`}
         </button>
       </footer>
 
