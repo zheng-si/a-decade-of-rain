@@ -132,7 +132,7 @@ export const FACTS_EVENTS: StoryEvent[] = [
   },
   {
     id: 'peak',
-    name: 'Peak: War Zone C and the Iron Triangle',
+    name: 'Peak: the Iron Triangle',
     landmarks: [
       { name: 'War Zone C', point: [106.25, 11.58] },
       { name: 'Iron Triangle', point: [106.53, 11.1] },
