@@ -932,7 +932,9 @@
 }
 
 .story-name {
-  margin: 0 0 0.5rem;
+  /* 0.3125rem, not 0.5: measured in ink, the title sat 18px above the dek
+     against 15px below the eyebrow and 16px above the body. Now 15. */
+  margin: 0 0 0.3125rem;
   font-family: var(--font-serif);
   text-transform: uppercase;
   font-weight: 400;
