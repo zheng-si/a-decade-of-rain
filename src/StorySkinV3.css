@@ -353,10 +353,14 @@
 
 .story .story-dek,
 .story .story-quote p {
-  /* The act card's prose, both of it. One step down and nothing else — these
-     were already Regular and already sentence case; they were only ever too
-     big for a proportional face. */
-  font-size: 0.9375rem;
+  /* The act card's prose, both of it. These were already Regular and already
+     sentence case; they were only ever too big for a proportional face, and
+     went one step down to 0.9375rem. With the illustration on the card and
+     the rest of its type re-set around it (Story.css, "CARD TYPE"), the dek
+     at 12.75px fell into caption size and stopped separating from the body;
+     1rem is where it reads as a dek again. This rule, not Story.css, is what
+     sets the size: the skin outranks it. */
+  font-size: 1rem;
 }
 
 .story .rainbow-card-name {
