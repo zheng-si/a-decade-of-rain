@@ -888,8 +888,9 @@
    tier, a step down from the page's 1.5rem; the dek and body keep the sizes
    they can be read at. Eyebrow 1.5 -> 1.375rem, title 1.5 -> 1.375, dek
    1.0625 -> 1, body 0.8125 (as it was), account 1.0625 -> 1 with its
-   attribution run in. Tallest card 545px at 1440x900, 516 at 1280x720. The
-   deck (<= 1024px) keeps its own sizes. */
+   attribution run in. Tallest card 526px at 1440x900, 497 at 1280x720, with
+   the deks cut to one line each (events.ts). The deck (<= 1024px) keeps its
+   own sizes. */
 .story-eyebrow {
   /* The year and the title make one heading; the year sits close on it. */
   margin: 0 0 0.25rem;
