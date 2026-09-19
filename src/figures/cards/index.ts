@@ -22,3 +22,15 @@ const FILES = import.meta.glob('./c/*.webp', {
 
 export const CARD_ART: Record<string, string> = {}
 for (const [path, url] of Object.entries(FILES)) CARD_ART[path.replace(/^.*\//, '').replace(/\.webp$/, '')] = url
+
+/* Bitmaps a scene lays into its SVG, by name (cardArtMotion.ts): the
+   aircraft on 05, the illustrator's own pixels cut from the original
+   picture, carried across the valley by the animation. */
+const PART_FILES = import.meta.glob('./c/parts/*.png', { eager: true, import: 'default', query: '?url' }) as Record<
+  string,
+  string
+>
+
+export const CARD_ART_PARTS: Record<string, string> = {}
+for (const [path, url] of Object.entries(PART_FILES))
+  CARD_ART_PARTS[path.replace(/^.*\//, '').replace(/\.png$/, '')] = url

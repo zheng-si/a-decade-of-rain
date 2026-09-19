@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef } from 'react'
-import { CARD_ART, CARD_ART_STYLE } from '../figures/cards'
+import { CARD_ART, CARD_ART_PARTS, CARD_ART_STYLE } from '../figures/cards'
 import { MASTER_MS, mountMotion, type Motion } from './cardArtMotion'
 
 /* The illustration at the top of a story card: a 3:2 frame (.story-art in
@@ -41,7 +41,7 @@ function CardArt({ id, active }: { id: string; active: boolean }) {
     if (CARD_ART_STYLE !== 'c') return
     const svg = svgRef.current
     if (!svg) return
-    const m = mountMotion(svg, id)
+    const m = mountMotion(svg, id, CARD_ART_PARTS)
     motion.current = m
     if (m) {
       if (played.has(id) || window.matchMedia(REDUCED).matches) m.rest()

@@ -1,16 +1,19 @@
 /* The moving parts of the C illustrations, ported from the illustrator's
-   C/app.js (handoff of 2026-09-19) with the geometry unchanged: the spray
-   fans on 01/03/05, the ramp chevrons on 02, the boat and its wake on 04,
-   the drum's liquid on 06, the row highlights on 07, the chart scan on 08.
-   Coordinates are source-image pixels on a 1536x1024 viewBox laid over the
-   PNG in the same frame (both fitted `contain`, so both letterbox alike).
+   C/app.js (final handoff of 2026-09-19) with the geometry unchanged: the
+   spray fans on 01 and 03, the ramp chevrons on 02, the boat and its wake on
+   04, the aircraft and its three long trails on 05, the drum's liquid on 06,
+   the row highlights on 07, the chart scan on 08; and, still, the orange
+   residue on the dead trees, ground and water of 03 and 04. Coordinates are
+   source-image pixels on a 1536x1024 viewBox laid over the PNG in the same
+   frame (both fitted `contain`, so both letterbox alike).
 
    t runs 0..1 over the preview's 8000ms master cycle. The preview loops;
    the page plays each card once, the first time it is active, up to the
    scene's `end` and then shows its `rest`: the sprays out and staying, the
-   drum's pool grown, the boat at rest, the chevrons and row highlights
-   gone, the scan finished. The rest is also what a reader who asked for
-   reduced motion sees, in place of the play. */
+   aircraft arrived with its trails behind it, the drum's pool grown, the
+   boat at rest, the chevrons and row highlights gone, the scan finished.
+   The rest is also what a reader who asked for reduced motion sees, in
+   place of the play; the residue is there in every frame. */
 
 const NS = 'http://www.w3.org/2000/svg'
 
@@ -25,6 +28,10 @@ export type Motion = {
   rest: () => void
 }
 
+/** Bitmaps a scene lays into its SVG, by name: today only the aircraft on
+ *  05, the illustrator's own pixels cut from the original picture. */
+export type Parts = Record<string, string>
+
 type Attrs = Record<string, string | number>
 
 function el<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Attrs, parent: Element): SVGElementTagNameMap[K] {
@@ -36,22 +43,20 @@ function el<K extends keyof SVGElementTagNameMap>(tag: K, attrs: Attrs, parent: 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 const clamp = (t: number) => Math.max(0, Math.min(1, t))
 
-/* Spray fans: start x,y (the boom) to end x,y, three per aircraft. */
+const ORANGE = '#E9954B'
+
+/* Spray fans: start x,y (the boom) to end x,y, three per aircraft. 01's run
+   up and to the right, behind an aircraft flying to the lower left. */
 const SPRAY: Record<string, [number, number, number, number][]> = {
   begins: [
-    [503, 239, 1170, 420],
-    [504, 241, 1138, 446],
-    [503, 243, 1080, 456],
+    [486, 292, 1136, 27],
+    [495, 294, 1235, 44],
+    [504, 296, 1334, 62],
   ],
   peak: [
     [625, 116, 1118, 325],
     [873, 165, 1328, 362],
     [1140, 231, 1439, 363],
-  ],
-  'a-sau': [
-    [240, 82, 1260, 412],
-    [251, 103, 1228, 484],
-    [241, 112, 1178, 556],
   ],
 }
 
@@ -113,21 +118,79 @@ const ROWS: [number, number][][] = [
   [[768, 711]],
 ]
 
+/* The residue on 03 and 04: an illustrative orange accent on the dead
+   vegetation and the ground beside it (and, on 04, three patches of
+   water). Static, under everything that moves. */
+const RESIDUE: Record<string, { ground: [number, number, number, number][]; branches: string[]; water: string[] }> = {
+  peak: {
+    ground: [
+      [980, 606, 36, 10],
+      [1205, 700, 42, 12],
+      [1335, 744, 32, 9],
+      [1101, 754, 47, 12],
+    ],
+    branches: [
+      'M991 468 L987 558',
+      'M985 497 L966 481',
+      'M1198 553 L1208 655',
+      'M1201 580 L1223 558',
+      'M1339 617 L1344 704',
+      'M1341 642 L1324 628',
+    ],
+    water: [],
+  },
+  mangroves: {
+    ground: [
+      [1107, 665, 35, 10],
+      [1252, 543, 38, 10],
+      [1233, 620, 35, 9],
+    ],
+    branches: [
+      'M1105 469 L1112 547',
+      'M1109 501 L1086 479',
+      'M1244 303 L1249 389',
+      'M1247 354 L1270 335',
+      'M1106 600 L1089 627',
+    ],
+    water: [
+      'M775 486 Q812 476 855 490 Q827 499 794 495Z',
+      'M726 568 Q768 556 809 570 Q788 580 745 578Z',
+      'M664 644 Q698 634 744 648 Q720 658 680 654Z',
+    ],
+  },
+}
+
+function residue(svg: SVGSVGElement, id: string) {
+  const r = RESIDUE[id]
+  if (!r) return
+  const marks = el('g', { fill: ORANGE, stroke: ORANGE, 'stroke-linecap': 'round' }, svg)
+  for (const [x, y, rx, ry] of r.ground) {
+    el(
+      'ellipse',
+      { cx: x, cy: y, rx, ry, 'fill-opacity': 0.26, stroke: 'none', transform: `rotate(18 ${x} ${y})` },
+      marks,
+    )
+  }
+  for (const d of r.branches) el('path', { d, fill: 'none', 'stroke-width': 6, 'stroke-opacity': 0.58 }, marks)
+  for (const d of r.water) el('path', { d, fill: ORANGE, 'fill-opacity': 0.32, stroke: 'none' }, marks)
+}
+
 let clipSeq = 0
 
 /** Build the overlay for one card into `svg` (emptied first), or null for a
  *  card with no moving parts. */
-export function mountMotion(svg: SVGSVGElement, id: string): Motion | null {
+export function mountMotion(svg: SVGSVGElement, id: string, parts: Parts = {}): Motion | null {
   svg.replaceChildren()
   const motions: ((t: number) => void)[] = []
   const paint = (t: number) => {
     for (const m of motions) m(t)
   }
+  residue(svg, id)
 
   if (SPRAY[id]) {
     /* 01 sprays in ivory: the first test runs were not Agent Orange. */
-    const color = id === 'begins' ? '#e8ece6' : '#E9954B'
-    const halfWidth = id === 'peak' ? 3.4 : 6.2
+    const color = id === 'begins' ? '#e8ece6' : ORANGE
+    const halfWidth = id === 'peak' ? 6.8 : 6.2
     SPRAY[id].forEach((a, i) => {
       const p = el('polygon', { fill: color }, svg)
       motions.push((t) => {
@@ -153,6 +216,51 @@ export function mountMotion(svg: SVGSVGElement, id: string): Motion | null {
     /* Every fan is out by t = 0.6 and none has begun to fade; that is the
        picture that stays. */
     return { paint, end: 0.6, rest: () => paint(0.6) }
+  }
+
+  if (id === 'a-sau') {
+    /* The aircraft is the illustrator's own pixels, cut from the original
+       picture (the rectangle at 125,20 of 155x125), carried with its anchor
+       at 210,85 -- where it sat in that picture -- from the lower right to
+       there. Three trails grow behind it. The base picture has no aircraft. */
+    const trailGroup = el('g', { fill: ORANGE }, svg)
+    const trails = [0, 1, 2].map(() => el('polygon', {}, trailGroup))
+    const plane = el('g', {}, svg)
+    if (parts['a-sau-plane']) {
+      el('image', { href: parts['a-sau-plane'], x: 125 - 210, y: 20 - 85, width: 155, height: 125 }, plane)
+    }
+    const rays: [number, number, number, number][] = [
+      [30, -3, 1020, 330],
+      [41, 18, 977, 381],
+      [31, 27, 937, 444],
+    ]
+    motions.push((t) => {
+      const u = clamp((t - 0.05) / 0.83)
+      const x = lerp(1250, 210, u)
+      const y = lerp(660, 85, u)
+      const visible = clamp(t / 0.045) * (1 - clamp((t - 0.9) / 0.1))
+      plane.setAttribute('transform', `translate(${x} ${y})`)
+      plane.setAttribute('opacity', String(visible))
+      rays.forEach(([ox, oy, dx0, dy0], i) => {
+        const sx = x + ox
+        const sy = y + oy
+        const growth = clamp(u / 0.72)
+        const dx = dx0 * growth
+        const dy = dy0 * growth
+        const len = Math.hypot(dx0, dy0)
+        const w = 10 * growth
+        const px = (-dy0 / len) * w
+        const py = (dx0 / len) * w
+        trails[i].setAttribute(
+          'points',
+          `${sx},${sy} ${sx + dx * 0.58 + px},${sy + dy * 0.58 + py} ${sx + dx},${sy + dy} ${sx + dx * 0.58 - px},${sy + dy * 0.58 - py}`,
+        )
+        trails[i].setAttribute('opacity', String(visible))
+      })
+    })
+    /* The aircraft arrives at t = 0.88, its trails full, before the fade
+       that the loop needs; it stays there. */
+    return { paint, end: 0.88, rest: () => paint(0.88) }
   }
 
   if (id === 'mangroves') {
@@ -240,11 +348,11 @@ export function mountMotion(svg: SVGSVGElement, id: string): Motion | null {
       'path',
       {
         d: 'M647 706 C665 701 684 708 702 714 C723 711 739 717 750 721 C773 718 798 725 814 735 C834 736 845 748 825 754 C805 758 792 753 777 757 C758 765 738 759 725 751 C702 753 686 740 675 728 C660 724 648 719 647 706Z',
-        fill: '#E9954B',
+        fill: ORANGE,
       },
       g,
     )
-    const stream = el('path', { fill: 'none', stroke: '#E9954B', 'stroke-width': 7, 'stroke-linecap': 'round' }, g)
+    const stream = el('path', { fill: 'none', stroke: ORANGE, 'stroke-width': 7, 'stroke-linecap': 'round' }, g)
     motions.push((t) => {
       const flow = clamp((t - 0.12) / 0.12)
       const growth = clamp((t - 0.24) / 0.48)
@@ -252,8 +360,10 @@ export function mountMotion(svg: SVGSVGElement, id: string): Motion | null {
       const endY = 684 + 22 * flow
       stream.setAttribute('d', `M647 684 Q645 ${684 + 11 * flow} 647 ${endY}`)
       stream.setAttribute('opacity', String(t > 0.12 ? fade : 0))
-      const scale = Math.pow(growth, 0.72)
-      pool.setAttribute('transform', `translate(647 706) scale(${scale}) translate(-647 -706)`)
+      /* The pool grows to 1.8x the drawn path (3.24x its area), turned 18
+         degrees about the point it lands on. */
+      const scale = 1.8 * Math.pow(growth, 0.72)
+      pool.setAttribute('transform', `translate(647 706) rotate(-18) scale(${scale}) translate(-647 -706)`)
       pool.setAttribute('opacity', String(growth > 0 ? fade : 0))
     })
     /* The pool is full from t = 0.72 and begins to fade at 0.9; it stays
