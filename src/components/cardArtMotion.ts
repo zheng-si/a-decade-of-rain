@@ -44,6 +44,10 @@ const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 const clamp = (t: number) => Math.max(0, Math.min(1, t))
 
 const ORANGE = '#E9954B'
+/* The liquid on 06: the colour of the band on the drums it comes out of,
+   sampled from the picture (#e84c30 across a third of the bands' pixels),
+   not the lighter spray orange, which read as a different substance. */
+const LIQUID = '#e84c30'
 
 /* Spray fans: start x,y (the boom) to end x,y, three per aircraft. 01's run
    up and to the right, behind an aircraft flying to the lower left. */
@@ -348,11 +352,11 @@ export function mountMotion(svg: SVGSVGElement, id: string, parts: Parts = {}): 
       'path',
       {
         d: 'M647 706 C665 701 684 708 702 714 C723 711 739 717 750 721 C773 718 798 725 814 735 C834 736 845 748 825 754 C805 758 792 753 777 757 C758 765 738 759 725 751 C702 753 686 740 675 728 C660 724 648 719 647 706Z',
-        fill: ORANGE,
+        fill: LIQUID,
       },
       g,
     )
-    const stream = el('path', { fill: 'none', stroke: ORANGE, 'stroke-width': 7, 'stroke-linecap': 'round' }, g)
+    const stream = el('path', { fill: 'none', stroke: LIQUID, 'stroke-width': 7, 'stroke-linecap': 'round' }, g)
     motions.push((t) => {
       const flow = clamp((t - 0.12) / 0.12)
       const growth = clamp((t - 0.24) / 0.48)
