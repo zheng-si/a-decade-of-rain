@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://adecadeofrain.sizheng.me/sitemap.xml
+Sitemap: https://rain.sizheng.me/sitemap.xml

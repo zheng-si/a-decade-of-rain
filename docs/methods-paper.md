@@ -4,7 +4,7 @@
 
 Si Zheng
 Draft for comment, September 2026. Prepared for Jeanne Mager Stellman and Andrew B. Stellman.
-Live pages: <https://adecadeofrain.sizheng.me/> (the Story) and <https://adecadeofrain.sizheng.me/archive> (the Atlas). Source and analysis scripts: <https://github.com/zheng-si/a-decade-of-rain>.
+Live pages: <https://rain.sizheng.me/> (the Story) and <https://rain.sizheng.me/archive> (the Atlas). Source and analysis scripts: <https://github.com/zheng-si/a-decade-of-rain>.
 
 ---
 
