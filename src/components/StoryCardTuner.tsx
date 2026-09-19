@@ -8,19 +8,25 @@ import './StoryCardTuner.css'
  * with the four texts' size, face, weight, opacity, colour, tracking and
  * case beside.
  *
- * The gaps are shown as the eye reads them, INK TO INK -- the lowest pixel of
- * the last line above to the highest pixel of the first line below -- not as
- * the margins that produce them. A margin of 4px under the title reads as 15
- * once the lines' own leading and the glyphs' ascenders are counted, and it is
- * the 15 that gets judged; the margin is shown small beneath it, because the
- * margin is what goes into the CSS. Where one side of a gap is a box rather
- * than text (the picture's frame, the stat pill, the rule above the account)
- * that edge is used instead.
+ * The gaps are shown as type is measured, BASELINE TO CAP HEIGHT -- the
+ * baseline of the last line above to the top of a capital on the first line
+ * below -- not as the margins that produce them. A margin of 4px under the
+ * title reads as 14 once the lines' own leading is counted, and it is the 14
+ * that gets judged; the margin is shown small beneath it, because the margin
+ * is what goes into the CSS. Where one side of a gap is a box rather than
+ * text (the picture's frame, the stat pill, the rule above the account) that
+ * edge is used instead.
  *
- * The ink is found without rasterising anything: a zero-size inline-block
- * dropped into the text gives the line's baseline, and the canvas measures the
- * same string in the same font for how far the glyphs reach above and below
- * it. Checked against a pixel scan of a screenshot: the same numbers.
+ * Baseline to cap height, and not the ink of the actual letters, so that the
+ * same CSS reads the same on every card. The ink was tried first: a title
+ * ending in a g, a dek with no descender at all, a name with a diacritic on
+ * its first line, each moved the number by a pixel or three from one card to
+ * the next, and the canvas reports glyph bounds in whole pixels besides. A
+ * descender still hangs into the gap by about 0.2em, on every card alike.
+ *
+ * Nothing is rasterised: a zero-size inline-block dropped into the text gives
+ * the line's baseline, and the canvas measures a capital H in the same font
+ * for the cap height, at 16x the size for sub-pixel precision.
  *
  * The panel measures the ACTIVE card, so scroll to the card whose numbers you
  * want; it re-reads on scroll and after every dial. Gated and built like
@@ -159,31 +165,6 @@ const DESKTOP = '(min-width: 1025px)'
 const canvas = typeof document !== 'undefined' ? document.createElement('canvas') : null
 const ctx = canvas?.getContext('2d') ?? null
 
-/** The words on the element's first or last line, by where each word's box
- *  sits: a word whose top is the lowest top is on the first line, and so on. */
-function lineText(el: Element, which: 'first' | 'last'): string {
-  const lines = new Map<number, string[]>()
-  const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
-  let node: Node | null
-  while ((node = walker.nextNode())) {
-    const text = node.textContent ?? ''
-    const re = /\S+/g
-    let m: RegExpExecArray | null
-    while ((m = re.exec(text))) {
-      const r = document.createRange()
-      r.setStart(node, m.index)
-      r.setEnd(node, m.index + m[0].length)
-      const top = Math.round(r.getBoundingClientRect().top)
-      const words = lines.get(top) ?? []
-      words.push(m[0])
-      lines.set(top, words)
-    }
-  }
-  const tops = [...lines.keys()].sort((a, b) => a - b)
-  if (!tops.length) return ''
-  return (lines.get(which === 'first' ? tops[0] : tops[tops.length - 1]) ?? []).join(' ')
-}
-
 /** The baseline of the element's first or last line, in viewport px: a
  *  zero-size inline-block sits on the baseline, so its top is the baseline. */
 function baselineY(el: Element, which: 'first' | 'last'): number {
@@ -196,32 +177,25 @@ function baselineY(el: Element, which: 'first' | 'last'): number {
   return y
 }
 
-/** How far the glyphs of `text`, set as `el` sets them, reach above and below
- *  the baseline. */
-function reach(el: Element, text: string): { up: number; down: number } {
-  if (!ctx) return { up: 0, down: 0 }
+/** The cap height of the element's font: how far a capital reaches above the
+ *  baseline. Measured at 16x and scaled back, since the canvas reports glyph
+ *  bounds in whole pixels. */
+function capHeight(el: Element): number {
+  if (!ctx) return 0
   const cs = getComputedStyle(el)
-  ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`
-  const t =
-    cs.textTransform === 'uppercase'
-      ? text.toUpperCase()
-      : cs.textTransform === 'lowercase'
-        ? text.toLowerCase()
-        : cs.textTransform === 'capitalize'
-          ? text.replace(/(^|\s)(\S)/g, (_, gap: string, c: string) => gap + c.toUpperCase())
-          : text
-  const m = ctx.measureText(t)
-  return { up: m.actualBoundingBoxAscent, down: m.actualBoundingBoxDescent }
+  const px = parseFloat(cs.fontSize) || 16
+  ctx.font = `${cs.fontStyle} ${cs.fontWeight} ${px * 16}px ${cs.fontFamily}`
+  return ctx.measureText('H').actualBoundingBoxAscent / 16
 }
 
 function bottomEdge(el: Element, edge: Edge): number {
   if (edge === 'box') return el.getBoundingClientRect().bottom
-  return baselineY(el, 'last') + reach(el, lineText(el, 'last')).down
+  return baselineY(el, 'last')
 }
 
 function topEdge(el: Element, edge: Edge): number {
   if (edge === 'box') return el.getBoundingClientRect().top
-  return baselineY(el, 'first') - reach(el, lineText(el, 'first')).up
+  return baselineY(el, 'first') - capHeight(el)
 }
 
 type Reading = { card: string; gaps: Record<string, number | null> }
@@ -470,10 +444,10 @@ export default function StoryCardTuner() {
       </header>
 
       <p className="stt-note">
-        The big number is the gap as read, ink to ink (or to a box edge: the picture&apos;s frame, the stat pill, the
-        rule). The small one is the margin that makes it, which is what ships. Each step moves the margin 1px. Sizes
-        step 0.5px, opacity 0.05, tracking 0.005em; the faces, weights and colours are the ones the page has (soft is
-        the body&apos;s). Only what you touch is written.
+        The big number is the gap as measured, baseline to cap height (or to a box edge: the picture&apos;s frame, the
+        stat pill, the rule), the same on every card for the same CSS. The small one is the margin that makes it, which
+        is what ships. Each step moves the margin 1px. Sizes step 0.5px, opacity 0.05, tracking 0.005em; the faces,
+        weights and colours are the ones the page has (soft is the body&apos;s). Only what you touch is written.
       </p>
 
       <p className="sct-card">

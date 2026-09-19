@@ -356,9 +356,11 @@
      big for a proportional face: one step down to 0.9375rem, then back up to
      1rem when the card's type was re-set around the illustration (Story.css,
      "CARD TYPE"). The dek used to share this rule, and the rule outranked
-     Story.css; it left when the card took the Atlas's identity type, whose
-     dek is 0.8125rem, and Story.css sets it now. */
-  font-size: 1rem;
+     Story.css; it left when the card took the Atlas's identity type, and
+     Story.css sets it now. Then 0.9375rem, the dek's size on Si's dial: the
+     account and the dek are one tier, and the account had been left a step
+     above the head it sits under. */
+  font-size: 0.9375rem;
 }
 
 .story .rainbow-card-name {
