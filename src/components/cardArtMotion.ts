@@ -123,9 +123,8 @@ const ROWS: [number, number][][] = [
 ]
 
 /* The residue on 03 and 04: an illustrative accent on the dead vegetation
-   and the ground beside it (and, on 04, three patches of water), in the
-   liquid's colour rather than the spray's: what settled, not what fell.
-   Static, under everything that moves. */
+   and the ground beside it, in the liquid's colour rather than the spray's:
+   what settled, not what fell. Static, under everything that moves. */
 const RESIDUE: Record<string, { ground: [number, number, number, number][]; branches: string[]; water: string[] }> = {
   peak: {
     ground: [
@@ -157,11 +156,9 @@ const RESIDUE: Record<string, { ground: [number, number, number, number][]; bran
       'M1247 354 L1270 335',
       'M1106 600 L1089 627',
     ],
-    water: [
-      'M775 486 Q812 476 855 490 Q827 499 794 495Z',
-      'M726 568 Q768 556 809 570 Q788 580 745 578Z',
-      'M664 644 Q698 634 744 648 Q720 658 680 654Z',
-    ],
+    /* The handoff also laid three patches on the water; they read as
+       something floating rather than something settled, and are left out. */
+    water: [],
   },
 }
 
