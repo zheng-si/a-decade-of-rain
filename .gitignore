@@ -35,3 +35,6 @@ poster/final/*dpi.jpg
 poster/final/PLATE-*.svg
 poster/final/VOGUE-*.svg
 poster/final/INK*.svg
+poster/final/DOSE-*.svg
+poster/final/svg-export/
+poster/final/*.zip
