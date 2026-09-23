@@ -16,6 +16,8 @@
 //   a-dots  "product"  the same sheet with the flat dot view
 //   b       "framed"   a landscape shot of the Atlas in a hairline frame, two
 //                      smaller shots under it (the Story's hook, the dot view)
+//   final   the sheet as hand-tuned in Figma, rebuilt from final.layout.json
+//           (the round trip of figma.mjs); the one submitted to the gallery
 //
 //   node poster/nacis-2026/build.mjs            # all
 //   node poster/nacis-2026/build.mjs a-dots     # one
@@ -152,7 +154,7 @@ html, body { width: ${W}in; height: ${H}in; background: ${C.paper}; color: ${C.i
 .shot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center top }
 .frame { border: 1px solid ${C.rule}; box-shadow: 0 1px 0 rgba(33,53,40,0.06) }
 .qr { width: 2in; height: 2in }
-.qr svg { display: block; width: 2in; height: 2in }
+.qr svg { display: block; width: 100%; height: 100% }
 .scan { text-align: right }
 .scan .caps { color: ${C.ink} }
 .scan .url { font-family: 'Courier Prime', monospace; font-weight: 400; font-size: 11.5pt; color: ${C.ink}; line-height: 1.3; margin-top: 0.03in }
@@ -209,8 +211,16 @@ const VARIANTS = {
   a: { layout: 'a', shot: 'atlas-3d-square', label: 'product, the 3D flight tracks' },
   'a-dots': { layout: 'a', shot: 'atlas-flat-square', label: 'product, the flat dot view' },
   b: { layout: 'b', label: 'framed shot with two insets' },
+  // The sheet as the designer tuned it by hand in Figma (23 September 2026),
+  // read back as boxes in inches: final.layout.json is the source, not this
+  // file's layout code. The one that goes to the gallery.
+  final: { layout: 'file', file: 'final.layout.json', label: 'the Figma-tuned sheet, the one submitted' },
 }
-const shotsFor = (v) => (VARIANTS[v].layout === 'a' ? [VARIANTS[v].shot] : ['atlas-3d-wide', 'story-hero', 'atlas-flat'])
+const layoutFile = (v) => JSON.parse(fs.readFileSync(path.join(HERE, VARIANTS[v].file), 'utf8'))
+const shotsFor = (v) =>
+  VARIANTS[v].layout === 'a' ? [VARIANTS[v].shot]
+  : VARIANTS[v].layout === 'file' ? [...new Set(layoutFile(v).nodes.filter((n) => n.type === 'image').map((n) => n.name.replace(/\.png$/, '')))]
+  : ['atlas-3d-wide', 'story-hero', 'atlas-flat']
 
 function variantA(qr, shotName) {
   const M = 0.35
@@ -243,8 +253,35 @@ function variantB(qr) {
   ${qrBlock({ right: M, bottom: M, qr })}`
 }
 
+/** Figma's style names to the weights the web fonts ship. */
+const WEIGHT = { Light: 300, Regular: 400, Medium: 500, SemiBold: 600, Bold: 700 }
+
+/** A sheet from a layout file: each box placed where it was measured. A box
+ *  that was auto-width in Figma is set nowrap here so the browser cannot
+ *  wrap it either; a fixed or auto-height box keeps its width and wraps. */
+function variantFromLayout(L, qr) {
+  const esc = (t) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;')
+  return L.nodes.map((n) => {
+    if (n.type === 'image') return shot(n.name.replace(/\.png$/, ''), { x: n.x, y: n.y, w: n.w, h: n.h, frame: n.framed })
+    if (n.type === 'svg' && n.name === 'mark') return `<div class="abs mark" style="left:${n.x}in;top:${n.y}in;width:${n.w}in;height:${n.h}in">${logoSvg(C.accent)}</div>`
+    if (n.type === 'svg' && n.name === 'qr') return `<div class="abs qr" style="left:${n.x}in;top:${n.y}in;width:${n.w}in;height:${n.h}in">${qr.svg}</div>`
+    const weight = WEIGHT[n.style] ?? 400
+    const single = n.resize === 'WIDTH_AND_HEIGHT'
+    const family = n.family === 'Courier Prime' ? "'Courier Prime', monospace" : "'Geist', system-ui, sans-serif"
+    const style = [
+      `left:${n.x}in`, `top:${n.y}in`, `width:${n.w + (single ? 0.1 : 0.02)}in`,
+      `font-family:${family}`, `font-weight:${weight}`, `font-size:${n.sizePt}pt`,
+      `line-height:${n.lineHeight === 'auto' ? 1.2 : n.lineHeight}`, `letter-spacing:${n.letterSpacing}em`,
+      `text-transform:${n.transform}`, `text-align:${n.align}`, `color:${n.color}`,
+      single ? 'white-space:nowrap' : '',
+    ].join(';')
+    return `<div class="abs" style="${style}">${esc(n.text)}</div>`
+  }).join('\n')
+}
+
 function html(variant, qr) {
-  const body = VARIANTS[variant].layout === 'a' ? variantA(qr, VARIANTS[variant].shot) : variantB(qr)
+  const body = VARIANTS[variant].layout === 'file' ? variantFromLayout(layoutFile(variant), qr)
+    : VARIANTS[variant].layout === 'a' ? variantA(qr, VARIANTS[variant].shot) : variantB(qr)
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>A Decade of Rain · NACIS 2026 placard ${variant.toUpperCase()}</title><style>${css}</style></head><body><div class="sheet">${body}</div></body></html>`
 }
 
@@ -256,7 +293,14 @@ async function render(browser, variant, qr) {
   const page = await ctx.newPage()
   await page.goto('file://' + file, { waitUntil: 'networkidle' })
   await page.evaluate(() => document.fonts.ready)
-  const fonts = await page.evaluate(() => ['12px "Geist"', '12px "Courier Prime"'].map((f) => [f, document.fonts.check(f)]))
+  // Every family the sheet actually sets must have loaded; a declared face the
+  // sheet never uses stays unloaded and must not fail the check.
+  const fonts = await page.evaluate(() => {
+    const used = new Set()
+    for (const el of document.querySelectorAll('.sheet *'))
+      if (el.childElementCount === 0 && el.textContent.trim()) used.add(getComputedStyle(el).fontFamily.split(',')[0].replace(/["']/g, '').trim())
+    return [...used].map((f) => [f, document.fonts.check(`12px "${f}"`)])
+  })
   for (const [f, ok] of fonts) if (!ok) throw new Error(`font not loaded: ${f}`)
   await page.waitForTimeout(500)
   fs.writeFileSync(path.join(OUT, `placard-${variant}.layout.json`), JSON.stringify(await measure(page, variant), null, 1))
@@ -306,17 +350,26 @@ async function measure(page, variant) {
   return { variant, widthIn: W, heightIn: H, dpi: DPI, background: C.paper, nodes }
 }
 
-/** Read the QR back out of the rendered PNG: the bottom-right 3 × 3 inches. */
-function verifyQr(pngPath) {
+/** Read the QR back out of the rendered PNG. `box` is the symbol's box in
+ *  inches when the layout knows it; otherwise the bottom-right 3 × 3 inches,
+ *  where the hand-laid variants keep it. Half an inch of the sheet around the
+ *  symbol goes in too, so the check sees the quiet zone the print will have. */
+function verifyQr(pngPath, box) {
   const img = PNG.sync.read(fs.readFileSync(pngPath))
-  const side = 3 * DPI
-  const x0 = img.width - side, y0 = img.height - side
-  const data = new Uint8ClampedArray(side * side * 4)
-  for (let y = 0; y < side; y++) {
-    const src = ((y0 + y) * img.width + x0) * 4
-    data.set(img.data.subarray(src, src + side * 4), y * side * 4)
+  const pad = 0.5 * DPI
+  let x0, y0, w, h
+  if (box) {
+    x0 = Math.max(0, Math.round(box.x * DPI - pad)); y0 = Math.max(0, Math.round(box.y * DPI - pad))
+    w = Math.min(img.width - x0, Math.round(box.w * DPI + 2 * pad)); h = Math.min(img.height - y0, Math.round(box.h * DPI + 2 * pad))
+  } else {
+    w = h = 3 * DPI; x0 = img.width - w; y0 = img.height - h
   }
-  const hit = jsQR(data, side, side)
+  const data = new Uint8ClampedArray(w * h * 4)
+  for (let y = 0; y < h; y++) {
+    const src = ((y0 + y) * img.width + x0) * 4
+    data.set(img.data.subarray(src, src + w * 4), y * w * 4)
+  }
+  const hit = jsQR(data, w, h)
   return hit ? hit.data : null
 }
 
@@ -344,7 +397,8 @@ const browser = await chromium.launch({ executablePath: CHROME, headless: true, 
 try {
   for (const v of variants) {
     const { png, pdf } = await render(browser, v, qr)
-    const decoded = verifyQr(png)
+    const qrBox = VARIANTS[v].layout === 'file' ? layoutFile(v).nodes.find((n) => n.type === 'svg' && n.name === 'qr') : null
+    const decoded = verifyQr(png, qrBox)
     const mb = (p) => (fs.statSync(p).size / 1048576).toFixed(1) + ' MB'
     console.log(`${v}: ${path.basename(pdf)} ${mb(pdf)} · ${path.basename(png)} ${mb(png)} · QR reads back as ${decoded === URL ? 'the URL, verified' : `"${decoded}" — MISMATCH`}`)
     if (decoded !== URL) process.exitCode = 1

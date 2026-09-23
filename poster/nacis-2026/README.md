@@ -11,7 +11,21 @@ Two variants share one copy block and one QR; the choice is the designer's.
 | A | `out/placard-a.pdf` | one portrait shot of the Atlas (3D flight tracks) nearly edge to edge under the masthead |
 | A, dots | `out/placard-a-dots.pdf` | the same sheet with the flat dot view; the one chosen on 22 September 2026 |
 | B | `out/placard-b.pdf` | a framed landscape shot of the Atlas with two smaller shots under it |
+| **final** | `out/placard-final.pdf` | **the submitted sheet**: A-dots as the designer hand-tuned it in Figma on 23 September 2026, rebuilt here from `final.layout.json` |
 | | `out/contact.png` | the variants side by side |
+
+The submission file is the PDF exported from the Figma frame (File → Export →
+PDF, 1 unit = 1 pt, so 11 × 17 in), named
+
+```
+Zheng_ADecadeOfRain_NACIS2026_MapGallery_11x17in.pdf
+```
+
+surname first so the coordinator's folder sorts by entrant, then the title,
+the event, the category and the trim size, ASCII only, no spaces. `final`
+here is the same sheet from the same layout numbers, kept so the repository
+holds what went to the wall; the two differ only in the browsers' line
+breaking inside the three paragraphs.
 
 Each PDF has vector text with the site's own fonts embedded (Courier Prime for
 the title, as on the hero; Geist for everything else) and the shots as PNG at
@@ -64,10 +78,13 @@ vectors, and the shot is a rectangle to fill with `shots/<name>.png` through
 the `upload_assets` tool. `PAGE_ID` and `AT_X`/`AT_Y` say where the frame
 lands. A rerun replaces the frame it made before.
 
-The frame is the hand-off for fine-tuning by hand. Once it comes back, the
-final print is exported from Figma (File → Export, PDF), or the tweaks are
-carried into `build.mjs` and the PDF rebuilt here, whichever the designer
-prefers.
+The frame is the hand-off for fine-tuning by hand, and the round trip closes
+the other way too: `final.layout.json` is the tuned frame read back out of
+Figma as boxes in inches (every text with its family, style, size, line
+height, letter spacing, case, alignment and colour; the shot; the mark; the
+QR), and `node build.mjs final` renders it with the same code as the other
+variants. What was tuned by hand is therefore on record as numbers, not only
+as a Figma file.
 
 ## Print
 
