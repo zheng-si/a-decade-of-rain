@@ -41,6 +41,9 @@ export const SHOTS = {
   'atlas-3d-wide': { path: '/archive?cam=106.85,10.60,9.9,0,55&view=3d', w: 1600, h: 1000, dpr: 2, settle: 30000 },
   // The flat dot view around Đồng Xoài and Long Khánh at the 10 km scale.
   'atlas-flat': { path: '/archive?cam=107.25,11.05,8.7', w: 1200, h: 900, dpr: 2, settle: 25000 },
+  // The same dot view, portrait, for the full-bleed variant: the sprayed
+  // corridor from the mangroves south of Saigon up to War Zone D and Bảo Lộc.
+  'atlas-flat-square': { path: '/archive?cam=107.15,11.02,8.7', w: 1100, h: 1130, dpr: 3, settle: 30000 },
   // The Story's hook: the heat field under the title.
   'story-hero': { path: '/', w: 1200, h: 900, dpr: 2, settle: 20000 },
 }
@@ -68,6 +71,11 @@ try {
     const t0 = Date.now()
     await page.goto(SITE + s.path, { waitUntil: 'networkidle', timeout: 120000 })
     await page.waitForTimeout(s.settle)
+    // The Atlas shows a one-time zoom hint at the dot zooms ("Zoom in until
+    // the dots give way to flight tracks · Got it"); a print is not the place
+    // for it, so press Got it when it is there.
+    await page.getByRole('button', { name: 'Got it' }).click({ timeout: 1500 }).catch(() => {})
+    await page.waitForTimeout(400)
     const file = path.join(OUT, `${name}.png`)
     await page.screenshot({ path: file })
     const kb = Math.round(fs.statSync(file).size / 1024)

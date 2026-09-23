@@ -9,14 +9,20 @@
 //   out/placard-<variant>.png   3300 × 5100 px, 300 dpi, for a JPEG upload
 //   out/contact.png             the variants side by side, for choosing
 //
-// Two variants, same copy, same QR:
-//   a  "product"  one portrait shot of the Atlas nearly edge to edge under a
-//                 masthead, the foot carrying the doors, the numbers, the QR
-//   b  "framed"   a landscape shot of the Atlas in a hairline frame, two
-//                 smaller shots under it (the Story's hook, the flat dot view)
+// Three variants, same copy, same QR:
+//   a       "product"  one portrait shot of the Atlas (3D flight tracks) nearly
+//                      edge to edge under a masthead, the foot carrying the
+//                      doors, the numbers, the QR
+//   a-dots  "product"  the same sheet with the flat dot view
+//   b       "framed"   a landscape shot of the Atlas in a hairline frame, two
+//                      smaller shots under it (the Story's hook, the dot view)
 //
-//   node poster/nacis-2026/build.mjs          # both
-//   node poster/nacis-2026/build.mjs a        # one
+//   node poster/nacis-2026/build.mjs            # all
+//   node poster/nacis-2026/build.mjs a-dots     # one
+//
+// Each render also writes out/placard-<variant>.layout.json: every text box,
+// shot, the mark and the QR with their positions in inches and computed type,
+// read back out of the rendered page. figma.mjs turns that into a Figma frame.
 //
 // The QR encodes URL (default https://rain.sizheng.me/): 25 × 25 modules at
 // level M, so a module is 2.0 mm on the print and a phone reads it from a
@@ -149,7 +155,7 @@ html, body { width: ${W}in; height: ${H}in; background: ${C.paper}; color: ${C.i
 .qr svg { display: block; width: 2in; height: 2in }
 .scan { text-align: right }
 .scan .caps { color: ${C.ink} }
-.scan .url { font-family: 'Courier Prime', monospace; font-size: 11.5pt; color: ${C.ink}; line-height: 1.3; margin-top: 0.03in }
+.scan .url { font-family: 'Courier Prime', monospace; font-weight: 400; font-size: 11.5pt; color: ${C.ink}; line-height: 1.3; margin-top: 0.03in }
 .scan .note { font-weight: 300; font-size: 7pt; color: ${C.inkFaint}; line-height: 1.45; margin-top: 0.03in }
 .rule { border-top: 1px solid ${C.rule} }
 `
@@ -174,9 +180,11 @@ function stats({ x, y }) {
 }
 
 function foot({ x, y, w }) {
+  // One element per line, so the layout export sees each as its own text box.
   return `
   <div class="abs fine" style="left:${x}in;top:${y}in;width:${w}in">${COPY.source}</div>
-  <div class="abs fine" style="left:${x}in;top:${y + 0.62}in;width:${w}in"><b>${COPY.credit}</b><br>${COPY.author}</div>`
+  <div class="abs fine" style="left:${x}in;top:${y + 0.62}in;width:${w}in"><b>${COPY.credit}</b></div>
+  <div class="abs fine" style="left:${x}in;top:${y + 0.62 + 0.146}in;width:${w}in">${COPY.author}</div>`
 }
 
 function qrBlock({ right, bottom, qr }) {
@@ -196,11 +204,19 @@ function shot(name, { x, y, w, h, frame = false }) {
   return `<div class="abs shot${frame ? ' frame' : ''}" style="left:${x}in;top:${y}in;width:${w}in;height:${h}in"><img src="../shots/${name}.png" alt=""></div>`
 }
 
-function variantA(qr) {
+/** The variants: a layout and, for A, which portrait shot fills it. */
+const VARIANTS = {
+  a: { layout: 'a', shot: 'atlas-3d-square', label: 'product, the 3D flight tracks' },
+  'a-dots': { layout: 'a', shot: 'atlas-flat-square', label: 'product, the flat dot view' },
+  b: { layout: 'b', label: 'framed shot with two insets' },
+}
+const shotsFor = (v) => (VARIANTS[v].layout === 'a' ? [VARIANTS[v].shot] : ['atlas-3d-wide', 'story-hero', 'atlas-flat'])
+
+function variantA(qr, shotName) {
   const M = 0.35
   return `
   ${head({ x: M + 0.1, y: 0.42, w: W - 2 * M, titlePt: 46, subPt: 16, dekPt: 10.5, dekW: 10.1, markIn: 0.52 })}
-  ${shot('atlas-3d-square', { x: M, y: 2.62, w: W - 2 * M, h: (W - 2 * M) * (3390 / 3300), frame: true })}
+  ${shot(shotName, { x: M, y: 2.62, w: W - 2 * M, h: (W - 2 * M) * (3390 / 3300), frame: true })}
   ${doors({ x: M + 0.1, y: 13.5, w: 6.9, gap: 0.3 })}
   ${stats({ x: M + 0.1, y: 14.62 })}
   ${foot({ x: M + 0.1, y: 15.42, w: 6.9 })}
@@ -228,7 +244,7 @@ function variantB(qr) {
 }
 
 function html(variant, qr) {
-  const body = variant === 'a' ? variantA(qr) : variantB(qr)
+  const body = VARIANTS[variant].layout === 'a' ? variantA(qr, VARIANTS[variant].shot) : variantB(qr)
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><title>A Decade of Rain · NACIS 2026 placard ${variant.toUpperCase()}</title><style>${css}</style></head><body><div class="sheet">${body}</div></body></html>`
 }
 
@@ -243,12 +259,51 @@ async function render(browser, variant, qr) {
   const fonts = await page.evaluate(() => ['12px "Geist"', '12px "Courier Prime"'].map((f) => [f, document.fonts.check(f)]))
   for (const [f, ok] of fonts) if (!ok) throw new Error(`font not loaded: ${f}`)
   await page.waitForTimeout(500)
+  fs.writeFileSync(path.join(OUT, `placard-${variant}.layout.json`), JSON.stringify(await measure(page, variant), null, 1))
   const png = path.join(OUT, `placard-${variant}.png`)
   await page.screenshot({ path: png })
   const pdf = path.join(OUT, `placard-${variant}.pdf`)
   await page.pdf({ path: pdf, width: `${W}in`, height: `${H}in`, printBackground: true, preferCSSPageSize: true, margin: { top: 0, right: 0, bottom: 0, left: 0 } })
   await ctx.close()
   return { png, pdf }
+}
+
+/** The sheet as placed boxes, read back out of the rendered page: every leaf
+ *  text element with its computed type, the shots, the mark and the QR, all in
+ *  inches from the top-left corner. This is what the Figma export consumes, so
+ *  the frame there is the print, not a re-layout of it. */
+async function measure(page, variant) {
+  const nodes = await page.evaluate(() => {
+    const IN = 96
+    const out = []
+    const leaf = (el) => el.childElementCount === 0 || [...el.children].every((c) => c.tagName === 'BR')
+    for (const el of document.querySelectorAll('.sheet *')) {
+      if (el.closest('svg')) continue
+      const r = el.getBoundingClientRect()
+      if (el.classList.contains('shot')) {
+        out.push({ type: 'image', name: el.querySelector('img').getAttribute('src').replace(/^.*\//, ''), x: r.x / IN, y: r.y / IN, w: r.width / IN, h: r.height / IN, framed: el.classList.contains('frame') })
+        continue
+      }
+      if (el.classList.contains('qr') || el.classList.contains('mark')) {
+        out.push({ type: 'svg', name: el.classList.contains('qr') ? 'qr' : 'mark', x: r.x / IN, y: r.y / IN, w: r.width / IN, h: r.height / IN, svg: el.innerHTML.trim() })
+        continue
+      }
+      if (!leaf(el) || !el.textContent.trim()) continue
+      const cs = getComputedStyle(el)
+      const px = parseFloat(cs.fontSize)
+      out.push({
+        type: 'text', x: r.x / IN, y: r.y / IN, w: r.width / IN, h: r.height / IN,
+        text: el.innerText,
+        family: cs.fontFamily.split(',')[0].replace(/["']/g, ''),
+        sizePt: (px * 72) / IN, weight: +cs.fontWeight,
+        lineHeight: cs.lineHeight === 'normal' ? 1.2 : parseFloat(cs.lineHeight) / px,
+        letterSpacing: cs.letterSpacing === 'normal' ? 0 : parseFloat(cs.letterSpacing) / px,
+        transform: cs.textTransform, align: cs.textAlign, color: cs.color,
+      })
+    }
+    return out
+  })
+  return { variant, widthIn: W, heightIn: H, dpi: DPI, background: C.paper, nodes }
 }
 
 /** Read the QR back out of the rendered PNG: the bottom-right 3 × 3 inches. */
@@ -266,7 +321,7 @@ function verifyQr(pngPath) {
 }
 
 async function contact(browser, variants) {
-  const cards = variants.map((v) => `<figure><img src="placard-${v}.png"><figcaption>${v.toUpperCase()} · ${v === 'a' ? 'product, one shot nearly edge to edge' : 'framed shot with two insets'}</figcaption></figure>`).join('')
+  const cards = variants.map((v) => `<figure><img src="placard-${v}.png"><figcaption>${v.toUpperCase()} · ${VARIANTS[v].label}</figcaption></figure>`).join('')
   const file = path.join(OUT, 'contact.html')
   fs.writeFileSync(file, `<!doctype html><meta charset="utf-8"><style>body{margin:0;background:#3a3a3a;font:13px Geist,system-ui;color:#ddd;display:flex;gap:40px;padding:40px}figure{margin:0}img{display:block;width:560px;box-shadow:0 8px 30px rgba(0,0,0,.6)}figcaption{margin-top:12px}</style>${cards}`)
   const ctx = await browser.newContext({ viewport: { width: 40 + variants.length * 600, height: 940 }, deviceScaleFactor: 1 })
@@ -276,10 +331,12 @@ async function contact(browser, variants) {
   await ctx.close()
 }
 
-const variants = process.argv.slice(2).length ? process.argv.slice(2) : ['a', 'b']
+const variants = process.argv.slice(2).length ? process.argv.slice(2) : Object.keys(VARIANTS)
 fs.mkdirSync(OUT, { recursive: true })
-for (const v of variants) for (const s of v === 'a' ? ['atlas-3d-square'] : ['atlas-3d-wide', 'story-hero', 'atlas-flat'])
-  if (!fs.existsSync(path.join(SHOTS, `${s}.png`))) throw new Error(`missing shots/${s}.png: run capture.mjs first`)
+for (const v of variants) {
+  if (!VARIANTS[v]) throw new Error(`no variant ${v}; have ${Object.keys(VARIANTS).join(', ')}`)
+  for (const s of shotsFor(v)) if (!fs.existsSync(path.join(SHOTS, `${s}.png`))) throw new Error(`missing shots/${s}.png: run capture.mjs first`)
+}
 
 const qr = qrSvg(URL, C.ink)
 console.log(`QR: ${URL} → version ${qr.version}, ${qr.n}×${qr.n} modules, ${(50.8 / qr.n).toFixed(2)} mm per module at 2 in`)

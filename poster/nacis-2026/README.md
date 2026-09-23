@@ -8,9 +8,10 @@ Two variants share one copy block and one QR; the choice is the designer's.
 
 | | file | what it is |
 |---|---|---|
-| A | `out/placard-a.pdf` | one portrait shot of the Atlas nearly edge to edge under the masthead |
+| A | `out/placard-a.pdf` | one portrait shot of the Atlas (3D flight tracks) nearly edge to edge under the masthead |
+| A, dots | `out/placard-a-dots.pdf` | the same sheet with the flat dot view; the one chosen on 22 September 2026 |
 | B | `out/placard-b.pdf` | a framed landscape shot of the Atlas with two smaller shots under it |
-| | `out/contact.png` | both side by side |
+| | `out/contact.png` | the variants side by side |
 
 Each PDF has vector text with the site's own fonts embedded (Courier Prime for
 the title, as on the hero; Geist for everything else) and the shots as PNG at
@@ -43,6 +44,30 @@ load. WebGL runs on SwiftShader, so each shot takes about half a minute.
 
 `SITE=http://localhost:4173 node capture.mjs` captures a local preview build
 instead of the live site.
+
+## Into Figma, and back
+
+Each render also writes `out/placard-<variant>.layout.json`: every text box,
+the shot, the mark and the QR with their positions in inches and their
+computed type, read back out of the rendered page. `figma.mjs` turns that into
+Figma Plugin API code:
+
+```bash
+node figma.mjs a-dots > out/figma-a-dots.js
+```
+
+Run through the Figma MCP `use_figma` tool (or a plugin console), it builds
+the sheet as one frame at 72 units to the inch (792 × 1224), so a PDF exported
+from Figma comes out at 11 × 17 in. Text is live text in Courier Prime and
+Geist (both on Google Fonts, so available in Figma), the mark and the QR are
+vectors, and the shot is a rectangle to fill with `shots/<name>.png` through
+the `upload_assets` tool. `PAGE_ID` and `AT_X`/`AT_Y` say where the frame
+lands. A rerun replaces the frame it made before.
+
+The frame is the hand-off for fine-tuning by hand. Once it comes back, the
+final print is exported from Figma (File → Export, PDF), or the tweaks are
+carried into `build.mjs` and the PDF rebuilt here, whichever the designer
+prefers.
 
 ## Print
 
