@@ -1,0 +1,16 @@
+{
+  "name": "nacis-2026-placard",
+  "private": true,
+  "type": "module",
+  "description": "The 11×17 gallery placard for A Decade of Rain at NACIS 2026: product shots from the live site, a vector QR code, a print PDF.",
+  "scripts": {
+    "capture": "node capture.mjs",
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "jsqr": "^1.4.0",
+    "playwright-core": "^1.63.0",
+    "pngjs": "^7.0.0",
+    "qrcode": "^1.5.4"
+  }
+}
