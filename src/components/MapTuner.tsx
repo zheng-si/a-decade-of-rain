@@ -103,6 +103,9 @@ const SEED_VERSION = 2
  *  block alone; everything else the reader tuned survives. */
 const TRACK_SEED = 2
 
+/** One-time migration of the old shipped overview radius cap only. */
+const OVERVIEW_CAP_SEED = 1
+
 /** Run `fn` as soon as the style is usable, and DO run it.
  *
  *  Both effects below used to do `if (isStyleLoaded()) fn(); else once('idle',
@@ -173,6 +176,7 @@ interface Tune {
    *  reason the tiers are: a second copy is how a panel starts describing a
    *  map we do not have. */
   dots: DotStyle
+  overviewCapSeed: number
   /** SPIKE A — the line encoding. Only reachable with ?tracks=1, and the tab
    *  hides itself otherwise: a console offering controls for layers that are
    *  not on the map is the same lie as a legend naming a mark it cannot draw. */
@@ -260,6 +264,7 @@ const DEFAULTS: Tune = {
   coarseDeg: gridDegrees().coarse,
   fineDeg: gridDegrees().fine,
   dots: JSON.parse(JSON.stringify(DOTS)) as DotStyle,
+  overviewCapSeed: OVERVIEW_CAP_SEED,
   tracks: JSON.parse(JSON.stringify(TRACKS)) as TrackStyle,
   typeFloor: 5,
   typeTop: 11,
@@ -421,6 +426,11 @@ function readStore(): Tune {
     for (const k of ['coarse', 'fine', 'raw'] as const) {
       t.dots[k] = { ...DEFAULTS.dots[k], ...(parsed.dots?.[k] ?? {}) }
     }
+    // Adopt the new default for a stored old-default cap, without throwing
+    // away other tuned values. After this migration, an intentional 16 stays 16.
+    if (parsed.overviewCapSeed !== OVERVIEW_CAP_SEED && parsed.dots?.coarse?.cap === 16)
+      t.dots.coarse.cap = DEFAULTS.dots.coarse.cap
+    t.overviewCapSeed = OVERVIEW_CAP_SEED
     t.dots.zero = { ...DEFAULTS.dots.zero, ...(parsed.dots?.zero ?? {}) }
     // Same nested merge for the tracks, so a tune stored before this tab
     // existed loads with real numbers instead of undefined — UNLESS the track
@@ -1462,10 +1472,10 @@ export default function MapTuner({
               checked={gridLines}
               onChange={(e) => setGridLines(e.target.checked)}
             />
-            <span>Show grid lines / 显示网格线</span>
+            <span>Show grid lines</span>
           </label>
           <p className="tuner-note">
-            Occupied cells only, beneath the dots. Coarse = blue-grey; fine = warm grey.
+            Occupied cells only, beneath the dots. Overview = blue-grey; detail = warm grey.
             Each follows its dot tier’s zoom range and visibility; no grid in the raw/track band.
             Cell sizes live under ZOOM. Session only; Reset turns this off; excluded from Copy for commit.
           </p>
@@ -1522,8 +1532,8 @@ export default function MapTuner({
 
           {(
             [
-              ['coarse', 'Coarse grid', 1_000_000],
-              ['fine', 'Fine grid', 200_000],
+              ['coarse', 'Overview dots', 1_000_000],
+              ['fine', 'Detail dots', 200_000],
               ['raw', 'Raw runs', 1_000],
             ] as const
           ).map(([tier, name, sample]) => {
@@ -1544,6 +1554,12 @@ export default function MapTuner({
                     DOTS.{tier} · z{z0}→{z1}
                   </em>
                 </span>
+                {tier === 'raw' && (
+                  <p className="tuner-note">
+                    Original event dots, normally hidden while flight tracks are shown.
+                    These controls do not change track width. k scales radius; cap limits radius, not diameter.
+                  </p>
+                )}
                 <div className="tuner-ramp-ends is-dots">
                   <label>
                     <span>k at z{z0}</span>
@@ -1580,7 +1596,7 @@ export default function MapTuner({
                   </label>
                 </div>
                 <p className="tuner-tier-read">
-                  radius = k·√gallons. A {sample.toLocaleString()} gallon{' '}
+                  Radius = k × √gallons (square root, not logarithm). A {sample.toLocaleString()} gallon{' '}
                   {tier === 'raw' ? 'run' : 'cell'} draws {px(r.k0, 0).toFixed(1)} px → {px(r.k1, 1).toFixed(1)} px
                   across the ramp. The {r.cap} px cap bites above{' '}
                   {capsAt(r.k0).toLocaleString()} gal at z{z0} and {capsAt(r.k1).toLocaleString()} gal

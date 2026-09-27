@@ -1,9 +1,9 @@
 # Atlas tuner grid guides
 
 Open `/archive?tune=1`, open Map Tuner, choose **Dots**, and check
-**Show grid lines / 显示网格线**. The guide outlines occupied aggregation cells
+**Show grid lines**. The guide outlines occupied aggregation cells
 underneath the dots, so radius/cap adjustments can be compared with cell size.
-Coarse guides are blue-grey, fine guides warm grey; shared edges are drawn once.
+Overview guides are blue-grey, detail guides warm grey; shared edges are drawn once.
 
 Guides inherit the corresponding dot layer's live zoom range and visibility.
 Ordinary hand-offs show one tier at a time and no guide in the raw/track band.
@@ -36,3 +36,14 @@ empty cells, snapshot replay, changing cell sizes, live zoom/visibility,
 boundary zooms, a hand-off below Z_MID, repeated toggles and teardown after map
 removal. Visual QA: compare dot caps with guides at both tiers, resize cells,
 scrub time/select agents, adjust hand-offs and hide a tier, then reset/reload.
+
+The Dots tab calls the coarse/fine tiers **Overview dots** and **Detail dots**.
+The overview radius cap now defaults to **12 px** (24 px diameter). On first
+load after this change, a stored old-default cap of 16 migrates to 12; other
+custom values are preserved, and subsequent edits to 16 remain valid.
+
+Raw runs controls original event dots, normally hidden once flight tracks load.
+Its k values set the radius multiplier at the two displayed zoom anchors, and
+cap limits radius in pixels. The mapping is a square root, not a logarithm:
+`radius = max(floor, min(k * sqrt(gallons), cap))` at each anchor, followed by
+linear interpolation of those endpoint radii as zoom changes.
