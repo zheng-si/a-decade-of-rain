@@ -714,3 +714,16 @@
   color: #8a8d85;
   font-variant-numeric: tabular-nums;
 }
+
+/* Presentation is a reversible UI filter; advanced state and reset/copy stay intact. */
+.tuner.is-presentation .tuner-note,
+.tuner.is-presentation .tuner-read,
+.tuner.is-presentation .tuner-tier-read,
+.tuner.is-presentation .tuner-out,
+.tuner.is-presentation .tuner-ramp-stage,
+.tuner.is-presentation .tuner-layer-z,
+.tuner.is-presentation .tuner-slider > em,
+.tuner.is-presentation .tuner-ramp-name > em,
+.tuner.is-presentation .tuner-row > em {
+  display: none;
+}

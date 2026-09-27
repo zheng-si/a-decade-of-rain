@@ -119,6 +119,16 @@ const TUNE_GATE: boolean = (() => {
   }
 })()
 
+// Preserve the session-only presentation filter through camera URL updates
+// and reloads, including before the lazy tuner module has loaded.
+const TUNE_PRESENTATION = (() => {
+  try {
+    return TUNE_GATE && new URLSearchParams(window.location.search).has('present')
+  } catch {
+    return false
+  }
+})()
+
 function tunerEnabled(): boolean {
   return TUNE_GATE
 }
@@ -478,6 +488,7 @@ function buildSearch(
   // means the one thing the console cannot do without is a reload that keeps
   // its gate. Costs a reader nothing: nobody without `?tune` ever sets it.
   if (tunerEnabled()) q.set('tune', '')
+  if (TUNE_PRESENTATION) q.set('present', '1')
   if (Math.round(day) < dayMax) q.set('t', dayToDate(day).toISOString().slice(0, 10))
   if (agentKey !== 'all') q.set('agent', agentKey)
   if (map) {
