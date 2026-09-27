@@ -10,12 +10,12 @@ import { mapConfig, LABEL_FONT, Z_FAR, Z_MID, Z_NEAR } from '../config/mapConfig
 import { firstLabelLayerId, textSizeRamp } from './mapTheme'
 import { labelTierOf, LABEL_TIERS, type LayerLike } from './mapTaxonomy'
 import { keepTierTiles } from './tileZoom'
+import {
+  setVolumeGridData, VOL_COARSE_SOURCE, VOL_FINE_SOURCE, VOL_COARSE_LAYER, VOL_FINE_LAYER,
+} from './volumeGridData'
+export { VOL_COARSE_SOURCE, VOL_FINE_SOURCE, VOL_COARSE_LAYER, VOL_FINE_LAYER } from './volumeGridData'
 
-export const VOL_COARSE_SOURCE = 'vol-coarse'
-export const VOL_FINE_SOURCE = 'vol-fine'
 export const VOL_RAW_LAYER = 'vol-raw'
-export const VOL_COARSE_LAYER = 'vol-coarse-l'
-export const VOL_FINE_LAYER = 'vol-fine-l'
 const VN_LABEL_SOURCE = 'vn-country-label'
 /** Exported so the tuner can put this on the same size ramp as the basemap's
  *  own country tier — the whole point of COUNTRY_TEXT is that the two cannot
@@ -512,8 +512,8 @@ export function updateVolume(
   // when isolated — and the rest of the record dims to grey rather than
   // vanishing, so the selection keeps its context.
   const c = tint ?? DOTS.tint
-  coarse.setData(binGrid(spray, day, indices, COARSE_DEG, c))
-  fine.setData(binGrid(spray, day, indices, FINE_DEG, c))
+  setVolumeGridData(map, VOL_COARSE_SOURCE, binGrid(spray, day, indices, COARSE_DEG, c), COARSE_DEG)
+  setVolumeGridData(map, VOL_FINE_SOURCE, binGrid(spray, day, indices, FINE_DEG, c), FINE_DEG)
   if (map.getLayer(VOL_RAW_LAYER)) {
     map.setFilter(VOL_RAW_LAYER, ['<=', ['get', 'day'], day] as never)
     const colour = indices

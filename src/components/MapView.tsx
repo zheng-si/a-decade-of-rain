@@ -8,6 +8,7 @@ import Timeline, { buildVolume, type VolumeChart } from './Timeline'
 import ArchiveKey from './ArchiveKey'
 import { buildAgentChoices, type AgentChoice } from './agentChoices'
 import { applyTunedAgents } from './mapTunerAgents'
+import { setVolumeGridData } from './volumeGridData'
 import {
   resolveMapStyle,
   applyMapTheme,
@@ -1641,8 +1642,7 @@ export default function MapView() {
           if (!on) { gridTierKeyRef.current[layer] = ''; return }
           if (gridTierKeyRef.current[layer] === key) return
           gridTierKeyRef.current[layer] = key
-          const src = map.getSource(source) as maplibregl.GeoJSONSource | undefined
-          src?.setData(binTracks(tracksRef.current!, day, activeIndices, cellDeg, c, groupHues))
+          setVolumeGridData(map, source, binTracks(tracksRef.current!, day, activeIndices, cellDeg, c, groupHues), cellDeg)
         }
         binTier(VOL_COARSE_LAYER, VOL_COARSE_SOURCE, deg.coarse)
         binTier(VOL_FINE_LAYER, VOL_FINE_SOURCE, deg.fine)
@@ -1681,7 +1681,7 @@ export default function MapView() {
           if (!map.getLayer(layer)) { filled = false; continue }
           const src = map.getSource(source) as maplibregl.GeoJSONSource | undefined
           if (!src) { filled = false; continue }
-          src.setData(binTracks(t, day, activeIndices, cellDeg, tint, groupHues))
+          setVolumeGridData(map, source, binTracks(t, day, activeIndices, cellDeg, tint, groupHues), cellDeg)
           gridTierKeyRef.current[layer] = key
         }
         // Both tiers current: coming back down from the track band needs no

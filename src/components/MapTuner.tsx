@@ -22,6 +22,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type maplibregl from 'maplibre-gl'
 import { TUNER_STORE_KEY } from './mapTunerAgents'
+import { isTunerGridLayer, showTunerGrid } from './mapTunerGrid'
 import { mapConfig, Z_FAR, Z_MID, Z_NEAR } from '../config/mapConfig'
 import {
   WATER_FILL,
@@ -532,6 +533,8 @@ export default function MapTuner({
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'palette' | 'dots' | 'tracks' | 'zoom' | 'type' | 'layers'>('palette')
   const [tune, setTune] = useState<Tune>(readStore)
+  // Session-only visual aid: deliberately outside Tune, storage and commit output.
+  const [gridLines, setGridLines] = useState(false)
   const [copied, setCopied] = useState(false)
   const [labelsOnly, setLabelsOnly] = useState(true)
   /** Every layer in the style with the facts the panel shows about it. */
@@ -598,7 +601,7 @@ export default function MapTuner({
       const rows: typeof allLayers = []
       const offNow: string[] = []
       for (const l of map.getStyle().layers ?? []) {
-        if (l.type === 'background') continue
+        if (l.type === 'background' || isTunerGridLayer(l.id)) continue
         try {
           const isLabel = l.type === 'symbol' && map.getLayoutProperty(l.id, 'text-field') != null
           rows.push({
@@ -772,6 +775,7 @@ export default function MapTuner({
 
       for (const layer of m.getStyle().layers ?? []) {
         const id = layer.id
+        if (isTunerGridLayer(id)) continue
         try {
           // Visibility and zoom range apply to EVERY layer, not only labels —
           // hiding a fill or clamping a road is as much a map decision as
@@ -839,6 +843,13 @@ export default function MapTuner({
     // just early-return — a stored tune would be dropped on every reload.
     return whenStyleReady(m, apply)
   }, [tune, map, enabled])
+
+  useEffect(() => {
+    if (!map || !enabled || !gridLines) return
+    let remove: (() => void) | undefined
+    const cancel = whenStyleReady(map, () => { remove = showTunerGrid(map) })
+    return () => { cancel(); remove?.() }
+  }, [map, enabled, gridLines])
 
   const setColor = (key: ColorKey, value: string) => {
     setDraft((d) => ({ ...d, [key]: value }))
@@ -966,6 +977,7 @@ export default function MapTuner({
     }))
 
   const reset = () => {
+    setGridLines(false)
     setTune(DEFAULTS)
     setDraft({
       land: DEFAULTS.land,
@@ -1430,17 +1442,32 @@ export default function MapTuner({
 
       {tab === 'dots' && (
         <>
-          {driftBanner('the shipped dot map', tune.dots, DEFAULTS.dots, () =>
+          {driftBanner('the shipped dot map', tune.dots, DEFAULTS.dots, () => {
+            setGridLines(false)
             setTune((t) => ({
               ...t,
               dots: JSON.parse(JSON.stringify(DEFAULTS.dots)) as DotStyle,
-            })),
-          )}
+            }))
+          })}
           <p className="tuner-note">
             MapLibre has no gradient fill for a circle, so there is exactly one falloff number —{' '}
             <code>circle-blur</code>. What the gradient LOOKS like is these three together: how far
             it feathers, how dark it starts, and how big the disc was to begin with. How MANY dots
             there are is the grid cell size, which lives under ZOOM so that it keeps one owner.
+          </p>
+
+          <label className="tuner-check">
+            <input
+              type="checkbox"
+              checked={gridLines}
+              onChange={(e) => setGridLines(e.target.checked)}
+            />
+            <span>Show grid lines / 显示网格线</span>
+          </label>
+          <p className="tuner-note">
+            Occupied cells only, beneath the dots. Coarse = blue-grey; fine = warm grey.
+            Each follows its dot tier’s zoom range and visibility; no grid in the raw/track band.
+            Cell sizes live under ZOOM. Session only; Reset turns this off; excluded from Copy for commit.
           </p>
 
           <label className="tuner-slider">
