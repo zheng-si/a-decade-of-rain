@@ -10,12 +10,12 @@ import { mapConfig, LABEL_FONT, Z_FAR, Z_MID, Z_NEAR } from '../config/mapConfig
 import { firstLabelLayerId, textSizeRamp } from './mapTheme'
 import { labelTierOf, LABEL_TIERS, type LayerLike } from './mapTaxonomy'
 import { keepTierTiles } from './tileZoom'
+import {
+  setVolumeGridData, VOL_COARSE_SOURCE, VOL_FINE_SOURCE, VOL_COARSE_LAYER, VOL_FINE_LAYER,
+} from './volumeGridData'
+export { VOL_COARSE_SOURCE, VOL_FINE_SOURCE, VOL_COARSE_LAYER, VOL_FINE_LAYER } from './volumeGridData'
 
-export const VOL_COARSE_SOURCE = 'vol-coarse'
-export const VOL_FINE_SOURCE = 'vol-fine'
 export const VOL_RAW_LAYER = 'vol-raw'
-export const VOL_COARSE_LAYER = 'vol-coarse-l'
-export const VOL_FINE_LAYER = 'vol-fine-l'
 const VN_LABEL_SOURCE = 'vn-country-label'
 /** Exported so the tuner can put this on the same size ramp as the basemap's
  *  own country tier — the whole point of COUNTRY_TEXT is that the two cannot
@@ -95,13 +95,10 @@ export interface DotRamp {
   k0: number
   /** k at the tier's high anchor. */
   k1: number
-  /** Hard ceiling in px, so a dot stays inside its own grid cell.
-   *
-   *  16 is not a taste number: a 0.12° cell is 30.9 px wide at Z_MID and a
-   *  0.03° cell is 30.9 px at Z_NEAR (the two bands happen to be the same
-   *  width in zoom), so 16 is half a cell — the biggest dot exactly fills its
-   *  own square and never spills into its neighbour's. The raw tier has no
-   *  cell, so its cap is a safety rail that never actually bites. */
+  /** Maximum radius in px (not diameter). The overview cap is 12 for more
+   *  space between dots; detail stays at 16. A fixed cap does not guarantee
+   *  containment at every zoom or tuned cell size — use the tuner grid guides
+   *  to compare. Raw events have no aggregation cell. */
   cap: number
 }
 
@@ -200,7 +197,8 @@ export const DOT_ANCHORS: Record<'coarse' | 'fine' | 'raw', [number, number]> = 
 // The k values are derived from the record's own distribution rather than
 // dialled in by eye: each one puts the MEDIAN cell of its tier at a legible
 // size (2 px at the far end of a band, ~4 px at the near end) and lets only
-// the top few per cent reach the cap. Measured against the real data:
+// the top few per cent reach the cap. Historical measurements below used
+// the previous zoom anchors and a coarse cap of 16, not the current cap of 12:
 //
 //              median   p90    max     capped
 //   coarse z5.6   2.0    5.6   13.6      0.0%
@@ -216,7 +214,7 @@ export const DOT_ANCHORS: Record<'coarse' | 'fine' | 'raw', [number, number]> = 
 export const DOTS: DotStyle = {
   blur: 0.25,
   opacity: 0.9,
-  coarse: { k0: 0.022, k1: 0.05, cap: 16 },
+  coarse: { k0: 0.022, k1: 0.05, cap: 12 },
   fine: { k0: 0.03, k1: 0.065, cap: 16 },
   raw: { k0: 0.055, k1: 0.13, cap: 18 },
   floor: [1, 1.5],
@@ -512,8 +510,8 @@ export function updateVolume(
   // when isolated — and the rest of the record dims to grey rather than
   // vanishing, so the selection keeps its context.
   const c = tint ?? DOTS.tint
-  coarse.setData(binGrid(spray, day, indices, COARSE_DEG, c))
-  fine.setData(binGrid(spray, day, indices, FINE_DEG, c))
+  setVolumeGridData(map, VOL_COARSE_SOURCE, binGrid(spray, day, indices, COARSE_DEG, c), COARSE_DEG)
+  setVolumeGridData(map, VOL_FINE_SOURCE, binGrid(spray, day, indices, FINE_DEG, c), FINE_DEG)
   if (map.getLayer(VOL_RAW_LAYER)) {
     map.setFilter(VOL_RAW_LAYER, ['<=', ['get', 'day'], day] as never)
     const colour = indices

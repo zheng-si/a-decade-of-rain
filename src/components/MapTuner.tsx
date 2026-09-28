@@ -22,6 +22,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type maplibregl from 'maplibre-gl'
 import { TUNER_STORE_KEY } from './mapTunerAgents'
+import { isTunerGridLayer, showTunerGrid } from './mapTunerGrid'
 import { mapConfig, Z_FAR, Z_MID, Z_NEAR } from '../config/mapConfig'
 import {
   WATER_FILL,
@@ -102,6 +103,9 @@ const SEED_VERSION = 2
  *  block alone; everything else the reader tuned survives. */
 const TRACK_SEED = 2
 
+/** One-time migration of the old shipped overview radius cap only. */
+const OVERVIEW_CAP_SEED = 1
+
 /** Run `fn` as soon as the style is usable, and DO run it.
  *
  *  Both effects below used to do `if (isStyleLoaded()) fn(); else once('idle',
@@ -172,6 +176,7 @@ interface Tune {
    *  reason the tiers are: a second copy is how a panel starts describing a
    *  map we do not have. */
   dots: DotStyle
+  overviewCapSeed: number
   /** SPIKE A — the line encoding. Only reachable with ?tracks=1, and the tab
    *  hides itself otherwise: a console offering controls for layers that are
    *  not on the map is the same lie as a legend naming a mark it cannot draw. */
@@ -259,6 +264,7 @@ const DEFAULTS: Tune = {
   coarseDeg: gridDegrees().coarse,
   fineDeg: gridDegrees().fine,
   dots: JSON.parse(JSON.stringify(DOTS)) as DotStyle,
+  overviewCapSeed: OVERVIEW_CAP_SEED,
   tracks: JSON.parse(JSON.stringify(TRACKS)) as TrackStyle,
   typeFloor: 5,
   typeTop: 11,
@@ -420,6 +426,11 @@ function readStore(): Tune {
     for (const k of ['coarse', 'fine', 'raw'] as const) {
       t.dots[k] = { ...DEFAULTS.dots[k], ...(parsed.dots?.[k] ?? {}) }
     }
+    // Adopt the new default for a stored old-default cap, without throwing
+    // away other tuned values. After this migration, an intentional 16 stays 16.
+    if (parsed.overviewCapSeed !== OVERVIEW_CAP_SEED && parsed.dots?.coarse?.cap === 16)
+      t.dots.coarse.cap = DEFAULTS.dots.coarse.cap
+    t.overviewCapSeed = OVERVIEW_CAP_SEED
     t.dots.zero = { ...DEFAULTS.dots.zero, ...(parsed.dots?.zero ?? {}) }
     // Same nested merge for the tracks, so a tune stored before this tab
     // existed loads with real numbers instead of undefined — UNLESS the track
@@ -508,6 +519,16 @@ function tunerEnabled(): boolean {
  *  positron's basemap. */
 const OWN_LAYERS = new Set(['mr-label', 'island-label', VN_LABEL_LAYER])
 
+// Session-only presentation UI: remove `present` and reload to restore all controls.
+// This is deliberately outside Tune: it changes no map values, storage or exports.
+const PRESENTATION = (() => {
+  try {
+    return new URLSearchParams(window.location.search).has('present')
+  } catch {
+    return false
+  }
+})()
+
 /** Is the line encoding on this page load? Read once, the same way
  *  MapView reads it — the tab must not offer controls for absent layers. */
 const TRACKS_ON = (() => {
@@ -532,6 +553,8 @@ export default function MapTuner({
   const [open, setOpen] = useState(false)
   const [tab, setTab] = useState<'palette' | 'dots' | 'tracks' | 'zoom' | 'type' | 'layers'>('palette')
   const [tune, setTune] = useState<Tune>(readStore)
+  // Session-only visual aid: deliberately outside Tune, storage and commit output.
+  const [gridLines, setGridLines] = useState(false)
   const [copied, setCopied] = useState(false)
   const [labelsOnly, setLabelsOnly] = useState(true)
   /** Every layer in the style with the facts the panel shows about it. */
@@ -598,7 +621,7 @@ export default function MapTuner({
       const rows: typeof allLayers = []
       const offNow: string[] = []
       for (const l of map.getStyle().layers ?? []) {
-        if (l.type === 'background') continue
+        if (l.type === 'background' || isTunerGridLayer(l.id)) continue
         try {
           const isLabel = l.type === 'symbol' && map.getLayoutProperty(l.id, 'text-field') != null
           rows.push({
@@ -772,6 +795,7 @@ export default function MapTuner({
 
       for (const layer of m.getStyle().layers ?? []) {
         const id = layer.id
+        if (isTunerGridLayer(id)) continue
         try {
           // Visibility and zoom range apply to EVERY layer, not only labels —
           // hiding a fill or clamping a road is as much a map decision as
@@ -839,6 +863,13 @@ export default function MapTuner({
     // just early-return — a stored tune would be dropped on every reload.
     return whenStyleReady(m, apply)
   }, [tune, map, enabled])
+
+  useEffect(() => {
+    if (!map || !enabled || !gridLines) return
+    let remove: (() => void) | undefined
+    const cancel = whenStyleReady(map, () => { remove = showTunerGrid(map) })
+    return () => { cancel(); remove?.() }
+  }, [map, enabled, gridLines])
 
   const setColor = (key: ColorKey, value: string) => {
     setDraft((d) => ({ ...d, [key]: value }))
@@ -966,6 +997,7 @@ export default function MapTuner({
     }))
 
   const reset = () => {
+    setGridLines(false)
     setTune(DEFAULTS)
     setDraft({
       land: DEFAULTS.land,
@@ -1269,7 +1301,7 @@ export default function MapTuner({
   )
 
   return (
-    <div className="tuner is-wide">
+    <div className={`tuner is-wide${PRESENTATION ? ' is-presentation' : ''}`}>
       <div className="tuner-head">
         <span className="tuner-title">Map tuner</span>
         <button className="tuner-x" onClick={() => setOpen(false)} aria-label="Collapse">
@@ -1279,7 +1311,7 @@ export default function MapTuner({
 
       <div className="tuner-tabs" role="tablist">
         {(
-          ['palette', 'dots', ...(TRACKS_ON ? (['tracks'] as const) : []), 'zoom', 'type', 'layers'] as const
+          ['palette', 'dots', ...(TRACKS_ON && !PRESENTATION ? (['tracks'] as const) : []), 'zoom', 'type', 'layers'] as const
         ).map((t) => (
           <button
             key={t}
@@ -1430,12 +1462,13 @@ export default function MapTuner({
 
       {tab === 'dots' && (
         <>
-          {driftBanner('the shipped dot map', tune.dots, DEFAULTS.dots, () =>
+          {driftBanner('the shipped dot map', tune.dots, DEFAULTS.dots, () => {
+            setGridLines(false)
             setTune((t) => ({
               ...t,
               dots: JSON.parse(JSON.stringify(DEFAULTS.dots)) as DotStyle,
-            })),
-          )}
+            }))
+          })}
           <p className="tuner-note">
             MapLibre has no gradient fill for a circle, so there is exactly one falloff number —{' '}
             <code>circle-blur</code>. What the gradient LOOKS like is these three together: how far
@@ -1443,9 +1476,23 @@ export default function MapTuner({
             there are is the grid cell size, which lives under ZOOM so that it keeps one owner.
           </p>
 
+          <label className="tuner-check">
+            <input
+              type="checkbox"
+              checked={gridLines}
+              onChange={(e) => setGridLines(e.target.checked)}
+            />
+            <span>Show grid lines</span>
+          </label>
+          <p className="tuner-note">
+            Occupied cells only, beneath the dots. Overview = blue-grey; detail = warm grey.
+            Each follows its dot tier’s zoom range and visibility; no grid in the raw/track band.
+            Cell sizes live under ZOOM. Session only; Reset turns this off; excluded from Copy for commit.
+          </p>
+
           <label className="tuner-slider">
             <span>
-              Falloff · circle-blur <strong>{tune.dots.blur}</strong>
+              {PRESENTATION ? 'Edge softness' : 'Falloff · circle-blur'} <strong>{tune.dots.blur}</strong>
             </span>
             <input
               type="range"
@@ -1460,7 +1507,7 @@ export default function MapTuner({
 
           <label className="tuner-slider">
             <span>
-              Peak alpha · circle-opacity <strong>{tune.dots.opacity}</strong>
+              {PRESENTATION ? 'Opacity' : 'Peak alpha · circle-opacity'} <strong>{tune.dots.opacity}</strong>
             </span>
             <input
               type="range"
@@ -1495,11 +1542,11 @@ export default function MapTuner({
 
           {(
             [
-              ['coarse', 'Coarse grid', 1_000_000],
-              ['fine', 'Fine grid', 200_000],
+              ['coarse', 'Overview dots', 1_000_000],
+              ['fine', 'Detail dots', 200_000],
               ['raw', 'Raw runs', 1_000],
             ] as const
-          ).map(([tier, name, sample]) => {
+          ).filter(([tier]) => !PRESENTATION || tier !== 'raw').map(([tier, name, sample]) => {
             const r = tune.dots[tier]
             const [z0, z1] = DOT_ANCHORS[tier]
             const px = (k: number, end: 0 | 1) =>
@@ -1517,6 +1564,12 @@ export default function MapTuner({
                     DOTS.{tier} · z{z0}→{z1}
                   </em>
                 </span>
+                {tier === 'raw' && (
+                  <p className="tuner-note">
+                    Original event dots, normally hidden while flight tracks are shown.
+                    These controls do not change track width. k scales radius; cap limits radius, not diameter.
+                  </p>
+                )}
                 <div className="tuner-ramp-ends is-dots">
                   <label>
                     <span>k at z{z0}</span>
@@ -1552,124 +1605,132 @@ export default function MapTuner({
                     />
                   </label>
                 </div>
+                <details open={!PRESENTATION}>
+                  <summary>Size calculation</summary>
                 <p className="tuner-tier-read">
-                  radius = k·√gallons. A {sample.toLocaleString()} gallon{' '}
+                  Radius = k × √gallons (square root, not logarithm). A {sample.toLocaleString()} gallon{' '}
                   {tier === 'raw' ? 'run' : 'cell'} draws {px(r.k0, 0).toFixed(1)} px → {px(r.k1, 1).toFixed(1)} px
                   across the ramp. The {r.cap} px cap bites above{' '}
                   {capsAt(r.k0).toLocaleString()} gal at z{z0} and {capsAt(r.k1).toLocaleString()} gal
                   at z{z1} — past that, every dot is the same size.
                 </p>
+                </details>
               </div>
             )
           })}
 
-          <div className="tuner-ramp">
-            <span className="tuner-ramp-name">
-              Minimum radius <em>DOTS.floor · marks that carry volume</em>
-            </span>
-            <div className="tuner-ramp-ends is-dots is-two">
-              <label>
-                <span>px at low z</span>
-                <input
-                  type="number"
-                  min={0}
-                  max={8}
-                  step={0.25}
-                  value={tune.dots.floor[0]}
-                  onChange={(e) => setDot({ floor: [Number(e.target.value), tune.dots.floor[1]] })}
-                />
-              </label>
-              <label>
-                <span>px at high z</span>
-                <input
-                  type="number"
-                  min={0}
-                  max={8}
-                  step={0.25}
-                  value={tune.dots.floor[1]}
-                  onChange={(e) => setDot({ floor: [tune.dots.floor[0], Number(e.target.value)] })}
-                />
-              </label>
-            </div>
-            <p className="tuner-tier-read">
-              The smallest coarse cell holds 10 gallons — 0.07 px on the ramp — and the 10th
-              percentile is 0.64 px. Without a floor the bottom tenth of every tier is sub-pixel.
-            </p>
-          </div>
+          {!PRESENTATION && (
+            <>
+              <div className="tuner-ramp">
+                <span className="tuner-ramp-name">
+                  Minimum radius <em>DOTS.floor · marks that carry volume</em>
+                </span>
+                <div className="tuner-ramp-ends is-dots is-two">
+                  <label>
+                    <span>px at low z</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={8}
+                      step={0.25}
+                      value={tune.dots.floor[0]}
+                      onChange={(e) => setDot({ floor: [Number(e.target.value), tune.dots.floor[1]] })}
+                    />
+                  </label>
+                  <label>
+                    <span>px at high z</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={8}
+                      step={0.25}
+                      value={tune.dots.floor[1]}
+                      onChange={(e) => setDot({ floor: [tune.dots.floor[0], Number(e.target.value)] })}
+                    />
+                  </label>
+                </div>
+                <p className="tuner-tier-read">
+                  The smallest coarse cell holds 10 gallons — 0.07 px on the ramp — and the 10th
+                  percentile is 0.64 px. Without a floor the bottom tenth of every tier is sub-pixel.
+                </p>
+              </div>
 
-          <div className="tuner-ramp">
-            <span className="tuner-ramp-name">
-              No-volume ring <em>DOTS.zero · 16,244 of 24,604 runs</em>
-            </span>
-            <div className="tuner-ramp-ends is-dots">
-              <label>
-                <span>r at low z</span>
-                <input
-                  type="number"
-                  min={0}
-                  max={12}
-                  step={0.25}
-                  value={tune.dots.zero.radius[0]}
-                  onChange={(e) =>
-                    setDot({
-                      zero: { ...tune.dots.zero, radius: [Number(e.target.value), tune.dots.zero.radius[1]] },
-                    })
-                  }
-                />
-              </label>
-              <label>
-                <span>r at high z</span>
-                <input
-                  type="number"
-                  min={0}
-                  max={12}
-                  step={0.25}
-                  value={tune.dots.zero.radius[1]}
-                  onChange={(e) =>
-                    setDot({
-                      zero: { ...tune.dots.zero, radius: [tune.dots.zero.radius[0], Number(e.target.value)] },
-                    })
-                  }
-                />
-              </label>
-              <label>
-                <span>stroke px</span>
-                <input
-                  type="number"
-                  min={0}
-                  max={4}
-                  step={0.25}
-                  value={tune.dots.zero.stroke}
-                  onChange={(e) => setDot({ zero: { ...tune.dots.zero, stroke: Number(e.target.value) } })}
-                />
-              </label>
-            </div>
-            <label className="tuner-slider">
-              <span>
-                Ring alpha <strong>{tune.dots.zero.opacity}</strong>
-              </span>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.05}
-                value={tune.dots.zero.opacity}
-                onChange={(e) => setDot({ zero: { ...tune.dots.zero, opacity: Number(e.target.value) } })}
-              />
-            </label>
-            <p className="tuner-tier-read">
-              A mission books its gallons against one leg; the rest read 0. These are drawn hollow
-              because they are a different KIND of fact, not a smaller quantity — a filled dot of
-              any size reads as &ldquo;this much fell here&rdquo;. Stroke 0 takes them off the map.
-            </p>
-          </div>
+              <div className="tuner-ramp">
+                <span className="tuner-ramp-name">
+                  No-volume ring <em>DOTS.zero · 16,244 of 24,604 runs</em>
+                </span>
+                <div className="tuner-ramp-ends is-dots">
+                  <label>
+                    <span>r at low z</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={12}
+                      step={0.25}
+                      value={tune.dots.zero.radius[0]}
+                      onChange={(e) =>
+                        setDot({
+                          zero: { ...tune.dots.zero, radius: [Number(e.target.value), tune.dots.zero.radius[1]] },
+                        })
+                      }
+                    />
+                  </label>
+                  <label>
+                    <span>r at high z</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={12}
+                      step={0.25}
+                      value={tune.dots.zero.radius[1]}
+                      onChange={(e) =>
+                        setDot({
+                          zero: { ...tune.dots.zero, radius: [tune.dots.zero.radius[0], Number(e.target.value)] },
+                        })
+                      }
+                    />
+                  </label>
+                  <label>
+                    <span>stroke px</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={4}
+                      step={0.25}
+                      value={tune.dots.zero.stroke}
+                      onChange={(e) => setDot({ zero: { ...tune.dots.zero, stroke: Number(e.target.value) } })}
+                    />
+                  </label>
+                </div>
+                <label className="tuner-slider">
+                  <span>
+                    Ring alpha <strong>{tune.dots.zero.opacity}</strong>
+                  </span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={tune.dots.zero.opacity}
+                    onChange={(e) => setDot({ zero: { ...tune.dots.zero, opacity: Number(e.target.value) } })}
+                  />
+                </label>
+                <p className="tuner-tier-read">
+                  A mission books its gallons against one leg; the rest read 0. These are drawn hollow
+                  because they are a different KIND of fact, not a smaller quantity — a filled dot of
+                  any size reads as &ldquo;this much fell here&rdquo;. Stroke 0 takes them off the map.
+                </p>
+              </div>
+
+            </>
+          )}
 
           {(
             [
               ['tint', 'All agents'],
               ['dim', 'De-emphasised'],
             ] as const
-          ).map(([key, label]) => (
+          ).filter(([key]) => !PRESENTATION || key !== 'dim').map(([key, label]) => (
             <label className="tuner-row" key={key}>
               <span className="tuner-label">{label}</span>
               <input
@@ -2146,13 +2207,13 @@ export default function MapTuner({
 
       {tab === 'zoom' && (
         <>
-          {num('First hand-off · Z_MID', 'zMid', 5, 11, 0.1, 'coarse grid → fine · towns in · country out')}
+          {num(PRESENTATION ? 'Overview to detail' : 'First hand-off · Z_MID', 'zMid', 5, 11, 0.1, 'coarse grid → fine · towns in · country out')}
           {/* Range opens down to 3 so the tracks can be pulled out over the
               whole country. Nothing below ~5 is a proposal — 8,753 strokes at
               national scale is a texture, not a reading — but seeing where it
               stops working is the point of having the control. */}
           {num(
-            'Second hand-off · Z_NEAR',
+            PRESENTATION ? 'Detail to tracks' : 'Second hand-off · Z_NEAR',
             'zNear',
             3,
             12,
@@ -2162,39 +2223,43 @@ export default function MapTuner({
               : 'fine grid → raw runs · region tags out',
           )}
           {num('Zoom ceiling · maxZoom', 'maxZoom', 9, 16, 0.5, 'the record stops carrying detail past ~12')}
-          {num(
-            'Zoom floor margin · minZoomMargin',
-            'minZoomMargin',
-            0,
-            2,
-            0.05,
-            'how far below the fitted record you may still pull out',
+          {!PRESENTATION && (
+            <>
+              {num(
+                'Zoom floor margin · minZoomMargin',
+                'minZoomMargin',
+                0,
+                2,
+                0.05,
+                'how far below the fitted record you may still pull out',
+              )}
+              <dl className="tuner-read">
+                <div>
+                  <dt>Fitted home (this viewport)</dt>
+                  <dd>{homeZoomRef.current != null ? homeZoomRef.current.toFixed(2) : '—'}</dd>
+                </div>
+                <div>
+                  <dt>Resulting floor</dt>
+                  <dd>
+                    {homeZoomRef.current != null
+                      ? (homeZoomRef.current - tune.minZoomMargin).toFixed(2)
+                      : '—'}
+                  </dd>
+                </div>
+              </dl>
+              <p className="tuner-note">
+                The floor itself is DERIVED per viewport by fitting recordBounds — 5.29 on a phone, 6.65
+                on a 27&quot;. Only the margin below it is a decision, so only the margin is a knob.
+              </p>
+            </>
           )}
-          <dl className="tuner-read">
-            <div>
-              <dt>Fitted home (this viewport)</dt>
-              <dd>{homeZoomRef.current != null ? homeZoomRef.current.toFixed(2) : '—'}</dd>
-            </div>
-            <div>
-              <dt>Resulting floor</dt>
-              <dd>
-                {homeZoomRef.current != null
-                  ? (homeZoomRef.current - tune.minZoomMargin).toFixed(2)
-                  : '—'}
-              </dd>
-            </div>
-          </dl>
-          <p className="tuner-note">
-            The floor itself is DERIVED per viewport by fitting recordBounds — 5.29 on a phone, 6.65
-            on a 27&quot;. Only the margin below it is a decision, so only the margin is a knob.
-          </p>
           <div className="tuner-ramp">
             <span className="tuner-ramp-name">
               Grid cell size <em>volumeGrid COARSE_DEG / FINE_DEG</em>
             </span>
             <div className="tuner-ramp-ends">
               <label>
-                <span>coarse</span>
+                <span>{PRESENTATION ? 'overview' : 'coarse'}</span>
                 <input
                   type="number"
                   min={0.01}
@@ -2205,7 +2270,7 @@ export default function MapTuner({
                 />
               </label>
               <label>
-                <span>fine</span>
+                <span>{PRESENTATION ? 'detail' : 'fine'}</span>
                 <input
                   type="number"
                   min={0.005}
@@ -2365,7 +2430,7 @@ export default function MapTuner({
                     </p>
                   )
                 })()}
-                {RANKED.has(key) && (
+                {!PRESENTATION && RANKED.has(key) && (
                     <label className="tuner-slider tuner-rank">
                       <span>
                         rank spread <strong>{tier.rankSpread}</strong>

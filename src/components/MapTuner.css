@@ -714,3 +714,9 @@
   color: #8a8d85;
   font-variant-numeric: tabular-nums;
 }
+
+/* Keep long development notes out of the presentation, while preserving
+   control labels, measurements and the copy-for-commit preview. */
+.tuner.is-presentation .tuner-note {
+  display: none;
+}

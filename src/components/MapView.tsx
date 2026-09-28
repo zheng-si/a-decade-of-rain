@@ -8,6 +8,7 @@ import Timeline, { buildVolume, type VolumeChart } from './Timeline'
 import ArchiveKey from './ArchiveKey'
 import { buildAgentChoices, type AgentChoice } from './agentChoices'
 import { applyTunedAgents } from './mapTunerAgents'
+import { setVolumeGridData } from './volumeGridData'
 import {
   resolveMapStyle,
   applyMapTheme,
@@ -113,6 +114,16 @@ const TUNE_GATE: boolean = (() => {
   if (import.meta.env.DEV) return true
   try {
     return new URLSearchParams(window.location.search).has('tune')
+  } catch {
+    return false
+  }
+})()
+
+// Preserve the session-only presentation filter through camera URL updates
+// and reloads, including before the lazy tuner module has loaded.
+const TUNE_PRESENTATION = (() => {
+  try {
+    return TUNE_GATE && new URLSearchParams(window.location.search).has('present')
   } catch {
     return false
   }
@@ -477,6 +488,7 @@ function buildSearch(
   // means the one thing the console cannot do without is a reload that keeps
   // its gate. Costs a reader nothing: nobody without `?tune` ever sets it.
   if (tunerEnabled()) q.set('tune', '')
+  if (TUNE_PRESENTATION) q.set('present', '1')
   if (Math.round(day) < dayMax) q.set('t', dayToDate(day).toISOString().slice(0, 10))
   if (agentKey !== 'all') q.set('agent', agentKey)
   if (map) {
@@ -1641,8 +1653,7 @@ export default function MapView() {
           if (!on) { gridTierKeyRef.current[layer] = ''; return }
           if (gridTierKeyRef.current[layer] === key) return
           gridTierKeyRef.current[layer] = key
-          const src = map.getSource(source) as maplibregl.GeoJSONSource | undefined
-          src?.setData(binTracks(tracksRef.current!, day, activeIndices, cellDeg, c, groupHues))
+          setVolumeGridData(map, source, binTracks(tracksRef.current!, day, activeIndices, cellDeg, c, groupHues), cellDeg)
         }
         binTier(VOL_COARSE_LAYER, VOL_COARSE_SOURCE, deg.coarse)
         binTier(VOL_FINE_LAYER, VOL_FINE_SOURCE, deg.fine)
@@ -1681,7 +1692,7 @@ export default function MapView() {
           if (!map.getLayer(layer)) { filled = false; continue }
           const src = map.getSource(source) as maplibregl.GeoJSONSource | undefined
           if (!src) { filled = false; continue }
-          src.setData(binTracks(t, day, activeIndices, cellDeg, tint, groupHues))
+          setVolumeGridData(map, source, binTracks(t, day, activeIndices, cellDeg, tint, groupHues), cellDeg)
           gridTierKeyRef.current[layer] = key
         }
         // Both tiers current: coming back down from the track band needs no
