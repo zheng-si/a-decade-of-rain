@@ -58,7 +58,7 @@ export const CLOSE_ACTIONS: CloseAction[] = [
 export const CLOSE_RECORD = {
   role: 'The Data',
   name: 'HEA-V, by the Stellmans',
-  desc: 'Herbicide Exposure Assessment, Vietnam: the system Jeanne Mager Stellman and Steven D. Stellman built at Columbia University, and the spray records they gathered, corrected and collected over decades. Every map on this site is drawn from it. Andrew Stellman keeps it open on GitHub.',
+  desc: 'Herbicide Exposure Assessment, Vietnam: the system Jeanne Mager Stellman and Steven D. Stellman built at Columbia University, and the spray data they gathered and collected. Every map on this site is drawn from it. Andrew Stellman’s open web edition is on GitHub.',
   action: 'View hea-v on GitHub',
   url: 'https://github.com/andrewstellman/hea-v',
 }

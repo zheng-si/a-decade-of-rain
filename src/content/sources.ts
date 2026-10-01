@@ -54,7 +54,7 @@ export const SOURCES: Record<string, Source> = {
   heav: {
     id: 'heav',
     title: 'HEA-V: Herbicide Exposure Assessment, Vietnam (GitHub)',
-    publisher: 'Jeanne Mager Stellman and Steven D. Stellman, Columbia University; republished by Andrew Stellman',
+    publisher: 'Jeanne Mager Stellman and Steven D. Stellman, Columbia University; web edition by Andrew Stellman',
     url: 'https://github.com/andrewstellman/hea-v',
   },
   stellman_2003: {
