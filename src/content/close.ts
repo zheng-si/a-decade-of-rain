@@ -50,6 +50,19 @@ export const CLOSE_ACTIONS: CloseAction[] = [
   },
 ]
 
+/** The record's own card, beside the Atlas's: the people and the system every
+ *  map on the site is drawn from. Jeanne Mager Stellman asked (September 2026)
+ *  that HEA-V and the data she and Steven Stellman gathered be acknowledged
+ *  on the page, not only in the ledger; the four organisations credit the
+ *  work, this credits the record. Spans two columns beside the Atlas. */
+export const CLOSE_RECORD = {
+  role: 'The Data',
+  name: 'HEA-V, by the Stellmans',
+  desc: 'Herbicide Exposure Assessment, Vietnam: the system Jeanne Mager Stellman and Steven D. Stellman built at Columbia University, and the spray records they gathered, corrected and collected over decades. Every map on this site is drawn from it. Andrew Stellman keeps it open on GitHub.',
+  action: 'View hea-v on GitHub',
+  url: 'https://github.com/andrewstellman/hea-v',
+}
+
 /** The site's own door, for the phone. The rail that carries "Explore the
  *  Record" on the desktop is hidden there, and the record node's CTA has
  *  scrolled away by the time a reader reaches the close, so the Atlas had one
@@ -71,6 +84,9 @@ export interface RefGroup {
   title: string
   /** ids into SOURCES */
   sourceIds?: string[]
+  /** The ledger's own fuller credit for a source, by id, where the short
+   *  form the story's chips use ("Stellman et al. 2003") is not enough. */
+  publishers?: Record<string, string>
   /** free-form lines (photo credits) */
   lines?: string[]
 }
@@ -78,9 +94,14 @@ export interface RefGroup {
 export const REF_GROUPS: RefGroup[] = [
   {
     title: 'Data',
-    sourceIds: ['stellman_2003', 'nas_1974', 'westing_bioscience', 'aso_stoten'],
+    // The Stellmans first: their system and their record are what every map
+    // here is drawn from.
+    sourceIds: ['heav', 'stellman_2003', 'nas_1974', 'westing_bioscience', 'aso_stoten'],
+    publishers: {
+      stellman_2003: 'J. M. Stellman, S. D. Stellman, R. Christian, T. Weber and C. Tomasallo, 2003',
+    },
     lines: [
-      'Spray missions: HERBS, the revised file of Stellman et al. (2003), via hea-v. 9,141 missions, 11,273 runs, 24,604 waypoint rows, 1961–1971',
+      'Spray missions: HERBS, the revised file of Stellman et al. (2003), via hea-v at commit cb5948b. 9,141 missions, 11,273 runs, 24,604 waypoint rows, 1961–1971',
     ],
   },
   {

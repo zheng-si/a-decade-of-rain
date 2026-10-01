@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { CLOSE_ACTIONS, CLOSE_ATLAS, CLOSE_HEAD, COLOPHON, REF_GROUPS } from '../content/close'
+import { CLOSE_ACTIONS, CLOSE_ATLAS, CLOSE_HEAD, CLOSE_RECORD, COLOPHON, REF_GROUPS } from '../content/close'
 import { SOURCES } from '../content/sources'
 import Logo from './Logo'
 
@@ -138,6 +138,18 @@ export default function CloseSection() {
                 </a>
               </li>
             ))}
+            {/* The record's credit, two columns wide, to the left of the
+                Atlas: the Stellmans' system and data (CLOSE_RECORD). */}
+            <li className="close-action-wide">
+              <a className="close-action is-record" href={CLOSE_RECORD.url} target="_blank" rel="noreferrer">
+                <p className="close-action-role">{CLOSE_RECORD.role}</p>
+                <h3 className="close-action-name">{CLOSE_RECORD.name}</h3>
+                <p className="close-action-desc">{CLOSE_RECORD.desc}</p>
+                <p className="close-action-cta">
+                  {CLOSE_RECORD.action} <span aria-hidden="true">↗</span>
+                </p>
+              </a>
+            </li>
             {/* Not a fifth card but the row's handover to the Atlas — a rule
                 and a line of type at every width (Story.css). An internal
                 link, so the arrow points on rather than out. */}
@@ -174,7 +186,7 @@ export default function CloseSection() {
                         <a href={s.url} target="_blank" rel="noreferrer">
                           {s.title}
                         </a>
-                        <span className="close-ref-pub"> · {s.publisher}</span>
+                        <span className="close-ref-pub"> · {g.publishers?.[id] ?? s.publisher}</span>
                       </li>
                     )
                   })}

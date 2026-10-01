@@ -4342,6 +4342,21 @@
   grid-column: 1 / -1;
 }
 
+/* On the desktop's four columns the last row is two cards of two: the
+   Stellmans' record (CLOSE_RECORD) on the left, the Atlas on the right. The
+   record before the map drawn from it. At two columns and on the phone each
+   takes the whole row, as the Atlas alone did. */
+.close-action-wide {
+  display: block;
+  grid-column: 1 / -1;
+}
+@media (min-width: 901px) {
+  .close-action-wide,
+  .close-action-atlas {
+    grid-column: span 2;
+  }
+}
+
 /* …except on hover, where it fills with the accent. At rest it is a peer of
    the four; under the pointer it admits it is the site's own. The accent
    arrives only as an answer to the reader, never as a claim made at them,
@@ -4372,11 +4387,13 @@
   color: #fff;
 }
 
-/* Above the phone the door spans the row, and a column of left-hugging text
-   in a 952px band leaves half of it empty. Lay it out as the row it is: the
-   label, the name and the line under it on the left, the call on the right,
-   all on one baseline band. The only thing the four do not need. */
-@media (min-width: 641px) {
+/* Between the phone and the desktop the door spans the row, and a column of
+   left-hugging text in that band leaves half of it empty. Lay it out as the
+   row it is: the label, the name and the line under it on the left, the call
+   on the right, all on one baseline band. On the desktop it shares the row
+   with the record's card and is two columns wide, which is a card, so it
+   stacks like one. */
+@media (min-width: 641px) and (max-width: 900px) {
   .story .close-action.is-atlas {
     display: grid;
     grid-template-columns: 1fr auto;
