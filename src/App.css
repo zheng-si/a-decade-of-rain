@@ -939,7 +939,9 @@
      goes — two fixed lines of primer against the map's own screen-space is
      the wrong trade on 640. The dek used to go with it and is back (October
      2026): it is where the Atlas credits HEA-V and the Stellmans, and a
-     credit the phone hides is not one. */
+     credit the phone hides is not one. It shows in the open sheet; the peek
+     (below) drops it, since its lid is the measured 7rem and a third line
+     there would only be clipped. */
   .explorer-guide {
     display: none;
   }
@@ -982,6 +984,7 @@
   .explorer-panel.is-peek .explorer-axis,
   .explorer-panel.is-peek > .explorer-section-label,
   .explorer-panel.is-peek .explorer-agents,
+  .explorer-panel.is-peek .explorer-dek,
   .explorer-panel.is-peek .explorer-links {
     display: none;
   }
