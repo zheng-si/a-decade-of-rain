@@ -57,8 +57,8 @@ export const CLOSE_ACTIONS: CloseAction[] = [
  *  work, this credits the record. Spans two columns beside the Atlas. */
 export const CLOSE_RECORD = {
   role: 'The Data',
-  name: 'HEA-V, by the Stellmans',
-  desc: 'Herbicide Exposure Assessment, Vietnam: the system Jeanne Mager Stellman and Steven D. Stellman built, and the spray data they gathered and collected. Every map on this site is drawn from it. Andrew Stellman’s open web edition is on GitHub.',
+  name: 'HEA-V, by the Stellman research team',
+  desc: 'Herbicide Exposure Assessment, Vietnam (HEA-V) is the foundational dataset behind this project, developed by Jeanne Mager Stellman, Steven D. Stellman, and their collaborators. Every map on this site is derived from HEA-V. Andrew Stellman’s open web edition is available on GitHub.',
   action: 'View hea-v on GitHub',
   url: 'https://github.com/andrewstellman/hea-v',
 }

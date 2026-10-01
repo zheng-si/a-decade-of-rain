@@ -935,13 +935,11 @@
   /* Identity, compressed. The SIZES live in ArchiveSkinV2.css's phone block —
      the skin names these elements at two classes, so one-class rules here
      would read correctly and never run (its own comment tells the story).
-     display is not contested, so the retirements stay here: the dek was
-     already gone on phones, and the agent note follows it — two fixed lines
-     of primer against the map's own screen-space is the wrong trade on 640. */
-  .explorer-dek {
-    display: none;
-  }
-
+     display is not contested, so the retirements stay here: the agent note
+     goes — two fixed lines of primer against the map's own screen-space is
+     the wrong trade on 640. The dek used to go with it and is back (October
+     2026): it is where the Atlas credits HEA-V and the Stellmans, and a
+     credit the phone hides is not one. */
   .explorer-guide {
     display: none;
   }
