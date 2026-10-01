@@ -126,6 +126,31 @@ export default function CloseSection() {
           <p className="close-body">{CLOSE_HEAD.body}</p>
 
           <ul className="close-actions">
+            {/* The record's credit and the Atlas lead the row, two columns
+                wide each, the four organisations under them: the
+                Stellmans' system and data (CLOSE_RECORD) first. */}
+            <li className="close-action-wide">
+              <a className="close-action is-record" href={CLOSE_RECORD.url} target="_blank" rel="noreferrer">
+                <p className="close-action-role">{CLOSE_RECORD.role}</p>
+                <h3 className="close-action-name">{CLOSE_RECORD.name}</h3>
+                <p className="close-action-desc">{CLOSE_RECORD.desc}</p>
+                <p className="close-action-cta">
+                  {CLOSE_RECORD.action} <span aria-hidden="true">↗</span>
+                </p>
+              </a>
+            </li>
+            {/* Not a fifth card but the door to the Atlas (Story.css). An
+                internal link, so the arrow points on rather than out. */}
+            <li className="close-action-atlas">
+              <Link className="close-action is-atlas" to={CLOSE_ATLAS.to}>
+                <p className="close-action-role">{CLOSE_ATLAS.role}</p>
+                <h3 className="close-action-name">{CLOSE_ATLAS.name}</h3>
+                <p className="close-action-desc">{CLOSE_ATLAS.desc}</p>
+                <p className="close-action-cta">
+                  {CLOSE_ATLAS.action} <span aria-hidden="true">→</span>
+                </p>
+              </Link>
+            </li>
             {CLOSE_ACTIONS.map((a) => (
               <li key={a.name}>
                 <a className="close-action" href={a.url} target="_blank" rel="noreferrer">
@@ -138,31 +163,6 @@ export default function CloseSection() {
                 </a>
               </li>
             ))}
-            {/* The record's credit, two columns wide, to the left of the
-                Atlas: the Stellmans' system and data (CLOSE_RECORD). */}
-            <li className="close-action-wide">
-              <a className="close-action is-record" href={CLOSE_RECORD.url} target="_blank" rel="noreferrer">
-                <p className="close-action-role">{CLOSE_RECORD.role}</p>
-                <h3 className="close-action-name">{CLOSE_RECORD.name}</h3>
-                <p className="close-action-desc">{CLOSE_RECORD.desc}</p>
-                <p className="close-action-cta">
-                  {CLOSE_RECORD.action} <span aria-hidden="true">↗</span>
-                </p>
-              </a>
-            </li>
-            {/* Not a fifth card but the row's handover to the Atlas — a rule
-                and a line of type at every width (Story.css). An internal
-                link, so the arrow points on rather than out. */}
-            <li className="close-action-atlas">
-              <Link className="close-action is-atlas" to={CLOSE_ATLAS.to}>
-                <p className="close-action-role">{CLOSE_ATLAS.role}</p>
-                <h3 className="close-action-name">{CLOSE_ATLAS.name}</h3>
-                <p className="close-action-desc">{CLOSE_ATLAS.desc}</p>
-                <p className="close-action-cta">
-                  {CLOSE_ATLAS.action} <span aria-hidden="true">→</span>
-                </p>
-              </Link>
-            </li>
           </ul>
         </div>
       </section>

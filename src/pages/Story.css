@@ -4329,7 +4329,7 @@
   color: #c4ecd3;
 }
 
-/* The door back to the Atlas (CLOSE_ATLAS), under the four organisations.
+/* The door back to the Atlas (CLOSE_ATLAS), above the four organisations.
 
    It takes the card exactly — ground, edge, shadow, type colours, the lot —
    and is set apart only by spanning the row. Two earlier tries said the
@@ -4342,10 +4342,10 @@
   grid-column: 1 / -1;
 }
 
-/* On the desktop's four columns the last row is two cards of two: the
-   Stellmans' record (CLOSE_RECORD) on the left, the Atlas on the right. The
-   record before the map drawn from it. At two columns and on the phone each
-   takes the whole row, as the Atlas alone did. */
+/* On the desktop's four columns the first row is two cards of two: the
+   Stellmans' record (CLOSE_RECORD) on the left, the Atlas on the right, the
+   four organisations under them. The record before the map drawn from it.
+   At two columns and on the phone each takes the whole row. */
 .close-action-wide {
   display: block;
   grid-column: 1 / -1;
@@ -4390,11 +4390,12 @@
 /* Between the phone and the desktop the door spans the row, and a column of
    left-hugging text in that band leaves half of it empty. Lay it out as the
    row it is: the label, the name and the line under it on the left, the call
-   on the right, all on one baseline band. On the desktop it shares the row
-   with the record's card and is two columns wide, which is a card, so it
-   stacks like one. */
+   on the right, all on one baseline band. The record's card above it takes
+   the same layout, so the two read as a pair. On the desktop they share a
+   row, two columns wide each, which is a card, so they stack like one. */
 @media (min-width: 641px) and (max-width: 900px) {
-  .story .close-action.is-atlas {
+  .story .close-action.is-atlas,
+  .story .close-action.is-record {
     display: grid;
     grid-template-columns: 1fr auto;
     grid-template-areas:
@@ -4404,18 +4405,22 @@
     align-items: center;
     column-gap: 2rem;
   }
-  .story .close-action.is-atlas .close-action-role {
+  .story .close-action.is-atlas .close-action-role,
+  .story .close-action.is-record .close-action-role {
     grid-area: role;
     margin-bottom: 0.375rem;
   }
-  .story .close-action.is-atlas .close-action-name {
+  .story .close-action.is-atlas .close-action-name,
+  .story .close-action.is-record .close-action-name {
     grid-area: name;
   }
-  .story .close-action.is-atlas .close-action-desc {
+  .story .close-action.is-atlas .close-action-desc,
+  .story .close-action.is-record .close-action-desc {
     grid-area: desc;
     margin-bottom: 0;
   }
-  .story .close-action.is-atlas .close-action-cta {
+  .story .close-action.is-atlas .close-action-cta,
+  .story .close-action.is-record .close-action-cta {
     grid-area: cta;
     margin: 0;
     white-space: nowrap;
