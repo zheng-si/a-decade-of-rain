@@ -988,6 +988,39 @@
 /* The account: one paragraph, the attribution run in after the closing
    quote mark rather than set on a line of its own. The block was 88px of
    the War Zone D card; the same words in this setting are 62. */
+/* The handover node's outbound link. A filled bar rather than a text link:
+   it is the one thing on any card that leaves the story, and it is the last
+   card, so it should read as the door it is. */
+.story-card-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 1.125rem 0 0;
+  padding: 0.6875rem 0.875rem;
+  background: var(--accent-deep);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: var(--track-tight);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.story-card-cta:hover {
+  background: var(--accent);
+}
+.story-card-cta span {
+  transition: transform 0.15s;
+}
+.story-card-cta:hover span {
+  transform: translateX(3px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .story-card-cta span {
+    transition: none;
+  }
+}
+
 .story-quote {
   margin: 0.75rem 0 0;
   padding: 0.625rem 0 0;
@@ -4329,7 +4362,7 @@
   color: #c4ecd3;
 }
 
-/* The door back to the Atlas (CLOSE_ATLAS), under the four organisations.
+/* The door back to the Atlas (CLOSE_ATLAS), above the four organisations.
 
    It takes the card exactly — ground, edge, shadow, type colours, the lot —
    and is set apart only by spanning the row. Two earlier tries said the
@@ -4340,6 +4373,21 @@
 .close-action-atlas {
   display: block;
   grid-column: 1 / -1;
+}
+
+/* On the desktop's four columns the first row is two cards of two: the
+   Stellmans' record (CLOSE_RECORD) on the left, the Atlas on the right, the
+   four organisations under them. The record before the map drawn from it.
+   At two columns and on the phone each takes the whole row. */
+.close-action-wide {
+  display: block;
+  grid-column: 1 / -1;
+}
+@media (min-width: 901px) {
+  .close-action-wide,
+  .close-action-atlas {
+    grid-column: span 2;
+  }
 }
 
 /* …except on hover, where it fills with the accent. At rest it is a peer of
@@ -4372,12 +4420,15 @@
   color: #fff;
 }
 
-/* Above the phone the door spans the row, and a column of left-hugging text
-   in a 952px band leaves half of it empty. Lay it out as the row it is: the
-   label, the name and the line under it on the left, the call on the right,
-   all on one baseline band. The only thing the four do not need. */
-@media (min-width: 641px) {
-  .story .close-action.is-atlas {
+/* Between the phone and the desktop the door spans the row, and a column of
+   left-hugging text in that band leaves half of it empty. Lay it out as the
+   row it is: the label, the name and the line under it on the left, the call
+   on the right, all on one baseline band. The record's card above it takes
+   the same layout, so the two read as a pair. On the desktop they share a
+   row, two columns wide each, which is a card, so they stack like one. */
+@media (min-width: 641px) and (max-width: 900px) {
+  .story .close-action.is-atlas,
+  .story .close-action.is-record {
     display: grid;
     grid-template-columns: 1fr auto;
     grid-template-areas:
@@ -4387,18 +4438,22 @@
     align-items: center;
     column-gap: 2rem;
   }
-  .story .close-action.is-atlas .close-action-role {
+  .story .close-action.is-atlas .close-action-role,
+  .story .close-action.is-record .close-action-role {
     grid-area: role;
     margin-bottom: 0.375rem;
   }
-  .story .close-action.is-atlas .close-action-name {
+  .story .close-action.is-atlas .close-action-name,
+  .story .close-action.is-record .close-action-name {
     grid-area: name;
   }
-  .story .close-action.is-atlas .close-action-desc {
+  .story .close-action.is-atlas .close-action-desc,
+  .story .close-action.is-record .close-action-desc {
     grid-area: desc;
     margin-bottom: 0;
   }
-  .story .close-action.is-atlas .close-action-cta {
+  .story .close-action.is-atlas .close-action-cta,
+  .story .close-action.is-record .close-action-cta {
     grid-area: cta;
     margin: 0;
     white-space: nowrap;

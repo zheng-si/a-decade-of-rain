@@ -632,17 +632,23 @@ export default function Timeline({
             The numbers went with that move. What is left is what only this line
             can say — whose record it is and how complete — and that is a
             footnote, so it sits where a footnote sits: under the instructions,
-            above the way out. */}
+            above the way out.
+
+            Whose record it is now names them. "Stellman et al. (2003)" credited
+            a paper; Jeanne Mager Stellman asked (September 2026) that HEA-V and
+            the data she and Steven Stellman gathered be acknowledged, so the
+            system and the people lead and the paper follows. */}
         <p className="explorer-dek">
-          The{' '}
+          Drawn from{' '}
           <a
             href="https://github.com/andrewstellman/hea-v"
             target="_blank"
             rel="noopener noreferrer"
           >
-            revised HERBS file
-          </a>{' '}
-          behind Stellman et&nbsp;al. (2003).
+            HEA-V
+          </a>
+          , the system and data of Jeanne Mager Stellman and Steven D.&nbsp;Stellman:
+          the revised HERBS file behind Stellman et&nbsp;al. (2003).
         </p>
 
         {/* Last, under the citation. It is still the fourth thing the reader

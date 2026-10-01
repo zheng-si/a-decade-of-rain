@@ -61,7 +61,7 @@ const MODEL_LINE = {
 }
 const MODEL_NOTE = {
   record:
-    'The revised HERBS file behind Stellman et al. (2003): 9,141 missions, 11,273 runs. Waypoints are joined by straight lines; coordinates are accurate to roughly 500 m. Flight paths, not where herbicide landed.',
+    'The Stellmans’ revised HERBS file (Stellman et al., 2003), from HEA-V: 9,141 missions, 11,273 runs. Waypoints are joined by straight lines; coordinates are accurate to roughly 500 m. Flight paths, not where herbicide landed.',
   grid: "Their 2004 model on their 0.01° grid, from the same file. A hit is a spray-path leg passing within the chosen distance of a cell. Proximity, not deposition or exposure. The timeline does not apply.",
 }
 const BAND_NOTE =

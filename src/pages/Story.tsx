@@ -3,6 +3,7 @@ import maplibregl from 'maplibre-gl'
 import type { FeatureCollection } from 'geojson'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import scrollama from 'scrollama'
+import { Link } from 'react-router-dom'
 import { loadSpray, dateToDay, dayToDate, fmtGallons, type SprayDataset } from '../data/spray'
 import { loadHeat } from '../data/heat'
 import { loadTracks } from '../data/tracks'
@@ -1099,6 +1100,12 @@ export default function Story() {
                   )}
                   {ev.note && <p className="story-card-note">{ev.note}</p>}
                   {ev.quote && <StoryQuote quote={ev.quote} src={src} />}
+                  {ev.cta && (
+                    <Link className="story-card-cta" to={ev.cta.to}>
+                      {ev.cta.label}
+                      <span aria-hidden="true">→</span>
+                    </Link>
+                  )}
                 </article>
               </section>
             </Fragment>

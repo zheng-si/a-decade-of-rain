@@ -51,6 +51,12 @@ export const SOURCES: Record<string, Source> = {
     publisher: 'Pulitzer Center',
     url: 'https://pulitzercenter.org/stories/through-forest-clearer-view-needs-people',
   },
+  heav: {
+    id: 'heav',
+    title: 'HEA-V: Herbicide Exposure Assessment, Vietnam (GitHub)',
+    publisher: 'Jeanne Mager Stellman and Steven D. Stellman, Columbia University; web edition by Andrew Stellman',
+    url: 'https://github.com/andrewstellman/hea-v',
+  },
   stellman_2003: {
     id: 'stellman_2003',
     title:
