@@ -1,0 +1,43 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+@font-face{font-family:'Courier Prime';font-weight:400;src:url(../../../public/fonts/mono/CourierPrime-Regular.woff2)}
+@font-face{font-family:'Courier Prime';font-weight:700;src:url(../../../public/fonts/mono/CourierPrime-Bold.woff2)}
+@page{size:210mm 297mm;margin:0}
+html,body{margin:0}
+body{width:210mm;height:297mm;position:relative;font-family:'Courier Prime',monospace;color:#141109}
+.grid{position:absolute;inset:0;display:grid;grid-template-columns:105mm 105mm;grid-template-rows:148.5mm 148.5mm}
+.tag{box-sizing:border-box;padding:9mm 8mm 8mm;display:flex;flex-direction:column;font-size:8.6pt;line-height:1.32}
+.cut-v{position:absolute;left:105mm;top:0;bottom:0;border-left:0.3mm dashed #999}
+.cut-h{position:absolute;top:148.5mm;left:0;right:0;border-top:0.3mm dashed #999}
+.k{font-size:6.8pt;letter-spacing:.06em;color:#6b675d;text-transform:uppercase;margin-top:3.2mm}
+.k:first-child{margin-top:0}
+.award{font-weight:700;font-size:9.4pt;letter-spacing:.08em}
+.id{font-weight:700;font-size:19pt;line-height:1.1;letter-spacing:.01em;margin-top:.8mm}
+.entry{font-size:9pt}
+.title{font-weight:700;font-size:9.6pt;line-height:1.25}
+.box{margin-top:3.6mm;border:0.45mm solid #141109;padding:2mm 2.4mm;font-weight:700;font-size:9.4pt;text-align:center;letter-spacing:.02em}
+.sheets{margin-top:auto;display:flex;gap:3.2mm;font-size:8.4pt;align-items:center}
+.cb{display:inline-block;width:3mm;height:3mm;border:0.3mm solid #141109;vertical-align:-0.4mm;margin-right:1mm}
+.br{font-family:"IPAGothic",sans-serif;font-weight:400;margin:0}.id .br:first-child{margin-left:-0.42em}
+.rule{border-top:0.25mm solid #141109;margin:3mm 0 0}
+</style></head><body>
+<div class="grid" id="g"></div><div class="cut-v"></div><div class="cut-h"></div>
+<template id="t"><div class="tag">
+  <div class="award">TOKYO TDC ANNUAL AWARDS 2027</div>
+  <div class="k">ID number</div>
+  <div class="id"><span class="br">【</span>362<span class="br">】</span>07_F373_01</div>
+  <div class="entry">Entry ID F373&nbsp;&nbsp;&nbsp;&nbsp;Category 7 — Poster B</div>
+  <div class="k">Title</div>
+  <div class="title">A Decade of Rain: The HERBS File, Three Readings</div>
+  <div class="k">Type Director</div>
+  <div>Si Zheng&nbsp;&nbsp;&nbsp;&nbsp;Shanghai, China</div>
+  <div class="k">Contents</div>
+  <div>3 posters, A1 594 × 841 mm, non-client<br>(a) When&nbsp;&nbsp;&nbsp;(b) How much&nbsp;&nbsp;&nbsp;(c) The record</div>
+  <div class="box">Competition work: Non-Commercial value</div>
+  <div class="k">To</div>
+  <div>ATTN: Misa Kawaguchi, Tokyo Type Directors Club<br>Miyago Bldg. 2F, 2-1-14 Asakusa, Taito-ku,<br>Tokyo 111-0032, JAPAN&nbsp;&nbsp;&nbsp;+81-3-6276-5210</div>
+  <div class="k">From</div>
+  <div>Si Zheng<br>Apt. 1607, No.2, Lane 138, Pudian Road,<br>Shanghai 200122, China&nbsp;&nbsp;&nbsp;+86 189 3051 1151</div>
+  <div class="sheets"><span><span class="cb"></span>package</span><span><span class="cb"></span>a</span><span><span class="cb"></span>b</span><span><span class="cb"></span>c</span></div>
+</div></template>
+<script>const g=document.getElementById('g'),t=document.getElementById('t');for(let i=0;i<4;i++)g.appendChild(t.content.cloneNode(true))</script>
+</body></html>
