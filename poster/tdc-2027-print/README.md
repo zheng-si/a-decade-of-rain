@@ -9,7 +9,7 @@ Excellent Work. Physical works due at Tokyo TDC 26 Oct – 16 Nov 2026.
   no transparency, Courier Prime embedded. Trim = media; the design's ~56 mm
   paper margin means no bleed is needed.
 - `ADOR_TDC2027_F373_tags_A4.pdf`: four identical entry tags on A4, cut to A6.
-- `ADOR_TDC2027_打印说明_给爸爸.pdf`: printing and shipping memo (Chinese).
+- `打印说明_给爸爸.txt`: short printing note (Chinese), to send by WeChat.
 
 Source: `poster/final/FINAL-{time5s8,vol,f4}.svg` on
 `claude/youthful-bohr-pjf2v2` (commit cf91989, the version zipped as F373.zip;
