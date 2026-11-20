@@ -2,32 +2,31 @@
 // Not a page anyone reads. Each shot is a pure function of time t (seconds):
 // `seek(t)` puts the map and the overlay in the state for that instant and
 // resolves once MapLibre has finished drawing it, so scripts/reel/render.mjs
-// can screenshot frame after frame with no dropped or half-drawn frames, which
-// a screen recording of the live site cannot promise.
+// can screenshot frame after frame with no dropped or half-drawn frames.
+//
+// The shots are built from the product itself: the Story's and the Atlas's
+// own stylesheets, map functions, colour and width parameters, content and
+// card art. The reel adds timing, nothing else.
 //
 //   /reel/?shot=3          the shot, seekable from the console
 //   /reel/?shot=3&t=7.5    parked at one instant (for stills)
-import maplibregl from 'maplibre-gl'
-import 'maplibre-gl/dist/maplibre-gl.css'
-import './reel.css'
-import { mapConfig } from '../config/mapConfig'
-import { resolveMapStyle, applyMapTheme, addHillshade, setHillshade, STORY_WATER } from '../components/mapTheme'
-import { applyLabelCuration } from '../components/labelLayers'
-import { quietBasemap } from '../components/volumeGrid'
-import { shot3 } from './shot3'
-import { shot7 } from './shot7'
+//   /reel/?shot=3&play     wall-clock preview (not frame-exact)
+import type maplibregl from 'maplibre-gl'
 
 export interface Shot {
   duration: number
-  /** Camera the map is created at (before the first seek). */
-  camera: { center: [number, number]; zoom: number }
-  setup(map: maplibregl.Map, overlay: HTMLElement): Promise<void>
-  /** Put everything in its state for time t. Synchronous; the caller waits for
-   *  the map to settle. */
+  /** Class(es) the stage takes so the product's own stylesheet applies. */
+  stageClass: string
+  /** Build the map in `mapEl` and the furniture in `overlay`. */
+  setup(mapEl: HTMLElement, overlay: HTMLElement): Promise<maplibregl.Map>
+  /** Put everything in its state for time t. The caller waits for the map. */
   apply(t: number): void
 }
 
-const SHOTS: Record<string, Shot> = { '3': shot3, '7': shot7 }
+const LOADERS: Record<string, () => Promise<{ shot: Shot }>> = {
+  '3': () => import('./storyDecade'),
+  '7': () => import('./atlasLookup'),
+}
 
 declare global {
   interface Window {
@@ -40,47 +39,8 @@ declare global {
 }
 
 const params = new URLSearchParams(location.search)
-const shot = SHOTS[params.get('shot') ?? '3']
-if (!shot) throw new Error(`unknown shot ${params.get('shot')}`)
-
-const DEM_SOURCE = 'terrain-dem'
-
-async function boot(): Promise<maplibregl.Map> {
-  const style = await resolveMapStyle()
-  const map = new maplibregl.Map({
-    container: 'map',
-    style,
-    center: shot.camera.center,
-    zoom: shot.camera.zoom,
-    interactive: false,
-    attributionControl: false,
-    // No label fade: a fade is wall-clock driven and would differ between
-    // frames rendered at different speeds.
-    fadeDuration: 0,
-    canvasContextAttributes: { antialias: true, preserveDrawingBuffer: true },
-  })
-  await new Promise<void>((r) => map.once('load', () => r()))
-  applyMapTheme(map)
-  applyLabelCuration(map)
-  quietBasemap(map, { labels: false, water: STORY_WATER })
-  if (mapConfig.terrain) {
-    map.addSource(DEM_SOURCE, {
-      type: 'raster-dem',
-      tiles: [mapConfig.terrain.demUrl],
-      tileSize: 256,
-      encoding: mapConfig.terrain.encoding,
-      maxzoom: 15,
-    })
-    addHillshade(map, DEM_SOURCE)
-    setHillshade(map, true, 0.28)
-    // Terrarium carries bathymetry, and on a still frame the sea-floor relief
-    // reads as noise. Slide the relief under the first water fill so the sea
-    // stays one flat tone.
-    const water = map.getStyle().layers?.find((l) => l.type === 'fill' && /water/.test(l.id))
-    if (water) map.moveLayer('hillshade', water.id)
-  }
-  return map
-}
+const key = params.get('shot') ?? '3'
+if (!LOADERS[key]) throw new Error(`unknown shot ${key}`)
 
 function settle(map: maplibregl.Map): Promise<void> {
   return new Promise((resolve) => {
@@ -100,33 +60,38 @@ function settle(map: maplibregl.Map): Promise<void> {
   })
 }
 
+const stage = document.getElementById('stage')!
+const mapEl = document.getElementById('map')!
 const overlay = document.getElementById('overlay')!
-let mapRef: maplibregl.Map | null = null
+let shot: Shot
+let map: maplibregl.Map
 
 const ready = (async () => {
+  shot = (await LOADERS[key]()).shot
+  stage.className = shot.stageClass
+  window.reel.duration = shot.duration
   await document.fonts.ready
-  const map = await boot()
-  mapRef = map
-  await shot.setup(map, overlay)
+  map = await shot.setup(mapEl, overlay)
   await document.fonts.ready
+  // Every <img> the overlay holds (the card art) decoded before frame 0.
+  await Promise.all([...overlay.querySelectorAll('img')].map((i) => i.decode().catch(() => {})))
   shot.apply(0)
   await settle(map)
 })()
 
 window.reel = {
   ready,
-  duration: shot.duration,
+  duration: 0,
   async seek(t: number) {
     await ready
     shot.apply(t)
-    await settle(mapRef!)
+    await settle(map)
   },
 }
 
 const t0 = params.get('t')
 if (t0 != null) ready.then(() => window.reel.seek(Number(t0)))
 else if (params.has('play')) {
-  // Wall-clock preview; not frame-exact.
   ready.then(() => {
     const start = performance.now()
     const tick = () => {
