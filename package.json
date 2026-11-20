@@ -16,7 +16,8 @@
     "build:heat": "node scripts/build-story-heat.mjs",
     "build:proximity": "node scripts/build-proximity.mjs",
     "analyse:binning": "node scripts/analyse-binning.mjs",
-    "build:figures": "node scripts/build-figure-binning.mjs"
+    "build:figures": "node scripts/build-figure-binning.mjs",
+    "reel": "node scripts/reel/render.mjs"
   },
   "dependencies": {
     "maplibre-gl": "^5.24.0",
