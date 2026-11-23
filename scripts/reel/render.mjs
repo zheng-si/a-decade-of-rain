@@ -6,6 +6,7 @@
 // Options: --fps 30  --scale 2 (supersample; frames are captured at 2× and
 // downscaled, which keeps hairlines crisp)  --from 0 --to <duration>
 // --url http://localhost:5173  --stills 0,7.5,14  (PNGs only, no video)
+// --w 1920 --h 1080 (viewport)  --query 'id=peak' (extra URL params)  --name peak
 import { createRequire } from 'node:module'
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
@@ -26,15 +27,19 @@ const fps = Number(args.fps ?? 30)
 const scale = Number(args.scale ?? 2)
 const base = args.url ?? 'http://localhost:5173'
 const outDir = path.resolve(args.out ?? 'reel-out')
-const framesDir = path.join(outDir, `shot${shot}-frames`)
+const W = Number(args.w ?? 1920)
+const H = Number(args.h ?? 1080)
+const name = args.name ?? `shot${shot}`
+
+const framesDir = path.join(outDir, `${name}-frames`)
 fs.mkdirSync(framesDir, { recursive: true })
 
 const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] })
-const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: scale })
+const page = await browser.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: scale })
 page.on('console', (m) => {
   if (m.type() === 'error' || m.text().startsWith('reel')) console.log('[page]', m.text())
 })
-await page.goto(`${base}/reel/?shot=${shot}`, { waitUntil: 'load' })
+await page.goto(`${base}/reel/?shot=${shot}${args.query ? '&' + args.query : ''}`, { waitUntil: 'load' })
 await page.evaluate(() => window.reel.ready)
 const duration = await page.evaluate(() => window.reel.duration)
 const stage = page.locator('#stage')
@@ -42,7 +47,7 @@ const stage = page.locator('#stage')
 if (args.stills) {
   for (const s of String(args.stills).split(',').map(Number)) {
     await page.evaluate((t) => window.reel.seek(t), s)
-    const file = path.join(outDir, `shot${shot}-t${s.toFixed(2)}.png`)
+    const file = path.join(outDir, `${name}-t${s.toFixed(2)}.png`)
     await stage.screenshot({ path: file })
     console.log('still', file)
   }
@@ -65,14 +70,14 @@ for (let i = 0; i <= n; i++) {
 }
 await browser.close()
 
-const mp4 = path.join(outDir, `shot${shot}.mp4`)
+const mp4 = path.join(outDir, `${name}.mp4`)
 execFileSync(
   'ffmpeg',
   [
     '-y', '-loglevel', 'error',
     '-framerate', String(fps),
     '-i', path.join(framesDir, 'f%05d.png'),
-    '-vf', 'scale=1920:1080:flags=lanczos,format=yuv420p',
+    '-vf', `scale=${W}:${H}:flags=lanczos,format=yuv420p`,
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '14',
     '-movflags', '+faststart',
     mp4,

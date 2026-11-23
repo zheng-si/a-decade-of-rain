@@ -11,6 +11,7 @@
 //   /reel/?shot=3          the shot, seekable from the console
 //   /reel/?shot=3&t=7.5    parked at one instant (for stills)
 //   /reel/?shot=3&play     wall-clock preview (not frame-exact)
+//   /reel/?shot=plate&id=peak  a keyframe plate (see plates.ts)
 import type maplibregl from 'maplibre-gl'
 
 export interface Shot {
@@ -26,6 +27,7 @@ export interface Shot {
 const LOADERS: Record<string, () => Promise<{ shot: Shot }>> = {
   '3': () => import('./storyDecade'),
   '7': () => import('./atlasLookup'),
+  plate: () => import('./plates'),
 }
 
 declare global {

@@ -11,7 +11,7 @@
 //   7.0 – 8.4   hold on 1967, the Peak card
 //   8.4 – 12.8  1968 → Dec 1971
 //  12.8 – 16.0  the Reckoning card on the whole field
-import maplibregl from 'maplibre-gl'
+import type maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import '../fonts.css'
 import '../index.css'
@@ -20,29 +20,15 @@ import '../pages/Story.css'
 import '../StorySkinV3.css'
 import '../fontsGeist.css'
 import './reel-site.css'
-import { mapConfig } from '../config/mapConfig'
-import {
-  resolveMapStyle,
-  applyMapTheme,
-  addHillshade,
-  setHillshade,
-  STORY_WATER,
-  addStoryHeat,
-  setStoryHeatTime,
-  addMilitaryRegions,
-  addIslandMarks,
-  STORY_HEAT_LAYER,
-} from '../components/mapTheme'
-import { applyLabelCuration } from '../components/labelLayers'
-import { quietBasemap, addVietnamLabel } from '../components/volumeGrid'
-import { loadHeat } from '../data/heat'
-import { loadSpray, dayToDate, dateToDay, fmtGallons, type SprayDataset } from '../data/spray'
+import { setStoryHeatTime } from '../components/mapTheme'
+import { dayToDate, dateToDay, fmtGallons, type SprayDataset } from '../data/spray'
 import { FACTS_EVENTS } from '../content/facts/events'
 import { SOURCES } from '../content/sources'
 import { CARD_ART, CARD_ART_PARTS, CARD_ART_STYLE } from '../figures/cards'
 import { MASTER_MS, mountMotion, type Motion } from '../components/cardArtMotion'
 import type { Shot } from './main'
-import { monotone, span, easeOut, json } from './util'
+import { monotone, span, easeOut } from './util'
+import { buildStoryMap, showNodeMarks, type StoryMap } from './storyMap'
 
 type Ev = (typeof FACTS_EVENTS)[number]
 
@@ -61,10 +47,6 @@ const timeline = monotone([
 /** The decade's nodes, in the order their dates fall. */
 const NODE_IDS = ['begins', 'warzone-d', 'peak', 'mangroves', 'a-sau', 'hotspots', 'reckoning']
 
-const DEM_SOURCE = 'terrain-dem'
-const RELIEF_FLAT = 0.28
-const HEAT_SRC = 'spray-heat'
-const LANDMARK_SOURCE = 'landmarks'
 
 /** The Story's own: monthly cumulative gallons, trimmed at 99% (Story.tsx). */
 function monthlyCumulative(spray: SprayDataset): { months: number[]; yearStart: number } {
@@ -97,7 +79,7 @@ const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;')
 let map: maplibregl.Map
 let months: number[] = []
 let yearStart = 1961
-let landmarksGeo: GeoJSON.FeatureCollection | null = null
+let sm: StoryMap
 let lastHeatDay = -1
 let shownNode = ''
 let markers: maplibregl.Marker[] = []
@@ -237,98 +219,14 @@ function buildCard(ev: Ev): HTMLElement {
   return step
 }
 
-/** The node's landmarks and pilot crosses, as the Story draws them. */
-function showNodeMarks(ev: Ev | null) {
-  for (const m of markers) m.remove()
-  markers = []
-  const src = map.getSource(LANDMARK_SOURCE) as maplibregl.GeoJSONSource
-  if (!ev) {
-    src.setData({ type: 'FeatureCollection', features: [] })
-    return
-  }
-  for (const c of ev.crosses ?? []) {
-    const el = h('div', c.leader ? 'map-dot map-dot--leader' : c.below ? 'map-dot map-dot--below' : 'map-dot')
-    if (c.leader) el.style.setProperty('--leader', `${c.leader}px`)
-    el.innerHTML = `<span class="map-dot-ring"></span><span class="map-dot-core"></span><span class="map-dot-label">${esc(c.label)}</span>`
-    markers.push(new maplibregl.Marker({ element: el }).setLngLat([c.lng, c.lat]).addTo(map))
-  }
-  const feats = (ev.landmarks ?? [])
-    .filter((l) => l.boundaryId)
-    .map((l) => landmarksGeo?.features.find((f) => (f.properties as { id?: string } | null)?.id === l.boundaryId))
-    .filter((f): f is GeoJSON.Feature => !!f)
-  src.setData({ type: 'FeatureCollection', features: feats })
-  for (const l of ev.landmarks ?? []) {
-    if (!l.point) continue
-    const el = h('div')
-    if (l.boundaryId) {
-      el.className = 'map-area-label'
-      el.innerHTML = `<span class="map-dot-label">${esc(l.name)}</span>`
-    } else {
-      el.className = 'map-dot'
-      el.innerHTML = `<span class="map-dot-ring"></span><span class="map-dot-core"></span><span class="map-dot-label">${esc(l.name)}</span>`
-    }
-    markers.push(new maplibregl.Marker({ element: el }).setLngLat(l.point).addTo(map))
-  }
-}
-
 export const shot: Shot = {
   duration: DURATION,
   stageClass: 'story',
 
   async setup(mapEl, overlay) {
-    const style = await resolveMapStyle()
-    map = new maplibregl.Map({
-      container: mapEl,
-      style,
-      center: [107.4, 12.9],
-      zoom: 6.3,
-      interactive: false,
-      attributionControl: false,
-      fadeDuration: 0,
-      maxPitch: mapConfig.view.maxPitch,
-      canvasContextAttributes: { antialias: true, preserveDrawingBuffer: true },
-    })
-    const [spray, heat, mrGeo, mrLabelsGeo, lm] = await Promise.all([
-      loadSpray(),
-      loadHeat(),
-      json<GeoJSON.FeatureCollection>('/data/military-region-dividers.geojson'),
-      json<GeoJSON.FeatureCollection>('/data/military-region-labels.geojson'),
-      json<GeoJSON.FeatureCollection>('/data/landmarks.geojson'),
-      new Promise<void>((r) => map.once('load', () => r())),
-    ])
-    landmarksGeo = lm
-    ;({ months, yearStart } = monthlyCumulative(spray))
-
-    // The Story's map setup, in the Story's order (Story.tsx).
-    applyMapTheme(map)
-    applyLabelCuration(map)
-    quietBasemap(map, { labels: false, water: STORY_WATER })
-    if (mapConfig.terrain) {
-      map.addSource(DEM_SOURCE, {
-        type: 'raster-dem',
-        tiles: [mapConfig.terrain.demUrl],
-        tileSize: 256,
-        encoding: mapConfig.terrain.encoding,
-        maxzoom: 15,
-      })
-      addHillshade(map, DEM_SOURCE)
-      setHillshade(map, true, RELIEF_FLAT)
-    }
-    map.addSource(HEAT_SRC, { type: 'geojson', data: heat.features })
-    addStoryHeat(map, HEAT_SRC, DAY_START - 1)
-    addMilitaryRegions(map, mrGeo, mrLabelsGeo, STORY_HEAT_LAYER)
-    addVietnamLabel(map)
-    map.addSource(LANDMARK_SOURCE, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } })
-    map.addLayer({
-      id: 'landmark-outline',
-      type: 'line',
-      source: LANDMARK_SOURCE,
-      layout: { 'line-join': 'round', 'line-cap': 'round' },
-      paint: { 'line-color': '#e8443a', 'line-width': 3, 'line-opacity': 0.95 },
-    })
-    addIslandMarks(map)
-    for (const id of ['island-dot', 'island-label'])
-      if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none')
+    sm = await buildStoryMap(mapEl, { center: [107.4, 12.9], zoom: 6.3 }, DAY_START - 1)
+    map = sm.map
+    ;({ months, yearStart } = monthlyCumulative(sm.spray))
 
     // The Reckoning node's frame: the whole sprayed south, clear of the card.
     // The card's right edge sits at 14.5rem + 25.5rem = 640px.
@@ -411,7 +309,7 @@ export const shot: Shot = {
     const node = cur >= 0 ? cards[cur].ev.id : ''
     if (node !== shownNode) {
       shownNode = node
-      showNodeMarks(cur >= 0 ? cards[cur].ev : null)
+      markers = showNodeMarks(sm, cur >= 0 ? cards[cur].ev : null, markers)
     }
     // the Story's breathing outline, on the shot's clock
     if (map.getLayer('landmark-outline'))
